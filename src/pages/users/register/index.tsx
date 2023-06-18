@@ -14,7 +14,12 @@ function RegisterUser() {
       <Header title="Cadastro de usuários" buttonBack={permission} />
       <FormProvider {...methods}>
         <Form />
-        <Button variant="contained" fullWidth sx={{ marginTop: 2 }}>
+        <Button
+          variant="contained"
+          fullWidth
+          sx={{ marginTop: 2 }}
+          onClick={() => localStorage.setItem('user', 'iccv')}
+        >
           Salvar
         </Button>
       </FormProvider>
