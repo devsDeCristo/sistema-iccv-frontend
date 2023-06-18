@@ -11,7 +11,7 @@ function SideBar() {
       <Sidebar className="sidebar" image={image}>
         <Menu>
           <MenuItem className="menu1">
-            <h2>Igreja de Cristo</h2>
+            <h2>ICCV</h2>
           </MenuItem>
           <MenuItem icon={<People />} component={<Link to="/" />}>
             Usuários
