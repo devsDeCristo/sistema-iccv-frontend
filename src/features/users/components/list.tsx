@@ -1,4 +1,4 @@
-import { Box, Card } from '@mui/material';
+import { Card } from '@mui/material';
 import { DataGrid, GridColDef, GridRowsProp } from '@mui/x-data-grid';
 
 function List() {
