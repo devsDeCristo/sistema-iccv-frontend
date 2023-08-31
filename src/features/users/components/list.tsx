@@ -1,45 +1,35 @@
 import { Card } from '@mui/material';
-import { DataGrid, GridColDef, GridRowsProp } from '@mui/x-data-grid';
+import { DataGrid, GridColDef } from '@mui/x-data-grid';
+import { useGetUsers } from '../api/getUsers';
+import { formatPhoneNumber } from '../../../utils';
 
 function List() {
-  const rows: GridRowsProp = [
-    {
-      id: 1,
-      name: 'Felipe',
-      birthday: '20/11/1993',
-      cellphone: '84 987945555',
-      religion: 'Protestante',
-      notes: 'Alergico a danone',
-    },
-    {
-      id: 2,
-      name: 'Felipe Q',
-      birthday: '20/11/1993',
-      cellphone: '84 987945555',
-      religion: 'Protestante',
-      notes: 'Alergico a danone',
-    },
-    {
-      id: 3,
-      name: 'Felipe C',
-      birthday: '20/11/1993',
-      cellphone: '84 987945555',
-      religion: 'Protestante',
-      notes: 'Alergico a danone',
-    },
-  ];
+  const { data = [] } = useGetUsers();
 
   const columns: GridColDef[] = [
-    { field: 'name', headerName: 'Nome', flex: 1 },
-    { field: 'birthday', headerName: 'Data de nascimento', flex: 1 },
-    { field: 'cellphone', headerName: 'Telefone', flex: 1 },
+    { field: 'fullName', headerName: 'Nome', flex: 1 },
+    {
+      field: 'birthday',
+      headerName: 'Data de nascimento',
+      flex: 1,
+      valueGetter: (params) =>
+        new Date(params.row.birthday).toLocaleDateString('pt-BR', {
+          timeZone: 'UTC',
+        }),
+    },
+    {
+      field: 'cellphone',
+      headerName: 'Telefone',
+      flex: 1,
+      valueGetter: (params) => formatPhoneNumber(params.row.cellphone),
+    },
     { field: 'religion', headerName: 'Religião', flex: 1 },
     { field: 'notes', headerName: 'Observações', flex: 1 },
   ];
 
   return (
     <Card>
-      <DataGrid rows={rows} columns={columns} />
+      <DataGrid rows={data} columns={columns} />
     </Card>
   );
 }

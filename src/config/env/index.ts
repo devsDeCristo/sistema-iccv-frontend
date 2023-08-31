@@ -1,5 +1,3 @@
-// import { LOCALSTORAGE_URL_API_KEY } from '../../constants/keys';
-
 export enum ENUM_NODE_ENV {
   ENV_PROD = 'production',
   ENV_STAGE = 'stage',
@@ -22,4 +20,4 @@ export const isProd = FRONT_ENV === ENUM_NODE_ENV.ENV_PROD;
 // }
 
 // export const API_URL = getApiUrl();
-export const API_URL = import.meta.env.REACT_APP_API_URL;
+export const API_URL = import.meta.env.VITE_API_URL;

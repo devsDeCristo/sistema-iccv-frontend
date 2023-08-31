@@ -6,6 +6,7 @@ import { List } from '../../features/users/components/list';
 
 function Users() {
   const navigate = useNavigate();
+
   return (
     <PageStyle>
       <Header title="Usuários" />

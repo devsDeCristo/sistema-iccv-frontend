@@ -28,3 +28,18 @@ export function stringAvatar(name: string) {
     children: `${name.split(' ')[0][0]}${name.split(' ')[1][0]}`,
   };
 }
+
+export function formatPhoneNumber(phoneNumber: string): string {
+  // Remove todos os caracteres não numéricos
+  const numericOnly = phoneNumber.replace(/\D/g, '');
+
+  // Aplica a máscara (XX) XXXXX-XXXX
+  const match = numericOnly.match(/^(\d{2})(\d{5})(\d{4})$/);
+
+  if (match) {
+    return `(${match[1]}) ${match[2]}-${match[3]}`;
+  }
+
+  // Retorna o número formatado originalmente se não houver correspondência
+  return phoneNumber;
+}
