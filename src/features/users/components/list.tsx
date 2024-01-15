@@ -4,7 +4,7 @@ import { useGetUsers } from '../api/getUsers';
 import { formatPhoneNumber } from '../../../utils';
 
 function List() {
-  const { data = [] } = useGetUsers();
+  const { data = [], isLoading } = useGetUsers();
 
   const columns: GridColDef[] = [
     { field: 'fullName', headerName: 'Nome', flex: 1 },
@@ -29,7 +29,7 @@ function List() {
 
   return (
     <Card>
-      <DataGrid rows={data} columns={columns} />
+      <DataGrid rows={data} columns={columns} loading={isLoading} />
     </Card>
   );
 }
