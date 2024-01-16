@@ -1,6 +1,7 @@
 import { Grid } from '@mui/material';
 import { Input } from '../../../components/input';
 import { InputDatePicker } from '../../../components/inputDatePicker';
+import { InputSelect } from '../../../components/inputSelect';
 
 function Form() {
   return (
@@ -28,7 +29,6 @@ function Form() {
       <Grid item xs={12} md={6}>
         <Input name="religion" required label="Religiao" />
       </Grid>
-
       <Grid item xs={12} md={6}>
         <Input
           required
@@ -36,6 +36,9 @@ function Form() {
           label="Observações"
           placeholder="Insira aqui caso tenha alguma alergia ou algo parecido"
         />
+      </Grid>
+      <Grid item xs={12} md={6}>
+        <InputSelect name="diabetic"  label="Possui Diabetes?" />
       </Grid>
     </Grid>
   );
