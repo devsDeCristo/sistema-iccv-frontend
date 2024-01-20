@@ -23,9 +23,9 @@ const InputSelect = ({ name, label }: InputSelectProps) => {
                 }}
                 label={label}
                 value={value}
-                onOpen={open}
-                onClose={handleClose}
-                onOpen={handleOpen}
+                //onOpen={open}
+                //onClose={handleClose}
+                //onOpen={handleOpen}
                 onChange={onChange}
               >
                 <MenuItem value={false}>Não</MenuItem>
