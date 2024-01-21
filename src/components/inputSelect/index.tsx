@@ -1,12 +1,24 @@
-import { FormControl, InputLabel, MenuItem, Select } from '@mui/material';
+import {
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
+  SelectProps,
+} from '@mui/material';
 import { useForm, Controller } from 'react-hook-form';
 
 interface InputSelectProps {
   name: string;
   label: string;
+  menuOptions: { value: string; name: string }[];
 }
 
-const InputSelect = ({ name, label }: InputSelectProps) => {
+const InputSelect = ({
+  name,
+  label,
+  menuOptions,
+  ...rest
+}: InputSelectProps & SelectProps) => {
   const { control } = useForm();
 
   return (
@@ -15,23 +27,25 @@ const InputSelect = ({ name, label }: InputSelectProps) => {
         control={control}
         name={name}
         render={({ field: { onChange, value } }) => (
-        <FormControl fullWidth>
-          <InputLabel id="demo-simple-select-label">{label}</InputLabel>
-              <Select
-                sx={{
-                  width: '100%',
-                }}
-                label={label}
-                value={value}
-                //onOpen={open}
-                //onClose={handleClose}
-                //onOpen={handleOpen}
-                onChange={onChange}
-              >
-                <MenuItem value={false}>Não</MenuItem>
-                <MenuItem value={true}>Sim</MenuItem>
-              </Select>
-        </FormControl>
+          <FormControl fullWidth>
+            <InputLabel id="select-label">{label}</InputLabel>
+            <Select
+              sx={{
+                width: '100%',
+              }}
+              labelId="select-label"
+              label={label}
+              value={value}
+              onChange={onChange}
+              {...rest}
+            >
+              {menuOptions.map((option, index) => (
+                <MenuItem key={index} value={option.value}>
+                  {option.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
         )}
       />
     </div>

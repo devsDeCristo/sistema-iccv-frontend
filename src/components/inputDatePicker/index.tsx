@@ -1,4 +1,4 @@
-import { DatePicker } from '@mui/x-date-pickers';
+import { DatePicker, DatePickerProps } from '@mui/x-date-pickers';
 import { useForm, Controller } from 'react-hook-form';
 
 interface InputDatePickerProps {
@@ -6,7 +6,11 @@ interface InputDatePickerProps {
   label: string;
 }
 
-const InputDatePicker = ({ name, label }: InputDatePickerProps) => {
+const InputDatePicker = ({
+  name,
+  label,
+  ...rest
+}: InputDatePickerProps & DatePickerProps<Date>) => {
   const { control } = useForm();
 
   return (
@@ -22,6 +26,7 @@ const InputDatePicker = ({ name, label }: InputDatePickerProps) => {
             label={label}
             value={value}
             onChange={onChange}
+            {...rest}
           />
         )}
       />
