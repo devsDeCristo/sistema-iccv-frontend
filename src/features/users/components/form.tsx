@@ -55,9 +55,7 @@ function Form() {
   const [city, setCity] = useState<string>('');
   const [state, setState] = useState<string>('');
   const [role, setRole] = useState<number>();
-  useEffect(() => {
-    console.log(cpf, inputCpf, cellphone, inputCellphone);
-  }, [cpf, inputCpf, cellphone, inputCellphone]);
+
   return (
     <Grid container spacing={2}>
       <Grid item xs={12}>
@@ -239,26 +237,3 @@ function Form() {
 }
 
 export { Form };
-const user = {
-  id: 5,
-  email: 'edudamaris33@gmail.com', //
-  fullName: 'Eduarda Dâmaris Lima Diógenes', //
-  cpf: '70025784480', //
-  birthday: '2004-06-09T00:00:00.000Z', //
-  cellphone: '84994669886', //
-  worker: false,
-  diabetes: false, //
-  hypertensive: false, //
-  profession: 'Cursilhista', //falar com felipe
-  city: 'Parnamirim',
-  state: 'RN',
-  role: 5,
-  profilePhotoUrl: null, //
-  emergencyContact: null, //
-  indicatedBy: null, //
-  leadershipPosition: null,
-  religion: null, //
-  notes: null, //
-  createdAt: '2023-09-24T19:18:57.540Z',
-  updateAt: '2023-09-24T19:17:35.946Z',
-};
