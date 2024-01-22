@@ -23,17 +23,17 @@ const removeMask = (value: string): string => {
   return value.replace(/\D/g, '');
 };
 const optionsBoolean = [
-  { value: '', name: 'Não' },
-  { value: 'sd', name: 'Sim' },
+  { value: 0, name: 'Não' },
+  { value: 1, name: 'Sim' },
 ];
 const optionsProfession = [
   { value: 'Cursilhista', name: 'Participar (Cursilhista)' },
   { value: 'Cursilheiro(a)', name: 'Servir (Cursilheiro)' },
 ];
 const optionsRole = [
-  { value: '0', name: 'Não' },
-  { value: '1', name: 'Pastor' },
-  { value: '5', name: 'Membro(a)' },
+  { value: 0, name: 'Não' },
+  { value: 1, name: 'Pastor' },
+  { value: 5, name: 'Membro(a)' },
 ];
 function Form() {
   const [cpf, setCpf] = useState<string>('');
@@ -45,8 +45,8 @@ function Form() {
   const [inputCellphone, setInputCellphone] = useState<string>('');
   const [religion, setReligion] = useState<string>('');
   const [notes, setNotes] = useState<string>('');
-  const [diabetic, setDiabetic] = useState<boolean>(false);
-  const [hypertensive, setHypertensive] = useState<boolean>(false);
+  const [diabetic, setDiabetic] = useState<unknown>();
+  const [hypertensive, setHypertensive] = useState<unknown>();
   const [indicateBy, setIndicateBy] = useState<string>('');
   const [emergencyContact, setEmergencyContact] = useState<string>('');
   const [inputEmergencyContact, setInputEmergencyContact] =
@@ -54,8 +54,8 @@ function Form() {
   const [profession, setProfession] = useState<string>('');
   const [city, setCity] = useState<string>('');
   const [state, setState] = useState<string>('');
-  const [role, setRole] = useState<number>();
-
+  const [role, setRole] = useState<unknown>();
+  console.log(diabetic);
   return (
     <Grid container spacing={2}>
       <Grid item xs={12}>
@@ -138,7 +138,7 @@ function Form() {
           menuOptions={optionsBoolean}
           value={diabetic}
           onChange={(event) => {
-            setDiabetic(event.target.value as boolean);
+            setDiabetic(event.target.value);
           }}
         />
       </Grid>
@@ -149,7 +149,7 @@ function Form() {
           menuOptions={optionsBoolean}
           value={hypertensive}
           onChange={(event) => {
-            setHypertensive(event.target.value as boolean);
+            setHypertensive(event.target.value);
           }}
         />
       </Grid>
@@ -206,7 +206,7 @@ function Form() {
           menuOptions={optionsRole}
           value={role}
           onChange={(event) => {
-            setRole(event.target.value as number);
+            setRole(event.target.value);
           }}
         />
       </Grid>

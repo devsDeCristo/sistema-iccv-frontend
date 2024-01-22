@@ -10,7 +10,7 @@ import { useForm, Controller } from 'react-hook-form';
 interface InputSelectProps {
   name: string;
   label: string;
-  menuOptions: { value: string; name: string }[];
+  menuOptions: { value: string | number; name: string }[];
 }
 
 const InputSelect = ({
@@ -37,6 +37,7 @@ const InputSelect = ({
               label={label}
               value={value}
               onChange={onChange}
+              displayEmpty
               {...rest}
             >
               {menuOptions.map((option, index) => (
