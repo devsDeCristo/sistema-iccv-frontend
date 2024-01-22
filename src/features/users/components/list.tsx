@@ -3,15 +3,15 @@ import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { useGetUsers } from '../api/getUsers';
 import { formatPhoneNumber } from '../../../utils';
 import { Button } from '@mui/material';
-import PdfEvent from '../../../components/pdfEvent'
-import FileSaver from "file-saver";
-import { pdf } from "@react-pdf/renderer";
+import PdfEvent from '../../../components/pdfEvent';
+import FileSaver from 'file-saver';
+import { pdf } from '@react-pdf/renderer';
 function List() {
   const { data = [] } = useGetUsers();
 
   async function handleDownloadPDF() {
     const blob = await pdf(<PdfEvent data={data} />).toBlob();
-    FileSaver.saveAs(blob, "cursilho.pdf");
+    FileSaver.saveAs(blob, 'cursilho.pdf');
   }
 
   const columns: GridColDef[] = [
@@ -34,17 +34,18 @@ function List() {
     { field: 'religion', headerName: 'Religião', flex: 1 },
     { field: 'notes', headerName: 'Observações', flex: 1 },
   ];
-console.log(data)
   return (
     <Card>
-      <Button variant="outlined" onClick={() =>{ 
-        handleDownloadPDF();
-      }}>
-          Gerar PDF
-     </Button>
-     <DataGrid rows={data} autoHeight={true} columns={columns} />
+      <Button
+        variant="outlined"
+        onClick={() => {
+          handleDownloadPDF();
+        }}
+      >
+        Gerar PDF
+      </Button>
+      <DataGrid rows={data} autoHeight={true} columns={columns} />
     </Card>
-  
   );
 }
 
