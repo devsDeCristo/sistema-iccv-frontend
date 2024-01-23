@@ -1,9 +1,11 @@
-import { Grid } from '@mui/material';
+import { Button, Grid } from '@mui/material';
 import { Input } from '../../../components/input';
 import { InputDatePicker } from '../../../components/inputDatePicker';
 import { InputSelect } from '../../../components/inputSelect';
 import { useEffect, useState } from 'react';
-
+import { Controller, useForm, useFormContext } from 'react-hook-form';
+import { z } from 'zod';
+import { RegisterUsersFormType } from '../types';
 const maskCPF = (value: string): string => {
   return value
     .replace(/\D/g, '')
@@ -55,43 +57,53 @@ function Form() {
   const [city, setCity] = useState<string>('');
   const [state, setState] = useState<string>('');
   const [role, setRole] = useState<unknown>();
-  console.log(diabetic);
+  const {
+    control,
+    formState: { errors },
+  } = useFormContext<RegisterUsersFormType>();
+  console.log(errors);
+
   return (
     <Grid container spacing={2}>
       <Grid item xs={12}>
-        <Input
+        <Controller
+          control={control}
           name="fullName"
-          required
-          label="Nome completo"
-          value={fullName}
-          onChange={(event) => {
-            setFullName(event.target.value);
-          }}
+          render={({ field: { onChange, value } }) => (
+            <Input
+              value={value}
+              onChange={onChange}
+              required
+              label="Nome completo"
+            />
+          )}
         />
       </Grid>
 
       <Grid item xs={12} md={6}>
-        <Input
+        <Controller
+          control={control}
           name="email"
-          required
-          label="E-mail"
-          value={email}
-          onChange={(event) => {
-            setEmail(event.target.value);
-          }}
+          render={({ field: { onChange, value } }) => (
+            <Input value={value} onChange={onChange} required label="E-mail" />
+          )}
         />
       </Grid>
 
       <Grid item xs={12} md={6}>
-        <Input
+        <Controller
           name="cpf"
-          required
-          label="CPF"
-          value={inputCpf}
-          onChange={(event) => {
-            setCpf(removeMask(maskCPF(event.target.value)));
-            setInputCpf(maskCPF(event.target.value));
-          }}
+          control={control}
+          render={({ field: { onChange, value } }) => (
+            <Input
+              required
+              label="CPF"
+              value={value}
+              error={!!errors.cpf}
+              errorMessage={errors.cpf?.message}
+              onChange={(event) => onChange(maskCPF(event.target.value))}
+            />
+          )}
         />
       </Grid>
 
@@ -120,15 +132,7 @@ function Form() {
       </Grid>
 
       <Grid item xs={12} md={6}>
-        <Input
-          name="religion"
-          required
-          label="Religiao"
-          value={religion}
-          onChange={(event) => {
-            setReligion(event.target.value);
-          }}
-        />
+        <Input name="religion" required label="Religiao" />
       </Grid>
 
       <Grid item xs={12} md={6}>
