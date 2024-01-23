@@ -8,56 +8,33 @@ import {
   Stack,
 } from '@mui/material';
 import { stringAvatar } from '../../../utils';
+import { useGetBedrooms } from '../api/getBedrooms';
+import { useParams } from 'react-router-dom';
+import { Loading } from '../../../components/loading';
 
 function ListBedRooms() {
-  const mockBread = [
-    {
-      id: 1,
-      notes: 'Quarto 1',
-      users: [
-        {
-          name: 'Felipe Queiroz',
-        },
-        {
-          name: 'Pamella Queiroz',
-        },
-        {
-          name: 'Lunna Queiroz',
-        },
-      ],
-    },
-    {
-      id: 12,
-      notes: 'Quarto 2',
-      users: [
-        {
-          name: 'Felipe Queiroz',
-        },
-        {
-          name: 'Pamella Queiroz',
-        },
-        {
-          name: 'Lunna Queiroz',
-        },
-      ],
-    },
-  ];
+  const { id: eventId = 0 } = useParams();
+  const { data: bedroomsData = [], isLoading } = useGetBedrooms({
+    eventId: Number(eventId),
+  });
 
-  return mockBread.map((bread) => {
-    return (
-      <Grid item xs={12} md={6} key={bread.id}>
+  return bedroomsData.map((bedroom) => {
+    return isLoading ? (
+      <Loading />
+    ) : (
+      <Grid item xs={12} md={6} key={bedroom.id}>
         <Card variant="outlined" sx={{ padding: 1 }}>
           <Box component="div" display="flex" alignItems="center" gap={0.5}>
             <Typography component="label">Observações:</Typography>
-            <Typography>{bread.notes}</Typography>
+            <Typography>{bedroom.note}</Typography>
           </Box>
           <Box component="div" display="flex" alignItems="center" gap={0.5}>
             <Typography component="label">Usuários:</Typography>
             <Stack direction="row" spacing={0.5}>
-              {bread.users.map((user) => {
+              {bedroom.users.map((user) => {
                 return (
-                  <Tooltip title={user.name} arrow>
-                    <Avatar {...stringAvatar(user.name)} />
+                  <Tooltip title={user.user.fullName} arrow key={user.user.id}>
+                    <Avatar {...stringAvatar(user.user.fullName)} />
                   </Tooltip>
                 );
               })}

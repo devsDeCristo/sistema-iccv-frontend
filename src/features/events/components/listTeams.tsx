@@ -8,37 +8,20 @@ import {
   Stack,
 } from '@mui/material';
 import { stringAvatar } from '../../../utils';
+import { useParams } from 'react-router-dom';
+import { useGetTeams } from '../api/getTeams';
+import { Loading } from '../../../components/loading';
 
 function ListTeams() {
-  const mockTeam = [
-    {
-      id: 1,
-      name: 'Servico',
-      users: [
-        {
-          name: 'Felipe Queiroz',
-        },
-        {
-          name: 'Miqueias Tenorio',
-        },
-      ],
-    },
-    {
-      id: 2,
-      name: 'Decuria Joao',
-      users: [
-        {
-          name: 'Pr Queiroz',
-        },
-        {
-          name: 'Pr Kleber',
-        },
-      ],
-    },
-  ];
+  const { id: eventId = 0 } = useParams();
+  const { data: teamsData = [], isLoading } = useGetTeams({
+    eventId: Number(eventId),
+  });
 
-  return mockTeam.map((team) => {
-    return (
+  return teamsData.map((team) => {
+    return isLoading ? (
+      <Loading />
+    ) : (
       <Grid item xs={12} md={6} key={team.id}>
         <Card variant="outlined" sx={{ padding: 1 }}>
           <Box component="div" display="flex" alignItems="center" gap={0.5}>
@@ -50,8 +33,8 @@ function ListTeams() {
             <Stack direction="row" spacing={0.5}>
               {team.users.map((user) => {
                 return (
-                  <Tooltip title={user.name} arrow>
-                    <Avatar {...stringAvatar(user.name)} />
+                  <Tooltip title={user.user.fullName} arrow key={user.user.id}>
+                    <Avatar {...stringAvatar(user.user.fullName)} />
                   </Tooltip>
                 );
               })}

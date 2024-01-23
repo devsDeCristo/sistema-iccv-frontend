@@ -1,7 +1,7 @@
 import { Card } from '@mui/material';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { useGetUsers } from '../api/getUsers';
-import { formatPhoneNumber } from '../../../utils';
+import { formatDate, formatPhoneNumber } from '../../../utils';
 
 function List() {
   const { data = [], isLoading } = useGetUsers();
@@ -12,10 +12,7 @@ function List() {
       field: 'birthday',
       headerName: 'Data de nascimento',
       flex: 1,
-      valueGetter: (params) =>
-        new Date(params.row.birthday).toLocaleDateString('pt-BR', {
-          timeZone: 'UTC',
-        }),
+      valueGetter: (params) => formatDate(params.row.birthday),
     },
     {
       field: 'cellphone',
