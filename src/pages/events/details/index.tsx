@@ -8,7 +8,7 @@ import { ListBedRooms } from '../../../features/events/components/listBedRooms';
 import { ModalBedRoom } from '../../../features/events/components/modalBedRoom';
 import { useState } from 'react';
 import { ModalTeam } from '../../../features/events/components/modalTeam';
-import { List } from '../../../features/users/components/list';
+import { ListUsers } from '../../../features/events/components/listUsers';
 
 function Details() {
   const methods = useForm();
@@ -81,7 +81,7 @@ function Details() {
           </Button>
         </Box>
         <Card>
-          <List />
+          <ListUsers />
         </Card>
       </Box>
 

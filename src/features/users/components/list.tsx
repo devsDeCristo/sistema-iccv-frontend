@@ -1,13 +1,14 @@
 import { Card } from '@mui/material';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { useGetUsers } from '../api/getUsers';
-import { formatPhoneNumber } from '../../../utils';
 import { Button } from '@mui/material';
 import PdfEvent from '../../../components/pdfEvent';
 import FileSaver from 'file-saver';
 import { pdf } from '@react-pdf/renderer';
+import { formatDate, formatPhoneNumber } from '../../../utils';
+
 function List() {
-  const { data = [] } = useGetUsers();
+  const { data = [], isLoading } = useGetUsers();
 
   async function handleDownloadPDF() {
     const blob = await pdf(<PdfEvent data={data} />).toBlob();
@@ -20,10 +21,7 @@ function List() {
       field: 'birthday',
       headerName: 'Data de nascimento',
       flex: 1,
-      valueGetter: (params) =>
-        new Date(params.row.birthday).toLocaleDateString('pt-BR', {
-          timeZone: 'UTC',
-        }),
+      valueGetter: (params) => formatDate(params.row.birthday),
     },
     {
       field: 'cellphone',
@@ -44,7 +42,12 @@ function List() {
       >
         Gerar PDF
       </Button>
-      <DataGrid rows={data} autoHeight={true} columns={columns} />
+      <DataGrid
+        rows={data}
+        autoHeight={true}
+        columns={columns}
+        loading={isLoading}
+      />
     </Card>
   );
 }

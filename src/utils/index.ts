@@ -43,3 +43,9 @@ export function formatPhoneNumber(phoneNumber: string): string {
   // Retorna o número formatado originalmente se não houver correspondência
   return phoneNumber;
 }
+
+export function formatDate(date: Date) {
+  return new Date(date).toLocaleDateString('pt-BR', {
+    timeZone: 'UTC',
+  });
+}

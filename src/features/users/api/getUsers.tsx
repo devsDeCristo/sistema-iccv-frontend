@@ -1,7 +1,7 @@
 import { UseQueryOptions, useQuery } from 'react-query';
 import { apiClient } from '../../../config/lib/axios/api-client';
-import { User } from '../types';
 import { GET_USERS } from '../constants';
+import { User } from '../../../types/user';
 
 const getUsers = () => {
   return apiClient.get<User[]>('/users').then((response) => response.data);
