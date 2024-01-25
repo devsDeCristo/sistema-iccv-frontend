@@ -28,9 +28,9 @@ const optionsBoolean = [
   { value: 0, name: 'Não' },
   { value: 1, name: 'Sim' },
 ];
-const optionsProfession = [
-  { value: 'Cursilhista', name: 'Participar (Cursilhista)' },
-  { value: 'Cursilheiro(a)', name: 'Servir (Cursilheiro)' },
+const optionsWorker = [
+  { value: 0, name: 'Participar (Cursilhista)' },
+  { value: 1, name: 'Servir (Cursilheiro)' },
 ];
 const optionsRole = [
   { value: 0, name: 'Não' },
@@ -38,30 +38,12 @@ const optionsRole = [
   { value: 5, name: 'Membro(a)' },
 ];
 function Form() {
-  const [cpf, setCpf] = useState<string>('');
-  const [inputCpf, setInputCpf] = useState<string>('');
-  const [fullName, setFullName] = useState<string>('');
   const [birthday, setBirthday] = useState<Date | null>(new Date());
-  const [email, setEmail] = useState<string>('');
-  const [cellphone, setCellphone] = useState<string>('');
-  const [inputCellphone, setInputCellphone] = useState<string>('');
-  const [religion, setReligion] = useState<string>('');
-  const [notes, setNotes] = useState<string>('');
-  const [diabetic, setDiabetic] = useState<unknown>();
-  const [hypertensive, setHypertensive] = useState<unknown>();
-  const [indicateBy, setIndicateBy] = useState<string>('');
-  const [emergencyContact, setEmergencyContact] = useState<string>('');
-  const [inputEmergencyContact, setInputEmergencyContact] =
-    useState<string>('');
-  const [profession, setProfession] = useState<string>('');
-  const [city, setCity] = useState<string>('');
-  const [state, setState] = useState<string>('');
-  const [role, setRole] = useState<unknown>();
   const {
     control,
     formState: { errors },
+    watch,
   } = useFormContext<RegisterUsersFormType>();
-  console.log(errors);
 
   return (
     <Grid container spacing={2}>
@@ -117,17 +99,20 @@ function Form() {
           }}
         />
       </Grid>
-
       <Grid item xs={12} md={6}>
-        <Input
+        <Controller
           name="cellphone"
-          required
-          label="Celular"
-          value={inputCellphone}
-          onChange={(event) => {
-            setInputCellphone(maskPhone(event.target.value));
-            setCellphone(removeMask(maskPhone(event.target.value)));
-          }}
+          control={control}
+          render={({ field: { onChange, value } }) => (
+            <Input
+              required
+              label="Celular"
+              value={value}
+              error={!!errors.cellphone}
+              errorMessage={errors.cellphone?.message}
+              onChange={(event) => onChange(maskPhone(event.target.value))}
+            />
+          )}
         />
       </Grid>
 
@@ -136,104 +121,130 @@ function Form() {
       </Grid>
 
       <Grid item xs={12} md={6}>
-        <InputSelect
+        <Controller
           name="diabetic"
-          label="Possui Diabetes?"
-          menuOptions={optionsBoolean}
-          value={diabetic}
-          onChange={(event) => {
-            setDiabetic(event.target.value);
-          }}
+          control={control}
+          render={({ field: { onChange, value } }) => (
+            <InputSelect
+              label="Possui Diabetes?"
+              menuOptions={optionsBoolean}
+              value={value}
+              onChange={(event) => onChange(event.target.value)}
+            />
+          )}
         />
       </Grid>
       <Grid item xs={12} md={6}>
-        <InputSelect
+        <Controller
           name="hypertensive"
-          label="Possui Hispertensão?"
-          menuOptions={optionsBoolean}
-          value={hypertensive}
-          onChange={(event) => {
-            setHypertensive(event.target.value);
-          }}
+          control={control}
+          render={({ field: { onChange, value } }) => (
+            <InputSelect
+              label="Possui Hispertensão?"
+              menuOptions={optionsBoolean}
+              value={value}
+              onChange={(event) => onChange(event.target.value)}
+            />
+          )}
         />
       </Grid>
       <Grid item xs={12} md={6}>
-        <Input
-          required
+        <Controller
           name="notes"
-          value={notes}
-          onChange={(event) => {
-            setNotes(event.target.value);
-          }}
-          label="Observações"
-          placeholder="Insira aqui caso tenha alguma alergia ou algo parecido"
+          control={control}
+          render={({ field: { onChange, value } }) => (
+            <Input
+              required
+              value={value}
+              onChange={(event) => onChange(event.target.value)}
+              label="Observações"
+              placeholder="Insira aqui caso tenha alguma alergia ou algo parecido"
+            />
+          )}
         />
       </Grid>
       <Grid item xs={12} md={6}>
-        <Input
+        <Controller
           name="emergencyContact"
-          required
-          label="Contato de Emergência"
-          value={inputEmergencyContact}
-          onChange={(event) => {
-            setInputEmergencyContact(maskPhone(event.target.value));
-            setEmergencyContact(removeMask(maskPhone(event.target.value)));
-          }}
+          control={control}
+          render={({ field: { onChange, value } }) => (
+            <Input
+              required
+              label="Contato de Emergência"
+              value={value}
+              onChange={(event) => onChange(maskPhone(event.target.value))}
+            />
+          )}
         />
       </Grid>
       <Grid item xs={12} md={6}>
-        <Input
+        <Controller
           name="indicateBy"
-          required
-          label="Foi indicado por alguem? Se sim, quem?"
-          value={indicateBy}
-          onChange={(event) => {
-            setIndicateBy(event.target.value);
-          }}
+          control={control}
+          render={({ field: { onChange, value } }) => (
+            <Input
+              required
+              label="Foi indicado por alguem? Se sim, quem?"
+              value={value}
+              onChange={(event) => onChange(event.target.value)}
+            />
+          )}
         />
       </Grid>
       <Grid item xs={12} md={6}>
-        <InputSelect
-          name="profession"
-          label="Vai participar ou servir no cursilho?"
-          menuOptions={optionsProfession}
-          value={profession}
-          onChange={(event) => {
-            setProfession(event.target.value as string);
-          }}
+        <Controller
+          name="worker"
+          control={control}
+          render={({ field: { onChange, value } }) => (
+            <InputSelect
+              label="Vai participar ou servir no cursilho?"
+              menuOptions={optionsWorker}
+              value={value}
+              onChange={(event) => onChange(event.target.value)}
+            />
+          )}
         />
       </Grid>
       <Grid item xs={12} md={6}>
-        <InputSelect
+        <Controller
           name="role"
-          label="Possui ministerio na igreja? Qual?"
-          menuOptions={optionsRole}
-          value={role}
-          onChange={(event) => {
-            setRole(event.target.value);
-          }}
+          control={control}
+          render={({ field: { onChange, value } }) => (
+            <InputSelect
+              label="Possui ministerio na igreja? Qual?"
+              menuOptions={optionsRole}
+              value={value}
+              onChange={(event) => onChange(event.target.value)}
+            />
+          )}
         />
       </Grid>
       <Grid item xs={12} md={6}>
-        <Input
+        <Controller
           name="city"
-          required
-          label="Cidade"
-          value={city}
-          onChange={(event) => {
-            setCity(event.target.value);
-          }}
+          control={control}
+          render={({ field: { onChange, value } }) => (
+            <Input
+              required
+              label="Cidade"
+              value={value}
+              onChange={(event) => onChange(event.target.value)}
+            />
+          )}
         />
       </Grid>
       <Grid item xs={12} md={6}>
-        <Input
+        <Controller
           name="state"
-          required
-          label="Estado"
-          value={state}
-          onChange={(event) => {
-            setState(event.target.value);
-          }}
+          control={control}
+          render={({ field: { onChange, value } }) => (
+            <Input
+              required
+              label="Estado"
+              value={value}
+              onChange={(event) => onChange(event.target.value)}
+            />
+          )}
         />
       </Grid>
     </Grid>

@@ -7,13 +7,14 @@ import { usePermission } from '../../../hooks/usePermission';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { RegisterUsersFormType } from './../../../features/users/types';
 import { REGISTER_USERS_SCHEMA } from '../../../features/users/constants';
+
 function RegisterUser() {
   const methods = useForm<RegisterUsersFormType>({
     resolver: zodResolver(REGISTER_USERS_SCHEMA),
   });
   const permission = usePermission();
   function onSubmitForm(data: RegisterUsersFormType) {
-    console.log(data.email);
+    console.log(data);
   }
   return (
     <PageStyle>
