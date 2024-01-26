@@ -5,7 +5,6 @@ import {
   Select,
   SelectProps,
 } from '@mui/material';
-import { useForm, Controller } from 'react-hook-form';
 
 interface InputSelectProps {
   label: string;

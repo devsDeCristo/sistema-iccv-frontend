@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { REGISTER_USERS_SCHEMA } from './constants';
+import { REGISTER_USERS_SCHEMA } from '../features/users/constants';
 
 export interface User {
   id: string;
@@ -22,4 +22,4 @@ export interface User {
   religion?: string;
   notes?: string;
 }
-export type RegisterUsersFormType = z.infer<typeof REGISTER_USERS_SCHEMA>
+export type RegisterUsersFormType = z.infer<typeof REGISTER_USERS_SCHEMA>;

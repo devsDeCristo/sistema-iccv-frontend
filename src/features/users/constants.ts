@@ -1,19 +1,52 @@
 import { z } from 'zod';
 export const GET_USERS = 'GET_USERS';
+
+const DEFAULT_MESSAGE = 'Campo obrigatório';
+
 export const REGISTER_USERS_SCHEMA = z.object({
-    fullName: z.string({
-      required_error: '',
-    }),
-    email: z.string(),
-    cpf:z.string().min(8,{message:"CPF deve conter 11 digitos"}),
-    cellphone:z.string().min(8,{message:"Preencha um número válido"}),
-    notes: z.string(),
-    emergencyContact:z.string().min(8,{message:"Preencha um número válido"}),
-    indicateBy:z.string(),
-    worker:z.number(),
-    role:z.number(),
-    city:z.string(),
-    state:z.string(),
-    diabetic:z.number(),
-    hypertensive:z.number()
-  });
+  fullName: z.string({
+    required_error: DEFAULT_MESSAGE,
+  }),
+  email: z.string({
+    required_error: DEFAULT_MESSAGE,
+  }),
+  cpf: z
+    .string({
+      required_error: DEFAULT_MESSAGE,
+    })
+    .min(8, { message: 'CPF deve conter 11 digitos' }),
+  cellphone: z
+    .string({
+      required_error: DEFAULT_MESSAGE,
+    })
+    .min(8, { message: 'Preencha um número válido' }),
+  notes: z.string().optional(),
+  religion: z.string().optional(),
+  birthday: z.date({
+    required_error: DEFAULT_MESSAGE,
+  }),
+  emergencyContact: z
+    .string({
+      required_error: DEFAULT_MESSAGE,
+    })
+    .min(8, { message: 'Preencha um número válido' })
+    .optional(),
+  indicatedBy: z.string().optional(),
+  leadershipPosition: z.string().optional(),
+  worker: z.number({
+    required_error: DEFAULT_MESSAGE,
+  }),
+  role: z.number().optional(),
+  city: z.string({
+    required_error: DEFAULT_MESSAGE,
+  }),
+  state: z.string({
+    required_error: DEFAULT_MESSAGE,
+  }),
+  diabetes: z.number({
+    required_error: DEFAULT_MESSAGE,
+  }),
+  hypertensive: z.number({
+    required_error: DEFAULT_MESSAGE,
+  }),
+});

@@ -1,19 +1,30 @@
-import { UseQueryOptions, useQuery } from 'react-query';
+import { MutationOptions, useMutation } from 'react-query';
 import { apiClient } from '../../../config/lib/axios/api-client';
-import { User } from '../types';
-import { GET_USERS } from '../constants';
+import {
+  handleResponseSuccess,
+  handleResponseThrowError,
+} from '../../../utils/service';
 
-const postUsers = () => {
-  return apiClient.post<User[]>('/users').then((response) => response.data);
-};
+const postCreateUser = (data: any) =>
+  apiClient
+    .post<boolean>('/users', data)
+    .then((response) => {
+      console.log(response);
+      handleResponseSuccess(response.data, 'Cadastro efetuado com sucesso')();
+    })
+    .catch(handleResponseThrowError());
 
-type PostUsersData = Awaited<ReturnType<typeof postUsers>>;
+type PostCreateUserData = Awaited<ReturnType<typeof postCreateUser>>;
 
-export const usePostUsers = (
-  options: Omit<
-    UseQueryOptions<PostUsersData, unknown, PostUsersData>,
-    'queryKey' | 'queryFn'
-  > = {}
-) => {
-  return useQuery([GET_USERS], () => postUsers(), options);
+export const usePostCreateUser = ({
+  onSuccess,
+  ...options
+}: MutationOptions<PostCreateUserData, unknown, any> = {}) => {
+  return useMutation({
+    mutationFn: postCreateUser,
+    onSuccess: (...args) => {
+      onSuccess?.(...args);
+    },
+    ...options,
+  });
 };

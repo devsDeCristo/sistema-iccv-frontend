@@ -1,11 +1,9 @@
-import { Button, Grid } from '@mui/material';
+import { Grid } from '@mui/material';
 import { Input } from '../../../components/input';
 import { InputDatePicker } from '../../../components/inputDatePicker';
 import { InputSelect } from '../../../components/inputSelect';
-import { useEffect, useState } from 'react';
-import { Controller, useForm, useFormContext } from 'react-hook-form';
-import { z } from 'zod';
-import { RegisterUsersFormType } from '../types';
+import { Controller, useFormContext } from 'react-hook-form';
+import { RegisterUsersFormType } from '../../../types/user';
 const maskCPF = (value: string): string => {
   return value
     .replace(/\D/g, '')
@@ -21,9 +19,7 @@ const maskPhone = (value: string): string => {
     .replace(/(\d{5})(\d)/, '$1-$2')
     .replace(/(-\d{4})(\d+?)$/, '$1');
 };
-const removeMask = (value: string): string => {
-  return value.replace(/\D/g, '');
-};
+
 const optionsBoolean = [
   { value: 0, name: 'Não' },
   { value: 1, name: 'Sim' },
@@ -38,12 +34,12 @@ const optionsRole = [
   { value: 5, name: 'Membro(a)' },
 ];
 function Form() {
-  const [birthday, setBirthday] = useState<Date | null>(new Date());
   const {
     control,
     formState: { errors },
-    watch,
   } = useFormContext<RegisterUsersFormType>();
+
+  console.log(errors);
 
   return (
     <Grid container spacing={2}>
@@ -90,13 +86,17 @@ function Form() {
       </Grid>
 
       <Grid item xs={12} md={6}>
-        <InputDatePicker
+        <Controller
           name="birthday"
-          label="Data de nascimento"
-          value={birthday}
-          onChange={(newValue) => {
-            setBirthday(newValue);
-          }}
+          control={control}
+          render={({ field: { onChange, value } }) => (
+            <InputDatePicker
+              label="Data de nascimento"
+              value={value as unknown as Date}
+              onChange={onChange}
+              errorMessage={errors.birthday?.message}
+            />
+          )}
         />
       </Grid>
       <Grid item xs={12} md={6}>
@@ -117,12 +117,24 @@ function Form() {
       </Grid>
 
       <Grid item xs={12} md={6}>
-        <Input name="religion" required label="Religiao" />
+        <Controller
+          name="religion"
+          control={control}
+          render={({ field: { onChange, value } }) => (
+            <Input
+              label="Religião"
+              value={value}
+              error={!!errors.cpf}
+              errorMessage={errors.religion?.message}
+              onChange={onChange}
+            />
+          )}
+        />
       </Grid>
 
       <Grid item xs={12} md={6}>
         <Controller
-          name="diabetic"
+          name="diabetes"
           control={control}
           render={({ field: { onChange, value } }) => (
             <InputSelect
@@ -154,7 +166,6 @@ function Form() {
           control={control}
           render={({ field: { onChange, value } }) => (
             <Input
-              required
               value={value}
               onChange={(event) => onChange(event.target.value)}
               label="Observações"
@@ -169,7 +180,6 @@ function Form() {
           control={control}
           render={({ field: { onChange, value } }) => (
             <Input
-              required
               label="Contato de Emergência"
               value={value}
               onChange={(event) => onChange(maskPhone(event.target.value))}
@@ -179,11 +189,11 @@ function Form() {
       </Grid>
       <Grid item xs={12} md={6}>
         <Controller
-          name="indicateBy"
+          name="indicatedBy"
           control={control}
           render={({ field: { onChange, value } }) => (
             <Input
-              required
+              // required
               label="Foi indicado por alguem? Se sim, quem?"
               value={value}
               onChange={(event) => onChange(event.target.value)}
@@ -200,6 +210,7 @@ function Form() {
               label="Vai participar ou servir no cursilho?"
               menuOptions={optionsWorker}
               value={value}
+              required
               onChange={(event) => onChange(event.target.value)}
             />
           )}
@@ -207,7 +218,7 @@ function Form() {
       </Grid>
       <Grid item xs={12} md={6}>
         <Controller
-          name="role"
+          name="leadershipPosition"
           control={control}
           render={({ field: { onChange, value } }) => (
             <InputSelect
