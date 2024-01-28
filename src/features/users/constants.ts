@@ -20,17 +20,24 @@ export const REGISTER_USERS_SCHEMA = z.object({
       required_error: DEFAULT_MESSAGE,
     })
     .min(8, { message: 'Preencha um número válido' }),
+  profession: z.string(),
   notes: z.string().optional(),
   religion: z.string().optional(),
-  birthday: z.date({
-    required_error: DEFAULT_MESSAGE,
-  }),
+  birthday: z
+    .date({
+      required_error: DEFAULT_MESSAGE,
+    })
+    .nullable()
+    .refine((value) => value !== null, {
+      message: DEFAULT_MESSAGE,
+    }),
   emergencyContact: z
     .string({
       required_error: DEFAULT_MESSAGE,
     })
     .min(8, { message: 'Preencha um número válido' })
-    .optional(),
+    .optional()
+    .nullable(),
   indicatedBy: z.string().optional(),
   leadershipPosition: z.string().optional(),
   worker: z.number({

@@ -6,8 +6,7 @@ export const handleResponseThrowError = (
   showToast: boolean = true
 ) => {
   return (error: AxiosError<any>) => {
-    console.log({ error });
-    const errorMessage = errorDefaultMessage || error.message;
+    const errorMessage = errorDefaultMessage || error.response?.data.message;
 
     if (showToast) {
       toast.error(errorMessage);

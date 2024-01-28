@@ -4,21 +4,7 @@ import { InputDatePicker } from '../../../components/inputDatePicker';
 import { InputSelect } from '../../../components/inputSelect';
 import { Controller, useFormContext } from 'react-hook-form';
 import { RegisterUsersFormType } from '../../../types/user';
-const maskCPF = (value: string): string => {
-  return value
-    .replace(/\D/g, '')
-    .replace(/(\d{3})(\d)/, '$1.$2')
-    .replace(/(\d{3})(\d)/, '$1.$2')
-    .replace(/(\d{3})(\d{1,2})/, '$1-$2')
-    .replace(/(-\d{2})\d+?$/, '$1');
-};
-const maskPhone = (value: string): string => {
-  return value
-    .replace(/\D/g, '')
-    .replace(/(\d{2})(\d)/, '($1) $2')
-    .replace(/(\d{5})(\d)/, '$1-$2')
-    .replace(/(-\d{4})(\d+?)$/, '$1');
-};
+import { formatCPF, formatPhoneNumber } from '../../../utils';
 
 const optionsBoolean = [
   { value: 0, name: 'Não' },
@@ -38,8 +24,6 @@ function Form() {
     control,
     formState: { errors },
   } = useFormContext<RegisterUsersFormType>();
-
-  console.log(errors);
 
   return (
     <Grid container spacing={2}>
@@ -79,7 +63,7 @@ function Form() {
               value={value}
               error={!!errors.cpf}
               errorMessage={errors.cpf?.message}
-              onChange={(event) => onChange(maskCPF(event.target.value))}
+              onChange={(event) => onChange(formatCPF(event.target.value))}
             />
           )}
         />
@@ -110,7 +94,9 @@ function Form() {
               value={value}
               error={!!errors.cellphone}
               errorMessage={errors.cellphone?.message}
-              onChange={(event) => onChange(maskPhone(event.target.value))}
+              onChange={(event) =>
+                onChange(formatPhoneNumber(event.target.value))
+              }
             />
           )}
         />
@@ -118,15 +104,32 @@ function Form() {
 
       <Grid item xs={12} md={6}>
         <Controller
-          name="religion"
+          name="profession"
           control={control}
           render={({ field: { onChange, value } }) => (
             <Input
-              label="Religião"
+              required
+              label="Profissão"
               value={value}
-              error={!!errors.cpf}
-              errorMessage={errors.religion?.message}
+              error={!!errors.profession}
+              errorMessage={errors.profession?.message}
               onChange={onChange}
+            />
+          )}
+        />
+      </Grid>
+
+      <Grid item xs={12} md={6}>
+        <Controller
+          name="worker"
+          control={control}
+          render={({ field: { onChange, value } }) => (
+            <InputSelect
+              label="Vai participar ou servir no cursilho?"
+              menuOptions={optionsWorker}
+              value={value}
+              required
+              onChange={(event) => onChange(event.target.value)}
             />
           )}
         />
@@ -160,76 +163,7 @@ function Form() {
           )}
         />
       </Grid>
-      <Grid item xs={12} md={6}>
-        <Controller
-          name="notes"
-          control={control}
-          render={({ field: { onChange, value } }) => (
-            <Input
-              value={value}
-              onChange={(event) => onChange(event.target.value)}
-              label="Observações"
-              placeholder="Insira aqui caso tenha alguma alergia ou algo parecido"
-            />
-          )}
-        />
-      </Grid>
-      <Grid item xs={12} md={6}>
-        <Controller
-          name="emergencyContact"
-          control={control}
-          render={({ field: { onChange, value } }) => (
-            <Input
-              label="Contato de Emergência"
-              value={value}
-              onChange={(event) => onChange(maskPhone(event.target.value))}
-            />
-          )}
-        />
-      </Grid>
-      <Grid item xs={12} md={6}>
-        <Controller
-          name="indicatedBy"
-          control={control}
-          render={({ field: { onChange, value } }) => (
-            <Input
-              // required
-              label="Foi indicado por alguem? Se sim, quem?"
-              value={value}
-              onChange={(event) => onChange(event.target.value)}
-            />
-          )}
-        />
-      </Grid>
-      <Grid item xs={12} md={6}>
-        <Controller
-          name="worker"
-          control={control}
-          render={({ field: { onChange, value } }) => (
-            <InputSelect
-              label="Vai participar ou servir no cursilho?"
-              menuOptions={optionsWorker}
-              value={value}
-              required
-              onChange={(event) => onChange(event.target.value)}
-            />
-          )}
-        />
-      </Grid>
-      <Grid item xs={12} md={6}>
-        <Controller
-          name="leadershipPosition"
-          control={control}
-          render={({ field: { onChange, value } }) => (
-            <InputSelect
-              label="Possui ministerio na igreja? Qual?"
-              menuOptions={optionsRole}
-              value={value}
-              onChange={(event) => onChange(event.target.value)}
-            />
-          )}
-        />
-      </Grid>
+
       <Grid item xs={12} md={6}>
         <Controller
           name="city"
@@ -244,6 +178,7 @@ function Form() {
           )}
         />
       </Grid>
+
       <Grid item xs={12} md={6}>
         <Controller
           name="state"
@@ -254,6 +189,81 @@ function Form() {
               label="Estado"
               value={value}
               onChange={(event) => onChange(event.target.value)}
+            />
+          )}
+        />
+      </Grid>
+
+      <Grid item xs={12} md={6}>
+        <Controller
+          name="emergencyContact"
+          control={control}
+          render={({ field: { onChange, value } }) => (
+            <Input
+              label="Contato de Emergência"
+              value={value}
+              onChange={(event) =>
+                onChange(formatPhoneNumber(event.target.value))
+              }
+            />
+          )}
+        />
+      </Grid>
+      <Grid item xs={12} md={6}>
+        <Controller
+          name="indicatedBy"
+          control={control}
+          render={({ field: { onChange, value } }) => (
+            <Input
+              label="Foi indicado por alguem? Se sim, quem?"
+              value={value}
+              onChange={(event) => onChange(event.target.value)}
+            />
+          )}
+        />
+      </Grid>
+
+      <Grid item xs={12} md={6}>
+        <Controller
+          name="religion"
+          control={control}
+          render={({ field: { onChange, value } }) => (
+            <Input
+              label="Religião"
+              value={value}
+              error={!!errors.cpf}
+              errorMessage={errors.religion?.message}
+              onChange={onChange}
+            />
+          )}
+        />
+      </Grid>
+
+      <Grid item xs={12} md={6}>
+        <Controller
+          name="leadershipPosition"
+          control={control}
+          render={({ field: { onChange, value } }) => (
+            <InputSelect
+              label="Possui ministerio na igreja? Qual?"
+              menuOptions={optionsRole}
+              value={value}
+              onChange={(event) => onChange(event.target.value)}
+            />
+          )}
+        />
+      </Grid>
+
+      <Grid item xs={12}>
+        <Controller
+          name="notes"
+          control={control}
+          render={({ field: { onChange, value } }) => (
+            <Input
+              value={value}
+              onChange={(event) => onChange(event.target.value)}
+              label="Observações"
+              placeholder="Insira aqui caso tenha alguma alergia ou algo parecido"
             />
           )}
         />

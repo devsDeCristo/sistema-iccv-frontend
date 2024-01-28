@@ -6,14 +6,21 @@ import PdfEvent from '../../../components/pdfEvent';
 import FileSaver from 'file-saver';
 import { PDFViewer, pdf } from '@react-pdf/renderer';
 import { formatDate, formatPhoneNumber } from '../../../utils';
+import { User } from '../../../types/user';
+import { useNavigate } from 'react-router-dom';
 
 function List() {
-  //const { data = [], isLoading } = useGetUsers();
+  const { data = [], isLoading } = useGetUsers({});
+  const navigate = useNavigate();
 
-  async function handleDownloadPDF() {
+  if (!Array.isArray(data)) {
+    return null;
+  }
+
+  async function handleDownloadPDF(data: User[]) {
     const blob = await pdf(
       <PdfEvent
-        data={users}
+        data={data}
         textFooter={'6° CURSILHO MASCULINO DE CRISTANDADE'}
       />
     ).toBlob();
@@ -44,16 +51,19 @@ function List() {
         <Button
           variant="outlined"
           onClick={() => {
-            handleDownloadPDF();
+            handleDownloadPDF(users as unknown as User[]);
           }}
         >
           Gerar PDF
         </Button>
         <DataGrid
           rows={users}
+          onRowDoubleClick={(params) => {
+            navigate(`/user/${params.row.id}/editar`);
+          }}
           autoHeight={true}
           columns={columns}
-          loading={false}
+          loading={isLoading}
           initialState={{
             pagination: {
               paginationModel: {

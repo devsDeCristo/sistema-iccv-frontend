@@ -11,20 +11,19 @@ const InputDatePicker = ({
   ...rest
 }: InputDatePickerProps & DatePickerProps<Date>) => {
   return (
-    <div>
-      <DatePicker
-        sx={{
-          width: '100%',
-        }}
-        slotProps={{
-          textField: {
-            helperText: errorMessage,
-          },
-        }}
-        label={label}
-        {...rest}
-      />
-    </div>
+    <DatePicker
+      sx={{
+        width: '100%',
+      }}
+      format="dd/MM/yyyy"
+      slotProps={{
+        textField: {
+          helperText: errorMessage,
+        },
+      }}
+      label={label}
+      {...rest}
+    />
   );
 };
 

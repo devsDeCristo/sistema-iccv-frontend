@@ -6,24 +6,32 @@ import { Button } from '@mui/material';
 import { usePermission } from '../../../hooks/usePermission';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { REGISTER_USERS_SCHEMA } from '../../../features/users/constants';
-import { RegisterUsersFormType } from '../../../types/user';
-import { removeMask } from '../../../utils';
-import { usePostCreateUser } from '../../../features/users/api/postUser';
+import { RegisterUsersFormType, User } from '../../../types/user';
+import { formatCPF, formatPhoneNumber, removeMask } from '../../../utils';
+import { useParams } from 'react-router-dom';
+import { useGetUsers } from '../../../features/users/api/getUsers';
+import { useEffect } from 'react';
+import { usePutUser } from '../../../features/users/api/putUser';
 
-function RegisterUser() {
+function EditUser() {
+  const { id } = useParams();
+  const { data } = useGetUsers({ userId: Number(id) }) as { data: User };
+
   const DEFAULT_VALUES: RegisterUsersFormType = {
-    fullName: '',
-    cpf: '',
-    birthday: null,
-    cellphone: '',
-    emergencyContact: null,
-    email: '',
-    worker: 0,
-    profession: '',
-    city: '',
-    state: '',
-    hypertensive: 0,
-    diabetes: 0,
+    fullName: data?.fullName || '',
+    cpf: data?.cpf ? formatCPF(data?.cpf) : '',
+    birthday: data?.birthday ? new Date(data?.birthday) : null,
+    cellphone: data?.cellphone ? formatPhoneNumber(data?.cellphone) : '',
+    emergencyContact: data?.emergencyContact
+      ? formatPhoneNumber(data?.emergencyContact)
+      : null,
+    email: data?.email || '',
+    worker: data?.worker ? 1 : 0,
+    profession: data?.profession || '',
+    city: data?.city || '',
+    state: data?.state || '',
+    hypertensive: data?.hypertensive ? 1 : 0,
+    diabetes: data?.diabetes ? 1 : 0,
     role: 5,
   };
 
@@ -31,13 +39,14 @@ function RegisterUser() {
     resolver: zodResolver(REGISTER_USERS_SCHEMA),
     defaultValues: DEFAULT_VALUES,
   });
+
+  useEffect(() => {
+    methods.reset(DEFAULT_VALUES);
+  }, [data]);
+
   const permission = usePermission();
 
-  const { mutate: mutatePostCreateUser } = usePostCreateUser({
-    onSuccess: () => {
-      methods.reset(DEFAULT_VALUES);
-    },
-  });
+  const { mutate: mutatePutUser } = usePutUser();
 
   function onSubmitForm(data: RegisterUsersFormType) {
     const formatData = {
@@ -53,7 +62,10 @@ function RegisterUser() {
       profession: 'Teste',
       role: 5,
     };
-    mutatePostCreateUser(formatData);
+    mutatePutUser({
+      userId: Number(id),
+      data: formatData,
+    });
   }
   return (
     <PageStyle>
@@ -75,4 +87,4 @@ function RegisterUser() {
   );
 }
 
-export { RegisterUser };
+export { EditUser };

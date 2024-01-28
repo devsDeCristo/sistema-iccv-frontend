@@ -29,21 +29,6 @@ export function stringAvatar(name: string) {
   };
 }
 
-export function formatPhoneNumber(phoneNumber: string): string {
-  // Remove todos os caracteres não numéricos
-  const numericOnly = phoneNumber.replace(/\D/g, '');
-
-  // Aplica a máscara (XX) XXXXX-XXXX
-  const match = numericOnly.match(/^(\d{2})(\d{5})(\d{4})$/);
-
-  if (match) {
-    return `(${match[1]}) ${match[2]}-${match[3]}`;
-  }
-
-  // Retorna o número formatado originalmente se não houver correspondência
-  return phoneNumber;
-}
-
 export function formatDate(date: Date) {
   return new Date(date).toLocaleDateString('pt-BR', {
     timeZone: 'UTC',
@@ -52,4 +37,21 @@ export function formatDate(date: Date) {
 
 export const removeMask = (value: string): string => {
   return value.replace(/\D/g, '');
+};
+
+export const formatCPF = (value: string): string => {
+  return value
+    .replace(/\D/g, '')
+    .replace(/(\d{3})(\d)/, '$1.$2')
+    .replace(/(\d{3})(\d)/, '$1.$2')
+    .replace(/(\d{3})(\d{1,2})/, '$1-$2')
+    .replace(/(-\d{2})\d+?$/, '$1');
+};
+
+export const formatPhoneNumber = (value: string): string => {
+  return value
+    .replace(/\D/g, '')
+    .replace(/(\d{2})(\d)/, '($1) $2')
+    .replace(/(\d{5})(\d)/, '$1-$2')
+    .replace(/(-\d{4})(\d+?)$/, '$1');
 };

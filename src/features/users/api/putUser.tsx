@@ -5,22 +5,27 @@ import {
   handleResponseThrowError,
 } from '../../../utils/service';
 
-const postCreateUser = (data: any) =>
+type PutUserParams = {
+  userId: number;
+  data: any;
+};
+
+const putUser = ({ userId, data }: PutUserParams) =>
   apiClient
-    .post<boolean>('/users', data)
+    .put<boolean>(`/users/${userId}`, data)
     .then((response) => {
-      handleResponseSuccess(response.data, 'Cadastro efetuado com sucesso')();
+      handleResponseSuccess(response.data, 'Edição efetuada com sucesso')();
     })
     .catch(handleResponseThrowError());
 
-type PostCreateUserData = Awaited<ReturnType<typeof postCreateUser>>;
+type PutUserData = Awaited<ReturnType<typeof putUser>>;
 
-export const usePostCreateUser = ({
+export const usePutUser = ({
   onSuccess,
   ...options
-}: MutationOptions<PostCreateUserData, unknown, any> = {}) => {
+}: MutationOptions<PutUserData, unknown, any> = {}) => {
   return useMutation({
-    mutationFn: postCreateUser,
+    mutationFn: (params: PutUserParams) => putUser(params),
     onSuccess: (...args) => {
       onSuccess?.(...args);
     },
