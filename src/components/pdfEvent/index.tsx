@@ -22,11 +22,12 @@ interface FooterProps {
 import logoIccv from '../../assets/logo-iccv.png';
 import logoEvento from '../../assets/4-curs-fem.png';
 import logoCursilho from '../../assets/logo-cursilho.png';
+import Borboleta from '../../assets/borboleta.png';
 const styles = StyleSheet.create({
   body: {
-    paddingTop: 35,
-    paddingBottom: 65,
-    paddingHorizontal: 35,
+    paddingTop: 25,
+    //paddingBottom: 65,
+    paddingHorizontal: 25,
   },
   page: {
     padding: 40,
@@ -34,91 +35,74 @@ const styles = StyleSheet.create({
   header: {
     gap: '10px',
     fontSize: 12,
-    marginBottom: 20,
-    textAlign: 'center',
+    //marginBottom: 20,
     alignItems: 'center',
     justifyContent: 'space-between',
     flexDirection: 'row',
     backgroundColor: '#f8d2f8',
-    //color: 'grey',
     paddingHorizontal: '20px',
-    borderRadius: '10px',
-    //marginTop: 10,
+    borderRadius: '8px',
   },
   footer: {
+    position: 'relative',
     gap: '5px',
     fontSize: 12,
     marginBottom: 20,
-    textAlign: 'center',
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'column',
     backgroundColor: '#f8d2f8',
     padding: '10px',
-    borderRadius: '10px',
-    //marginTop: 10,
-  },
-  section: {
-    marginBottom: 10,
+    borderRadius: '8px',
   },
   title: {
     fontSize: 15,
-    textAlign: 'center',
+    //textAlign: 'left',
     fontFamily: 'Helvetica',
-    marginBottom: 10,
+    //marginBottom: 10,
   },
   text: {
+    fontFamily: 'Helvetica',
     fontSize: 8,
     marginBottom: 5,
+    width: '100%',
   },
   textName: {
-    fontSize: 8,
+    fontSize: 9,
     marginBottom: 5,
     fontFamily: 'Helvetica-Bold',
+    maxWidth: '100%',
+    display: 'flex',
+    flexWrap: 'wrap',
   },
-  subtitle: {
-    fontSize: 8,
-    marginBottom: 5,
-  },
-  table: {
-    // display: "table",
-    width: 'auto',
-    marginBottom: 10,
-  },
-  tableRow: {
+  rectangleRow: {
     flexDirection: 'row',
-  },
-  tableCell: {
-    width: '25%',
-    borderWidth: 1,
-    borderColor: '#000',
-    padding: 5,
-    fontSize: 11,
+    flexWrap: 'wrap',
+    gap: 8,
   },
   cell: {
-    family: 'Helvetica',
-    width: '25%',
+    width: '24%',
     borderWidth: 1,
     borderColor: '#000',
     padding: 5,
-    fontSize: 11,
+    display: 'flex',
+    flexDirection: 'row',
+  },
+  decuria: {
+    margin: 6,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
     flexDirection: 'row',
   },
   image: { height: 60 },
   imageEvent: {
-    width: 180,
-    height: '100%', // Ajusta a altura da imagem (ajuste conforme necessário)
+    width: '30%',
+    height: '100%',
     objectFit: 'cover',
   },
-  divider: {
-    marginTop: '10px',
-    borderTop: '2px dashed #bbb',
-    marginBottom: '20px',
-  },
-  footerText: {
-    fontSize: 10,
-  },
-  tabelaTitle: { fontFamily: 'Helvetica', fontSize: 12 },
+
+  imageDecuria: { height: 30 },
 });
 Font.register({
   family: 'Helvetica',
@@ -127,8 +111,20 @@ Font.register({
 const UserRectangle = ({ user }: UserRectangleProps) => {
   return (
     <View style={styles.cell}>
-      <Image style={styles.image} src={(user as any).profilePhotoUrl} />
-      <View style={{ flexDirection: 'column' }}>
+      {(user as any).profilePhotoUrl ? (
+        <Image
+          style={styles.image}
+          src={(user as any).profilePhotoUrl}
+          source={''}
+        />
+      ) : null}
+      <View
+        style={{
+          flexDirection: 'column',
+          width: '70%',
+          justifyContent: 'center',
+        }}
+      >
         <Text style={styles.textName}>{(user as any).fullName}</Text>
         <Text style={styles.text}>
           Data Nasc: {new Date((user as any).birthday).toLocaleDateString()}
@@ -141,7 +137,7 @@ const UserRectangle = ({ user }: UserRectangleProps) => {
 };
 const HeaderPdf = () => {
   return (
-    <View style={styles.header}>
+    <View style={styles.header} fixed>
       <Image style={styles.image} src={logoIccv} />
       <Image style={styles.imageEvent} src={logoEvento} />
       <Image style={styles.image} src={logoCursilho} />
@@ -150,7 +146,7 @@ const HeaderPdf = () => {
 };
 const FooterPdf = ({ text }: FooterProps) => {
   return (
-    <View style={styles.footer}>
+    <View style={styles.footer} fixed>
       <Text>{text}</Text>
       <Text>{'Igreja de Cristo no Brasil'}</Text>
     </View>
@@ -162,14 +158,15 @@ function PdfEvent({ data, textFooter }: PdfProps) {
     <Document>
       <Page orientation="landscape" style={styles.body}>
         <HeaderPdf />
-        <View style={styles.section}>
-          <View style={styles.table}>
-            <View style={styles.tableRow}>
-              {data.map((user) => (
-                <UserRectangle user={user} />
-              ))}
-            </View>
-          </View>
+        <View fixed style={styles.decuria}>
+          {' '}
+          <Image style={styles.imageDecuria} src={Borboleta} />
+          <Text style={styles.title}>Decúria Amor</Text>
+        </View>
+        <View style={styles.rectangleRow}>
+          {data.map((user) => (
+            <UserRectangle user={user} />
+          ))}
         </View>
         <FooterPdf text={textFooter} />
       </Page>
