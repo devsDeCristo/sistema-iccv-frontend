@@ -14,7 +14,7 @@ interface PdfProps {
 interface UserRectangleProps {
   user: object;
 }
-interface HeaderProps {}
+//interface HeaderProps {}
 interface FooterProps {
   text: string;
 }
