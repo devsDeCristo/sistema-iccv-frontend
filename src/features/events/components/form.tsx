@@ -14,11 +14,11 @@ function Form() {
       </Grid>
 
       <Grid item xs={12} md={6}>
-        <InputDatePicker name="startDate" label="Data Inicial" />
+        <InputDatePicker label="Data Inicial" />
       </Grid>
 
       <Grid item xs={12} md={6}>
-        <InputDatePicker name="endDate" label="Data Final" />
+        <InputDatePicker label="Data Final" />
       </Grid>
     </Grid>
   );
