@@ -100,8 +100,12 @@ const styles = StyleSheet.create({
     height: '100%',
     objectFit: 'cover',
   },
-
   imageDecuria: { height: 30 },
+  columnUser: {
+    flexDirection: 'column',
+    width: '70%',
+    justifyContent: 'center',
+  },
 });
 Font.register({
   family: 'Helvetica',
@@ -117,13 +121,7 @@ const UserRectangle = ({ user }: UserRectangleProps) => {
           source={''}
         />
       ) : null}
-      <View
-        style={{
-          flexDirection: 'column',
-          width: '70%',
-          justifyContent: 'center',
-        }}
-      >
+      <View style={styles.columnUser}>
         <Text style={styles.textName}>{(user as any).fullName}</Text>
         <Text style={styles.text}>
           Data Nasc: {new Date((user as any).birthday).toLocaleDateString()}
