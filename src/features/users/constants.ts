@@ -57,3 +57,16 @@ export const REGISTER_USERS_SCHEMA = z.object({
     required_error: DEFAULT_MESSAGE,
   }),
 });
+export const OPTIONS_BOOLEAN = [
+  { value: 0, name: 'Não' },
+  { value: 1, name: 'Sim' },
+];
+export const OPTIONS_WORKER = [
+  { value: 0, name: 'Participar (Cursilhista)' },
+  { value: 1, name: 'Servir (Cursilheiro)' },
+];
+export const OPTIONS_ROLE = [
+  { value: 0, name: 'Não' },
+  { value: 1, name: 'Pastor' },
+  { value: 5, name: 'Membro(a)' },
+];

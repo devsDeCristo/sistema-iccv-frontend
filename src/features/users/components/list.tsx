@@ -21,7 +21,7 @@ function List() {
     const blob = await pdf(
       <PdfEvent
         data={data}
-        textFooter={'6° CURSILHO MASCULINO DE CRISTANDADE'}
+        textFooter={'28 de setembro a 01 de outubro de 2023'}
       />
     ).toBlob();
     FileSaver.saveAs(blob, 'cursilho.pdf');

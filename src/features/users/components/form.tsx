@@ -5,20 +5,8 @@ import { InputSelect } from '../../../components/inputSelect';
 import { Controller, useFormContext } from 'react-hook-form';
 import { RegisterUsersFormType } from '../../../types/user';
 import { formatCPF, formatPhoneNumber } from '../../../utils';
+import { OPTIONS_BOOLEAN, OPTIONS_WORKER, OPTIONS_ROLE } from '../constants';
 
-const optionsBoolean = [
-  { value: 0, name: 'Não' },
-  { value: 1, name: 'Sim' },
-];
-const optionsWorker = [
-  { value: 0, name: 'Participar (Cursilhista)' },
-  { value: 1, name: 'Servir (Cursilheiro)' },
-];
-const optionsRole = [
-  { value: 0, name: 'Não' },
-  { value: 1, name: 'Pastor' },
-  { value: 5, name: 'Membro(a)' },
-];
 function Form() {
   const {
     control,
@@ -126,7 +114,7 @@ function Form() {
           render={({ field: { onChange, value } }) => (
             <InputSelect
               label="Vai participar ou servir no cursilho?"
-              menuOptions={optionsWorker}
+              menuOptions={OPTIONS_WORKER}
               value={value}
               required
               onChange={(event) => onChange(event.target.value)}
@@ -142,7 +130,7 @@ function Form() {
           render={({ field: { onChange, value } }) => (
             <InputSelect
               label="Possui Diabetes?"
-              menuOptions={optionsBoolean}
+              menuOptions={OPTIONS_BOOLEAN}
               value={value}
               onChange={(event) => onChange(event.target.value)}
             />
@@ -156,7 +144,7 @@ function Form() {
           render={({ field: { onChange, value } }) => (
             <InputSelect
               label="Possui Hispertensão?"
-              menuOptions={optionsBoolean}
+              menuOptions={OPTIONS_BOOLEAN}
               value={value}
               onChange={(event) => onChange(event.target.value)}
             />
@@ -246,7 +234,7 @@ function Form() {
           render={({ field: { onChange, value } }) => (
             <InputSelect
               label="Possui ministerio na igreja? Qual?"
-              menuOptions={optionsRole}
+              menuOptions={OPTIONS_ROLE}
               value={value}
               onChange={(event) => onChange(event.target.value)}
             />
