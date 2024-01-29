@@ -4,7 +4,7 @@ import { useGetUsers } from '../api/getUsers';
 import { Button } from '@mui/material';
 import PdfEvent from '../../../components/pdfEvent';
 import FileSaver from 'file-saver';
-import { PDFViewer, pdf } from '@react-pdf/renderer';
+import { pdf } from '@react-pdf/renderer';
 import { formatDate, formatPhoneNumber } from '../../../utils';
 import { User } from '../../../types/user';
 import { useNavigate } from 'react-router-dom';
