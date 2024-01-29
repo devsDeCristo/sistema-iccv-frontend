@@ -1,31 +1,29 @@
-import { DatePicker } from '@mui/x-date-pickers';
-import { useForm, Controller } from 'react-hook-form';
+import { DatePicker, DatePickerProps } from '@mui/x-date-pickers';
 
 interface InputDatePickerProps {
-  name: string;
   label: string;
+  errorMessage?: string;
 }
 
-const InputDatePicker = ({ name, label }: InputDatePickerProps) => {
-  const { control } = useForm();
-
+const InputDatePicker = ({
+  label,
+  errorMessage,
+  ...rest
+}: InputDatePickerProps & DatePickerProps<Date>) => {
   return (
-    <div>
-      <Controller
-        control={control}
-        name={name}
-        render={({ field: { onChange, value } }) => (
-          <DatePicker
-            sx={{
-              width: '100%',
-            }}
-            label={label}
-            value={value}
-            onChange={onChange}
-          />
-        )}
-      />
-    </div>
+    <DatePicker
+      sx={{
+        width: '100%',
+      }}
+      format="dd/MM/yyyy"
+      slotProps={{
+        textField: {
+          helperText: errorMessage,
+        },
+      }}
+      label={label}
+      {...rest}
+    />
   );
 };
 

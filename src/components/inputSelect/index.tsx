@@ -1,0 +1,43 @@
+import {
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
+  SelectProps,
+} from '@mui/material';
+
+interface InputSelectProps {
+  label: string;
+  menuOptions: { value: number; name: string }[];
+}
+
+const InputSelect = ({
+  label,
+  menuOptions,
+  ...rest
+}: InputSelectProps & SelectProps) => {
+  return (
+    <div>
+      <FormControl fullWidth>
+        <InputLabel id="select-label">{label}</InputLabel>
+        <Select
+          sx={{
+            width: '100%',
+          }}
+          labelId="select-label"
+          label={label}
+          displayEmpty
+          {...rest}
+        >
+          {menuOptions.map((option, index) => (
+            <MenuItem key={index} value={option.value}>
+              {option.name}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+    </div>
+  );
+};
+
+export { InputSelect };

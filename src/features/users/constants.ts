@@ -1,1 +1,72 @@
+import { z } from 'zod';
 export const GET_USERS = 'GET_USERS';
+
+const DEFAULT_MESSAGE = 'Campo obrigatório';
+
+export const REGISTER_USERS_SCHEMA = z.object({
+  fullName: z.string({
+    required_error: DEFAULT_MESSAGE,
+  }),
+  email: z.string({
+    required_error: DEFAULT_MESSAGE,
+  }),
+  cpf: z
+    .string({
+      required_error: DEFAULT_MESSAGE,
+    })
+    .min(8, { message: 'CPF deve conter 11 digitos' }),
+  cellphone: z
+    .string({
+      required_error: DEFAULT_MESSAGE,
+    })
+    .min(8, { message: 'Preencha um número válido' }),
+  profession: z.string(),
+  notes: z.string().optional(),
+  religion: z.string().optional(),
+  birthday: z
+    .date({
+      required_error: DEFAULT_MESSAGE,
+    })
+    .nullable()
+    .refine((value) => value !== null, {
+      message: DEFAULT_MESSAGE,
+    }),
+  emergencyContact: z
+    .string({
+      required_error: DEFAULT_MESSAGE,
+    })
+    .min(8, { message: 'Preencha um número válido' })
+    .optional()
+    .nullable(),
+  indicatedBy: z.string().optional(),
+  leadershipPosition: z.string().optional(),
+  worker: z.number({
+    required_error: DEFAULT_MESSAGE,
+  }),
+  role: z.number().optional(),
+  city: z.string({
+    required_error: DEFAULT_MESSAGE,
+  }),
+  state: z.string({
+    required_error: DEFAULT_MESSAGE,
+  }),
+  diabetes: z.number({
+    required_error: DEFAULT_MESSAGE,
+  }),
+  hypertensive: z.number({
+    required_error: DEFAULT_MESSAGE,
+  }),
+});
+export const OPTIONS_BOOLEAN = [
+  { value: 0, name: 'Não' },
+  { value: 1, name: 'Sim' },
+];
+export const OPTIONS_WORKER = [
+  { value: 0, name: 'Participar (Cursilhista)' },
+  { value: 1, name: 'Servir (Cursilheiro)' },
+];
+export const OPTIONS_ROLE = [
+  { value: 0, name: 'Não' },
+  { value: 1, name: 'Pastor' },
+  { value: 5, name: 'Membro(a)' },
+];

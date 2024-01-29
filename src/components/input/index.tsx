@@ -1,30 +1,20 @@
 import { TextField, TextFieldProps } from '@mui/material';
-import { useFormContext, Controller } from 'react-hook-form';
 
 interface InputProps {
-  name: string;
   label: string;
+  errorMessage?: string;
 }
 
-function Input({ name, label, ...rest }: InputProps & TextFieldProps) {
-  const { control } = useFormContext();
-
+function Input({ label, errorMessage, ...rest }: InputProps & TextFieldProps) {
   return (
-    <Controller
-      control={control}
-      name={name}
-      render={({ field: { onChange, value } }) => (
-        <TextField
-          label={label}
-          sx={{
-            width: '100%',
-          }}
-          value={value}
-          onChange={onChange}
-          variant="outlined"
-          {...rest}
-        />
-      )}
+    <TextField
+      helperText={errorMessage}
+      label={label}
+      sx={{
+        width: '100%',
+      }}
+      variant="outlined"
+      {...rest}
     />
   );
 }

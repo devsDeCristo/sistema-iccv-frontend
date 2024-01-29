@@ -6,11 +6,10 @@ import { List } from '../../features/users/components/list';
 
 function Users() {
   const navigate = useNavigate();
-
   return (
     <PageStyle>
       <Header title="Usuários" />
-      <Box component="div" justifyContent="end" display="flex" mb={2}>
+      <Box component="div" justifyContent="end" display="flex" mb={2} sx={{gap:"5px"}}>
         <Button variant="contained" onClick={() => navigate('/cadastro')}>
           Cadastrar usuario
         </Button>
