@@ -29,7 +29,7 @@
           }
         },
         {
-          "files": ["*.html", "legacy/**/*.tsx"],
+          "files": ["*.html", "legacy/**/*.tsx","*.ts"],
           "options": {
             "tabWidth": 4
           }
