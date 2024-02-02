@@ -21,6 +21,9 @@ const stylesPdf = StyleSheet.create({
   },
   footer: {
     position: 'relative',
+    // top: '40px',
+    // left: '40px',
+    width: '100%',
     gap: '5px',
     fontSize: 12,
     marginBottom: 20,
@@ -54,7 +57,11 @@ const stylesPdf = StyleSheet.create({
   rectangleRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
+    gap: 10,
+    //alignContent: 'flex-start',
+    //justifyContent: 'center',
+    marginBottom: '200px',
+    //alignItems: 'flex-start',
   },
   cell: {
     width: '24%',
@@ -66,6 +73,7 @@ const stylesPdf = StyleSheet.create({
   },
   decuria: {
     margin: 6,
+    marginTop: 10,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'flex-start',
