@@ -2,8 +2,8 @@ import { StyleSheet } from '@react-pdf/renderer';
 const stylesPdf = StyleSheet.create({
   body: {
     paddingTop: 25,
-    //paddingBottom: 65,
     paddingHorizontal: 25,
+    paddingBottom: '80px',
   },
   page: {
     padding: 40,
@@ -11,18 +11,18 @@ const stylesPdf = StyleSheet.create({
   header: {
     gap: '10px',
     fontSize: 12,
-    //marginBottom: 20,
     alignItems: 'center',
     justifyContent: 'space-between',
     flexDirection: 'row',
     backgroundColor: '#f8d2f8',
     paddingHorizontal: '20px',
     borderRadius: '8px',
+    height: '125px',
   },
   footer: {
-    position: 'relative',
-    // top: '40px',
-    // left: '40px',
+    position: 'absolute',
+    top: '520px',
+    left: '25px',
     width: '100%',
     gap: '5px',
     fontSize: 12,
@@ -36,9 +36,7 @@ const stylesPdf = StyleSheet.create({
   },
   title: {
     fontSize: 15,
-    //textAlign: 'left',
     fontFamily: 'Helvetica',
-    //marginBottom: 10,
   },
   text: {
     fontFamily: 'Helvetica',
@@ -58,16 +56,13 @@ const stylesPdf = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 10,
-    //alignContent: 'flex-start',
-    //justifyContent: 'center',
     marginBottom: '200px',
-    //alignItems: 'flex-start',
   },
   cell: {
     width: '24%',
     borderWidth: 1,
     borderColor: '#000',
-    padding: 5,
+    padding: 3,
     display: 'flex',
     flexDirection: 'row',
   },

@@ -16,20 +16,22 @@ Font.register({
 function PdfEvent({ data, textFooter }: PdfProps) {
   return (
     <Document>
-      <Page orientation="landscape" style={stylesPdf.body}>
-        <HeaderPdf />
-        <View fixed style={stylesPdf.decuria}>
-          {' '}
-          <Image style={stylesPdf.imageDecuria} src={Borboleta} />
-          <Text style={stylesPdf.title}>Decúria Amor</Text>
-        </View>
-        <View style={stylesPdf.rectangleRow}>
-          {data.map((user) => (
-            <UserRectangle user={user} />
-          ))}
-        </View>
-        <FooterPdf text={textFooter} />
-      </Page>
+      {' '}
+      {data.map(({ name, users }, index) => (
+        <Page orientation="landscape" style={stylesPdf.body}>
+          <HeaderPdf />
+          <View fixed style={stylesPdf.decuria} key={'titulo-pdf' + index}>
+            <Image style={stylesPdf.imageDecuria} src={Borboleta} />
+            <Text style={stylesPdf.title}>{name}</Text>
+          </View>
+          <View style={stylesPdf.rectangleRow} key={'quadrantes-pdf' + index}>
+            {users?.map(({ user }) => (
+              <UserRectangle user={user} />
+            ))}
+          </View>
+          <FooterPdf text={textFooter} />
+        </Page>
+      ))}
     </Document>
   );
 }
