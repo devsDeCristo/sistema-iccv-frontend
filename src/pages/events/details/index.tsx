@@ -34,7 +34,7 @@ function Details() {
   const [openModalTeam, setOpenModalTeam] = useState(false);
 
   const { id: eventId = 0 } = useParams();
-  const { data: teamsData = [], isLoading } = useGetTeams({
+  const { data: teamsData = [] } = useGetTeams({
     eventId: Number(eventId),
   });
 
