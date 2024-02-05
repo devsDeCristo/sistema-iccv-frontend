@@ -34,9 +34,7 @@ function Details() {
           </Button>
         </Box>
         <Card sx={{ padding: 2 }}>
-          <Grid container spacing={2}>
-            <ListBedRooms />
-          </Grid>
+          <ListBedRooms />
         </Card>
       </Box>
 

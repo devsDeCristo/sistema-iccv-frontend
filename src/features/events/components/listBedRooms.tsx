@@ -26,90 +26,119 @@ function ListBedRooms() {
   });
 
   const [openModalBedRoom, setOpenModalBedRoom] = useState(false);
-  const [selectBedRoom, setSelectBedRoom] = useState<Bedroom>();
+  const [selectBedRoom, setSelectBedRoom] = useState<Bedroom | null>(null);
 
   const [openModalDeleteBedRoom, setOpenModalDeleteBedRoom] = useState(false);
+  const [selectedDeleteIdBedRoom, setSelectedDeleteIdBedRoom] = useState<
+    number | null
+  >(null);
 
   const { mutate } = useDeleteBedroom();
 
-  return bedroomsData.map((bedroom) => {
-    return isLoading ? (
-      <Loading />
-    ) : (
-      <Grid item xs={12} md={6} key={bedroom.id}>
-        <Card variant="outlined" sx={{ padding: 1 }}>
-          <Box component="div" display="flex" justifyContent="space-between">
-            <Box>
-              <Box component="div" display="flex" alignItems="center" gap={0.5}>
-                <Typography component="label">Observações:</Typography>
-                <Typography>{bedroom.note}</Typography>
-              </Box>
-              <Box component="div" display="flex" alignItems="center" gap={0.5}>
-                <Typography component="label">Usuários:</Typography>
-                <Stack direction="row" spacing={0.5}>
-                  {bedroom.users.map((user) => {
-                    return (
-                      <Tooltip
-                        title={user.user.fullName}
-                        arrow
-                        key={user.user.id}
-                      >
-                        <Avatar {...stringAvatar(user.user.fullName)} />
-                      </Tooltip>
-                    );
-                  })}
-                </Stack>
-              </Box>
-            </Box>
-            <Box gap={3} display="flex">
-              <Button
-                sx={{
-                  minWidth: 0,
-                  padding: '12px',
-                }}
-                variant="contained"
-                onClick={() => {
-                  setOpenModalBedRoom(true);
-                  setSelectBedRoom(bedroom);
-                }}
-              >
-                <Edit />
-              </Button>
-              <Button
-                sx={{
-                  minWidth: 0,
-                  padding: '12px',
-                  ':hover': { backgroundColor: 'red' },
-                }}
-                variant="contained"
-                onClick={() => setOpenModalDeleteBedRoom(true)}
-              >
-                <Delete />
-              </Button>
-            </Box>
-          </Box>
-        </Card>
+  const handleEditClick = (bedroom: Bedroom) => {
+    setOpenModalBedRoom(true);
+    setSelectBedRoom(bedroom);
+  };
 
-        <ModalBedRoom
-          open={openModalBedRoom}
-          handleClose={() => setOpenModalBedRoom(false)}
-          bedRoom={selectBedRoom}
-          eventId={eventId || ''}
-        />
+  const handleDeleteClick = (bedRoomId: number) => {
+    setOpenModalDeleteBedRoom(true);
+    setSelectedDeleteIdBedRoom(bedRoomId);
+  };
 
-        <ConfirmModal
-          open={openModalDeleteBedRoom}
-          onClose={() => setOpenModalDeleteBedRoom(false)}
-          title="Deletar quarto"
-          message="Você tem certeza que deseja deletar esse quarto?"
-          onConfirm={() => {
-            setOpenModalDeleteBedRoom(false);
-            mutate({ eventId: Number(eventId), bedRoomId: bedroom.id });
-          }}
-        />
+  const handleConfirmDelete = () => {
+    if (selectedDeleteIdBedRoom) {
+      mutate({ eventId: Number(eventId), bedRoomId: selectedDeleteIdBedRoom });
+      setOpenModalDeleteBedRoom(false);
+    }
+  };
+
+  return (
+    <>
+      {isLoading && <Loading />}
+      <Grid container spacing={2}>
+        {bedroomsData.map((bedroom) => (
+          <Grid item xs={12} md={6} key={bedroom.id}>
+            <Card variant="outlined" sx={{ padding: 1 }}>
+              <Box
+                component="div"
+                display="flex"
+                justifyContent="space-between"
+              >
+                <Box>
+                  <Box
+                    component="div"
+                    display="flex"
+                    alignItems="center"
+                    gap={0.5}
+                  >
+                    <Typography component="label">Observações:</Typography>
+                    <Typography>{bedroom.note}</Typography>
+                  </Box>
+                  <Box
+                    component="div"
+                    display="flex"
+                    alignItems="center"
+                    gap={0.5}
+                  >
+                    <Typography component="label">Usuários:</Typography>
+                    <Stack direction="row" spacing={0.5}>
+                      {bedroom.users.map((user) => (
+                        <Tooltip
+                          title={user.user.fullName}
+                          arrow
+                          key={user.user.id}
+                        >
+                          <Avatar {...stringAvatar(user.user.fullName)} />
+                        </Tooltip>
+                      ))}
+                    </Stack>
+                  </Box>
+                </Box>
+                <Box gap={3} display="flex">
+                  <Button
+                    sx={{
+                      minWidth: 0,
+                      padding: '12px',
+                    }}
+                    variant="contained"
+                    onClick={() => handleEditClick(bedroom)}
+                  >
+                    <Edit />
+                  </Button>
+                  <Button
+                    sx={{
+                      minWidth: 0,
+                      padding: '12px',
+                      ':hover': { backgroundColor: 'red' },
+                    }}
+                    variant="contained"
+                    onClick={() => handleDeleteClick(bedroom.id)}
+                  >
+                    <Delete />
+                  </Button>
+                </Box>
+              </Box>
+            </Card>
+          </Grid>
+        ))}
       </Grid>
-    );
-  });
+
+      <ModalBedRoom
+        open={openModalBedRoom}
+        handleClose={() => setOpenModalBedRoom(false)}
+        bedRoom={selectBedRoom}
+        eventId={eventId || ''}
+      />
+
+      <ConfirmModal
+        open={openModalDeleteBedRoom}
+        onClose={() => setOpenModalDeleteBedRoom(false)}
+        title="Deletar quarto"
+        message="Você tem certeza que deseja deletar esse quarto?"
+        onConfirm={handleConfirmDelete}
+      />
+    </>
+  );
 }
 
 export { ListBedRooms };

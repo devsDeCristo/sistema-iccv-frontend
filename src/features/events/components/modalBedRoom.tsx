@@ -39,23 +39,6 @@ function ModalBedRoom({
     boxShadow: 14,
     p: 4,
   };
-
-  const { data: eventData } = useGetEvents(
-    { eventId: Number(eventId) || 0 },
-    {
-      enabled: !!eventId,
-    }
-  );
-
-  if (Array.isArray(eventData)) {
-    return null;
-  }
-
-  const options = eventData?.users?.map((user) => ({
-    value: user.user.id,
-    label: user.user.fullName,
-  }));
-
   const { control, reset, handleSubmit } = useForm();
   const { mutate: putBedroom } = usePutBedroom({
     onSuccess: () => {
@@ -69,6 +52,34 @@ function ModalBedRoom({
       handleClose();
     },
   });
+
+  const { data: eventData } = useGetEvents(
+    { eventId: Number(eventId) || 0 },
+    {
+      enabled: !!eventId,
+    }
+  );
+
+  useEffect(() => {
+    if (bedRoom) {
+      reset({
+        note: bedRoom.note,
+        usersId: bedRoom.users.map((user: any) => ({
+          value: user.user.id,
+          label: user.user.fullName,
+        })),
+      });
+    }
+  }, [bedRoom]);
+
+  if (Array.isArray(eventData)) {
+    return null;
+  }
+
+  const options = eventData?.users?.map((user) => ({
+    value: user.user.id,
+    label: user.user.fullName,
+  }));
 
   const onSubimitBedroom = (data: any) => {
     const transoformData = {
@@ -90,18 +101,6 @@ function ModalBedRoom({
       data: transoformData,
     });
   };
-
-  useEffect(() => {
-    if (bedRoom) {
-      reset({
-        note: bedRoom.note,
-        usersId: bedRoom.users.map((user: any) => ({
-          value: user.user.id,
-          label: user.user.fullName,
-        })),
-      });
-    }
-  }, [bedRoom]);
 
   return (
     <Modal
