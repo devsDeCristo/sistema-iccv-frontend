@@ -1,7 +1,7 @@
 import { User } from '../../types/user';
 
 // TODO - When handler the return on backend, remove this type
-type HandlerReturnUser = {
+export type HandlerReturnUser = {
   user: User;
 };
 

@@ -1,5 +1,4 @@
 import { Header } from '../../../components/header';
-import { useForm, FormProvider } from 'react-hook-form';
 import { PageStyle } from '../../../components/pageStyle';
 import { Grid, Card, Typography, Box, Button, Divider } from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -9,12 +8,11 @@ import { ModalBedRoom } from '../../../features/events/components/modalBedRoom';
 import { useState } from 'react';
 import { ModalTeam } from '../../../features/events/components/modalTeam';
 import { ListUsers } from '../../../features/events/components/listUsers';
+import { useGetEvents } from '../../../features/events/api/getEvents';
 
 function Details() {
-  const methods = useForm();
   const navigate = useNavigate();
   const { id } = useParams();
-  console.log(id);
 
   const [openModalBedRoom, setOpenModalBedRoom] = useState(false);
   const [openModalTeam, setOpenModalTeam] = useState(false);
@@ -85,19 +83,17 @@ function Details() {
         </Card>
       </Box>
 
-      <FormProvider {...methods}>
-        <ModalBedRoom
-          open={openModalBedRoom}
-          handleClose={() => setOpenModalBedRoom(false)}
-          actionSave={() => {}}
-        />
+      <ModalBedRoom
+        open={openModalBedRoom}
+        handleClose={() => setOpenModalBedRoom(false)}
+        eventId={id || ''}
+      />
 
-        <ModalTeam
-          open={openModalTeam}
-          handleClose={() => setOpenModalTeam(false)}
-          actionSave={() => {}}
-        />
-      </FormProvider>
+      <ModalTeam
+        open={openModalTeam}
+        handleClose={() => setOpenModalTeam(false)}
+        actionSave={() => {}}
+      />
     </PageStyle>
   );
 }
