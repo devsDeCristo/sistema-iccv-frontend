@@ -8,7 +8,6 @@ import { ModalBedRoom } from '../../../features/events/components/modalBedRoom';
 import { useState } from 'react';
 import { ModalTeam } from '../../../features/events/components/modalTeam';
 import { ListUsers } from '../../../features/events/components/listUsers';
-import { useGetEvents } from '../../../features/events/api/getEvents';
 
 function Details() {
   const navigate = useNavigate();

@@ -10,7 +10,6 @@ import {
 import { Input } from '../../../components/input';
 import Select from 'react-select';
 import { Controller, useForm } from 'react-hook-form';
-import { HandlerReturnUser } from '../types';
 import { usePostCreateBedroom } from '../api/postBedroom';
 import { useEffect } from 'react';
 import { usePutBedroom } from '../api/putBedroom';
