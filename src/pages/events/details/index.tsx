@@ -54,9 +54,7 @@ function Details() {
           </Button>
         </Box>
         <Card sx={{ padding: 2 }}>
-          <Grid container spacing={2}>
-            <ListTeams />
-          </Grid>
+          <ListTeams />
         </Card>
       </Box>
 

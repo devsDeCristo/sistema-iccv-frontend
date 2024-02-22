@@ -59,7 +59,7 @@ function ModalTeam({ open, handleClose, team, eventId }: ModalTeamProps) {
   useEffect(() => {
     if (team) {
       reset({
-        note: team.note,
+        name: team.name,
         usersId: team.users.map((user: any) => ({
           value: user.user.id,
           label: user.user.fullName,

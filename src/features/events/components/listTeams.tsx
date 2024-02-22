@@ -56,77 +56,95 @@ function ListTeams() {
       setOpenModalDeleteTeam(false);
     }
   };
-
-  return teamsData.map((team) => {
-    return isLoading ? (
-      <Loading />
-    ) : (
-      <Box>
-        <Grid item xs={12} md={6} key={team.id}>
-          <Card variant="outlined" sx={{ padding: 1 }}>
-            <Box component="div" display="flex" alignItems="center" gap={0.5}>
-              <Typography component="label">Observações:</Typography>
-              <Typography>{team.name}</Typography>
-            </Box>
-            <Box component="div" display="flex" alignItems="center" gap={0.5}>
-              <Typography component="label">Usuários:</Typography>
-              <Stack direction="row" spacing={0.5}>
-                {team.users.map((user) => {
-                  return (
-                    <Tooltip
-                      title={user.user.fullName}
-                      arrow
-                      key={user.user.id}
-                    >
-                      <Avatar {...stringAvatar(user.user.fullName)} />
-                    </Tooltip>
-                  );
-                })}
-              </Stack>
-            </Box>
-            <Box gap={3} display="flex">
-              <Button
-                sx={{
-                  minWidth: 0,
-                  padding: '12px',
-                }}
-                variant="contained"
-                onClick={() => handleEditClick(team)}
+  // teamsData.map((team) => {
+  return (
+    <>
+      {isLoading && <Loading />}
+      <Grid container spacing={2}>
+        {teamsData.map((team) => (
+          <Grid item xs={12} md={6} key={team.id}>
+            <Card variant="outlined" sx={{ padding: 1 }}>
+              <Box
+                component="div"
+                display="flex"
+                justifyContent="space-between"
               >
-                <Edit />
-              </Button>
-              <Button
-                sx={{
-                  minWidth: 0,
-                  padding: '12px',
-                  ':hover': { backgroundColor: 'red' },
-                }}
-                variant="contained"
-                onClick={() => handleDeleteClick(team.id)}
-              >
-                <Delete />
-              </Button>
-            </Box>
-          </Card>
-        </Grid>
+                <Box>
+                  <Box
+                    component="div"
+                    display="flex"
+                    alignItems="center"
+                    gap={0.5}
+                  >
+                    <Typography component="label">Observações:</Typography>
+                    <Typography>{team.name}</Typography>
+                  </Box>
+                  <Box
+                    component="div"
+                    display="flex"
+                    alignItems="center"
+                    gap={0.5}
+                  >
+                    <Typography component="label">Usuários:</Typography>
+                    <Stack direction="row" spacing={0.5}>
+                      {team.users.map((user) => {
+                        return (
+                          <Tooltip
+                            title={user.user.fullName}
+                            arrow
+                            key={user.user.id}
+                          >
+                            <Avatar {...stringAvatar(user.user.fullName)} />
+                          </Tooltip>
+                        );
+                      })}
+                    </Stack>
+                  </Box>
+                </Box>
+                <Box gap={3} display="flex">
+                  <Button
+                    sx={{
+                      minWidth: 0,
+                      padding: '12px',
+                    }}
+                    variant="contained"
+                    onClick={() => handleEditClick(team)}
+                  >
+                    <Edit />
+                  </Button>
+                  <Button
+                    sx={{
+                      minWidth: 0,
+                      padding: '12px',
+                      ':hover': { backgroundColor: 'red' },
+                    }}
+                    variant="contained"
+                    onClick={() => handleDeleteClick(team.id)}
+                  >
+                    <Delete />
+                  </Button>
+                </Box>
+              </Box>
+            </Card>
+          </Grid>
+        ))}
+      </Grid>
+      <ModalTeam
+        open={openModalTeam}
+        handleClose={() => setOpenModalTeam(false)}
+        team={selectTeam}
+        eventId={eventId || ''}
+      />
 
-        <ModalTeam
-          open={openModalTeam}
-          handleClose={() => setOpenModalTeam(false)}
-          team={selectTeam}
-          eventId={eventId || ''}
-        />
-
-        <ConfirmModal
-          open={openModalDeleteTeam}
-          onClose={() => setOpenModalDeleteTeam(false)}
-          title="Deletar time"
-          message="Você tem certeza que deseja deletar esse time?"
-          onConfirm={handleConfirmDelete}
-        />
-      </Box>
-    );
-  });
+      <ConfirmModal
+        open={openModalDeleteTeam}
+        onClose={() => setOpenModalDeleteTeam(false)}
+        title="Deletar time"
+        message="Você tem certeza que deseja deletar esse time?"
+        onConfirm={handleConfirmDelete}
+      />
+    </>
+  );
 }
 
 export { ListTeams };

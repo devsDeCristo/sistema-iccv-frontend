@@ -14,7 +14,7 @@ type DeleteTeamProps = {
 
 const deleteTeam = ({ eventId, teamId }: DeleteTeamProps) =>
   apiClient
-    .delete<boolean>(`/events/${eventId}/team/${teamId}`)
+    .delete<boolean>(`/events/${eventId}/teams/${teamId}`)
     .then((response) => {
       handleResponseSuccess(response.data, 'Time removido com sucesso!')();
     })
