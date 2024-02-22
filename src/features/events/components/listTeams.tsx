@@ -17,6 +17,7 @@ import { Team } from '../types';
 import { Delete, Edit } from '@mui/icons-material';
 import { ConfirmModal } from '../../../components/ConfirmModal';
 import { ModalTeam } from './modalTeam';
+import { useDeleteTeam } from '../api/deleteTeam';
 
 function ListTeams() {
   const { id: eventId = '' } = useParams();
@@ -37,6 +38,8 @@ function ListTeams() {
     string | null
   >(null);
 
+  const { mutate } = useDeleteTeam();
+
   const handleEditClick = (team: Team) => {
     setOpenModalTeam(true);
     setSelectTeam(team);
@@ -49,7 +52,7 @@ function ListTeams() {
 
   const handleConfirmDelete = () => {
     if (selectedDeleteIdTeam) {
-      mutate({ eventId: eventId, teamId: selectedDeleteIdTeam });
+      mutate({ eventId, teamId: selectedDeleteIdTeam });
       setOpenModalDeleteTeam(false);
     }
   };
