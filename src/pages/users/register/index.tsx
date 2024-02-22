@@ -9,6 +9,7 @@ import { REGISTER_USERS_SCHEMA } from '../../../features/users/constants';
 import { RegisterUsersFormType } from '../../../types/user';
 import { removeMask } from '../../../utils';
 import { usePostCreateUser } from '../../../features/users/api/postUser';
+// import { usePostProfilePhotoUser } from '../../../features/users/api/postProfilePhotoUser';
 
 function RegisterUser() {
   const DEFAULT_VALUES: RegisterUsersFormType = {

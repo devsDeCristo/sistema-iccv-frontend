@@ -6,7 +6,7 @@ import {
 } from '../../../utils/service';
 
 type PutUserParams = {
-  userId: number;
+  userId: string;
   data: any;
 };
 

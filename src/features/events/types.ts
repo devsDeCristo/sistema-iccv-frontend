@@ -6,7 +6,7 @@ export type HandlerReturnUser = {
 };
 
 export interface Event {
-  id: number;
+  id: string;
   name: string;
   startDate: Date;
   endDate: Date;
@@ -14,18 +14,18 @@ export interface Event {
   workerPrice: number;
   createdAt: Date;
   updateAt: Date;
-  users?: HandlerReturnUser[];
+  users?: User[];
 }
 
 export interface Bedroom {
-  id: number;
+  id: string;
   note: string | null;
   event: Event;
   users: HandlerReturnUser[];
 }
 
 export interface Team {
-  id: number;
+  id: string;
   name: string;
   event: Event;
   users: HandlerReturnUser[];

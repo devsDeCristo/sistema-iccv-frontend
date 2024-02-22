@@ -89,7 +89,7 @@ function Details() {
       <ModalTeam
         open={openModalTeam}
         handleClose={() => setOpenModalTeam(false)}
-        actionSave={() => {}}
+        eventId={id || ''}
       />
     </PageStyle>
   );

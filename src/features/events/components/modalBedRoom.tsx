@@ -54,7 +54,7 @@ function ModalBedRoom({
   });
 
   const { data: eventData } = useGetEvents(
-    { eventId: Number(eventId) || 0 },
+    { eventId: eventId || '' },
     {
       enabled: !!eventId,
     }
@@ -72,14 +72,12 @@ function ModalBedRoom({
     }
   }, [bedRoom]);
 
-  if (Array.isArray(eventData)) {
-    return null;
-  }
-
-  const options = eventData?.users?.map((user) => ({
-    value: user.user.id,
-    label: user.user.fullName,
-  }));
+  const options =
+    !Array.isArray(eventData) &&
+    eventData?.users?.map((user) => ({
+      value: user.id,
+      label: user.fullName,
+    }));
 
   const onSubimitBedroom = (data: any) => {
     const transoformData = {
@@ -89,7 +87,7 @@ function ModalBedRoom({
 
     if (bedRoom) {
       putBedroom({
-        eventId: Number(eventId),
+        eventId,
         bedRoomId: bedRoom.id,
         data: transoformData,
       });
@@ -97,7 +95,7 @@ function ModalBedRoom({
     }
 
     postCreateBedroom({
-      eventId: Number(eventId),
+      eventId,
       data: transoformData,
     });
   };
@@ -149,7 +147,7 @@ function ModalBedRoom({
                     <Select
                       isMulti
                       name="colors"
-                      options={options}
+                      options={options || []}
                       value={value}
                       onChange={onChange}
                       className="basic-multi-select"

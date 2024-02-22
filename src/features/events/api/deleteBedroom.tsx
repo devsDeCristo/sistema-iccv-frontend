@@ -8,8 +8,8 @@ import { queryClient } from '../../../config/lib/react-query/query-client';
 import { GET_BEDROOMS } from '../constants';
 
 type DeleteBedroomProps = {
-  eventId: number;
-  bedRoomId: number;
+  eventId: string;
+  bedRoomId: string;
 };
 
 const deleteBedroom = ({ eventId, bedRoomId }: DeleteBedroomProps) =>

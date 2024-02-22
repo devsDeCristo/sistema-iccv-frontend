@@ -5,31 +5,32 @@ import {
   handleResponseThrowError,
 } from '../../../utils/service';
 import { queryClient } from '../../../config/lib/react-query/query-client';
-import { GET_BEDROOMS } from '../constants';
+import { GET_TEAMS } from '../constants';
 
-type PostCreateBedroomProps = {
+type PutTeamProps = {
   eventId: string;
+  teamId: string;
   data: any;
 };
 
-const postCreateBedroom = ({ data, eventId }: PostCreateBedroomProps) =>
+const putTeam = ({ data, eventId, teamId }: PutTeamProps) =>
   apiClient
-    .post<boolean>(`/events/${eventId}/bedrooms`, data)
+    .put<boolean>(`/events/${eventId}/teams/${teamId}`, data)
     .then((response) => {
-      handleResponseSuccess(response.data, 'Quarto criado com sucesso!')();
+      handleResponseSuccess(response.data, 'Time editado com sucesso!')();
     })
     .catch(handleResponseThrowError());
 
-type PostCreateBedroomData = Awaited<ReturnType<typeof postCreateBedroom>>;
+type PutTeamData = Awaited<ReturnType<typeof putTeam>>;
 
-export const usePostCreateBedroom = ({
+export const usePutTeam = ({
   onSuccess,
   ...options
-}: MutationOptions<PostCreateBedroomData, unknown, any> = {}) => {
+}: MutationOptions<PutTeamData, unknown, any> = {}) => {
   return useMutation({
-    mutationFn: postCreateBedroom,
+    mutationFn: putTeam,
     onSuccess: (...args) => {
-      queryClient.invalidateQueries(GET_BEDROOMS);
+      queryClient.invalidateQueries(GET_TEAMS);
       onSuccess?.(...args);
     },
     ...options,

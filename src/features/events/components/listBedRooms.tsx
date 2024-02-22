@@ -20,17 +20,22 @@ import { useDeleteBedroom } from '../api/deleteBedroom';
 import { ConfirmModal } from '../../../components/ConfirmModal';
 
 function ListBedRooms() {
-  const { id: eventId = 0 } = useParams();
-  const { data: bedroomsData = [], isLoading } = useGetBedrooms({
-    eventId: Number(eventId),
-  });
+  const { id: eventId = '' } = useParams();
+  const { data: bedroomsData = [], isLoading } = useGetBedrooms(
+    {
+      eventId: eventId,
+    },
+    {
+      enabled: !!eventId,
+    }
+  );
 
   const [openModalBedRoom, setOpenModalBedRoom] = useState(false);
   const [selectBedRoom, setSelectBedRoom] = useState<Bedroom | null>(null);
 
   const [openModalDeleteBedRoom, setOpenModalDeleteBedRoom] = useState(false);
   const [selectedDeleteIdBedRoom, setSelectedDeleteIdBedRoom] = useState<
-    number | null
+    string | null
   >(null);
 
   const { mutate } = useDeleteBedroom();
@@ -40,14 +45,14 @@ function ListBedRooms() {
     setSelectBedRoom(bedroom);
   };
 
-  const handleDeleteClick = (bedRoomId: number) => {
+  const handleDeleteClick = (bedRoomId: string) => {
     setOpenModalDeleteBedRoom(true);
     setSelectedDeleteIdBedRoom(bedRoomId);
   };
 
   const handleConfirmDelete = () => {
     if (selectedDeleteIdBedRoom) {
-      mutate({ eventId: Number(eventId), bedRoomId: selectedDeleteIdBedRoom });
+      mutate({ eventId: eventId, bedRoomId: selectedDeleteIdBedRoom });
       setOpenModalDeleteBedRoom(false);
     }
   };
