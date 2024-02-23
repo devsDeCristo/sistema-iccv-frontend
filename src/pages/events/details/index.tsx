@@ -69,9 +69,6 @@ function Details() {
           mb={2}
         >
           <Typography color="#000">Usuários</Typography>
-          <Button variant="contained" onClick={() => navigate('/cadastro')}>
-            Adicionar usuários
-          </Button>
         </Box>
         <Card>
           <ListUsers />
