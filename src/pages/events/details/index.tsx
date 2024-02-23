@@ -1,7 +1,7 @@
 import { Header } from '../../../components/header';
 import { PageStyle } from '../../../components/pageStyle';
-import { Grid, Card, Typography, Box, Button, Divider } from '@mui/material';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Card, Typography, Box, Button, Divider } from '@mui/material';
+import { useParams } from 'react-router-dom';
 import { ListTeams } from '../../../features/events/components/listTeams';
 import { ListBedRooms } from '../../../features/events/components/listBedRooms';
 import { ModalBedRoom } from '../../../features/events/components/modalBedRoom';
@@ -10,7 +10,6 @@ import { ModalTeam } from '../../../features/events/components/modalTeam';
 import { ListUsers } from '../../../features/events/components/listUsers';
 
 function Details() {
-  const navigate = useNavigate();
   const { id } = useParams();
 
   const [openModalBedRoom, setOpenModalBedRoom] = useState(false);
