@@ -12,6 +12,7 @@ import { useParams } from 'react-router-dom';
 import { useGetUsers } from '../../../features/users/api/getUsers';
 import { useEffect } from 'react';
 import { usePutUser } from '../../../features/users/api/putUser';
+import { InputPhoto } from '../../../features/users/components/inputPhoto';
 
 function EditUser() {
   const { id } = useParams();
@@ -70,6 +71,7 @@ function EditUser() {
   return (
     <PageStyle>
       <Header title="Cadastro de usuários" buttonBack={permission} />
+      <InputPhoto />
       <FormProvider {...methods}>
         <form onSubmit={methods.handleSubmit(onSubmitForm)}>
           <Form />

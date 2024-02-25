@@ -1,9 +1,26 @@
 import { Card } from '@mui/material';
 import { formatDate, formatPhoneNumber } from '../../../utils';
-import { DataGrid, GridColDef } from '@mui/x-data-grid';
+import {
+  DataGrid,
+  GridColDef,
+  GridGetRowsToExportParams,
+  GridRowId,
+  GridToolbar,
+  gridFilteredSortedRowIdsSelector,
+  selectedGridRowsSelector,
+} from '@mui/x-data-grid';
 import { useGetEvents } from '../api/getEvents';
 import { useParams } from 'react-router-dom';
+const getSelectedRowsToExport = ({
+  apiRef,
+}: GridGetRowsToExportParams): GridRowId[] => {
+  const selectedRowIds = selectedGridRowsSelector(apiRef);
+  if (selectedRowIds.size > 0) {
+    return Array.from(selectedRowIds.keys());
+  }
 
+  return gridFilteredSortedRowIdsSelector(apiRef);
+};
 function ListUsers() {
   const { id: eventId = 0 } = useParams();
   const { data: eventData, isLoading } = useGetEvents({
@@ -43,6 +60,15 @@ function ListUsers() {
         rows={handlerData || []}
         columns={columns}
         loading={isLoading}
+        autoHeight={true}
+        slots={{
+          toolbar: GridToolbar,
+        }}
+        slotProps={{
+          toolbar: {
+            printOptions: { getRowsToExport: getSelectedRowsToExport },
+          },
+        }}
       />
     </Card>
   );

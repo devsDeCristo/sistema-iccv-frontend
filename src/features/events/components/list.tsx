@@ -1,9 +1,28 @@
 import { Card } from '@mui/material';
-import { DataGrid, GridColDef, GridRowParams } from '@mui/x-data-grid';
+import {
+  DataGrid,
+  GridColDef,
+  GridGetRowsToExportParams,
+  GridRowId,
+  GridRowParams,
+  GridToolbar,
+  gridFilteredSortedRowIdsSelector,
+  selectedGridRowsSelector,
+} from '@mui/x-data-grid';
 import { useNavigate } from 'react-router-dom';
 import { useGetEvents } from '../api/getEvents';
 import { formatDate } from '../../../utils';
 
+const getSelectedRowsToExport = ({
+  apiRef,
+}: GridGetRowsToExportParams): GridRowId[] => {
+  const selectedRowIds = selectedGridRowsSelector(apiRef);
+  if (selectedRowIds.size > 0) {
+    return Array.from(selectedRowIds.keys());
+  }
+
+  return gridFilteredSortedRowIdsSelector(apiRef);
+};
 function List() {
   const navigate = useNavigate();
 
@@ -37,6 +56,15 @@ function List() {
         onRowClick={onRowClick}
         rows={Array.isArray(data) ? data : []}
         columns={columns}
+        autoHeight={true}
+        slots={{
+          toolbar: GridToolbar,
+        }}
+        slotProps={{
+          toolbar: {
+            printOptions: { getRowsToExport: getSelectedRowsToExport },
+          },
+        }}
       />
     </Card>
   );
