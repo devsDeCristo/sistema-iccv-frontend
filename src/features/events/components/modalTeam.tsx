@@ -9,15 +9,20 @@ import {
 } from '@mui/material';
 import { Input } from '../../../components/input';
 import Select from 'react-select';
+import { Controller, useForm } from 'react-hook-form';
+import { useGetEvents } from '../api/getEvents';
+import { useEffect } from 'react';
+import { usePostCreateTeam } from '../api/postTeam';
+import { usePutTeam } from '../api/putTeam';
 
 interface ModalTeamProps {
   open: boolean;
   handleClose: () => void;
-  actionSave: () => void;
-  bedRoom?: any;
+  team?: any;
+  eventId: string;
 }
 
-function ModalTeam({ open, handleClose, actionSave, bedRoom }: ModalTeamProps) {
+function ModalTeam({ open, handleClose, team, eventId }: ModalTeamProps) {
   const style = {
     position: 'absolute' as 'absolute',
     top: '50%',
@@ -30,10 +35,66 @@ function ModalTeam({ open, handleClose, actionSave, bedRoom }: ModalTeamProps) {
     p: 4,
   };
 
-  const options = [
-    { value: 'Felipe', label: 'Felipe Queiroz' },
-    { value: 'Miqueias', label: 'Miqueias Tenorio' },
-  ];
+  const { control, reset, handleSubmit } = useForm();
+  const { mutate: putTeam } = usePutTeam({
+    onSuccess: () => {
+      reset();
+      handleClose();
+    },
+  });
+  const { mutate: postCreateTeam } = usePostCreateTeam({
+    onSuccess: () => {
+      reset();
+      handleClose();
+    },
+  });
+
+  const { data: eventData } = useGetEvents(
+    { eventId: eventId || '' },
+    {
+      enabled: !!eventId,
+    }
+  );
+
+  useEffect(() => {
+    if (team) {
+      reset({
+        name: team.name,
+        usersId: team.users.map((user: any) => ({
+          value: user.user.id,
+          label: user.user.fullName,
+        })),
+      });
+    }
+  }, [team]);
+
+  const options =
+    !Array.isArray(eventData) &&
+    eventData?.users?.map((user) => ({
+      value: user.id,
+      label: user.fullName,
+    }));
+
+  const onSubimitTeam = (data: any) => {
+    const transoformData = {
+      ...data,
+      usersId: data.usersId.map((user: any) => user.value),
+    };
+
+    if (team) {
+      putTeam({
+        eventId,
+        teamId: team.id,
+        data: transoformData,
+      });
+      return;
+    }
+
+    postCreateTeam({
+      eventId,
+      data: transoformData,
+    });
+  };
 
   return (
     <Modal
@@ -52,25 +113,50 @@ function ModalTeam({ open, handleClose, actionSave, bedRoom }: ModalTeamProps) {
       <Fade in={open}>
         <Box sx={style}>
           <Typography id="transition-modal-title" variant="h6" component="h2">
-            {bedRoom ? 'Editar ' : 'Adicionar '} time
+            {team ? 'Editar ' : 'Adicionar '} time
           </Typography>
-          <Grid id="transition-modal-description" my={2} container spacing={2}>
-            <Grid item xs={12}>
-              <Input name="name" label="Nome do time" />
+          <form onSubmit={handleSubmit(onSubimitTeam)}>
+            <Grid
+              id="transition-modal-description"
+              my={2}
+              container
+              spacing={2}
+            >
+              <Grid item xs={12}>
+                <Controller
+                  control={control}
+                  name="name"
+                  render={({ field: { onChange, value } }) => (
+                    <Input
+                      label="Nome do time"
+                      value={value}
+                      onChange={onChange}
+                    />
+                  )}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <Controller
+                  control={control}
+                  name="usersId"
+                  render={({ field: { onChange, value } }) => (
+                    <Select
+                      isMulti
+                      name="colors"
+                      options={options || []}
+                      value={value}
+                      onChange={onChange}
+                      className="basic-multi-select"
+                      classNamePrefix="select"
+                    />
+                  )}
+                />
+              </Grid>
             </Grid>
-            <Grid item xs={12}>
-              <Select
-                isMulti
-                name="colors"
-                options={options}
-                className="basic-multi-select"
-                classNamePrefix="select"
-              />
-            </Grid>
-          </Grid>
-          <Button variant="contained" fullWidth onClick={actionSave}>
-            Salvar
-          </Button>
+            <Button type="submit" variant="contained" fullWidth>
+              Salvar
+            </Button>
+          </form>
         </Box>
       </Fade>
     </Modal>

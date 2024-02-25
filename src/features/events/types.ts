@@ -1,12 +1,14 @@
 import { User } from '../../types/user';
+import { z } from 'zod';
+import { REGISTER_EVENT_SCHEMA } from './constants';
 
 // TODO - When handler the return on backend, remove this type
-type HandlerReturnUser = {
+export type HandlerReturnUser = {
   user: User;
 };
 
 export interface Event {
-  id: number;
+  id: string;
   name: string;
   startDate: Date;
   endDate: Date;
@@ -14,19 +16,21 @@ export interface Event {
   workerPrice: number;
   createdAt: Date;
   updateAt: Date;
-  users?: HandlerReturnUser[];
+  users?: User[];
 }
 
 export interface Bedroom {
-  id: number;
+  id: string;
   note: string | null;
   event: Event;
   users: HandlerReturnUser[];
 }
 
 export interface Team {
-  id: number;
+  id: string;
   name: string;
   event: Event;
   users: HandlerReturnUser[];
 }
+
+export type RegisterEventFormType = z.infer<typeof REGISTER_EVENT_SCHEMA>;

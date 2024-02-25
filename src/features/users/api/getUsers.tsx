@@ -4,7 +4,7 @@ import { GET_USERS } from '../constants';
 import { User } from '../../../types/user';
 
 type GetUsersParams = {
-  userId?: number;
+  userId?: string;
 };
 
 const getUsers = ({ userId }: GetUsersParams) => {

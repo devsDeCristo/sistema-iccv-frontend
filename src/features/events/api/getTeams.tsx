@@ -4,8 +4,8 @@ import { Team } from '../types';
 import { GET_TEAMS } from '../constants';
 
 interface GetTeamsParams {
-  eventId: number;
-  teamId?: number;
+  eventId: string;
+  teamId?: string;
 }
 
 const getTeams = ({ eventId, teamId }: GetTeamsParams) => {

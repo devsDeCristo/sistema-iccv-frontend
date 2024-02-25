@@ -1,16 +1,7 @@
 import { Header } from '../../../components/header';
-import { useForm, FormProvider } from 'react-hook-form';
 import { PageStyle } from '../../../components/pageStyle';
-import {
-  Grid,
-  Card,
-  Typography,
-  Box,
-  Button,
-  Divider,
-  Stack,
-} from '@mui/material';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Card, Typography, Box, Button, Divider, Stack } from '@mui/material';
+import { useParams } from 'react-router-dom';
 import { ListTeams } from '../../../features/events/components/listTeams';
 import { ListBedRooms } from '../../../features/events/components/listBedRooms';
 import { ModalBedRoom } from '../../../features/events/components/modalBedRoom';
@@ -25,10 +16,7 @@ import { Event } from '../../../features/events/types';
 import { useGetTeams } from '../../../features/events/api/getTeams';
 
 function Details() {
-  const methods = useForm();
-  const navigate = useNavigate();
   const { id } = useParams();
-  console.log(id);
 
   const [openModalBedRoom, setOpenModalBedRoom] = useState(false);
   const [openModalTeam, setOpenModalTeam] = useState(false);
@@ -65,9 +53,7 @@ function Details() {
           </Button>
         </Box>
         <Card sx={{ padding: 2 }}>
-          <Grid container spacing={2}>
-            <ListBedRooms />
-          </Grid>
+          <ListBedRooms />
         </Card>
       </Box>
 
@@ -95,9 +81,7 @@ function Details() {
           </Stack>
         </Box>
         <Card sx={{ padding: 2 }}>
-          <Grid container spacing={2}>
-            <ListTeams />
-          </Grid>
+          <ListTeams />
         </Card>
       </Box>
 
@@ -112,28 +96,23 @@ function Details() {
           mb={2}
         >
           <Typography color="#000">Usuários</Typography>
-          <Button variant="contained" onClick={() => navigate('/cadastro')}>
-            Adicionar usuários
-          </Button>
         </Box>
         <Card>
           <ListUsers />
         </Card>
       </Box>
 
-      <FormProvider {...methods}>
-        <ModalBedRoom
-          open={openModalBedRoom}
-          handleClose={() => setOpenModalBedRoom(false)}
-          actionSave={() => {}}
-        />
+      <ModalBedRoom
+        open={openModalBedRoom}
+        handleClose={() => setOpenModalBedRoom(false)}
+        eventId={id || ''}
+      />
 
-        <ModalTeam
-          open={openModalTeam}
-          handleClose={() => setOpenModalTeam(false)}
-          actionSave={() => {}}
-        />
-      </FormProvider>
+      <ModalTeam
+        open={openModalTeam}
+        handleClose={() => setOpenModalTeam(false)}
+        eventId={id || ''}
+      />
     </PageStyle>
   );
 }

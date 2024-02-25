@@ -4,7 +4,7 @@ import { Event } from '../types';
 import { GET_EVENTS } from '../constants';
 
 interface GetEventsParams {
-  eventId?: number;
+  eventId?: string;
 }
 
 const getEvents = ({ eventId }: GetEventsParams) => {

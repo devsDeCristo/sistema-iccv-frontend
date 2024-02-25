@@ -15,8 +15,8 @@ import { usePutUser } from '../../../features/users/api/putUser';
 import { InputPhoto } from '../../../features/users/components/inputPhoto';
 
 function EditUser() {
-  const { id } = useParams();
-  const { data } = useGetUsers({ userId: Number(id) }) as { data: User };
+  const { id = '' } = useParams();
+  const { data } = useGetUsers({ userId: id }) as { data: User };
 
   const DEFAULT_VALUES: RegisterUsersFormType = {
     fullName: data?.fullName || '',
@@ -62,9 +62,10 @@ function EditUser() {
         : undefined,
       profession: 'Teste',
       role: 5,
+      eventId: '304f65ba-9225-4542-a613-33577ae3f2b8',
     };
     mutatePutUser({
-      userId: Number(id),
+      userId: id,
       data: formatData,
     });
   }

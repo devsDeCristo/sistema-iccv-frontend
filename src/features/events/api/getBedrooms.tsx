@@ -4,8 +4,8 @@ import { Bedroom } from '../types';
 import { GET_BEDROOMS } from '../constants';
 
 interface GetBedroomsParams {
-  eventId: number;
-  bedroomId?: number;
+  eventId: string;
+  bedroomId?: string;
 }
 
 const getBedrooms = ({ eventId, bedroomId }: GetBedroomsParams) => {

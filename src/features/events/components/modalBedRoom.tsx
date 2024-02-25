@@ -9,18 +9,23 @@ import {
 } from '@mui/material';
 import { Input } from '../../../components/input';
 import Select from 'react-select';
+import { Controller, useForm } from 'react-hook-form';
+import { usePostCreateBedroom } from '../api/postBedroom';
+import { useEffect } from 'react';
+import { usePutBedroom } from '../api/putBedroom';
+import { useGetEvents } from '../api/getEvents';
 
 interface ModalBedRoomProps {
   open: boolean;
   handleClose: () => void;
-  actionSave: () => void;
+  eventId: string;
   bedRoom?: any;
 }
 
 function ModalBedRoom({
   open,
   handleClose,
-  actionSave,
+  eventId = '',
   bedRoom,
 }: ModalBedRoomProps) {
   const style = {
@@ -34,11 +39,66 @@ function ModalBedRoom({
     boxShadow: 14,
     p: 4,
   };
+  const { control, reset, handleSubmit } = useForm();
+  const { mutate: putBedroom } = usePutBedroom({
+    onSuccess: () => {
+      reset();
+      handleClose();
+    },
+  });
+  const { mutate: postCreateBedroom } = usePostCreateBedroom({
+    onSuccess: () => {
+      reset();
+      handleClose();
+    },
+  });
 
-  const options = [
-    { value: 'Felipe', label: 'Felipe Queiroz' },
-    { value: 'Miqueias', label: 'Miqueias Tenorio' },
-  ];
+  const { data: eventData } = useGetEvents(
+    { eventId: eventId || '' },
+    {
+      enabled: !!eventId,
+    }
+  );
+
+  useEffect(() => {
+    if (bedRoom) {
+      reset({
+        note: bedRoom.note,
+        usersId: bedRoom.users.map((user: any) => ({
+          value: user.user.id,
+          label: user.user.fullName,
+        })),
+      });
+    }
+  }, [bedRoom]);
+
+  const options =
+    !Array.isArray(eventData) &&
+    eventData?.users?.map((user) => ({
+      value: user.id,
+      label: user.fullName,
+    }));
+
+  const onSubimitBedroom = (data: any) => {
+    const transoformData = {
+      ...data,
+      usersId: data.usersId.map((user: any) => user.value),
+    };
+
+    if (bedRoom) {
+      putBedroom({
+        eventId,
+        bedRoomId: bedRoom.id,
+        data: transoformData,
+      });
+      return;
+    }
+
+    postCreateBedroom({
+      eventId,
+      data: transoformData,
+    });
+  };
 
   return (
     <Modal
@@ -59,23 +119,48 @@ function ModalBedRoom({
           <Typography id="transition-modal-title" variant="h6" component="h2">
             {bedRoom ? 'Editar ' : 'Adicionar '} quarto
           </Typography>
-          <Grid id="transition-modal-description" my={2} container spacing={2}>
-            <Grid item xs={12}>
-              <Input name="notes" label="Observações" />
+          <form onSubmit={handleSubmit(onSubimitBedroom)}>
+            <Grid
+              id="transition-modal-description"
+              my={2}
+              container
+              spacing={2}
+            >
+              <Grid item xs={12}>
+                <Controller
+                  control={control}
+                  name="note"
+                  render={({ field: { onChange, value } }) => (
+                    <Input
+                      label="Observações"
+                      value={value}
+                      onChange={onChange}
+                    />
+                  )}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <Controller
+                  control={control}
+                  name="usersId"
+                  render={({ field: { onChange, value } }) => (
+                    <Select
+                      isMulti
+                      name="colors"
+                      options={options || []}
+                      value={value}
+                      onChange={onChange}
+                      className="basic-multi-select"
+                      classNamePrefix="select"
+                    />
+                  )}
+                />
+              </Grid>
             </Grid>
-            <Grid item xs={12}>
-              <Select
-                isMulti
-                name="colors"
-                options={options}
-                className="basic-multi-select"
-                classNamePrefix="select"
-              />
-            </Grid>
-          </Grid>
-          <Button variant="contained" fullWidth onClick={actionSave}>
-            Salvar
-          </Button>
+            <Button type="submit" variant="contained" fullWidth>
+              Salvar
+            </Button>
+          </form>
         </Box>
       </Fade>
     </Modal>
