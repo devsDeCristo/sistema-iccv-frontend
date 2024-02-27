@@ -13,6 +13,7 @@ import { useGetUsers } from '../../../features/users/api/getUsers';
 import { useEffect } from 'react';
 import { usePutUser } from '../../../features/users/api/putUser';
 import { InputPhoto } from '../../../features/users/components/inputPhoto';
+import { usePostProfilePhotoUser } from '../../../features/users/api/postProfilePhotoUser';
 
 function EditUser() {
   const { id = '' } = useParams();
@@ -72,7 +73,7 @@ function EditUser() {
   return (
     <PageStyle>
       <Header title="Cadastro de usuários" buttonBack={permission} />
-      <InputPhoto />
+      <InputPhoto {...data} />
       <FormProvider {...methods}>
         <form onSubmit={methods.handleSubmit(onSubmitForm)}>
           <Form />

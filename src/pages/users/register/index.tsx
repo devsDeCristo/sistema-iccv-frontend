@@ -9,9 +9,23 @@ import { REGISTER_USERS_SCHEMA } from '../../../features/users/constants';
 import { RegisterUsersFormType } from '../../../types/user';
 import { removeMask } from '../../../utils';
 import { usePostCreateUser } from '../../../features/users/api/postUser';
+import { useGetEvents } from '../../../features/events/api/getEvents';
 // import { usePostProfilePhotoUser } from '../../../features/users/api/postProfilePhotoUser';
 
 function RegisterUser() {
+  const eventId = import.meta.env.VITE_EVENT_ID;
+  const { data: eventData, isLoading } = useGetEvents(
+    {
+      eventId: eventId,
+    },
+    {
+      enabled: !!eventId,
+    }
+  );
+
+  if (!eventData || Array.isArray(eventData)) {
+    return null;
+  }
   const DEFAULT_VALUES: RegisterUsersFormType = {
     fullName: '',
     cpf: '',
@@ -58,11 +72,15 @@ function RegisterUser() {
   }
   return (
     <PageStyle>
-      <Header title="Cadastro de usuários" buttonBack={permission} />
+      <Header
+        title={'Cadastro de usuários: ' + eventData?.name || ''}
+        buttonBack={permission}
+      />
       <FormProvider {...methods}>
         <form onSubmit={methods.handleSubmit(onSubmitForm)}>
           <Form />
           <Button
+            disabled={isLoading}
             variant="contained"
             fullWidth
             sx={{ marginTop: 2 }}
