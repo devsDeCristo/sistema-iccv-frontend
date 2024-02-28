@@ -10,7 +10,6 @@ import { RegisterUsersFormType } from '../../../types/user';
 import { removeMask } from '../../../utils';
 import { usePostCreateUser } from '../../../features/users/api/postUser';
 import { useGetEvents } from '../../../features/events/api/getEvents';
-// import { usePostProfilePhotoUser } from '../../../features/users/api/postProfilePhotoUser';
 
 function RegisterUser() {
   const eventId = import.meta.env.VITE_EVENT_ID;
