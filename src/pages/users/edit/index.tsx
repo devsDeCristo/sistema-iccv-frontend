@@ -13,6 +13,7 @@ import { useGetUsers } from '../../../features/users/api/getUsers';
 import { useEffect } from 'react';
 import { usePutUser } from '../../../features/users/api/putUser';
 import { InputPhoto } from '../../../features/users/components/inputPhoto';
+import { usePostProfilePhotoUser } from '../../../features/users/api/postProfilePhotoUser';
 
 function EditUser() {
   const { id = '' } = useParams();
@@ -48,6 +49,7 @@ function EditUser() {
   const permission = usePermission();
 
   const { mutate: mutatePutUser } = usePutUser();
+  const { mutate: mutatePostProfilePhotoUser } = usePostProfilePhotoUser();
 
   function onSubmitForm(data: RegisterUsersFormType) {
     const formatData = {
@@ -69,10 +71,20 @@ function EditUser() {
       data: formatData,
     });
   }
+  function onSavePhoto(file: File | null) {
+    if (data?.id && file) {
+      const formData = new FormData();
+      formData.append('photo', file);
+      mutatePostProfilePhotoUser({ userId: data.id, data: formData });
+    }
+  }
   return (
     <PageStyle>
       <Header title="Cadastro de usuários" buttonBack={permission} />
-      <InputPhoto {...data} />
+      <InputPhoto
+        profilePhoto={data?.profilePhotoUrl}
+        onSavePhoto={onSavePhoto}
+      />
       <FormProvider {...methods}>
         <form onSubmit={methods.handleSubmit(onSubmitForm)}>
           <Form />

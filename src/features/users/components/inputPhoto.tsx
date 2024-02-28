@@ -1,7 +1,6 @@
 import { Avatar, Box, Button, Stack } from '@mui/material';
 import { CameraAlt, Save } from '@mui/icons-material';
 import { useState } from 'react';
-import { usePostProfilePhotoUser } from '../api/postProfilePhotoUser';
 const stylesInput = {
   button: {
     position: 'relative',
@@ -31,7 +30,6 @@ const stylesInput = {
     color: 'white',
   },
   cameraAlt: {
-    //color: 'white',
     opacity: 0,
     '&.hover': {
       boxShadow: 'none',
@@ -42,33 +40,24 @@ const stylesInput = {
     height: '180px',
   },
 };
-function InputPhoto(data: any) {
-  const [file, setFile] = useState<File | null>(data.profilePhotoUrl);
-  const [photo, setPhoto] = useState<string | null>(null);
-  const { mutate: savePhoto } = usePostProfilePhotoUser();
+interface InputPhotoProps {
+  profilePhoto: string | undefined;
+  onSavePhoto: (data: File | null) => void;
+}
+function InputPhoto({ profilePhoto, onSavePhoto }: InputPhotoProps) {
+  const [file, setFile] = useState<File | null>(null);
+  const [photo, setPhoto] = useState<string | undefined>(profilePhoto);
 
-  if (!data || Array.isArray(data)) {
-    return null;
-  }
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       setFile(file);
-
       const reader = new FileReader();
       reader.onloadend = () => {
         console.log(file, reader.result);
         setPhoto(reader.result as string);
       };
       reader.readAsDataURL(file);
-    }
-  };
-
-  const handleSaveButtonClick = () => {
-    if (data?.id && file) {
-      const formData = new FormData();
-      formData.append('photo', file);
-      savePhoto({ userId: data.id, data: formData });
     }
   };
 
@@ -109,7 +98,7 @@ function InputPhoto(data: any) {
         variant="contained"
         component="label"
         endIcon={<Save />}
-        onClick={handleSaveButtonClick}
+        onClick={() => onSavePhoto(file)}
       >
         Salvar
       </Button>
