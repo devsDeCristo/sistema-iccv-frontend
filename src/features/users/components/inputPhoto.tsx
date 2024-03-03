@@ -4,8 +4,8 @@ import { useState } from 'react';
 const stylesInput = {
   button: {
     position: 'relative',
-    width: '180px',
-    height: '180px',
+    width: '150px',
+    height: '150px',
     '&.hover': {
       boxShadow: 'none',
     },
@@ -36,8 +36,8 @@ const stylesInput = {
     },
   },
   avatar: {
-    width: '180px',
-    height: '180px',
+    width: '150px',
+    height: '150px',
   },
 };
 interface InputPhotoProps {
@@ -62,7 +62,13 @@ function InputPhoto({ profilePhoto, onSavePhoto }: InputPhotoProps) {
   };
 
   return (
-    <Stack justifyContent={'center'} alignItems={'center'} margin={2} gap={2}>
+    <Stack
+      justifyContent={'center'}
+      alignItems={'center'}
+      margin={2}
+      gap={4}
+      direction={'row'}
+    >
       <Button
         focusRipple
         key={'random'}
