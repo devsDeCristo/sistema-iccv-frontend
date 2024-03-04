@@ -13,16 +13,11 @@ import { useGetEvents } from '../../../features/events/api/getEvents';
 
 function RegisterUser() {
   const eventId = import.meta.env.VITE_EVENT_ID;
-  const { data: eventData, isLoading } = useGetEvents(
-    {
-      eventId: eventId,
-    },
-    {
-      enabled: !!eventId,
-    }
-  );
+  const { data = [], isLoading } = useGetEvents({
+    eventId,
+  });
 
-  if (!eventData || Array.isArray(eventData)) {
+  if (!data || Array.isArray(data)) {
     return null;
   }
   const DEFAULT_VALUES: RegisterUsersFormType = {
@@ -72,7 +67,9 @@ function RegisterUser() {
   return (
     <PageStyle>
       <Header
-        title={'Cadastro de usuários: ' + eventData?.name || ''}
+        title={`Cadastro de usuários: ${
+          data && !Array.isArray(data) ? data?.name : ''
+        }`}
         buttonBack={permission}
       />
       <FormProvider {...methods}>
