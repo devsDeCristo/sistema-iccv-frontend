@@ -9,17 +9,9 @@ import { REGISTER_USERS_SCHEMA } from '../../../features/users/constants';
 import { RegisterUsersFormType } from '../../../types/user';
 import { removeMask } from '../../../utils';
 import { usePostCreateUser } from '../../../features/users/api/postUser';
-import { useGetEvents } from '../../../features/events/api/getEvents';
 
 function RegisterUser() {
   const eventId = import.meta.env.VITE_EVENT_ID;
-  const { data = [], isLoading } = useGetEvents({
-    eventId,
-  });
-
-  if (!data || Array.isArray(data)) {
-    return null;
-  }
   const DEFAULT_VALUES: RegisterUsersFormType = {
     fullName: '',
     cpf: '',
@@ -34,6 +26,7 @@ function RegisterUser() {
     hypertensive: 0,
     diabetes: 0,
     role: 5,
+    eventId,
   };
 
   const methods = useForm<RegisterUsersFormType>({
@@ -66,17 +59,11 @@ function RegisterUser() {
   }
   return (
     <PageStyle>
-      <Header
-        title={`Cadastro de usuários: ${
-          data && !Array.isArray(data) ? data?.name : ''
-        }`}
-        buttonBack={permission}
-      />
+      <Header title={'Cadastro de usuários'} buttonBack={permission} />
       <FormProvider {...methods}>
         <form onSubmit={methods.handleSubmit(onSubmitForm)}>
           <Form />
           <Button
-            disabled={isLoading}
             variant="contained"
             fullWidth
             sx={{ marginTop: 2 }}

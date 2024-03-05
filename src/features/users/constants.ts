@@ -56,6 +56,7 @@ export const REGISTER_USERS_SCHEMA = z.object({
   hypertensive: z.number({
     required_error: DEFAULT_MESSAGE,
   }),
+  eventId: z.string().optional(),
 });
 export const OPTIONS_BOOLEAN = [
   { value: 0, name: 'Não' },

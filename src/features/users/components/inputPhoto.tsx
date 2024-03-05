@@ -54,7 +54,6 @@ function InputPhoto({ profilePhoto, onSavePhoto }: InputPhotoProps) {
       setFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
-        console.log(file, reader.result);
         setPhoto(reader.result as string);
       };
       reader.readAsDataURL(file);
