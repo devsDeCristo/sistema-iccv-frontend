@@ -21,9 +21,9 @@ function Details() {
   const [openModalBedRoom, setOpenModalBedRoom] = useState(false);
   const [openModalTeam, setOpenModalTeam] = useState(false);
 
-  const { id: eventId = 0 } = useParams();
+  const { id: eventId = '' } = useParams();
   const { data: teamsData = [] } = useGetTeams({
-    eventId: Number(eventId),
+    eventId,
   });
 
   async function handleDownloadPDF(data: Event[]) {
