@@ -5,12 +5,14 @@ import {
   handleResponseThrowError,
 } from '../../../utils/service';
 
-const postProfilePhotoUser = (data: any) =>
+type PostProfilePhotoUserParams = {
+  userId: string | null; // Alterada para aceitar null
+  data: any;
+};
+
+const postProfilePhotoUser = ({ userId, data }: PostProfilePhotoUserParams) =>
   apiClient
-    .post<boolean>(
-      '/users/6e893017-aec6-4d16-a816-4789c8d23333/profile-photo',
-      data
-    )
+    .post<boolean>(`/users/${userId}/profile-photo`, data)
     .then((response) => {
       handleResponseSuccess(response.data, 'Foto atualizada com sucesso!')();
     })
