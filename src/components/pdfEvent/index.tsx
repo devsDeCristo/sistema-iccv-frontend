@@ -17,17 +17,16 @@ function PdfEvent({ data, textFooter }: PdfProps) {
   return (
     <Document>
       {' '}
-      {data.map(({ name, users }, index) => (
-        <Page orientation="landscape" style={stylesPdf.body}>
+      {data.map(({ name, users, id }, index) => (
+        <Page key={id + index} orientation="landscape" style={stylesPdf.body}>
           <HeaderPdf />
           <View fixed style={stylesPdf.decuria} key={'titulo-pdf' + index}>
             <Image style={stylesPdf.imageDecuria} src={Borboleta} />
             <Text style={stylesPdf.title}>{name}</Text>
           </View>
           <View style={stylesPdf.rectangleRow} key={'quadrantes-pdf' + index}>
-            {/* TODO: Verificar se o map está correto */}
-            {users?.map((user) => (
-              <UserRectangle user={user} />
+            {users?.map((user, index) => (
+              <UserRectangle key={index} user={user} />
             ))}
           </View>
           <FooterPdf text={textFooter} />

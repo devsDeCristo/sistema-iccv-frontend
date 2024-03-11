@@ -16,7 +16,7 @@ function App() {
 
       <React.Suspense fallback={<Loading />}>
         <RoutesUsers />
-        <RoutesEvents />
+        {permission && <RoutesEvents />}
       </React.Suspense>
 
       <ToastContainer autoClose={5000} closeOnClick />

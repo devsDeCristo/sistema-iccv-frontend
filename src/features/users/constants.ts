@@ -3,6 +3,15 @@ export const GET_USERS = 'GET_USERS';
 
 const DEFAULT_MESSAGE = 'Campo obrigatório';
 
+export enum ENUM_OPTION_LEADERSHIP_POSITION {
+  SHEPHERD = 'Pastor',
+  PRESBYTER = 'Presbítero',
+  DEACON = 'Diácono',
+  EVANGELIST = 'Evangelista',
+  MEMBER = 'Membro',
+  NOT_POSITION = 'Não',
+}
+
 export const REGISTER_USERS_SCHEMA = z.object({
   fullName: z.string({
     required_error: DEFAULT_MESSAGE,
@@ -62,12 +71,35 @@ export const OPTIONS_BOOLEAN = [
   { value: 0, name: 'Não' },
   { value: 1, name: 'Sim' },
 ];
+
 export const OPTIONS_WORKER = [
   { value: 0, name: 'Participar (Cursilhista)' },
   { value: 1, name: 'Servir (Cursilheiro)' },
 ];
+
 export const OPTIONS_ROLE = [
-  { value: 0, name: 'Não' },
-  { value: 1, name: 'Pastor' },
-  { value: 5, name: 'Membro(a)' },
+  {
+    value: ENUM_OPTION_LEADERSHIP_POSITION.NOT_POSITION,
+    name: ENUM_OPTION_LEADERSHIP_POSITION.NOT_POSITION,
+  },
+  {
+    value: ENUM_OPTION_LEADERSHIP_POSITION.SHEPHERD,
+    name: ENUM_OPTION_LEADERSHIP_POSITION.SHEPHERD,
+  },
+  {
+    value: ENUM_OPTION_LEADERSHIP_POSITION.PRESBYTER,
+    name: ENUM_OPTION_LEADERSHIP_POSITION.PRESBYTER,
+  },
+  {
+    value: ENUM_OPTION_LEADERSHIP_POSITION.DEACON,
+    name: ENUM_OPTION_LEADERSHIP_POSITION.DEACON,
+  },
+  {
+    value: ENUM_OPTION_LEADERSHIP_POSITION.EVANGELIST,
+    name: ENUM_OPTION_LEADERSHIP_POSITION.EVANGELIST,
+  },
+  {
+    value: ENUM_OPTION_LEADERSHIP_POSITION.MEMBER,
+    name: ENUM_OPTION_LEADERSHIP_POSITION.MEMBER,
+  },
 ];

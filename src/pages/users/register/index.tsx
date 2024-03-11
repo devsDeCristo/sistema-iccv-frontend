@@ -5,10 +5,14 @@ import { Form } from '../../../features/users/components/form';
 import { Button } from '@mui/material';
 import { usePermission } from '../../../hooks/usePermission';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { REGISTER_USERS_SCHEMA } from '../../../features/users/constants';
+import {
+  ENUM_OPTION_LEADERSHIP_POSITION,
+  REGISTER_USERS_SCHEMA,
+} from '../../../features/users/constants';
 import { RegisterUsersFormType } from '../../../types/user';
 import { removeMask } from '../../../utils';
 import { usePostCreateUser } from '../../../features/users/api/postUser';
+import { getRole } from '../utils';
 
 function RegisterUser() {
   const eventId = import.meta.env.VITE_EVENT_ID;
@@ -17,7 +21,7 @@ function RegisterUser() {
     cpf: '',
     birthday: null,
     cellphone: '',
-    emergencyContact: null,
+    emergencyContact: '',
     email: '',
     worker: 0,
     profession: '',
@@ -25,6 +29,10 @@ function RegisterUser() {
     state: '',
     hypertensive: 0,
     diabetes: 0,
+    notes: '',
+    leadershipPosition: '',
+    indicatedBy: '',
+    religion: '',
     role: 5,
     eventId,
   };
@@ -53,7 +61,11 @@ function RegisterUser() {
         ? removeMask(data.emergencyContact)
         : undefined,
       profession: 'Teste',
-      role: 5,
+      leadershipPosition:
+        data.leadershipPosition === ENUM_OPTION_LEADERSHIP_POSITION.NOT_POSITION
+          ? undefined
+          : data.leadershipPosition,
+      role: data.leadershipPosition ? getRole(data.leadershipPosition) : 5,
     };
     mutatePostCreateUser(formatData);
   }

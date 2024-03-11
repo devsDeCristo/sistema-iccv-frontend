@@ -89,12 +89,8 @@ function ListTeams() {
                     <Stack direction="row" spacing={0.5}>
                       {team.users.map((user) => {
                         return (
-                          <Tooltip
-                            title={user.user.fullName}
-                            arrow
-                            key={user.user.id}
-                          >
-                            <Avatar {...stringAvatar(user.user.fullName)} />
+                          <Tooltip title={user.fullName} arrow key={user.id}>
+                            <Avatar {...stringAvatar(user.fullName)} />
                           </Tooltip>
                         );
                       })}

@@ -237,6 +237,7 @@ function Form() {
               menuOptions={OPTIONS_ROLE}
               value={value}
               onChange={(event) => onChange(event.target.value)}
+              helperText={errors.leadershipPosition?.message}
             />
           )}
         />

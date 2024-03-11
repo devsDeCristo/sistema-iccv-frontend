@@ -7,7 +7,7 @@ function SideBar() {
     'https://www.holiness.org.br/wp-content/uploads/2021/04/cruz.jpg';
 
   return (
-    <div style={{ display: 'flex', height: '100vh' }}>
+    <div style={{ display: 'flex', minHeight: '100vh' }}>
       <Sidebar className="sidebar" image={image}>
         <Menu>
           <MenuItem className="menu1">

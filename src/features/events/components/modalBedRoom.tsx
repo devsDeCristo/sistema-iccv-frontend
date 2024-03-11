@@ -65,8 +65,8 @@ function ModalBedRoom({
       reset({
         note: bedRoom.note,
         usersId: bedRoom.users.map((user: any) => ({
-          value: user.user.id,
-          label: user.user.fullName,
+          value: user.id,
+          label: user.fullName,
         })),
       });
     }

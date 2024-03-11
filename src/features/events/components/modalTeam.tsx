@@ -61,8 +61,8 @@ function ModalTeam({ open, handleClose, team, eventId }: ModalTeamProps) {
       reset({
         name: team.name,
         usersId: team.users.map((user: any) => ({
-          value: user.user.id,
-          label: user.user.fullName,
+          value: user.id,
+          label: user.fullName,
         })),
       });
     }
