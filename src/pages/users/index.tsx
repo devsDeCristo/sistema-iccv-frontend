@@ -9,8 +9,17 @@ function Users() {
   return (
     <PageStyle>
       <Header title="Usuários" />
-      <Box component="div" justifyContent="end" display="flex" mb={2} sx={{gap:"5px"}}>
-        <Button variant="contained" onClick={() => navigate('/cadastro')}>
+      <Box
+        component="div"
+        justifyContent="end"
+        display="flex"
+        mb={2}
+        sx={{ gap: '5px' }}
+      >
+        <Button
+          variant="contained"
+          onClick={() => navigate('/cadastro-cursilho-masculino')}
+        >
           Cadastrar usuario
         </Button>
       </Box>
