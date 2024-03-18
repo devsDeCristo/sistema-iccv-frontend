@@ -44,7 +44,6 @@ export const REGISTER_USERS_SCHEMA = z.object({
     .string({
       required_error: DEFAULT_MESSAGE,
     })
-    .min(8, { message: 'Preencha um número válido' })
     .optional()
     .nullable(),
   indicatedBy: z.string().optional(),

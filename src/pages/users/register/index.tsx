@@ -16,6 +16,7 @@ import { getRole } from '../utils';
 
 function RegisterUser() {
   const eventId = import.meta.env.VITE_EVENT_ID;
+  const linkInviteGroupWpp = import.meta.env.VITE_LINK_INVITE_GROUP_WPP;
   const DEFAULT_VALUES: RegisterUsersFormType = {
     fullName: '',
     cpf: '',
@@ -46,6 +47,7 @@ function RegisterUser() {
   const { mutate: mutatePostCreateUser } = usePostCreateUser({
     onSuccess: () => {
       methods.reset(DEFAULT_VALUES);
+      window.open(linkInviteGroupWpp, '_blank');
     },
   });
 
@@ -60,9 +62,14 @@ function RegisterUser() {
       emergencyContact: data.emergencyContact
         ? removeMask(data.emergencyContact)
         : undefined,
-      profession: 'Teste',
+      profession: data.profession,
+      indicatedBy: data.indicatedBy === '' ? undefined : data.indicatedBy,
+      religion: data.religion === '' ? undefined : data.religion,
+      notes: data.notes === '' ? undefined : data.notes,
       leadershipPosition:
-        data.leadershipPosition === ENUM_OPTION_LEADERSHIP_POSITION.NOT_POSITION
+        data.leadershipPosition ===
+          ENUM_OPTION_LEADERSHIP_POSITION.NOT_POSITION ||
+        data.leadershipPosition === ''
           ? undefined
           : data.leadershipPosition,
       role: data.leadershipPosition ? getRole(data.leadershipPosition) : 5,
@@ -71,7 +78,7 @@ function RegisterUser() {
   }
   return (
     <PageStyle>
-      <Header title={'Cadastro de usuários'} buttonBack={permission} />
+      <Header title="Inscrição Cursilho Masculino" buttonBack={permission} />
       <FormProvider {...methods}>
         <form onSubmit={methods.handleSubmit(onSubmitForm)}>
           <Form />

@@ -9,7 +9,9 @@ function RoutesUsers() {
 
   return (
     <Routes>
-      <Route path="/cadastro" element={<RegisterUser />} />
+      {/* Rota previa para que o usuario seja redirecionado para a rota de cadastro */}
+      <Route path="*" element={<RegisterUser />} />
+      <Route path="/cadastro-cursilho-masculino" element={<RegisterUser />} />
       {permission && (
         <>
           <Route path="/" element={<Users />} />
