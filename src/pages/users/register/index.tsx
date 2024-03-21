@@ -47,8 +47,13 @@ function RegisterUser() {
 
   const { mutate: mutatePostCreateUser } = usePostCreateUser({
     onSuccess: () => {
+      const isWorker = !!methods.getValues('worker');
+
+      if (!isWorker) {
+        window.open(linkInviteGroupWpp, '_blank');
+      }
+
       methods.reset(DEFAULT_VALUES);
-      window.open(linkInviteGroupWpp, '_blank');
     },
   });
 
