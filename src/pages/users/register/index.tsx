@@ -26,6 +26,7 @@ function RegisterUser() {
     email: '',
     worker: 0,
     profession: '',
+    neighborhood: '',
     city: '',
     state: '',
     hypertensive: 0,

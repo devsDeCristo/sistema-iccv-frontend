@@ -4,7 +4,7 @@ import { InputDatePicker } from '../../../components/inputDatePicker';
 import { InputSelect } from '../../../components/inputSelect';
 import { Controller, useFormContext } from 'react-hook-form';
 import { RegisterUsersFormType } from '../../../types/user';
-import { formatCPF, formatPhoneNumber } from '../../../utils';
+import { formatCPF, formatPhoneNumber, formatState } from '../../../utils';
 import { OPTIONS_BOOLEAN, OPTIONS_WORKER, OPTIONS_ROLE } from '../constants';
 
 function Form() {
@@ -117,7 +117,7 @@ function Form() {
               menuOptions={OPTIONS_WORKER}
               value={value}
               required
-              onChange={(event) => onChange(event.target.value)}
+              onChange={onChange}
             />
           )}
         />
@@ -132,7 +132,7 @@ function Form() {
               label="Possui Diabetes?"
               menuOptions={OPTIONS_BOOLEAN}
               value={value}
-              onChange={(event) => onChange(event.target.value)}
+              onChange={onChange}
             />
           )}
         />
@@ -146,37 +146,44 @@ function Form() {
               label="Possui Hispertensão?"
               menuOptions={OPTIONS_BOOLEAN}
               value={value}
-              onChange={(event) => onChange(event.target.value)}
+              onChange={onChange}
             />
           )}
         />
       </Grid>
 
-      <Grid item xs={12} md={6}>
+      <Grid item xs={12} md={4}>
+        <Controller
+          name="neighborhood"
+          control={control}
+          render={({ field: { onChange, value } }) => (
+            <Input required label="Bairro" value={value} onChange={onChange} />
+          )}
+        />
+      </Grid>
+
+      <Grid item xs={12} md={4}>
         <Controller
           name="city"
           control={control}
           render={({ field: { onChange, value } }) => (
-            <Input
-              required
-              label="Cidade"
-              value={value}
-              onChange={(event) => onChange(event.target.value)}
-            />
+            <Input required label="Cidade" value={value} onChange={onChange} />
           )}
         />
       </Grid>
 
-      <Grid item xs={12} md={6}>
+      <Grid item xs={12} md={4}>
         <Controller
           name="state"
           control={control}
           render={({ field: { onChange, value } }) => (
             <Input
               required
-              label="Estado"
+              label="Estado - (RN)"
               value={value}
-              onChange={(event) => onChange(event.target.value)}
+              onChange={(event) =>
+                onChange(formatState(event.target.value)?.toUpperCase())
+              }
             />
           )}
         />
@@ -205,7 +212,7 @@ function Form() {
             <Input
               label="Foi indicado por alguem? Se sim, quem?"
               value={value}
-              onChange={(event) => onChange(event.target.value)}
+              onChange={onChange}
             />
           )}
         />
@@ -236,7 +243,7 @@ function Form() {
               label="Possui ministerio na igreja? Qual?"
               menuOptions={OPTIONS_ROLE}
               value={value}
-              onChange={(event) => onChange(event.target.value)}
+              onChange={onChange}
               helperText={errors.leadershipPosition?.message}
             />
           )}
@@ -250,7 +257,7 @@ function Form() {
           render={({ field: { onChange, value } }) => (
             <Input
               value={value}
-              onChange={(event) => onChange(event.target.value)}
+              onChange={onChange}
               label="Observações"
               placeholder="Insira aqui caso tenha alguma alergia ou algo parecido"
             />

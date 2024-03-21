@@ -52,6 +52,9 @@ export const REGISTER_USERS_SCHEMA = z.object({
     required_error: DEFAULT_MESSAGE,
   }),
   role: z.number().optional(),
+  neighborhood: z.string({
+    required_error: DEFAULT_MESSAGE,
+  }),
   city: z.string({
     required_error: DEFAULT_MESSAGE,
   }),

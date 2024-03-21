@@ -11,6 +11,7 @@ export interface User {
   diabetes: boolean;
   hypertensive: boolean;
   profession: string;
+  neighborhood: string;
   city: string;
   state: string;
   worker: boolean;
