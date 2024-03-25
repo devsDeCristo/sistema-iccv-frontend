@@ -1,3 +1,4 @@
+import Swal from 'sweetalert2';
 import { Header } from '../../../components/header';
 import { useForm, FormProvider } from 'react-hook-form';
 import { PageStyle } from '../../../components/pageStyle';
@@ -49,11 +50,16 @@ function RegisterUser() {
     onSuccess: () => {
       const isWorker = !!methods.getValues('worker');
 
-      if (!isWorker) {
-        window.open(linkInviteGroupWpp, '_blank');
-      }
-
       methods.reset(DEFAULT_VALUES);
+
+      Swal.fire({
+        title: 'Cadastro efetuado com sucesso',
+        icon: 'success',
+      }).then((result) => {
+        if (result.isConfirmed && !isWorker) {
+          window.open(linkInviteGroupWpp, '_blank');
+        }
+      });
     },
   });
 

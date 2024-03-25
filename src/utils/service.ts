@@ -6,7 +6,6 @@ export const handleResponseThrowError = (
   showToast: boolean = true
 ) => {
   return (error: AxiosError<any>) => {
-    console.log('AQUIo', error);
     const errorMessage = errorDefaultMessage || error.response?.data.message;
 
     if (showToast) {
@@ -23,12 +22,14 @@ export const handleResponseThrowError = (
 
 export const handleResponseSuccess = <T>(
   response: T,
-  successMessage: string
+  successMessage: string,
+  reactToastify: boolean = true
 ) => {
   return () => {
-    if (successMessage) {
+    if (successMessage && reactToastify) {
       toast.success(successMessage);
     }
+
     return response;
   };
 };
