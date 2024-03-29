@@ -57,3 +57,7 @@ export const formatPhoneNumber = (value: string): string => {
 export const onlyNumber = (value: string): string => {
   return value.replace(/\D/g, '');
 };
+
+export const formatState = (value: string): string => {
+  return value.replace(/[^\p{L}]/gu, '').slice(0, 2);
+};

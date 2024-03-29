@@ -1,3 +1,4 @@
+import Swal from 'sweetalert2';
 import { Header } from '../../../components/header';
 import { useForm, FormProvider } from 'react-hook-form';
 import { PageStyle } from '../../../components/pageStyle';
@@ -5,26 +6,36 @@ import { Form } from '../../../features/users/components/form';
 import { Button } from '@mui/material';
 import { usePermission } from '../../../hooks/usePermission';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { REGISTER_USERS_SCHEMA } from '../../../features/users/constants';
+import {
+  ENUM_OPTION_LEADERSHIP_POSITION,
+  REGISTER_USERS_SCHEMA,
+} from '../../../features/users/constants';
 import { RegisterUsersFormType } from '../../../types/user';
 import { removeMask } from '../../../utils';
 import { usePostCreateUser } from '../../../features/users/api/postUser';
+import { getRole } from '../utils';
 
 function RegisterUser() {
   const eventId = import.meta.env.VITE_EVENT_ID;
+  const linkInviteGroupWpp = import.meta.env.VITE_LINK_INVITE_GROUP_WPP;
   const DEFAULT_VALUES: RegisterUsersFormType = {
     fullName: '',
     cpf: '',
     birthday: null,
     cellphone: '',
-    emergencyContact: null,
+    emergencyContact: '',
     email: '',
     worker: 0,
     profession: '',
+    neighborhood: '',
     city: '',
     state: '',
     hypertensive: 0,
     diabetes: 0,
+    notes: '',
+    leadershipPosition: '',
+    indicatedBy: '',
+    religion: '',
     role: 5,
     eventId,
   };
@@ -37,7 +48,18 @@ function RegisterUser() {
 
   const { mutate: mutatePostCreateUser } = usePostCreateUser({
     onSuccess: () => {
+      const isWorker = !!methods.getValues('worker');
+
       methods.reset(DEFAULT_VALUES);
+
+      Swal.fire({
+        title: 'Cadastro efetuado com sucesso',
+        icon: 'success',
+      }).then((result) => {
+        if (result.isConfirmed && !isWorker) {
+          window.open(linkInviteGroupWpp, '_blank');
+        }
+      });
     },
   });
 
@@ -52,14 +74,23 @@ function RegisterUser() {
       emergencyContact: data.emergencyContact
         ? removeMask(data.emergencyContact)
         : undefined,
-      profession: 'Teste',
-      role: 5,
+      profession: data.profession,
+      indicatedBy: data.indicatedBy === '' ? undefined : data.indicatedBy,
+      religion: data.religion === '' ? undefined : data.religion,
+      notes: data.notes === '' ? undefined : data.notes,
+      leadershipPosition:
+        data.leadershipPosition ===
+          ENUM_OPTION_LEADERSHIP_POSITION.NOT_POSITION ||
+        data.leadershipPosition === ''
+          ? undefined
+          : data.leadershipPosition,
+      role: data.leadershipPosition ? getRole(data.leadershipPosition) : 5,
     };
     mutatePostCreateUser(formatData);
   }
   return (
     <PageStyle>
-      <Header title={'Cadastro de usuários'} buttonBack={permission} />
+      <Header title="Inscrição Cursilho Masculino" buttonBack={permission} />
       <FormProvider {...methods}>
         <form onSubmit={methods.handleSubmit(onSubmitForm)}>
           <Form />

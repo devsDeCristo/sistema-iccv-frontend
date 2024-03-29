@@ -88,12 +88,8 @@ function ListBedRooms() {
                     <Typography component="label">Usuários:</Typography>
                     <Stack direction="row" spacing={0.5}>
                       {bedroom.users.map((user) => (
-                        <Tooltip
-                          title={user.user.fullName}
-                          arrow
-                          key={user.user.id}
-                        >
-                          <Avatar {...stringAvatar(user.user.fullName)} />
+                        <Tooltip title={user.fullName} arrow key={user.id}>
+                          <Avatar {...stringAvatar(user.fullName)} />
                         </Tooltip>
                       ))}
                     </Stack>

@@ -9,6 +9,10 @@ export const handleResponseThrowError = (
     const errorMessage = errorDefaultMessage || error.response?.data.message;
 
     if (showToast) {
+      if (Array.isArray(errorMessage)) {
+        errorMessage.map((message) => toast.error(message));
+      }
+
       toast.error(errorMessage);
     }
 
@@ -18,12 +22,14 @@ export const handleResponseThrowError = (
 
 export const handleResponseSuccess = <T>(
   response: T,
-  successMessage: string
+  successMessage: string,
+  reactToastify: boolean = true
 ) => {
   return () => {
-    if (successMessage) {
+    if (successMessage && reactToastify) {
       toast.success(successMessage);
     }
+
     return response;
   };
 };

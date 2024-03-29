@@ -1,5 +1,6 @@
 import {
   FormControl,
+  FormHelperText,
   InputLabel,
   MenuItem,
   Select,
@@ -8,12 +9,14 @@ import {
 
 interface InputSelectProps {
   label: string;
-  menuOptions: { value: number; name: string }[];
+  menuOptions: { value: any; name: string }[];
+  helperText?: string;
 }
 
 const InputSelect = ({
   label,
   menuOptions,
+  helperText,
   ...rest
 }: InputSelectProps & SelectProps) => {
   return (
@@ -35,6 +38,7 @@ const InputSelect = ({
             </MenuItem>
           ))}
         </Select>
+        {helperText && <FormHelperText>{helperText}</FormHelperText>}
       </FormControl>
     </div>
   );

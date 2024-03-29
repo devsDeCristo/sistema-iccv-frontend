@@ -5,18 +5,23 @@ import { Form } from '../../../features/users/components/form';
 import { Button } from '@mui/material';
 import { usePermission } from '../../../hooks/usePermission';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { REGISTER_USERS_SCHEMA } from '../../../features/users/constants';
+import {
+  ENUM_OPTION_LEADERSHIP_POSITION,
+  REGISTER_USERS_SCHEMA,
+} from '../../../features/users/constants';
 import { RegisterUsersFormType, User } from '../../../types/user';
 import { formatCPF, formatPhoneNumber, removeMask } from '../../../utils';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useGetUsers } from '../../../features/users/api/getUsers';
 import { useEffect } from 'react';
 import { usePutUser } from '../../../features/users/api/putUser';
 import { InputPhoto } from '../../../features/users/components/inputPhoto';
 import { usePostProfilePhotoUser } from '../../../features/users/api/postProfilePhotoUser';
+import { getRole } from '../utils';
 
 function EditUser() {
   const { id = '' } = useParams();
+  const navigate = useNavigate();
   const { data } = useGetUsers({ userId: id }) as { data: User };
 
   const DEFAULT_VALUES: RegisterUsersFormType = {
@@ -30,10 +35,15 @@ function EditUser() {
     email: data?.email || '',
     worker: data?.worker ? 1 : 0,
     profession: data?.profession || '',
+    neighborhood: data?.neighborhood || '',
     city: data?.city || '',
     state: data?.state || '',
     hypertensive: data?.hypertensive ? 1 : 0,
     diabetes: data?.diabetes ? 1 : 0,
+    indicatedBy: data?.indicatedBy || '',
+    religion: data?.religion || '',
+    notes: data?.notes || '',
+    leadershipPosition: data?.leadershipPosition || '',
     role: 5,
   };
 
@@ -48,7 +58,11 @@ function EditUser() {
 
   const permission = usePermission();
 
-  const { mutate: mutatePutUser } = usePutUser();
+  const { mutate: mutatePutUser } = usePutUser({
+    onSuccess: () => {
+      navigate('/');
+    },
+  });
   const { mutate: mutatePostProfilePhotoUser } = usePostProfilePhotoUser();
 
   function onSubmitForm(data: RegisterUsersFormType) {
@@ -62,9 +76,17 @@ function EditUser() {
       emergencyContact: data.emergencyContact
         ? removeMask(data.emergencyContact)
         : undefined,
-      profession: 'Teste',
-      role: 5,
-      eventId: '304f65ba-9225-4542-a613-33577ae3f2b8',
+      profession: data.profession,
+      indicatedBy: data.indicatedBy === '' ? undefined : data.indicatedBy,
+      religion: data.religion === '' ? undefined : data.religion,
+      notes: data.notes === '' ? undefined : data.notes,
+      leadershipPosition:
+        data.leadershipPosition ===
+          ENUM_OPTION_LEADERSHIP_POSITION.NOT_POSITION ||
+        data.leadershipPosition === ''
+          ? undefined
+          : data.leadershipPosition,
+      role: data.leadershipPosition ? getRole(data.leadershipPosition) : 5,
     };
     mutatePutUser({
       userId: id,
