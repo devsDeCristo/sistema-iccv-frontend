@@ -25,8 +25,8 @@ function PdfEvent({ data, textFooter }: PdfProps) {
             <Text style={stylesPdf.title}>{name}</Text>
           </View>
           <View style={stylesPdf.rectangleRow} key={'quadrantes-pdf' + index}>
-            {users?.map(({ user }) => (
-              <UserRectangle user={user} />
+            {users?.map((user) => (
+              <UserRectangle user={user.user} />
             ))}
           </View>
           <FooterPdf text={textFooter} />

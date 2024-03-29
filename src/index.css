@@ -18,17 +18,17 @@ body {
   margin: 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  height: 100vh;
-  background: #F2F2F2;
+  min-height: 100vh;
+  background: #f2f2f2;
 }
 
 .sidebar {
   background: #fff;
-  color: #28166F;
+  color: #28166f;
 }
 
 .menu1 {
   margin-bottom: 40px;
   margin-top: 20px;
-  color: #28166F;
+  color: #28166f;
 }
