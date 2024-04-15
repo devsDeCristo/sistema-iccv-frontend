@@ -57,20 +57,20 @@ function ListUsers() {
       field: 'hypertensive',
       headerName: 'Hipertenso',
       flex: 1,
-      valueGetter: (params) => (params.row.worker ? 'Sim' : 'Não'),
+      valueGetter: (params) => (params.row.hypertensive ? 'Sim' : 'Não'),
     },
     {
       field: 'diabetes',
       headerName: 'Diabético',
       flex: 1,
-      valueGetter: (params) => (params.row.worker ? 'Sim' : 'Não'),
+      valueGetter: (params) => (params.row.diabetes ? 'Sim' : 'Não'),
     },
     { field: 'notes', headerName: 'Observações', flex: 1 },
     {
       field: 'paid',
       headerName: 'Pago',
       flex: 1,
-      valueGetter: (params) => (params.row.worker ? 'Sim' : 'Não'),
+      valueGetter: (params) => (params.row.paid ? 'Sim' : 'Não'),
     },
   ];
 
