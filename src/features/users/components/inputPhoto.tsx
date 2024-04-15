@@ -46,7 +46,7 @@ interface InputPhotoProps {
 }
 function InputPhoto({ profilePhoto, onSavePhoto }: InputPhotoProps) {
   const [file, setFile] = useState<File | null>(null);
-  const [photo, setPhoto] = useState<string | undefined>(profilePhoto);
+  const [photo, setPhoto] = useState<string | undefined>(undefined);
 
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -76,7 +76,7 @@ function InputPhoto({ profilePhoto, onSavePhoto }: InputPhotoProps) {
       >
         <Avatar
           variant="rounded"
-          src={photo || undefined}
+          src={photo || profilePhoto || undefined}
           sx={stylesInput.avatar}
         />
         <Box sx={stylesInput.box}>

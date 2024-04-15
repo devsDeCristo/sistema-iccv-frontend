@@ -2,7 +2,7 @@ import { Header } from '../../../components/header';
 import { useForm, FormProvider } from 'react-hook-form';
 import { PageStyle } from '../../../components/pageStyle';
 import { Form } from '../../../features/users/components/form';
-import { Button } from '@mui/material';
+import { Box, Button } from '@mui/material';
 import { usePermission } from '../../../hooks/usePermission';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -13,37 +13,42 @@ import { RegisterUsersFormType, User } from '../../../types/user';
 import { formatCPF, formatPhoneNumber, removeMask } from '../../../utils';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useGetUsers } from '../../../features/users/api/getUsers';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { usePutUser } from '../../../features/users/api/putUser';
 import { InputPhoto } from '../../../features/users/components/inputPhoto';
 import { usePostProfilePhotoUser } from '../../../features/users/api/postProfilePhotoUser';
 import { getRole } from '../utils';
+import { WebcamModal } from '../../../features/users/components/webcamModal';
 
 function EditUser() {
   const { id = '' } = useParams();
   const navigate = useNavigate();
-  const { data } = useGetUsers({ userId: id }) as { data: User };
+  const [isOpenWebcamModal, setIsOpenWebcamModal] = useState(false);
+  const { data, refetch } = useGetUsers({ userId: id });
+  const userData = data as User;
 
   const DEFAULT_VALUES: RegisterUsersFormType = {
-    fullName: data?.fullName || '',
-    cpf: data?.cpf ? formatCPF(data?.cpf) : '',
-    birthday: data?.birthday ? new Date(data?.birthday) : null,
-    cellphone: data?.cellphone ? formatPhoneNumber(data?.cellphone) : '',
-    emergencyContact: data?.emergencyContact
-      ? formatPhoneNumber(data?.emergencyContact)
+    fullName: userData?.fullName || '',
+    cpf: userData?.cpf ? formatCPF(userData?.cpf) : '',
+    birthday: userData?.birthday ? new Date(userData?.birthday) : null,
+    cellphone: userData?.cellphone
+      ? formatPhoneNumber(userData?.cellphone)
+      : '',
+    emergencyContact: userData?.emergencyContact
+      ? formatPhoneNumber(userData?.emergencyContact)
       : null,
-    email: data?.email || '',
-    worker: data?.worker ? 1 : 0,
-    profession: data?.profession || '',
-    neighborhood: data?.neighborhood || '',
-    city: data?.city || '',
-    state: data?.state || '',
-    hypertensive: data?.hypertensive ? 1 : 0,
-    diabetes: data?.diabetes ? 1 : 0,
-    indicatedBy: data?.indicatedBy || '',
-    religion: data?.religion || '',
-    notes: data?.notes || '',
-    leadershipPosition: data?.leadershipPosition || '',
+    email: userData?.email || '',
+    worker: userData?.worker ? 1 : 0,
+    profession: userData?.profession || '',
+    neighborhood: userData?.neighborhood || '',
+    city: userData?.city || '',
+    state: userData?.state || '',
+    hypertensive: userData?.hypertensive ? 1 : 0,
+    diabetes: userData?.diabetes ? 1 : 0,
+    indicatedBy: userData?.indicatedBy || '',
+    religion: userData?.religion || '',
+    notes: userData?.notes || '',
+    leadershipPosition: userData?.leadershipPosition || '',
     role: 5,
   };
 
@@ -63,7 +68,16 @@ function EditUser() {
       navigate('/');
     },
   });
-  const { mutate: mutatePostProfilePhotoUser } = usePostProfilePhotoUser();
+  const { mutate: mutatePostProfilePhotoUser } = usePostProfilePhotoUser({
+    onSuccess: () => {
+      refetch();
+      onCloseWebcamModal();
+    },
+  });
+
+  function onCloseWebcamModal() {
+    setIsOpenWebcamModal(false);
+  }
 
   function onSubmitForm(data: RegisterUsersFormType) {
     const formatData = {
@@ -93,20 +107,32 @@ function EditUser() {
       data: formatData,
     });
   }
+
   function onSavePhoto(file: File | null) {
-    if (data?.id && file) {
+    if (userData?.id && file) {
       const formData = new FormData();
       formData.append('photo', file);
-      mutatePostProfilePhotoUser({ userId: data.id, data: formData });
+      mutatePostProfilePhotoUser({ userId: userData.id, data: formData });
     }
   }
+
   return (
     <PageStyle>
-      <Header title="Cadastro de usuários" buttonBack={permission} />
-      <InputPhoto
-        profilePhoto={data?.profilePhotoUrl}
-        onSavePhoto={onSavePhoto}
-      />
+      <Header title="Edição de usuário" buttonBack={permission} />
+      <Box display="flex" justifyContent="center" alignItems="center">
+        <Button variant="contained" onClick={() => setIsOpenWebcamModal(true)}>
+          Abrir webcam
+        </Button>
+        <WebcamModal
+          isOpen={isOpenWebcamModal}
+          onClose={onCloseWebcamModal}
+          onSavePhoto={onSavePhoto}
+        />
+        <InputPhoto
+          profilePhoto={userData?.profilePhotoUrl}
+          onSavePhoto={onSavePhoto}
+        />
+      </Box>
       <FormProvider {...methods}>
         <form onSubmit={methods.handleSubmit(onSubmitForm)}>
           <Form />

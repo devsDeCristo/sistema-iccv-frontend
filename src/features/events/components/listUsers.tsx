@@ -1,5 +1,5 @@
 import { Card } from '@mui/material';
-import { formatDate, formatPhoneNumber } from '../../../utils';
+import { formatDate } from '../../../utils';
 import {
   DataGrid,
   GridColDef,
@@ -45,13 +45,33 @@ function ListUsers() {
       valueGetter: (params) => formatDate(params.row.birthday),
     },
     {
-      field: 'cellphone',
-      headerName: 'Telefone',
+      field: 'worker',
+      headerName: 'Trabalhar',
       flex: 1,
-      valueGetter: (params) => formatPhoneNumber(params.row.cellphone),
+      valueGetter: (params) => (params.row.worker ? 'Sim' : 'Não'),
     },
-    { field: 'religion', headerName: 'Religião', flex: 1 },
+    { field: 'neighborhood', headerName: 'Bairro', flex: 1 },
+    { field: 'city', headerName: 'Cidade', flex: 1 },
+    { field: 'leadershipPosition', headerName: 'Cargo na igreja', flex: 1 },
+    {
+      field: 'hypertensive',
+      headerName: 'Hipertenso',
+      flex: 1,
+      valueGetter: (params) => (params.row.worker ? 'Sim' : 'Não'),
+    },
+    {
+      field: 'diabetes',
+      headerName: 'Diabético',
+      flex: 1,
+      valueGetter: (params) => (params.row.worker ? 'Sim' : 'Não'),
+    },
     { field: 'notes', headerName: 'Observações', flex: 1 },
+    {
+      field: 'paid',
+      headerName: 'Pago',
+      flex: 1,
+      valueGetter: (params) => (params.row.worker ? 'Sim' : 'Não'),
+    },
   ];
 
   return (
