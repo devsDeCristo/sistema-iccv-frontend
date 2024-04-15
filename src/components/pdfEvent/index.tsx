@@ -1,6 +1,6 @@
 import { Page, Text, View, Document, Font, Image } from '@react-pdf/renderer';
 
-import Borboleta from '../../assets/borboleta.png';
+//import Borboleta from '../../assets/borboleta.png';
 import { stylesPdf } from './styles';
 import type { PdfProps } from './types';
 import { HeaderPdf } from './header';
