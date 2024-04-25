@@ -28,10 +28,7 @@ function Details() {
 
   async function handleDownloadPDF(data: Event[]) {
     const blob = await pdf(
-      <PdfEvent
-        data={data}
-        textFooter={'28 de setembro a 01 de outubro de 2023'}
-      />
+      <PdfEvent data={data} textFooter={'30 de maio a 02 de junho de 2024'} />
     ).toBlob();
     FileSaver.saveAs(blob, 'cursilho.pdf');
   }
