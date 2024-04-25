@@ -1,5 +1,5 @@
 import { StyleSheet } from '@react-pdf/renderer';
-const stylesPdf = StyleSheet.create({
+const stylesPdfRooms = StyleSheet.create({
   body: {
     paddingTop: 25,
     paddingHorizontal: 25,
@@ -19,21 +19,6 @@ const stylesPdf = StyleSheet.create({
     borderRadius: '8px',
     height: '125px',
   },
-  footer: {
-    position: 'absolute',
-    top: '520px',
-    left: '25px',
-    width: '100%',
-    gap: '5px',
-    fontSize: 12,
-    marginBottom: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexDirection: 'column',
-    //backgroundColor: '#f8d2f8',
-    padding: '10px',
-    borderRadius: '8px',
-  },
   title: {
     fontSize: 15,
     fontFamily: 'Helvetica',
@@ -52,17 +37,25 @@ const stylesPdf = StyleSheet.create({
     display: 'flex',
     flexWrap: 'wrap',
   },
-  rectangleRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
+  containerRow: {
+    //flexDirection: 'row',
+    //flexWrap: 'wrap',
+    width: 'auto',
+    gap: -1,
     marginBottom: '200px',
   },
+  row: {
+    width: '100%',
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: -1,
+  },
   cell: {
-    width: '24%',
+    width: '45%',
     borderWidth: 1,
     borderColor: '#000',
-    padding: 3,
+    //padding: 3,
     display: 'flex',
     flexDirection: 'row',
   },
@@ -80,11 +73,5 @@ const stylesPdf = StyleSheet.create({
     height: '100%',
     objectFit: 'cover',
   },
-  imageDecuria: { height: 30 },
-  columnUser: {
-    flexDirection: 'column',
-    width: '70%',
-    justifyContent: 'center',
-  },
 });
-export { stylesPdf };
+export { stylesPdfRooms };

@@ -1,6 +1,6 @@
 import { Page, Text, View, Document, Font, Image } from '@react-pdf/renderer';
 
-import Borboleta from '../../assets/borboleta.png';
+//import Borboleta from '../../assets/borboleta.png';
 import { stylesPdf } from './styles';
 import type { PdfProps } from './types';
 import { HeaderPdf } from './header';
@@ -21,7 +21,7 @@ function PdfEvent({ data, textFooter }: PdfProps) {
         <Page key={id + index} orientation="landscape" style={stylesPdf.body}>
           <HeaderPdf />
           <View fixed style={stylesPdf.decuria} key={'titulo-pdf' + index}>
-            <Image style={stylesPdf.imageDecuria} src={Borboleta} />
+            {/* <Image style={stylesPdf.imageDecuria} src={Borboleta} /> */}
             <Text style={stylesPdf.title}>{name}</Text>
           </View>
           <View style={stylesPdf.rectangleRow} key={'quadrantes-pdf' + index}>

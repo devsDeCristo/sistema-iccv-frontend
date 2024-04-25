@@ -14,6 +14,8 @@ import FileSaver from 'file-saver';
 import { pdf } from '@react-pdf/renderer';
 import { Event } from '../../../features/events/types';
 import { useGetTeams } from '../../../features/events/api/getTeams';
+import { useGetBedrooms } from '../../../features/events/api/getBedrooms';
+import PdfBedRooms from '../../../components/pdfRooms';
 
 function Details() {
   const { id } = useParams();
@@ -25,13 +27,31 @@ function Details() {
   const { data: teamsData = [] } = useGetTeams({
     eventId,
   });
+  const { data: bedroomsData = [] } = useGetBedrooms(
+    {
+      eventId: eventId,
+    },
+    {
+      enabled: !!eventId,
+    }
+  );
 
-  async function handleDownloadPDF(data: Event[]) {
-    const blob = await pdf(
-      <PdfEvent data={data} textFooter={'30 de maio a 02 de junho de 2024'} />
-    ).toBlob();
-    FileSaver.saveAs(blob, 'cursilho.pdf');
+  async function handleDownloadPDF(data: Event[], type: number) {
+    let blob;
+    if (type === 0) {
+      blob = await pdf(
+        <PdfEvent
+          data={data}
+          textFooter={'30 de maio a 02 de junho de 2024'}
+        />
+      ).toBlob();
+      FileSaver.saveAs(blob, 'quadrantes.pdf');
+    } else {
+      blob = await pdf(<PdfBedRooms data={bedroomsData} />).toBlob();
+      FileSaver.saveAs(blob, 'quartos.pdf');
+    }
   }
+  
   return (
     <PageStyle>
       <Header title="Detalhes do evento" buttonBack pageBack="/eventos" />
@@ -45,9 +65,22 @@ function Details() {
           mb={2}
         >
           <Typography color="#000">Quartos</Typography>
-          <Button variant="contained" onClick={() => setOpenModalBedRoom(true)}>
-            Adicionar quarto
-          </Button>
+          <Stack direction={'row'} gap={2}>
+            <Button
+              variant="outlined"
+              onClick={() =>
+                handleDownloadPDF(teamsData as unknown as Event[], 1)
+              }
+            >
+              Gerar Relatório
+            </Button>
+            <Button
+              variant="contained"
+              onClick={() => setOpenModalBedRoom(true)}
+            >
+              Adicionar quarto
+            </Button>
+          </Stack>
         </Box>
         <Card sx={{ padding: 2 }}>
           <ListBedRooms />
@@ -68,7 +101,9 @@ function Details() {
           <Stack direction={'row'} gap={2}>
             <Button
               variant="outlined"
-              onClick={() => handleDownloadPDF(teamsData as unknown as Event[])}
+              onClick={() =>
+                handleDownloadPDF(teamsData as unknown as Event[], 0)
+              }
             >
               Gerar Relatório
             </Button>
