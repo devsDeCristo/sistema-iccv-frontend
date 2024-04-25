@@ -27,6 +27,7 @@ function Details() {
   const { data: teamsData = [] } = useGetTeams({
     eventId,
   });
+
   const { data: bedroomsData = [] } = useGetBedrooms(
     {
       eventId: eventId,
@@ -40,10 +41,7 @@ function Details() {
     let blob;
     if (type === 0) {
       blob = await pdf(
-        <PdfEvent
-          data={data}
-          textFooter={'30 de maio a 02 de junho de 2024'}
-        />
+        <PdfEvent data={data} textFooter={'30 de maio a 02 de junho de 2024'} />
       ).toBlob();
       FileSaver.saveAs(blob, 'quadrantes.pdf');
     } else {
@@ -51,7 +49,7 @@ function Details() {
       FileSaver.saveAs(blob, 'quartos.pdf');
     }
   }
-  
+
   return (
     <PageStyle>
       <Header title="Detalhes do evento" buttonBack pageBack="/eventos" />
