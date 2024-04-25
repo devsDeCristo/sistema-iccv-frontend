@@ -85,6 +85,15 @@ function ListTeams() {
                     alignItems="center"
                     gap={0.5}
                   >
+                    <Typography component="label">Quantidade:</Typography>
+                    <Typography>{team.users?.length || 0}</Typography>
+                  </Box>
+                  <Box
+                    component="div"
+                    display="flex"
+                    alignItems="center"
+                    gap={0.5}
+                  >
                     <Typography component="label">Usuários:</Typography>
                     <Stack direction="row" spacing={0.5}>
                       {team.users.map((user) => {

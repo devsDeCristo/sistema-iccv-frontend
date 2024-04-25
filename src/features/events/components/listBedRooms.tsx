@@ -85,6 +85,15 @@ function ListBedRooms() {
                     alignItems="center"
                     gap={0.5}
                   >
+                    <Typography component="label">Quantidade:</Typography>
+                    <Typography>{bedroom.users.length || 0}</Typography>
+                  </Box>
+                  <Box
+                    component="div"
+                    display="flex"
+                    alignItems="center"
+                    gap={0.5}
+                  >
                     <Typography component="label">Usuários:</Typography>
                     <Stack direction="row" spacing={0.5}>
                       {bedroom.users.map((user) => (

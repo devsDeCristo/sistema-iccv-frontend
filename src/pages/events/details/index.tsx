@@ -42,7 +42,7 @@ function Details() {
       blob = await pdf(
         <PdfEvent
           data={data}
-          textFooter={'28 de setembro a 01 de outubro de 2023'}
+          textFooter={'30 de maio a 02 de junho de 2024'}
         />
       ).toBlob();
       FileSaver.saveAs(blob, 'quadrantes.pdf');
@@ -51,6 +51,7 @@ function Details() {
       FileSaver.saveAs(blob, 'quartos.pdf');
     }
   }
+  
   return (
     <PageStyle>
       <Header title="Detalhes do evento" buttonBack pageBack="/eventos" />
