@@ -16,6 +16,8 @@ import { Event } from '../../../features/events/types';
 import { useGetTeams } from '../../../features/events/api/getTeams';
 import { useGetBedrooms } from '../../../features/events/api/getBedrooms';
 import PdfBedRooms from '../../../components/pdfRooms';
+import { useGetEvents } from '../../../features/events/api/getEvents';
+import PdfBadge from '../../../components/pdfBadge';
 
 function Details() {
   const { id } = useParams();
@@ -35,23 +37,34 @@ function Details() {
       enabled: !!eventId,
     }
   );
+  const { data: eventData } = useGetEvents(
+    {
+      eventId: eventId,
+    },
+    {
+      enabled: !!eventId,
+    }
+  );
 
   async function handleDownloadPDF(data: Event[], type: number) {
+    if (!eventData || Array.isArray(eventData)) {
+      return null;
+    }
     let blob;
     if (type === 0) {
       blob = await pdf(
-        <PdfEvent
-          data={data}
-          textFooter={'30 de maio a 02 de junho de 2024'}
-        />
+        <PdfEvent data={data} textFooter={'30 de maio a 02 de junho de 2024'} />
       ).toBlob();
       FileSaver.saveAs(blob, 'quadrantes.pdf');
-    } else {
+    } else if (type === 1) {
       blob = await pdf(<PdfBedRooms data={bedroomsData} />).toBlob();
       FileSaver.saveAs(blob, 'quartos.pdf');
+    } else {
+      blob = await pdf(<PdfBadge data={eventData.users || []} />).toBlob();
+      FileSaver.saveAs(blob, 'crachas.pdf');
     }
   }
-  
+
   return (
     <PageStyle>
       <Header title="Detalhes do evento" buttonBack pageBack="/eventos" />
@@ -128,7 +141,16 @@ function Details() {
           mb={2}
         >
           <Typography color="#000">Usuários</Typography>
+          <Button
+            variant="outlined"
+            onClick={() =>
+              handleDownloadPDF(eventData as unknown as Event[], 3)
+            }
+          >
+            Gerar Crachás
+          </Button>
         </Box>
+
         <Card>
           <ListUsers />
         </Card>
