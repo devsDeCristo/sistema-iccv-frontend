@@ -16,6 +16,7 @@ export const REGISTER_USERS_SCHEMA = z.object({
   fullName: z.string({
     required_error: DEFAULT_MESSAGE,
   }),
+  badgeName: z.string().optional(),
   email: z.string({
     required_error: DEFAULT_MESSAGE,
   }),

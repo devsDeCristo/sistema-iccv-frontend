@@ -57,13 +57,6 @@ function List() {
         autoHeight={true}
         columns={columns}
         loading={isLoading}
-        initialState={{
-          pagination: {
-            paginationModel: {
-              pageSize: 5,
-            },
-          },
-        }}
         slots={{ toolbar: GridToolbar }}
         slotProps={{
           toolbar: {

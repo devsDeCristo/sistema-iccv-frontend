@@ -16,6 +16,7 @@ export interface User {
   state: string;
   worker: boolean;
   profilePhotoUrl?: string;
+  badgeName?: string;
   role?: number;
   emergencyContact?: string;
   indicatedBy?: string;

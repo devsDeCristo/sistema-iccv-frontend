@@ -5,7 +5,6 @@ import {
   Grid,
   Tooltip,
   Typography,
-  Stack,
   Button,
 } from '@mui/material';
 import { stringAvatar } from '../../../utils';
@@ -95,13 +94,18 @@ function ListBedRooms() {
                     gap={0.5}
                   >
                     <Typography component="label">Usuários:</Typography>
-                    <Stack direction="row" spacing={0.5}>
+                    <Box
+                      display="flex"
+                      flexWrap="wrap"
+                      flexDirection="row"
+                      gap="5px"
+                    >
                       {bedroom.users.map((user) => (
                         <Tooltip title={user.fullName} arrow key={user.id}>
                           <Avatar {...stringAvatar(user.fullName)} />
                         </Tooltip>
                       ))}
-                    </Stack>
+                    </Box>
                   </Box>
                 </Box>
                 <Box gap={3} display="flex">
