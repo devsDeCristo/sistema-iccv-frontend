@@ -29,6 +29,7 @@ function Details() {
   const { data: teamsData = [] } = useGetTeams({
     eventId,
   });
+
   const { data: bedroomsData = [] } = useGetBedrooms(
     {
       eventId: eventId,

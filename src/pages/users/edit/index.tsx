@@ -47,6 +47,7 @@ function EditUser() {
     diabetes: userData?.diabetes ? 1 : 0,
     indicatedBy: userData?.indicatedBy || '',
     religion: userData?.religion || '',
+    badgeName: userData?.badgeName || '',
     notes: userData?.notes || '',
     leadershipPosition: userData?.leadershipPosition || '',
     role: 5,

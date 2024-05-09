@@ -15,7 +15,7 @@ function Form() {
 
   return (
     <Grid container spacing={2}>
-      <Grid item xs={12}>
+      <Grid item xs={8}>
         <Controller
           control={control}
           name="fullName"
@@ -25,6 +25,21 @@ function Form() {
               onChange={onChange}
               required
               label="Nome completo"
+            />
+          )}
+        />
+      </Grid>
+
+      <Grid item xs={4}>
+        <Controller
+          control={control}
+          name="badgeName"
+          render={({ field: { onChange, value } }) => (
+            <Input
+              value={value}
+              onChange={onChange}
+              required
+              label="Nome do crachá"
             />
           )}
         />

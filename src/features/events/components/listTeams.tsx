@@ -5,7 +5,6 @@ import {
   Grid,
   Tooltip,
   Typography,
-  Stack,
   Button,
 } from '@mui/material';
 import { stringAvatar } from '../../../utils';
@@ -95,7 +94,12 @@ function ListTeams() {
                     gap={0.5}
                   >
                     <Typography component="label">Usuários:</Typography>
-                    <Stack direction="row" spacing={0.5}>
+                    <Box
+                      display="flex"
+                      flexWrap="wrap"
+                      flexDirection="row"
+                      gap="5px"
+                    >
                       {team.users.map((user) => {
                         return (
                           <Tooltip title={user.fullName} arrow key={user.id}>
@@ -103,7 +107,7 @@ function ListTeams() {
                           </Tooltip>
                         );
                       })}
-                    </Stack>
+                    </Box>
                   </Box>
                 </Box>
                 <Box gap={3} display="flex">

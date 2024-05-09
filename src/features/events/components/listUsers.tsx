@@ -67,6 +67,46 @@ function ListUsers() {
     },
     { field: 'notes', headerName: 'Observações', flex: 1 },
     {
+      field: 'badgeName',
+      headerName: 'Nome do crachá',
+      flex: 1,
+    },
+    {
+      field: 'cellphone',
+      headerName: 'Telefone',
+      flex: 1,
+    },
+    {
+      field: 'cpf',
+      headerName: 'CPF',
+      flex: 1,
+    },
+    {
+      field: 'email',
+      headerName: 'E-mail',
+      flex: 1,
+    },
+    {
+      field: 'emergencyContact',
+      headerName: 'Contato de emergência',
+      flex: 1,
+    },
+    {
+      field: 'indicatedBy',
+      headerName: 'Indicado por',
+      flex: 1,
+    },
+    {
+      field: 'religion',
+      headerName: 'Religião',
+      flex: 1,
+    },
+    {
+      field: 'profession',
+      headerName: 'Profissão',
+      flex: 1,
+    },
+    {
       field: 'paid',
       headerName: 'Pago',
       flex: 1,
@@ -83,6 +123,24 @@ function ListUsers() {
         autoHeight={true}
         slots={{
           toolbar: GridToolbar,
+        }}
+        initialState={{
+          columns: {
+            columnVisibilityModel: {
+              profession: false,
+              religion: false,
+              indicatedBy: false,
+              emergencyContact: false,
+              email: false,
+              cpf: false,
+              cellphone: false,
+              badgeName: false,
+              diabetes: false,
+              hypertensive: false,
+              notes: false,
+              leadershipPosition: false,
+            },
+          },
         }}
         slotProps={{
           toolbar: {
