@@ -107,6 +107,12 @@ function ListUsers() {
       flex: 1,
     },
     {
+      field: 'createdAt',
+      headerName: 'Data da inscrição',
+      flex: 1,
+      valueGetter: (params) => formatDate(params.row.createdAt),
+    },
+    {
       field: 'paid',
       headerName: 'Pago',
       flex: 1,
@@ -139,6 +145,7 @@ function ListUsers() {
               hypertensive: false,
               notes: false,
               leadershipPosition: false,
+              createdAt: false,
             },
           },
         }}
