@@ -23,29 +23,11 @@ function PdfBadge({ data }: PdfProps) {
               key={'cracha-pdf' + index}
               wrap={false}
             >
-              {/* <Image
-                      style={{
-                        width: '100%',
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                      }}
-                      src={papelTop}
-                    /> */}
               <View style={stylesPdfRooms.headerBadge} wrap={false}>
                 <Image style={stylesPdfRooms.image} src={logoIccv} />
                 <Image style={stylesPdfRooms.imageEvent} src={logoEvento} />
               </View>
               <Text style={stylesPdfRooms.textName}>{badgeName}</Text>
-              {/* <Image
-                      style={{
-                        width: '100%',
-                        position: 'absolute',
-                        left: 0,
-                        top: 180,
-                      }}
-                      src={papel}
-                    /> */}
             </View>
           ))}
           {filterBadgeName.length % 2 !== 0 && (
