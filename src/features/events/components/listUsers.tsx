@@ -1,7 +1,8 @@
-import { Card } from '@mui/material';
+import { Box, Card, IconButton, Tooltip } from '@mui/material';
 import { formatDate } from '../../../utils';
 import {
   DataGrid,
+  GridCellParams,
   GridColDef,
   GridGetRowsToExportParams,
   GridRowId,
@@ -11,6 +12,11 @@ import {
 } from '@mui/x-data-grid';
 import { useGetEvents } from '../api/getEvents';
 import { useParams } from 'react-router-dom';
+import { Badge } from '@mui/icons-material';
+import FileSaver from 'file-saver';
+import { pdf } from '@react-pdf/renderer';
+import PdfBadge from '../../../components/pdfBadge';
+import { User } from '../../../types/user';
 const getSelectedRowsToExport = ({
   apiRef,
 }: GridGetRowsToExportParams): GridRowId[] => {
@@ -35,7 +41,13 @@ function ListUsers() {
   if (!eventData || Array.isArray(eventData)) {
     return null;
   }
-
+  async function handleDownloadPDF(data: User[]) {
+    if (!eventData || Array.isArray(eventData)) {
+      return null;
+    }
+    const blob = await pdf(<PdfBadge data={data || []} />).toBlob();
+    FileSaver.saveAs(blob, 'crachas.pdf');
+  }
   const columns: GridColDef[] = [
     { field: 'fullName', headerName: 'Nome', flex: 1 },
     {
@@ -111,6 +123,33 @@ function ListUsers() {
       headerName: 'Pago',
       flex: 1,
       valueGetter: (params) => (params.row.paid ? 'Sim' : 'Não'),
+    },
+    {
+      field: 'actions',
+      headerName: '',
+      sortable: false,
+      width: 80,
+      //flex: 1,
+      renderCell: (params: GridCellParams) => {
+        const onClick = () => {
+          console.log('params.row', params.row);
+          handleDownloadPDF([params.row]);
+        };
+
+        return (
+          <Box key={params.id}>
+            <Tooltip
+              title={'Baixar crachá'}
+              id="basic-button"
+              onClick={onClick}
+            >
+              <IconButton size="small">
+                <Badge color="primary" />
+              </IconButton>
+            </Tooltip>
+          </Box>
+        );
+      },
     },
   ];
 

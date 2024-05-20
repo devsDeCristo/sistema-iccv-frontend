@@ -1,9 +1,8 @@
 import { StyleSheet } from '@react-pdf/renderer';
 const stylesPdfRooms = StyleSheet.create({
   body: {
-    paddingTop: 25,
-    paddingHorizontal: 25,
-    // paddingBottom: '80px',
+    paddingVertical: 0,
+    paddingHorizontal: 10,
   },
   page: {
     padding: 40,
@@ -31,24 +30,29 @@ const stylesPdfRooms = StyleSheet.create({
     gap: -1,
     flexWrap: 'wrap',
   },
-  badge: {
-    //width: '50%',
-    borderWidth: 1,
-    borderColor: '#DBDBDB',
-    //padding: 3,
-    width: '8.5cm',
-    height: '12.5cm',
+  headerBadge: {
+    width: '100%',
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'flex-start',
     alignItems: 'center',
-    gap: '20px',
+  },
+  badge: {
+    borderWidth: 1,
+    borderColor: '#DBDBDB',
+    width: '9.5cm',
+    height: '14cm',
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    gap: '70px',
     marginTop: '20px',
   },
-  image: { height: 90 },
+  image: { height: 60 },
   imageEvent: {
-    height: 120,
-    width: '60%',
+    height: 70,
+    width: '40%',
     objectFit: 'cover',
   },
 });

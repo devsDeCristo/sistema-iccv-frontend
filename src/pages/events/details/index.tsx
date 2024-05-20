@@ -47,14 +47,17 @@ function Details() {
     }
   );
 
-  async function handleDownloadPDF(data: Event[], type: number) {
+  async function handleDownloadPDF(type: number) {
     if (!eventData || Array.isArray(eventData)) {
       return null;
     }
     let blob;
     if (type === 0) {
       blob = await pdf(
-        <PdfEvent data={data} textFooter={'30 de maio a 02 de junho de 2024'} />
+        <PdfEvent
+          data={teamsData as unknown as Event[]}
+          textFooter={'30 de maio a 02 de junho de 2024'}
+        />
       ).toBlob();
       FileSaver.saveAs(blob, 'quadrantes.pdf');
     } else if (type === 1) {
@@ -80,13 +83,8 @@ function Details() {
         >
           <Typography color="#000">Quartos</Typography>
           <Stack direction={'row'} gap={2}>
-            <Button
-              variant="outlined"
-              onClick={() =>
-                handleDownloadPDF(teamsData as unknown as Event[], 1)
-              }
-            >
-              Gerar Relatório
+            <Button variant="outlined" onClick={() => handleDownloadPDF(1)}>
+              Pdf quartos
             </Button>
             <Button
               variant="contained"
@@ -113,13 +111,8 @@ function Details() {
         >
           <Typography color="#000">Times</Typography>
           <Stack direction={'row'} gap={2}>
-            <Button
-              variant="outlined"
-              onClick={() =>
-                handleDownloadPDF(teamsData as unknown as Event[], 0)
-              }
-            >
-              Gerar Relatório
+            <Button variant="outlined" onClick={() => handleDownloadPDF(0)}>
+              Gerar Quadrantes
             </Button>
             <Button variant="contained" onClick={() => setOpenModalTeam(true)}>
               Adicionar time
@@ -142,12 +135,8 @@ function Details() {
           mb={2}
         >
           <Typography color="#000">Usuários</Typography>
-          <Button
-            variant="outlined"
-            onClick={() =>
-              handleDownloadPDF(eventData as unknown as Event[], 3)
-            }
-          >
+
+          <Button variant="outlined" onClick={() => handleDownloadPDF(3)}>
             Gerar Crachás
           </Button>
         </Box>

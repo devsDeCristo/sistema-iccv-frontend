@@ -21,7 +21,6 @@ function PdfEvent({ data, textFooter }: PdfProps) {
         <Page key={id + index} orientation="landscape" style={stylesPdf.body}>
           <HeaderPdf />
           <View fixed style={stylesPdf.decuria} key={'titulo-pdf' + index}>
-            {/* <Image style={stylesPdf.imageDecuria} src={Borboleta} /> */}
             <Text style={stylesPdf.title}>{name}</Text>
           </View>
           <View style={stylesPdf.rectangleRow} key={'quadrantes-pdf' + index}>

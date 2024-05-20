@@ -4,9 +4,6 @@ import { stylesPdfRooms } from './styles';
 import type { PdfProps } from './types';
 import logoIccv from '../../assets/logo-ic.png';
 import logoEvento from '../../assets/7-cur-mas.png';
-import logoCursilho from '../../assets/logo-cursilho-masc.png';
-import papel from '../../assets/papel.png';
-import papelTop from '../../assets/papel-top.png';
 
 Font.register({
   family: 'Helvetica',
@@ -15,21 +12,18 @@ Font.register({
 
 // Create Document Component
 function PdfBadge({ data }: PdfProps) {
+  const filterBadgeName = data.filter(({ badgeName }) => !!badgeName);
   return (
     <Document>
       <Page orientation="portrait" style={stylesPdfRooms.body}>
-        {/* <View style={stylesPdfRooms.containerRow}> */}
         <View style={stylesPdfRooms.container} wrap={true}>
-          {data?.map(
-            ({ badgeName }, index) =>
-              badgeName && (
-                <>
-                  <View
-                    style={stylesPdfRooms.badge}
-                    key={'cracha-pdf' + index}
-                    wrap={false}
-                  >
-                    {/* <Image
+          {filterBadgeName?.map(({ badgeName }, index) => (
+            <View
+              style={stylesPdfRooms.badge}
+              key={'cracha-pdf' + index}
+              wrap={false}
+            >
+              {/* <Image
                       style={{
                         width: '100%',
                         position: 'absolute',
@@ -38,10 +32,12 @@ function PdfBadge({ data }: PdfProps) {
                       }}
                       src={papelTop}
                     /> */}
-                    <Image style={stylesPdfRooms.image} src={logoIccv} />
-                    <Image style={stylesPdfRooms.imageEvent} src={logoEvento} />
-                    <Text style={stylesPdfRooms.textName}>{badgeName}</Text>
-                    {/* <Image
+              <View style={stylesPdfRooms.headerBadge} wrap={false}>
+                <Image style={stylesPdfRooms.image} src={logoIccv} />
+                <Image style={stylesPdfRooms.imageEvent} src={logoEvento} />
+              </View>
+              <Text style={stylesPdfRooms.textName}>{badgeName}</Text>
+              {/* <Image
                       style={{
                         width: '100%',
                         position: 'absolute',
@@ -50,9 +46,14 @@ function PdfBadge({ data }: PdfProps) {
                       }}
                       src={papel}
                     /> */}
-                  </View>
-                </>
-              )
+            </View>
+          ))}
+          {filterBadgeName.length % 2 !== 0 && (
+            <View
+              style={[stylesPdfRooms.badge, { border: 'none' }]}
+              key={'cracha-pdf'}
+              wrap={false}
+            ></View>
           )}
         </View>
       </Page>
