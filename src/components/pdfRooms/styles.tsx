@@ -26,12 +26,12 @@ const stylesPdfRooms = StyleSheet.create({
   text: {
     fontFamily: 'Helvetica',
     fontSize: 8,
-    marginBottom: 5,
+    padding: 3,
     width: '100%',
   },
   textName: {
     fontSize: 9,
-    marginBottom: 5,
+    padding: 3,
     fontFamily: 'Helvetica-Bold',
     maxWidth: '100%',
     display: 'flex',
