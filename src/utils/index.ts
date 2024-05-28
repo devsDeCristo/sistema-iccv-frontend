@@ -16,6 +16,8 @@ export function stringToColor(string: string) {
   return color;
 }
 export function stringAvatar(name: string) {
+  const firstName = name?.split(' ')?.[0][0];
+  const lastName = name?.split(' ')?.[1];
   return {
     sx: {
       bgcolor: stringToColor(name),
@@ -23,7 +25,7 @@ export function stringAvatar(name: string) {
       height: 24,
       fontSize: 11,
     },
-    children: `${name?.split(' ')[0][0]}${name?.split(' ')[1][0]}`,
+    children: `${firstName}${lastName ? lastName[0] : ''}`,
   };
 }
 
