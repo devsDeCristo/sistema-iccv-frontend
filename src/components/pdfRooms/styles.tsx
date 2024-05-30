@@ -30,7 +30,7 @@ const stylesPdfRooms = StyleSheet.create({
     width: '100%',
   },
   textName: {
-    fontSize: 9,
+    fontSize: 11,
     padding: 3,
     fontFamily: 'Helvetica-Bold',
     maxWidth: '100%',
@@ -52,7 +52,7 @@ const stylesPdfRooms = StyleSheet.create({
     gap: -1,
   },
   cell: {
-    width: '45%',
+    width: '100%',
     borderWidth: 1,
     borderColor: '#000',
     //padding: 3,

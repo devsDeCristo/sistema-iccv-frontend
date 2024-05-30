@@ -14,7 +14,7 @@ const stylesPdfRooms = StyleSheet.create({
     width: '100%',
   },
   textName: {
-    fontSize: 18,
+    fontSize: 24,
     padding: 3,
     fontFamily: 'Helvetica-Bold',
     maxWidth: '100%',
