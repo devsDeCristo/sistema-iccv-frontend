@@ -15,7 +15,7 @@ function PdfBadge({ data }: PdfProps) {
   const filterBadgeName = data.filter(({ badgeName }) => !!badgeName);
   return (
     <Document>
-      <Page orientation="portrait" style={stylesPdfRooms.body}>
+      <Page orientation="landscape" style={stylesPdfRooms.body}>
         <View style={stylesPdfRooms.container} wrap={true}>
           {filterBadgeName?.map(({ badgeName }, index) => (
             <View

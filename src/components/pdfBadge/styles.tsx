@@ -40,8 +40,8 @@ const stylesPdfRooms = StyleSheet.create({
   badge: {
     borderWidth: 1,
     borderColor: '#DBDBDB',
-    width: '9.5cm',
-    height: '14cm',
+    width: '11cm',
+    height: '15cm',
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'flex-start',
@@ -51,8 +51,8 @@ const stylesPdfRooms = StyleSheet.create({
   },
   image: { height: 60 },
   imageEvent: {
-    height: 70,
-    width: '40%',
+    height: 140,
+    width: '85%',
     objectFit: 'cover',
   },
 });
