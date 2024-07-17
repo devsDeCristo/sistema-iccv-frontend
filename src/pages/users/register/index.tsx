@@ -90,7 +90,7 @@ function RegisterUser() {
   }
   return (
     <PageStyle>
-      <Header title="Inscrição Cursilho Masculino" buttonBack={permission} />
+      <Header title="Inscrição Cursilho Feminino" buttonBack={permission} />
       <FormProvider {...methods}>
         <form onSubmit={methods.handleSubmit(onSubmitForm)}>
           <Form />

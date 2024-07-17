@@ -18,7 +18,7 @@ function Users() {
       >
         <Button
           variant="contained"
-          onClick={() => navigate('/cadastro-cursilho-masculino')}
+          onClick={() => navigate('/cadastro-cursilho')}
         >
           Cadastrar usuario
         </Button>
