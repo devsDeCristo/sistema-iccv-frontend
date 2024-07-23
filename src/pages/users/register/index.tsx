@@ -25,7 +25,7 @@ function RegisterUser() {
     cellphone: '',
     emergencyContact: '',
     email: '',
-    worker: 0,
+    worker: 1,
     profession: '',
     neighborhood: '',
     city: '',

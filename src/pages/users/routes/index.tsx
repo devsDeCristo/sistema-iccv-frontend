@@ -9,7 +9,7 @@ function RoutesUsers() {
 
   return (
     <Routes>
-      <Route path="/cadastro-cursilho" element={<RegisterUser />} />
+      <Route path="/cadastro-cursilho-work" element={<RegisterUser />} />
       {permission && (
         <>
           <Route path="/" element={<Users />} />

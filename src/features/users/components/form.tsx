@@ -15,7 +15,7 @@ function Form() {
 
   return (
     <Grid container spacing={2}>
-      <Grid item xs={8}>
+      <Grid item xs={12} md={8}>
         <Controller
           control={control}
           name="fullName"
@@ -30,7 +30,7 @@ function Form() {
         />
       </Grid>
 
-      <Grid item xs={4}>
+      <Grid item xs={12} md={4}>
         <Controller
           control={control}
           name="badgeName"
@@ -130,6 +130,7 @@ function Form() {
             <InputSelect
               label="Vai participar ou servir no cursilho?"
               menuOptions={OPTIONS_WORKER}
+              disabled
               value={value}
               required
               onChange={onChange}
