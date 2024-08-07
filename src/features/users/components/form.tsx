@@ -130,7 +130,6 @@ function Form() {
             <InputSelect
               label="Vai participar ou servir no cursilho?"
               menuOptions={OPTIONS_WORKER}
-              disabled
               value={value}
               required
               onChange={onChange}
