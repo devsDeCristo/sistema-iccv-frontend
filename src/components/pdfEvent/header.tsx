@@ -1,8 +1,8 @@
 import { Image, View } from '@react-pdf/renderer';
 import { stylesPdf } from './styles';
-import logoIccv from '../../assets/logo-ic.png';
-import logoEvento from '../../assets/7-cur-mas.png';
-import logoCursilho from '../../assets/logo-cursilho-masc.png';
+import logoIccv from '../../assets/logoiccv-rosa.png';
+import logoEvento from '../../assets/5-curs-fem.png';
+import logoCursilho from '../../assets/logo-cursilho-rosa.png';
 
 function HeaderPdf() {
   return (

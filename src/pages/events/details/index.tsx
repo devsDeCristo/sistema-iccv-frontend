@@ -56,7 +56,7 @@ function Details() {
       blob = await pdf(
         <PdfEvent
           data={teamsData as unknown as Event[]}
-          textFooter={'30 de maio a 02 de junho de 2024'}
+          textFooter={'05 à a 08 de setembro de 2024'}
         />
       ).toBlob();
       FileSaver.saveAs(blob, 'quadrantes.pdf');

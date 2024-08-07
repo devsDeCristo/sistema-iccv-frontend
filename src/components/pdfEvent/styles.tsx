@@ -18,6 +18,7 @@ const stylesPdf = StyleSheet.create({
     paddingHorizontal: '20px',
     borderRadius: '8px',
     height: '125px',
+    //backgroundColor: '#97E1E2',
   },
   footer: {
     position: 'absolute',
@@ -74,10 +75,10 @@ const stylesPdf = StyleSheet.create({
     justifyContent: 'flex-start',
     flexDirection: 'row',
   },
-  image: { height: 90 },
+  image: { height: 40 },
   imageEvent: {
-    width: '17%',
-    height: '100%',
+    width: '15%',
+    height: '54%',
     objectFit: 'cover',
   },
   imageDecuria: { height: 30 },

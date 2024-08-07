@@ -3,7 +3,7 @@ import { Page, Text, View, Document, Font, Image } from '@react-pdf/renderer';
 import { stylesPdfRooms } from './styles';
 import type { PdfRoomsProps } from './types';
 import logoIccv from '../../assets/logo-ic.png';
-import logoEvento from '../../assets/7-cur-mas.png';
+import logoEvento from '../../assets/5-curs-fem.png';
 import logoCursilho from '../../assets/logo-cursilho-masc.png';
 
 Font.register({
