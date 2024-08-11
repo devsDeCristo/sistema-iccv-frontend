@@ -1,5 +1,5 @@
 import { Sidebar, Menu, MenuItem } from 'react-pro-sidebar';
-import { People, Event } from '@mui/icons-material';
+import { People, Event, Logout } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
 
 function SideBar() {
@@ -18,6 +18,15 @@ function SideBar() {
           </MenuItem>
           <MenuItem icon={<Event />} component={<Link to="/eventos" />}>
             Eventos
+          </MenuItem>
+          <MenuItem
+            icon={<Logout />}
+            onClick={() => {
+              localStorage.clear();
+            }}
+            component={<Link to="/login" />}
+          >
+            Sair
           </MenuItem>
         </Menu>
       </Sidebar>
