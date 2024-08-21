@@ -14,7 +14,23 @@ function Loading() {
 }
 function App() {
   const permission = usePermission();
+  const navigate = useNavigate();
+  React.useEffect(() => {
+    setTimeout(() => {
+      loginValidate();
+    }, 200);
 
+    async function loginValidate() {
+      //const data = await checkToken();
+      const permission = usePermission();
+
+      if (!permission) {
+        navigate('/login');
+      } else {
+        navigate('/eventos');
+      }
+    }
+  }, []);
   return (
     <ThemeProvider theme={myTheme}>
       <div style={{ display: 'flex' }}>

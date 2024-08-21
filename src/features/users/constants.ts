@@ -70,6 +70,10 @@ export const REGISTER_USERS_SCHEMA = z.object({
   }),
   eventId: z.string().optional(),
 });
+export const LOGIN_SCHEMA = z.object({
+  login: z.string(),
+  password: z.string(),   
+});
 export const OPTIONS_BOOLEAN = [
   { value: 0, name: 'Não' },
   { value: 1, name: 'Sim' },
