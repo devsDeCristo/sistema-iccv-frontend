@@ -67,11 +67,10 @@ const stylesPdfRooms = StyleSheet.create({
     justifyContent: 'flex-start',
     flexDirection: 'row',
   },
-  image: { height: 90 },
+  image: { height: 40 },
   imageEvent: {
-    width: '17%',
-    height: '100%',
-    objectFit: 'cover',
+    height: '50%',
+    objectFit: 'fill',
   },
 });
 export { stylesPdfRooms };
