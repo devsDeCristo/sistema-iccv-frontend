@@ -21,6 +21,7 @@ const getSelectedRowsToExport = ({
 
   return gridFilteredSortedRowIdsSelector(apiRef);
 };
+
 function List() {
   const { data = [], isLoading } = useGetUsers({});
   const navigate = useNavigate();
