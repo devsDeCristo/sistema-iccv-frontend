@@ -14,7 +14,7 @@ Font.register({
 });
 
 // Create Document Component
-function PdfEvent({ data, textFooter }: PdfProps) {
+function PdfEvent({ data }: PdfProps) {
   return (
     <Document>
       <Page orientation="landscape" style={stylesPdf.body}>
@@ -22,7 +22,7 @@ function PdfEvent({ data, textFooter }: PdfProps) {
       </Page>
       <Page orientation="landscape" style={stylesPdf.body}>
         <HeaderPdf />
-        {data.map(({ name, users, id }, index) => (
+        {data.map(({ name, users }, index) => (
           <View>
             <View fixed style={stylesPdf.decuria} key={'titulo-pdf' + index}>
               <Text style={stylesPdf.title}>{name}</Text>
@@ -34,7 +34,7 @@ function PdfEvent({ data, textFooter }: PdfProps) {
             </View>
           </View>
         ))}
-        <FooterPdf text={textFooter} />
+        <FooterPdf />
       </Page>
     </Document>
   );

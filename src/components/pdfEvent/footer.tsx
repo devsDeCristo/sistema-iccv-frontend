@@ -1,8 +1,8 @@
-import { Image, Text, View } from '@react-pdf/renderer';
-import { FooterProps } from './types';
+import { Image, View } from '@react-pdf/renderer';
+// import { FooterProps } from './types';
 import { stylesPdf } from './styles';
 import footerImg from '../../assets/footer-cursilho-fem.png';
-function FooterPdf({ text }: FooterProps) {
+function FooterPdf() {
   return (
     <View style={stylesPdf.footer} fixed>
       {/* <Text>{text}</Text>
