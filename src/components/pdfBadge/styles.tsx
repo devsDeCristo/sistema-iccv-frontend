@@ -47,13 +47,13 @@ const stylesPdfRooms = StyleSheet.create({
     justifyContent: 'flex-start',
     alignItems: 'center',
     gap: '70px',
+    paddingTop: '20px',
     marginTop: '20px',
   },
-  image: { height: 60 },
+  image: { height: 40 },
   imageEvent: {
-    height: 140,
-    width: '85%',
-    objectFit: 'cover',
+    height: 110,
+    objectFit: 'fill',
   },
 });
 export { stylesPdfRooms };

@@ -2,8 +2,8 @@ import { Page, Text, View, Document, Font, Image } from '@react-pdf/renderer';
 
 import { stylesPdfRooms } from './styles';
 import type { PdfProps } from './types';
-import logoIccv from '../../assets/logo-ic.png';
-import logoEvento from '../../assets/7-cur-mas.png';
+import logoIc from '../../assets/logoic-rosa.png';
+import logoEvento from '../../assets/5-curs-fem.png';
 
 Font.register({
   family: 'Helvetica',
@@ -24,7 +24,7 @@ function PdfBadge({ data }: PdfProps) {
               wrap={false}
             >
               <View style={stylesPdfRooms.headerBadge} wrap={false}>
-                <Image style={stylesPdfRooms.image} src={logoIccv} />
+                <Image style={stylesPdfRooms.image} src={logoIc} />
                 <Image style={stylesPdfRooms.imageEvent} src={logoEvento} />
               </View>
               <Text style={stylesPdfRooms.textName}>{badgeName}</Text>
