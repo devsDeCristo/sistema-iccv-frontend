@@ -47,11 +47,18 @@ function List() {
     { field: 'religion', headerName: 'Religião', flex: 1 },
     { field: 'notes', headerName: 'Observações', flex: 1 },
   ];
-
+  // Função para abrir o link em uma nova aba caso o Ctrl ou o Command (em Mac) esteja pressionado
+  const handleRowClick = (params: any, event: React.MouseEvent) => {
+    if (event.ctrlKey || event.metaKey) {
+      const link = `${window.location.origin}/user/${params.row.id}/editar`;
+      window.open(link, '_blank');
+    }
+  };
   return (
     <Card>
       <DataGrid
         rows={data}
+        onRowClick={handleRowClick}
         onRowDoubleClick={(params) => {
           navigate(`/user/${params.row.id}/editar`);
         }}

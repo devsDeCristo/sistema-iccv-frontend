@@ -4,7 +4,7 @@ import { stylesPdfRooms } from './styles';
 import type { PdfProps } from './types';
 import logoIc from '../../assets/logoic-rosa.png';
 import logoEvento from '../../assets/5-curs-fem.png';
-
+import bgbadge from '../../assets/bg-badge.png';
 Font.register({
   family: 'Helvetica',
   src: 'https://fonts.gstatic.com/s/oswald/v13/Y_TKV6o8WovbUd3m_X9aAA.ttf',
@@ -23,6 +23,7 @@ function PdfBadge({ data }: PdfProps) {
               key={'cracha-pdf' + index}
               wrap={false}
             >
+              <Image style={stylesPdfRooms.imageBackground} src={bgbadge} />
               <View style={stylesPdfRooms.headerBadge} wrap={false}>
                 <Image style={stylesPdfRooms.image} src={logoIc} />
                 <Image style={stylesPdfRooms.imageEvent} src={logoEvento} />
