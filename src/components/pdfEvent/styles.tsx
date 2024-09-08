@@ -3,7 +3,7 @@ const stylesPdf = StyleSheet.create({
   body: {
     paddingTop: 25,
     paddingHorizontal: 25,
-    paddingBottom: '80px',
+    paddingBottom: 25,
   },
   page: {
     padding: 40,
@@ -18,6 +18,8 @@ const stylesPdf = StyleSheet.create({
     paddingHorizontal: '20px',
     borderRadius: '8px',
     height: '125px',
+    //backgroundColor: '#97E1E2',
+    backgroundColor: '#B2E3E3',
   },
   footer: {
     position: 'absolute',
@@ -31,8 +33,17 @@ const stylesPdf = StyleSheet.create({
     justifyContent: 'center',
     flexDirection: 'column',
     //backgroundColor: '#f8d2f8',
+    backgroundColor: '#B2E3E3',
     padding: '10px',
     borderRadius: '8px',
+  },
+  cover: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: '8px',
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#B2E3E3',
   },
   title: {
     fontSize: 15,
@@ -74,11 +85,12 @@ const stylesPdf = StyleSheet.create({
     justifyContent: 'flex-start',
     flexDirection: 'row',
   },
-  image: { height: 90 },
+  image: { height: 50 },
+  imageCover: { height: '60%' },
+  imageFooter: { height: 40 },
   imageEvent: {
-    width: '17%',
-    height: '100%',
-    objectFit: 'cover',
+    width: '20%',
+    objectFit: 'fill',
   },
   imageDecuria: { height: 30 },
   columnUser: {

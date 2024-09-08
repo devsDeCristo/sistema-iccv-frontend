@@ -16,6 +16,7 @@ const stylesPdfRooms = StyleSheet.create({
   textName: {
     fontSize: 24,
     padding: 3,
+    paddingTop: -20,
     fontFamily: 'Helvetica-Bold',
     maxWidth: '100%',
     display: 'flex',
@@ -44,16 +45,21 @@ const stylesPdfRooms = StyleSheet.create({
     height: '15cm',
     display: 'flex',
     flexDirection: 'column',
-    justifyContent: 'flex-start',
+    justifyContent: 'center',
     alignItems: 'center',
-    gap: '70px',
+    gap: '80px',
     marginTop: '20px',
   },
-  image: { height: 60 },
-  imageEvent: {
-    height: 140,
-    width: '85%',
+  image: { height: 40 },
+  imageBackground: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
     objectFit: 'cover',
+  },
+  imageEvent: {
+    height: 120,
+    objectFit: 'fill',
   },
 });
 export { stylesPdfRooms };

@@ -138,7 +138,7 @@ function ListUsers() {
       //flex: 1,
       renderCell: (params: GridCellParams) => {
         const onClick = () => {
-          console.log('params.row', params.row);
+          //console.log('params.row', params.row);
           handleDownloadPDF([params.row]);
         };
 

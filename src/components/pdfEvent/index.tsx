@@ -6,6 +6,7 @@ import type { PdfProps } from './types';
 import { HeaderPdf } from './header';
 import { FooterPdf } from './footer';
 import { UserRectangle } from './userRetangle';
+import { CoverPdf } from './cover';
 
 Font.register({
   family: 'Helvetica',
@@ -13,24 +14,28 @@ Font.register({
 });
 
 // Create Document Component
-function PdfEvent({ data, textFooter }: PdfProps) {
+function PdfEvent({ data }: PdfProps) {
   return (
     <Document>
-      {' '}
-      {data.map(({ name, users, id }, index) => (
-        <Page key={id + index} orientation="landscape" style={stylesPdf.body}>
-          <HeaderPdf />
-          <View fixed style={stylesPdf.decuria} key={'titulo-pdf' + index}>
-            <Text style={stylesPdf.title}>{name}</Text>
+      <Page orientation="landscape" style={stylesPdf.body}>
+        <CoverPdf />
+      </Page>
+      <Page orientation="landscape" style={stylesPdf.body}>
+        <HeaderPdf />
+        {data.map(({ name, users }, index) => (
+          <View>
+            <View fixed style={stylesPdf.decuria} key={'titulo-pdf' + index}>
+              <Text style={stylesPdf.title}>{name}</Text>
+            </View>
+            <View style={stylesPdf.rectangleRow} key={'quadrantes-pdf' + index}>
+              {users?.map((user, index) => (
+                <UserRectangle key={index} user={user} />
+              ))}
+            </View>
           </View>
-          <View style={stylesPdf.rectangleRow} key={'quadrantes-pdf' + index}>
-            {users?.map((user, index) => (
-              <UserRectangle key={index} user={user} />
-            ))}
-          </View>
-          <FooterPdf text={textFooter} />
-        </Page>
-      ))}
+        ))}
+        <FooterPdf />
+      </Page>
     </Document>
   );
 }

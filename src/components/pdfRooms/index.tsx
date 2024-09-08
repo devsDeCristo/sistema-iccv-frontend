@@ -2,9 +2,9 @@ import { Page, Text, View, Document, Font, Image } from '@react-pdf/renderer';
 
 import { stylesPdfRooms } from './styles';
 import type { PdfRoomsProps } from './types';
-import logoIccv from '../../assets/logo-ic.png';
-import logoEvento from '../../assets/7-cur-mas.png';
-import logoCursilho from '../../assets/logo-cursilho-masc.png';
+import logoIc from '../../assets/logoic-rosa.png';
+import logoEvento from '../../assets/5-curs-fem.png';
+import logoCursilho from '../../assets/logo-cursilho-rosa.png';
 
 Font.register({
   family: 'Helvetica',
@@ -22,7 +22,7 @@ function PdfBedRooms({ data }: PdfRoomsProps) {
           style={stylesPdfRooms.body}
         >
           <View style={stylesPdfRooms.header} fixed>
-            <Image style={stylesPdfRooms.image} src={logoIccv} />
+            <Image style={stylesPdfRooms.image} src={logoIc} />
             <Image style={stylesPdfRooms.imageEvent} src={logoEvento} />
             <Image style={stylesPdfRooms.image} src={logoCursilho} />
           </View>
