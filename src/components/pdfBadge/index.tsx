@@ -17,7 +17,7 @@ function PdfBadge({ data }: PdfProps) {
     <Document>
       <Page orientation="portrait" style={stylesPdfRooms.body}>
         <View style={stylesPdfRooms.container} wrap={true}>
-          {filterBadgeName?.map(({ badgeName ,fullName}, index) => (
+          {filterBadgeName?.map(({ fullName}, index) => (
             <View
               style={stylesPdfRooms.badge}
               key={'cracha-pdf' + index}
