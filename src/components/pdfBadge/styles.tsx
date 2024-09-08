@@ -2,10 +2,14 @@ import { StyleSheet } from '@react-pdf/renderer';
 const stylesPdfRooms = StyleSheet.create({
   body: {
     paddingVertical: 0,
-    paddingHorizontal: 10,
+    paddingHorizontal: 0,
+    paddingTop:0,
   },
   page: {
-    padding: 40,
+    paddingTop:0,
+    padding: 0,
+    display: 'flex',
+    textAlign: 'center',alignItems:"center",justifyContent:"center"
   },
   text: {
     fontFamily: 'Helvetica',
@@ -14,19 +18,23 @@ const stylesPdfRooms = StyleSheet.create({
     width: '100%',
   },
   textName: {
-    fontSize: 24,
+    //fontSize: 24,
+    fontSize: 35,
     padding: 3,
     paddingTop: -20,
     fontFamily: 'Helvetica-Bold',
-    maxWidth: '100%',
+    maxWidth: '80%',
     display: 'flex',
-    flexWrap: 'wrap',
+    flexWrap: 'nowrap',
     textAlign: 'center',
+    textTransform: "capitalize",
   },
   container: {
     width: '100%',
+    height:"100%",
     display: 'flex',
     flexDirection: 'row',
+    alignItems:"center",
     justifyContent: 'center',
     gap: -1,
     flexWrap: 'wrap',
@@ -41,8 +49,11 @@ const stylesPdfRooms = StyleSheet.create({
   badge: {
     borderWidth: 1,
     borderColor: '#DBDBDB',
-    width: '11cm',
-    height: '15cm',
+    // width: '8.5cm',
+    // height: '11cm',
+     //width: '18cm',
+   // height: '25cm',
+    width:"100%",height:"100%",
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'center',
@@ -50,7 +61,7 @@ const stylesPdfRooms = StyleSheet.create({
     gap: '80px',
     marginTop: '20px',
   },
-  image: { height: 40 },
+  image: { height: 50 },
   imageBackground: {
     position: 'absolute',
     width: '100%',
@@ -58,7 +69,7 @@ const stylesPdfRooms = StyleSheet.create({
     objectFit: 'cover',
   },
   imageEvent: {
-    height: 120,
+    height: 190,
     objectFit: 'fill',
   },
 });
