@@ -23,16 +23,16 @@ function PdfEvent({ data }: PdfProps) {
       <Page orientation="landscape" style={stylesPdf.body}>
         <HeaderPdf />
         {data.map(({ name, users }, index) => (
-          <View>
-            <View fixed style={stylesPdf.decuria} key={'titulo-pdf' + index}>
-              <Text style={stylesPdf.title}>{name}</Text>
-            </View>
-            <View style={stylesPdf.rectangleRow} key={'quadrantes-pdf' + index}>
-              {users?.map((user, index) => (
-                <UserRectangle key={index} user={user} />
-              ))}
-            </View>
-          </View>
+             <View break={index>0} wrap>
+             <View fixed style={stylesPdf.decuria} key={'titulo-pdf' + index}>
+               <Text style={stylesPdf.title}>{name}</Text>
+             </View>
+             <View  style={stylesPdf.rectangleRow} key={'quadrantes-pdf' + index}>
+               {users?.map((user, index) => (
+                 <UserRectangle key={index} user={user} />
+               ))}
+             </View>
+           </View>
         ))}
         <FooterPdf />
       </Page>
