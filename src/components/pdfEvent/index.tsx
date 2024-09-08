@@ -23,6 +23,7 @@ function PdfEvent({ data }: PdfProps) {
       <Page orientation="landscape" style={stylesPdf.body}>
         <HeaderPdf />
         {data.map(({ name, users }, index) => (
+
           <View break={index!=0} wrap>
             <View fixed style={stylesPdf.decuria} key={'titulo-pdf' + index}>
               <Text style={stylesPdf.title}>{name}</Text>
@@ -33,6 +34,7 @@ function PdfEvent({ data }: PdfProps) {
               ))}
             </View>
           </View>
+
         ))}
         <FooterPdf />
       </Page>
