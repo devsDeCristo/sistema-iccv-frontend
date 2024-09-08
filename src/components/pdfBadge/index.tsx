@@ -15,9 +15,9 @@ function PdfBadge({ data }: PdfProps) {
   const filterBadgeName = data.filter(({ badgeName }) => !!badgeName);
   return (
     <Document>
-      <Page orientation="landscape" style={stylesPdfRooms.body}>
+      <Page orientation="portrait" style={stylesPdfRooms.body}>
         <View style={stylesPdfRooms.container} wrap={true}>
-          {filterBadgeName?.map(({ badgeName }, index) => (
+          {filterBadgeName?.map(({ badgeName ,fullName}, index) => (
             <View
               style={stylesPdfRooms.badge}
               key={'cracha-pdf' + index}
@@ -28,7 +28,7 @@ function PdfBadge({ data }: PdfProps) {
                 <Image style={stylesPdfRooms.image} src={logoIc} />
                 <Image style={stylesPdfRooms.imageEvent} src={logoEvento} />
               </View>
-              <Text style={stylesPdfRooms.textName}>{badgeName}</Text>
+             <Text wrap={false} style={stylesPdfRooms.textName}> {fullName?.toLowerCase()}</Text>
             </View>
           ))}
           {filterBadgeName.length % 2 !== 0 && (

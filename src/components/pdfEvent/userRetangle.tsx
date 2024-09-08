@@ -3,8 +3,10 @@ import { stylesPdf } from './styles';
 import { UserRectangleProps } from './types';
 
 function UserRectangle({ user }: UserRectangleProps) {
+  console.log(user.profilePhotoUrl)
   return (
     <View style={stylesPdf.cell} wrap={false}>
+    
       {user.profilePhotoUrl ? (
         <Image style={stylesPdf.image} src={user.profilePhotoUrl} source={''} />
       ) : null}
