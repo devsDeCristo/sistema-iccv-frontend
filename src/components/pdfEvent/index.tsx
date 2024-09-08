@@ -34,7 +34,6 @@ function PdfEvent({ data }: PdfProps) {
               ))}
             </View>
           </View>
-
         ))}
         <FooterPdf />
       </Page>
