@@ -67,7 +67,7 @@ const stylesPdf = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 10,
-    marginBottom: '80px',//muda essa linha sempre que mudar altura ou largura de algo
+    marginBottom: '60px',//muda essa linha sempre que mudar altura ou largura de algo
   },
   cell: {
     width: '24%',
