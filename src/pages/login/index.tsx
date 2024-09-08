@@ -1,6 +1,5 @@
 import { Box, Button, Icon, Paper, Stack, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import background from '../../assets/bgiccv.png';
 import logo from '../../assets/ic-logo.png';
 import { useEffect } from 'react';
 import { usePermission } from '../../hooks/usePermission';
