@@ -64,12 +64,11 @@ function Details() {
       blob = await pdf(<PdfBedRooms data={bedroomsData} />).toBlob();
       FileSaver.saveAs(blob, 'quartos.pdf');
     } else {
-      blob = await pdf(<PdfBadge data={eventData.users || []} />).toBlob();
+      blob = await pdf(<PdfBadge data={eventData.users?.filter(({worker})=>!worker) || []} />).toBlob();
       FileSaver.saveAs(blob, 'crachas.pdf');
     }
   }
-
-  return (
+    return (
     <PageStyle>
       <Header title="Detalhes do evento" buttonBack pageBack="/eventos" />
 

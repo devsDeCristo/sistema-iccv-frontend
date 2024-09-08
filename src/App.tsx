@@ -27,7 +27,7 @@ function App() {
       if (!permission) {
         navigate('/login');
       } else {
-        navigate('/eventos');
+    //    navigate('/eventos');
       }
     }
   }, []);

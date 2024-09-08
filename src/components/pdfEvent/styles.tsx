@@ -3,7 +3,7 @@ const stylesPdf = StyleSheet.create({
   body: {
     paddingTop: 25,
     paddingHorizontal: 25,
-    paddingBottom: 25,
+    paddingBottom: '80px',
   },
   page: {
     padding: 40,
@@ -67,7 +67,7 @@ const stylesPdf = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 10,
-    marginBottom: '200px',
+    marginBottom: '80px',//muda essa linha sempre que mudar altura ou largura de algo
   },
   cell: {
     width: '24%',
@@ -78,10 +78,11 @@ const stylesPdf = StyleSheet.create({
     flexDirection: 'row',
   },
   decuria: {
+ //   minHeight:"80%",
     margin: 6,
     marginTop: 10,
     display: 'flex',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'flex-start',
     flexDirection: 'row',
   },
