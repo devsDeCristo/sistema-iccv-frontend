@@ -16,15 +16,15 @@ function FormLogin() {
     <Grid container spacing={2}>
       <Grid item xs={12} md={12}>
         <Controller
-          name="login"
+          name="cpf"
           control={control}
           render={({ field: { onChange, value } }) => (
             <Input
               required
-              label="Login"
+              label="CPF"
               value={value}
-              error={!!errors.login}
-              errorMessage={errors.login?.message}
+              error={!!errors.cpf}
+              errorMessage={errors.cpf?.message}
               onChange={onChange}
             />
           )}
@@ -39,8 +39,8 @@ function FormLogin() {
               required
               label="Senha"
               value={value}
-              error={!!errors.login}
-              errorMessage={errors.login?.message}
+              error={!!errors.password}
+              errorMessage={errors.password?.message}
               onChange={onChange}
               type={showPassword ? 'text' : 'password'}
               onKeyDown={(event) => {
