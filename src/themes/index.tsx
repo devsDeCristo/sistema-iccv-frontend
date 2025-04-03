@@ -20,4 +20,17 @@ export const myTheme = () =>
         xl: 1536,
       },
     },
+    components: {
+      MuiButton: {
+        styleOverrides: {
+          root: {
+            textTransform: 'capitalize',
+            boxShadow: 'none',
+            '&:hover': {
+              boxShadow: 'none',
+            },
+          },
+        },
+      },
+    },
   });

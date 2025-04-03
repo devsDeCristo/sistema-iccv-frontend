@@ -71,12 +71,12 @@ export const REGISTER_USERS_SCHEMA = z.object({
   eventId: z.string().optional(),
 });
 export const LOGIN_SCHEMA = z.object({
-    cpf: z
+  cpf: z
     .string({
       required_error: DEFAULT_MESSAGE,
     })
     .min(8, { message: 'CPF deve conter 11 digitos' }),
-  password: z.string(),   
+  // password: z.string(),
 });
 export const OPTIONS_BOOLEAN = [
   { value: 0, name: 'Não' },

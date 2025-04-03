@@ -13,7 +13,7 @@ apiClient.defaults.baseURL = API_URL;
 //   handleInterceptResponseError,
 // );
 
-export const setBearerToken = (token: string) => {
+export const setBearerToken = (token: string | null) => {
   apiClient.defaults.headers.common.Authorization = `Bearer ${token}`;
 };
 

@@ -8,6 +8,7 @@ import { myTheme } from './themes';
 import { ThemeProvider } from '@emotion/react';
 import ProtectedRoute from './components/protectedRoute';
 import { Navigate, Route, Routes } from 'react-router-dom';
+import { RegisterUser } from './pages/users/register';
 
 function Loading() {
   return <p>Loading ...</p>;
@@ -21,6 +22,7 @@ function App() {
         <React.Suspense fallback={<Loading />}>
           <Routes>
             {RoutesLogin()}
+            <Route path="/user/register" element={<RegisterUser />} />
             <Route path="*" element={<Navigate replace to="/login" />} />
             <Route
               element={

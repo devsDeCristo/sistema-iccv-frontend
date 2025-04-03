@@ -30,13 +30,13 @@ function FormLogin() {
           )}
         />
       </Grid>
-      <Grid item xs={12} md={12}>
+      {/* <Grid item xs={12} md={12}>
         <Controller
           name="password"
           control={control}
           render={({ field: { onChange, value } }) => (
             <Input
-              required
+              //required
               label="Senha"
               value={value}
               error={!!errors.password}
@@ -66,7 +66,7 @@ function FormLogin() {
             />
           )}
         />
-      </Grid>
+      </Grid> */}
     </Grid>
   );
 }

@@ -35,16 +35,20 @@ function Login() {
   }, []);
 
   const handleLoginApi = async (data: LoginFormType) => {
-    const { cpf, password } = data;
+    //const { cpf, password } = data;
+    const { cpf } = data;
     //setLoading(true);
 
     try {
       const response = await axios.post(
         `${API_URL}auth/login`,
-        { documnet: cpf, password },
+        { document: cpf, password: 'password123' },
         { withCredentials: false }
       );
+      console.log('response', response.data);
+
       localStorage.setItem('access_token', response.data.access_token);
+      localStorage.setItem('user', JSON.stringify(response.data.user));
       navigate('/eventos');
       setBearerToken(response.data.access_token);
     } catch (error) {
@@ -56,12 +60,13 @@ function Login() {
 
   const styles = {
     boxContainer: {
-      width: '100%',
+      width: '100vw',
       height: '100vh',
       display: 'flex',
       justifyContent: 'center',
       alignItems: 'center',
       flexDirection: 'row',
+      minWidth: '310px',
     },
     paperBlue: {
       //backgroundImage: `url(${background})`,
@@ -77,15 +82,16 @@ function Login() {
       justifyContent: 'center',
       alignContent: 'center',
       backgroundColor: '#28166F',
-      padding: '40px 80px',
+      //padding: '40px 80px',
     },
     paper: {
-      minHeight: '500px',
-      minWidth: '310px',
-      padding: '40px 80px',
+      inHeight: '500px',
+      //minWidth: '310px',
+      // padding: '40px 80px',
+      paddingX: { xs: '40px', md: '80px' },
       //width: '40vw',
-      width: { xs: '100vw', md: '40vw' },
-      height: '100vh',
+      width: { xs: '100%', md: '40vw' },
+      height: '100%',
       alignItems: 'center',
       justifyContent: 'center',
       flexDirection: 'column',
@@ -103,47 +109,44 @@ function Login() {
       gap: 2,
     },
   };
+  const handleButton = () => {
+    navigate('/user/register');
+  };
   return (
-    <>
-      {/* <Header title="Login" /> */}
-      <Box sx={styles.boxContainer}>
-        <Paper sx={styles.paperBlue} />
-        <Paper sx={styles.paper}>
-          <Stack
-            direction={'column'}
-            gap={'15px'}
-            alignItems={'center'}
-            sx={styles.stackIcon}
-          >
-            <Icon style={styles.icon}>
-              <img src={logo} style={styles.img} alt="logo iccv" />
-            </Icon>
+    <Box sx={styles.boxContainer}>
+      <Paper sx={styles.paperBlue} />
+      <Paper sx={styles.paper}>
+        <Icon style={styles.icon}>
+          <img src={logo} style={styles.img} alt="logo iccv" />
+        </Icon>
 
-            <Box sx={styles.boxInputs}>
-              <Typography variant="h5">Acesso administrativo</Typography>
-              <Typography>Faça login com seu CPF</Typography>
-              <FormProvider {...methods}>
-                <form onSubmit={methods.handleSubmit(onSubmitForm)}>
-                  <FormLogin />
+        <Box sx={styles.boxInputs}>
+          <Typography variant="h5">Seja bem-vindo</Typography>
+          <Typography>Faça login com seu CPF</Typography>
 
-                  <Button
-                    variant="contained"
-                    fullWidth
-                    sx={{
-                      height: '40px',
-                      marginTop: 2,
-                    }}
-                    type="submit"
-                  >
-                    Entrar
-                  </Button>
-                </form>
-              </FormProvider>
-            </Box>
-          </Stack>
-        </Paper>
-      </Box>
-    </>
+          <FormProvider {...methods}>
+            <form onSubmit={methods.handleSubmit(onSubmitForm)}>
+              <FormLogin />
+
+              <Button
+                variant="contained"
+                fullWidth
+                sx={{
+                  height: '40px',
+                  marginTop: 2,
+                }}
+                type="submit"
+              >
+                Entrar
+              </Button>
+            </form>
+          </FormProvider>
+          <Button variant="text" onClick={handleButton}>
+            Não possui cadastro? Clique aqui
+          </Button>
+        </Box>
+      </Paper>
+    </Box>
   );
 }
 

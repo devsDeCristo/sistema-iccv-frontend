@@ -14,14 +14,13 @@ import { RegisterUsersFormType } from '../../../types/user';
 import { removeMask } from '../../../utils';
 import { usePostCreateUser } from '../../../features/users/api/postUser';
 import { getRole } from '../utils';
+import { useNavigate } from 'react-router-dom';
 
 function RegisterUser() {
-  const eventId = import.meta.env.VITE_EVENT_ID;
-  const linkInviteGroupWpp = import.meta.env.VITE_LINK_INVITE_GROUP_WPP;
   const DEFAULT_VALUES: RegisterUsersFormType = {
     fullName: '',
     cpf: '',
-    birthday: null,
+    birthday: new Date(),
     cellphone: '',
     emergencyContact: '',
     email: '',
@@ -37,8 +36,9 @@ function RegisterUser() {
     indicatedBy: '',
     religion: '',
     role: 5,
-    eventId,
+    //eventId,
   };
+  const navigate = useNavigate();
 
   const methods = useForm<RegisterUsersFormType>({
     resolver: zodResolver(REGISTER_USERS_SCHEMA),
@@ -48,16 +48,14 @@ function RegisterUser() {
 
   const { mutate: mutatePostCreateUser } = usePostCreateUser({
     onSuccess: () => {
-      const isWorker = !!methods.getValues('worker');
-
       methods.reset(DEFAULT_VALUES);
 
       Swal.fire({
         title: 'Cadastro efetuado com sucesso',
         icon: 'success',
       }).then((result) => {
-        if (result.isConfirmed && !isWorker) {
-          window.open(linkInviteGroupWpp, '_blank');
+        if (result.isConfirmed) {
+          navigate('/login');
         }
       });
     },
@@ -85,12 +83,13 @@ function RegisterUser() {
           ? undefined
           : data.leadershipPosition,
       role: data.leadershipPosition ? getRole(data.leadershipPosition) : 5,
+      password: 'password123',
     };
     mutatePostCreateUser(formatData);
   }
   return (
     <PageStyle>
-      <Header title="Inscrição Cursilho Feminino" buttonBack={permission} />
+      <Header title="Faça seu cadastro" buttonBack={permission} />
       <FormProvider {...methods}>
         <form onSubmit={methods.handleSubmit(onSubmitForm)}>
           <Form />
