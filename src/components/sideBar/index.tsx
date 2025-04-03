@@ -1,6 +1,6 @@
 import { Sidebar, Menu, MenuItem } from 'react-pro-sidebar';
 import { People, Event, Logout } from '@mui/icons-material';
-import { Link } from 'react-router-dom';
+import { Link, Outlet } from 'react-router-dom';
 
 function SideBar() {
   const image =
@@ -30,6 +30,7 @@ function SideBar() {
           </MenuItem>
         </Menu>
       </Sidebar>
+      <Outlet />
     </div>
   );
 }
