@@ -5,30 +5,30 @@ import {
   handleResponseThrowError,
 } from '../../../utils/service';
 
-const postCreateRelationEventUser = (data: any) =>
+const postLogin = (data: any) =>
   apiClient
-    .post<any>(`/users/${data.idUser}/event/${data.idEvent}`, {
-      worker: data.worker,
+    .post<{ access_token: string; user: any }>('/auth/login', {
+      document: data.document,
+      password: data.document,
     })
     .then((response) => {
       handleResponseSuccess(
         response.data,
-        'Cadastro efetuado com sucesso',
+        'Login efetuado com sucesso',
         false
       )();
+      return response.data;
     })
     .catch(handleResponseThrowError());
 
-type PostCreateRelationEventUserData = Awaited<
-  ReturnType<typeof postCreateRelationEventUser>
->;
+type PostLoginData = Awaited<ReturnType<typeof postLogin>>;
 
-export const usePostCreRelationEventateUser = ({
+export const usePostLogin = ({
   onSuccess,
   ...options
-}: MutationOptions<PostCreateRelationEventUserData, unknown, any> = {}) => {
+}: MutationOptions<PostLoginData, unknown, any> = {}) => {
   return useMutation({
-    mutationFn: postCreateRelationEventUser,
+    mutationFn: postLogin,
     onSuccess: (...args) => {
       onSuccess?.(...args);
     },

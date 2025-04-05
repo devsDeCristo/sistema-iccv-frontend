@@ -47,15 +47,18 @@ function RegisterUser() {
   const permission = usePermission();
 
   const { mutate: mutatePostCreateUser } = usePostCreateUser({
-    onSuccess: () => {
+    onSuccess: (response) => {
       methods.reset(DEFAULT_VALUES);
+      localStorage.setItem('access_token', response.access_token);
+      localStorage.setItem('user', JSON.stringify(response.user));
 
+      //navigate('/cadastrar-cursilho');
       Swal.fire({
         title: 'Cadastro efetuado com sucesso',
         icon: 'success',
       }).then((result) => {
         if (result.isConfirmed) {
-          navigate('/login');
+          navigate('/cadastrar-cursilho');
         }
       });
     },
@@ -99,7 +102,7 @@ function RegisterUser() {
             sx={{ marginTop: 2 }}
             type="submit"
           >
-            Salvar
+            Cadastrar-se
           </Button>
         </form>
       </FormProvider>

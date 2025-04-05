@@ -10,6 +10,15 @@ export const myTheme = () =>
       secondary: {
         main: '#727272',
       },
+      background: {
+        default: '#F9F9F9',
+        paper: '#FFFFFF',
+      },
+      text: {
+        primary: '#000000',
+        secondary: '#727272',
+        disabled: '#B7B7B7',
+      },
     },
     breakpoints: {
       values: {

@@ -7,13 +7,14 @@ import {
 
 const postCreateUser = (data: any) =>
   apiClient
-    .post<boolean>('/users', data)
+    .post<{ access_token: string; user: any }>('/users', data)
     .then((response) => {
       handleResponseSuccess(
         response.data,
         'Cadastro efetuado com sucesso',
         false
       )();
+      return response.data;
     })
     .catch(handleResponseThrowError());
 

@@ -5,7 +5,7 @@ import { InputSelect } from '../../../components/inputSelect';
 import { Controller, useFormContext } from 'react-hook-form';
 import { RegisterUsersFormType } from '../../../types/user';
 import { formatCPF, formatPhoneNumber, formatState } from '../../../utils';
-import { OPTIONS_BOOLEAN, OPTIONS_WORKER, OPTIONS_ROLE } from '../constants';
+import { OPTIONS_BOOLEAN, OPTIONS_ROLE } from '../constants';
 
 function Form() {
   const {
@@ -122,7 +122,7 @@ function Form() {
         />
       </Grid>
 
-      <Grid item xs={12} md={6}>
+      {/* <Grid item xs={12} md={6}>
         <Controller
           name="worker"
           control={control}
@@ -136,7 +136,7 @@ function Form() {
             />
           )}
         />
-      </Grid>
+      </Grid> */}
 
       <Grid item xs={12} md={6}>
         <Controller
@@ -167,7 +167,7 @@ function Form() {
         />
       </Grid>
 
-      <Grid item xs={12} md={4}>
+      <Grid item xs={12} md={6}>
         <Controller
           name="neighborhood"
           control={control}
@@ -177,7 +177,7 @@ function Form() {
         />
       </Grid>
 
-      <Grid item xs={12} md={4}>
+      <Grid item xs={12} md={6}>
         <Controller
           name="city"
           control={control}
@@ -187,7 +187,7 @@ function Form() {
         />
       </Grid>
 
-      <Grid item xs={12} md={4}>
+      <Grid item xs={12} md={6}>
         <Controller
           name="state"
           control={control}

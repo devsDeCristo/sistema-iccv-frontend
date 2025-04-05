@@ -2,21 +2,28 @@ import { Navigate } from 'react-router-dom';
 import { ReactNode, useEffect } from 'react';
 import { usePermission } from '../../hooks/usePermission';
 import { Loading } from '../loading';
+import { useRole } from '../../hooks/useRole';
 
 type ProtectedRouteProps = {
   permission?: boolean | null;
-  children: ReactNode;
   setPermission: (permission: boolean) => void;
+  validRole?: boolean | null;
+  setValidRole: (permission: boolean) => void;
+  children: ReactNode;
 };
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children,
   permission,
   setPermission,
+  validRole,
+  setValidRole,
 }) => {
   useEffect(() => {
     const permissionTeste = usePermission();
+    const validRoleTeste = useRole();
     if (permission !== permissionTeste) setPermission(permissionTeste);
+    if (validRole !== validRoleTeste) setValidRole(validRoleTeste);
   }, []);
 
   if (permission === null) {
@@ -26,7 +33,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   if (!permission) {
     return <Navigate to="/login" />;
   }
-
+  //return <Navigate to="/cadastrar-cursilho" />;
   return children;
 };
 

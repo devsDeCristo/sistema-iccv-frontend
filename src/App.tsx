@@ -15,7 +15,7 @@ function Loading() {
 }
 function App() {
   const [permission, setPermission] = React.useState<boolean | null>(null);
-
+  const [validRole, setValidRole] = React.useState<boolean | null>(null);
   return (
     <ThemeProvider theme={myTheme}>
       <div style={{ display: 'flex' }}>
@@ -29,6 +29,8 @@ function App() {
                 <ProtectedRoute
                   permission={permission}
                   setPermission={setPermission}
+                  validRole={validRole}
+                  setValidRole={setValidRole}
                 >
                   <SideBar />
                 </ProtectedRoute>

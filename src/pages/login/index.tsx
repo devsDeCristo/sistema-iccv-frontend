@@ -1,4 +1,4 @@
-import { Box, Button, Icon, Paper, Stack, Typography } from '@mui/material';
+import { Box, Button, Icon, Paper, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import logo from '../../assets/ic-logo.png';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -9,8 +9,10 @@ import { FormLogin } from '../../features/login/components/form';
 import axios from 'axios';
 import { API_URL } from '../../config/env';
 import { useEffect } from 'react';
-import { setBearerToken } from '../../config/lib/axios/api-client';
+// import { setBearerToken } from '../../config/lib/axios/api-client';
 import { usePermission } from '../../hooks/usePermission';
+import { usePostLogin } from '../../features/login/api/postLogin';
+import Swal from 'sweetalert2';
 
 function Login() {
   const navigate = useNavigate();
@@ -20,43 +22,29 @@ function Login() {
   });
 
   function onSubmitForm(data: LoginFormType) {
-    handleLoginApi(data);
-    // mutatePostLoginEvent({
-    //   data,
-    // });
+    //handleLoginApi(data);
+    const { cpf } = data;
+    mutatePostLogin({ document: cpf, password: 'password123' });
   }
 
   useEffect(() => {
     const permission = usePermission();
-    console.log('permissionlogin', permission);
+    //console.log('permissionlogin', permission);
     if (permission) {
       navigate('/eventos');
     }
   }, []);
 
-  const handleLoginApi = async (data: LoginFormType) => {
-    //const { cpf, password } = data;
-    const { cpf } = data;
-    //setLoading(true);
+  const { mutate: mutatePostLogin } = usePostLogin({
+    onSuccess: (response) => {
+      localStorage.setItem('access_token', response.access_token);
+      localStorage.setItem('user', JSON.stringify(response.user));
+      console.log('response', response);
 
-    try {
-      const response = await axios.post(
-        `${API_URL}auth/login`,
-        { document: cpf, password: 'password123' },
-        { withCredentials: false }
-      );
-      console.log('response', response.data);
-
-      localStorage.setItem('access_token', response.data.access_token);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
-      navigate('/eventos');
-      setBearerToken(response.data.access_token);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      // setLoading(false);
-    }
-  };
+      //navigate('/eventos');
+      navigate('/cadastrar-cursilho');
+    },
+  });
 
   const styles = {
     boxContainer: {
@@ -114,7 +102,7 @@ function Login() {
   };
   return (
     <Box sx={styles.boxContainer}>
-      <Paper sx={styles.paperBlue} />
+      {/* <Paper sx={styles.paperBlue} /> */}
       <Paper sx={styles.paper}>
         <Icon style={styles.icon}>
           <img src={logo} style={styles.img} alt="logo iccv" />
@@ -122,7 +110,7 @@ function Login() {
 
         <Box sx={styles.boxInputs}>
           <Typography variant="h5">Seja bem-vindo</Typography>
-          <Typography>Faça login com seu CPF</Typography>
+          <Typography>Insira seu CPF</Typography>
 
           <FormProvider {...methods}>
             <form onSubmit={methods.handleSubmit(onSubmitForm)}>
@@ -130,6 +118,7 @@ function Login() {
 
               <Button
                 variant="contained"
+                color="secondary"
                 fullWidth
                 sx={{
                   height: '40px',
