@@ -55,7 +55,10 @@ function AssociateEvent() {
           if (result.isConfirmed && !worker) {
             window.open(linkInviteGroupWpp, '_blank');
           }
-          //if (result.isConfirmed) navigate('/login');
+          if (result.isConfirmed) {
+            localStorage.clear();
+            window.location.replace('/login');
+          }
         });
       },
     });
@@ -64,7 +67,7 @@ function AssociateEvent() {
     if (user === null) {
       return;
     }
-    const idUser = JSON.parse(user)?.id;
+    const idUser = user?.id;
     const formatData = {
       idUser,
       idEvent: eventId,
