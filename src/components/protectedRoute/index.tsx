@@ -1,4 +1,4 @@
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { ReactNode, useEffect } from 'react';
 import { usePermission } from '../../hooks/usePermission';
 import { Loading } from '../loading';
@@ -19,9 +19,11 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   validRole,
   setValidRole,
 }) => {
+  const pageName = useLocation().pathname;
   useEffect(() => {
     const permissionTeste = usePermission();
     const validRoleTeste = useRole();
+
     if (permission !== permissionTeste) setPermission(permissionTeste);
     if (validRole !== validRoleTeste) setValidRole(validRoleTeste);
   }, []);
@@ -29,9 +31,12 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   if (permission === null) {
     return <Loading />;
   }
-
   if (!permission) {
     return <Navigate to="/login" />;
+  }
+
+  if (validRole === false && permission && pageName !== '/cadastrar-cursilho') {
+    return <Navigate to="/cadastrar-cursilho" />;
   }
   //return <Navigate to="/cadastrar-cursilho" />;
   return children;

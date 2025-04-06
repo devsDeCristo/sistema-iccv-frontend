@@ -17,7 +17,7 @@ import { useEffect, useState } from 'react';
 import { usePutUser } from '../../../features/users/api/putUser';
 import { InputPhoto } from '../../../features/users/components/inputPhoto';
 import { usePostProfilePhotoUser } from '../../../features/users/api/postProfilePhotoUser';
-import { getRole } from '../utils';
+// import { getRole } from '../utils';
 import { WebcamModal } from '../../../features/users/components/webcamModal';
 
 function EditUser() {
@@ -101,7 +101,7 @@ function EditUser() {
         data.leadershipPosition === ''
           ? undefined
           : data.leadershipPosition,
-      role: data.leadershipPosition ? getRole(data.leadershipPosition) : 5,
+      role: 5,
     };
     mutatePutUser({
       userId: id,

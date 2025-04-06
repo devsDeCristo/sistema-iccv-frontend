@@ -38,7 +38,7 @@ apiClient.interceptors.request.use(
         console.error(error);
       }
     } else {
-      //localStorage.clear();
+      // localStorage.clear();
       // window.location.replace('/login');
     }
 

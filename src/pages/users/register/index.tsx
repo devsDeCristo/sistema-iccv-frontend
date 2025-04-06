@@ -13,7 +13,6 @@ import {
 import { RegisterUsersFormType } from '../../../types/user';
 import { removeMask } from '../../../utils';
 import { usePostCreateUser } from '../../../features/users/api/postUser';
-import { getRole } from '../utils';
 import { useNavigate } from 'react-router-dom';
 
 function RegisterUser() {
@@ -35,7 +34,7 @@ function RegisterUser() {
     leadershipPosition: '',
     indicatedBy: '',
     religion: '',
-    role: 5,
+    // role: 5,
     //eventId,
   };
   const navigate = useNavigate();
@@ -85,11 +84,12 @@ function RegisterUser() {
         data.leadershipPosition === ''
           ? undefined
           : data.leadershipPosition,
-      role: data.leadershipPosition ? getRole(data.leadershipPosition) : 5,
+      role: 5,
       password: 'password123',
     };
     mutatePostCreateUser(formatData);
   }
+
   return (
     <PageStyle>
       <Header title="Faça seu cadastro" buttonBack={permission} />

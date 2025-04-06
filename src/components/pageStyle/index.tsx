@@ -1,4 +1,4 @@
-import { Box } from '@mui/material';
+import { Box, useTheme } from '@mui/material';
 import { ReactNode } from 'react';
 
 interface PageProps {
@@ -6,8 +6,13 @@ interface PageProps {
 }
 
 function PageStyle({ children }: PageProps) {
+  const theme = useTheme();
   return (
-    <Box padding={5} width="100%">
+    <Box
+      padding={5}
+      width="100%"
+      sx={{ backgroundColor: theme.palette.background.default }}
+    >
       {children}
     </Box>
   );

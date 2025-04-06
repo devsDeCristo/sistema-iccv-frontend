@@ -13,16 +13,18 @@ import {
 // import { usePermission } from '../../../hooks/usePermission';
 import { usePostCreRelationEventateUser } from '../../../features/users/api/postRelationEventUser';
 import { useGetEvents } from '../../../features/events/api/getEvents';
-import { CorporateFare, Person } from '@mui/icons-material';
+import { EmojiPeople, Logout, Work } from '@mui/icons-material';
 import { useState } from 'react';
-import { Event } from '../../../features/events/types';
+import { Loading } from '../../../components/loading';
 
 // import { setBearerToken } from '../../../config/lib/axios/api-client';
 
 function AssociateEvent() {
   const [worker, setWorker] = useState<number | null>(null);
   const theme = useTheme();
-  const user = localStorage.getItem('user');
+  const user = localStorage.getItem('user')
+    ? JSON.parse(localStorage.getItem('user') as string)
+    : '';
   const eventId = import.meta.env.VITE_EVENT_ID;
   const linkInviteGroupWpp = import.meta.env.VITE_LINK_INVITE_GROUP_WPP;
   const { data: eventData, isLoading } = useGetEvents(
@@ -37,12 +39,11 @@ function AssociateEvent() {
   const userIsRegister =
     !Array.isArray(eventData) &&
     eventData &&
-    eventData.users?.find((event) => event.id === JSON.parse(user || '')?.id);
+    eventData.users?.find((event) => event.id === user?.id);
 
   const nameEvent =
     (!Array.isArray(eventData) && eventData && eventData.name) ||
     'Cursilho da cristandade';
-  console.log(userIsRegister, 'userIsRegister');
 
   const { mutate: mutatePostCreateReEventUser } =
     usePostCreRelationEventateUser({
@@ -77,36 +78,46 @@ function AssociateEvent() {
       padding: '12px 0px',
       flexDirection: 'column',
       alignItems: 'center',
-      justifyContent: 'space-between',
-      gap: 2,
-      alignSelf: 'stretch',
+      justifyContent: 'center',
+      //backgroundColor: 'red',
       width: '100%',
+      height: '100%',
     },
     typography: { color: 'text.primary', textAlign: 'center' },
+    containerOptions: {
+      flexDirection: 'row',
+      gap: 2,
+      marginTop: 2,
+      display: 'flex',
+      width: '100%',
+      flexWrap: 'wrap',
+    },
     boxOption: {
       cursor: 'pointer',
       display: 'flex',
       alignItems: 'center',
-      flexDirection: 'column',
+      justifyContent: 'space-between',
+      flexDirection: { xs: 'row', sm: 'column' },
       padding: 2,
-      width: 'auto',
+      width: { xs: '100%', sm: 'fit-content' },
       borderRadius: 2,
       paddingX: 4,
+      gap: { xs: '2', sm: '0' },
     },
     icon: {
-      width: '80px',
-      height: '80px',
-      color: 'text.disabled',
+      height: { xs: '24px', sm: '60px' },
+      width: { xs: '24px', sm: '60px' },
     },
+    button: { marginTop: 2, width: '100%', maxWidth: '450px' },
   };
 
   return (
     <PageStyle>
-      {!userIsRegister && <Header title={nameEvent} />}
-      {!isLoading && (
+      {!isLoading ? (
         <Box sx={styles.boxContainer}>
           {!userIsRegister && (
             <>
+              <Header title={nameEvent} />
               <Typography sx={styles.typography}>
                 Como você irá participar do evento?
               </Typography>
@@ -114,17 +125,8 @@ function AssociateEvent() {
                 aria-labelledby="demo-controlled-radio-buttons-group"
                 name="controlled-radio-buttons-group"
                 value={worker}
-                // onChange={(event, newValue) => {
-                //   //    setWorker(newValue);
-                // }}
               >
-                <Stack
-                  sx={{
-                    flexDirection: 'row',
-                    gap: { xs: 2, xsm: 5 },
-                    width: '100%',
-                  }}
-                >
+                <Stack sx={styles.containerOptions}>
                   <Box
                     sx={[
                       styles.boxOption,
@@ -137,7 +139,17 @@ function AssociateEvent() {
                     ]}
                     onClick={() => setWorker(0)}
                   >
-                    <Person sx={styles.icon} />
+                    <EmojiPeople
+                      sx={[
+                        styles.icon,
+                        {
+                          color:
+                            worker == 0
+                              ? theme.palette.primary.main
+                              : theme.palette.text.secondary,
+                        },
+                      ]}
+                    />
                     <Typography sx={styles.typography}>
                       Cursilheiro (1ª vez)
                     </Typography>
@@ -155,7 +167,17 @@ function AssociateEvent() {
                     ]}
                     onClick={() => setWorker(1)}
                   >
-                    <CorporateFare sx={styles.icon} />
+                    <Work
+                      sx={[
+                        styles.icon,
+                        {
+                          color:
+                            worker == 1
+                              ? theme.palette.primary.main
+                              : theme.palette.text.secondary,
+                        },
+                      ]}
+                    />
                     <Typography sx={styles.typography}>
                       Cursilhista (Trabalhar)
                     </Typography>
@@ -165,9 +187,8 @@ function AssociateEvent() {
               </RadioGroup>
               <Button
                 variant="contained"
-                fullWidth
+                sx={styles.button}
                 disabled={worker === null}
-                sx={{ marginTop: 2 }}
                 type="submit"
                 onClick={handleButton}
               >
@@ -178,19 +199,29 @@ function AssociateEvent() {
           {userIsRegister && (
             <>
               <Typography sx={styles.typography}>
-                {'Você já está cadastrado no ' + nameEvent + ' !'}
-              </Typography>
-              {/* <Typography sx={styles.typography}>
-                {'Deseja participar do grupo do whatsapp? Clique abaixo!'}
+                {'Olá ' +
+                  user?.fullName +
+                  ', Você já está cadastrado no ' +
+                  nameEvent +
+                  ' !'}
               </Typography>
               <Button
+                variant="contained"
+                sx={styles.button}
+                type="submit"
+                startIcon={<Logout />}
                 onClick={() => {
-                  window.open(linkInviteGroupWpp, '_blank');
+                  localStorage.clear();
+                  window.location.replace('/login');
                 }}
-              /> */}
+              >
+                Sair
+              </Button>
             </>
           )}
         </Box>
+      ) : (
+        <Loading />
       )}
     </PageStyle>
   );

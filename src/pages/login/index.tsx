@@ -6,8 +6,6 @@ import { LoginFormType } from '../../types/login';
 import { LOGIN_SCHEMA } from '../../features/users/constants';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { FormLogin } from '../../features/login/components/form';
-import axios from 'axios';
-import { API_URL } from '../../config/env';
 import { useEffect } from 'react';
 // import { setBearerToken } from '../../config/lib/axios/api-client';
 import { usePermission } from '../../hooks/usePermission';
@@ -29,7 +27,6 @@ function Login() {
 
   useEffect(() => {
     const permission = usePermission();
-    //console.log('permissionlogin', permission);
     if (permission) {
       navigate('/eventos');
     }
@@ -39,22 +36,32 @@ function Login() {
     onSuccess: (response) => {
       localStorage.setItem('access_token', response.access_token);
       localStorage.setItem('user', JSON.stringify(response.user));
-      console.log('response', response);
 
       //navigate('/eventos');
       navigate('/cadastrar-cursilho');
+    },
+    onError: (error) => {
+      if (error.response.status === 401) {
+        navigate('/user/register');
+      }
+      Swal.fire({
+        title: 'Atenção',
+        text: 'Você não possui cadastro ainda, vamos te direcionar para o realizá-lo',
+        icon: 'error',
+        confirmButtonText: 'Ok',
+      });
     },
   });
 
   const styles = {
     boxContainer: {
-      width: '100vw',
+      width: '100%',
       height: '100vh',
       display: 'flex',
       justifyContent: 'center',
       alignItems: 'center',
       flexDirection: 'row',
-      minWidth: '310px',
+      // minWidth: '310px',
     },
     paperBlue: {
       //backgroundImage: `url(${background})`,
@@ -76,15 +83,17 @@ function Login() {
       inHeight: '500px',
       //minWidth: '310px',
       // padding: '40px 80px',
-      paddingX: { xs: '40px', md: '80px' },
+      //paddingX: { xs: '40px', md: '80px' },
       //width: '40vw',
-      width: { xs: '100%', md: '40vw' },
-      height: '100%',
+      width: '100vw',
+      height: '100vh',
       alignItems: 'center',
       justifyContent: 'center',
       flexDirection: 'column',
       display: 'flex',
+      minWidth: '340px',
     },
+    title: { fontWeigth: 900, fontSize: '1.2rem' },
     stackIcon: { padding: '0px', width: '100%' },
     icon: { height: 'auto', width: 'auto' },
     img: { height: 'auto', width: '5vw', minWidth: '80px' },
@@ -94,48 +103,51 @@ function Login() {
       justifyContent: 'center',
       alignItems: 'left',
       marginTop: '20px',
+      width: { xs: '80%', xm: '320px' },
+      //  minWidth: '310px',
       gap: 2,
     },
   };
   const handleButton = () => {
     navigate('/user/register');
   };
+  {
+    /* <Box sx={styles.boxContainer}>
+      <Paper sx={styles.paperBlue} /> */
+  }
   return (
-    <Box sx={styles.boxContainer}>
-      {/* <Paper sx={styles.paperBlue} /> */}
-      <Paper sx={styles.paper}>
-        <Icon style={styles.icon}>
-          <img src={logo} style={styles.img} alt="logo iccv" />
-        </Icon>
+    <Paper sx={styles.paper}>
+      <Icon style={styles.icon}>
+        <img src={logo} style={styles.img} alt="logo iccv" />
+      </Icon>
 
-        <Box sx={styles.boxInputs}>
-          <Typography variant="h5">Seja bem-vindo</Typography>
-          <Typography>Insira seu CPF</Typography>
+      <Box sx={styles.boxInputs}>
+        <Typography sx={styles.title}>Seja bem-vindo</Typography>
+        <Typography>Insira seu CPF</Typography>
 
-          <FormProvider {...methods}>
-            <form onSubmit={methods.handleSubmit(onSubmitForm)}>
-              <FormLogin />
+        <FormProvider {...methods}>
+          <form onSubmit={methods.handleSubmit(onSubmitForm)}>
+            <FormLogin />
 
-              <Button
-                variant="contained"
-                color="secondary"
-                fullWidth
-                sx={{
-                  height: '40px',
-                  marginTop: 2,
-                }}
-                type="submit"
-              >
-                Entrar
-              </Button>
-            </form>
-          </FormProvider>
-          <Button variant="text" onClick={handleButton}>
-            Não possui cadastro? Clique aqui
-          </Button>
-        </Box>
-      </Paper>
-    </Box>
+            <Button
+              variant="contained"
+              //color="secondary"
+              fullWidth
+              sx={{
+                height: '40px',
+                marginTop: 2,
+              }}
+              type="submit"
+            >
+              Entrar
+            </Button>
+          </form>
+        </FormProvider>
+        <Button variant="text" onClick={handleButton}>
+          Não possui cadastro? Clique aqui
+        </Button>
+      </Box>
+    </Paper>
   );
 }
 

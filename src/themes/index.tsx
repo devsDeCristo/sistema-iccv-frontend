@@ -1,28 +1,40 @@
 import { createTheme } from '@mui/material/styles';
 
-export const myTheme = () =>
+declare module '@mui/material/styles' {
+  interface BreakpointOverrides {
+    xs: true;
+    xm: true; // Adiciona o breakpoint personalizado
+    sm: true;
+    md: true;
+    lg: true;
+    xl: true;
+  }
+}
+
+export const myTheme = (colorMode: boolean) =>
   createTheme({
     palette: {
-      mode: 'light',
+      mode: colorMode ? 'dark' : 'light',
       primary: {
-        main: '#28166F',
+        main: colorMode ? '#1952BC' : '#1C0F4D',
       },
       secondary: {
-        main: '#727272',
+        main: colorMode ? '#28363F' : '#111B21',
       },
       background: {
-        default: '#F9F9F9',
-        paper: '#FFFFFF',
+        default: colorMode ? '#111B21' : '#F0F1F4',
+        paper: colorMode ? '#202C33' : '#F8F8F8',
       },
       text: {
-        primary: '#000000',
-        secondary: '#727272',
-        disabled: '#B7B7B7',
+        primary: colorMode ? '#EBEBEB' : '#111B21',
+        secondary: colorMode ? '#9FAAB0' : '#495C67',
+        disabled: colorMode ? '#495C67' : '#696A6A',
       },
     },
     breakpoints: {
       values: {
         xs: 0,
+        xm: 375,
         sm: 600,
         md: 900,
         lg: 1200,

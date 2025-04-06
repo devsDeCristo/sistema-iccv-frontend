@@ -3,13 +3,22 @@ import { People, Event, Logout } from '@mui/icons-material';
 import { Link, Outlet } from 'react-router-dom';
 import { Box } from '@mui/material';
 
-function SideBar() {
+type SideBarProps = {
+  validRole?: Boolean | null;
+};
+
+const SideBar: React.FC<SideBarProps> = ({ validRole = true }) => {
   const image =
     'https://www.holiness.org.br/wp-content/uploads/2021/04/cruz.jpg';
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh' }}>
-      <Box sx={{ display: { xs: 'none', sm: 'flex' } }}>
+    <Box style={{ display: 'flex', minHeight: '100vh', width: '100%' }}>
+      <Box
+        sx={{
+          display: validRole ? 'flex' : 'none',
+          // display: { xs: 'none', sm: 'flex' },
+        }}
+      >
         <Sidebar className="sidebar" image={image}>
           <Menu>
             <MenuItem className="menu1">
@@ -34,8 +43,8 @@ function SideBar() {
         </Sidebar>
       </Box>
       <Outlet />
-    </div>
+    </Box>
   );
-}
+};
 
 export { SideBar };

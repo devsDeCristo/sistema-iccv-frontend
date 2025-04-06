@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { RoutesUsers } from './pages/users/routes';
 import { SideBar } from './components/sideBar';
 import { RoutesEvents } from './pages/events/routes';
@@ -9,15 +9,32 @@ import { ThemeProvider } from '@emotion/react';
 import ProtectedRoute from './components/protectedRoute';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { RegisterUser } from './pages/users/register';
+// import { useMediaQuery } from '@mui/material';
 
 function Loading() {
   return <p>Loading ...</p>;
 }
 function App() {
-  const [permission, setPermission] = React.useState<boolean | null>(null);
-  const [validRole, setValidRole] = React.useState<boolean | null>(null);
+  const [permission, setPermission] = useState<boolean | null>(null);
+  const [validRole, setValidRole] = useState<boolean | null>(null);
+
+  const prefersDarkMode = false; // useMediaQuery('(prefers-color-scheme: dark)');
+  const [colorMode, setColorMode] = useState(prefersDarkMode);
+
+  useEffect(() => {
+    setColorMode(prefersDarkMode);
+  }, [prefersDarkMode]);
+
+  useEffect(() => {
+    const colorModeStorage = localStorage.getItem('theme');
+    if (colorModeStorage) {
+      const parsedColorMode = JSON.parse(colorModeStorage);
+      setColorMode(parsedColorMode.colorMode);
+    }
+  }, []);
+  const theme = useMemo(() => myTheme(colorMode), [colorMode]);
   return (
-    <ThemeProvider theme={myTheme}>
+    <ThemeProvider theme={theme}>
       <div style={{ display: 'flex' }}>
         <React.Suspense fallback={<Loading />}>
           <Routes>
@@ -32,7 +49,7 @@ function App() {
                   validRole={validRole}
                   setValidRole={setValidRole}
                 >
-                  <SideBar />
+                  <SideBar validRole={validRole} />
                 </ProtectedRoute>
               }
             >
