@@ -44,6 +44,7 @@ function AssociateEvent() {
   const nameEvent =
     (!Array.isArray(eventData) && eventData && eventData.name) ||
     'Cursilho da cristandade';
+  console.log(user, eventData);
 
   const { mutate: mutatePostCreateReEventUser } =
     usePostCreRelationEventateUser({
@@ -200,28 +201,27 @@ function AssociateEvent() {
             </>
           )}
           {userIsRegister && (
-            <>
-              <Typography sx={styles.typography}>
-                {'Olá ' +
-                  user?.fullName +
-                  ', Você já está cadastrado no ' +
-                  nameEvent +
-                  ' !'}
-              </Typography>
-              <Button
-                variant="contained"
-                sx={styles.button}
-                type="submit"
-                startIcon={<Logout />}
-                onClick={() => {
-                  localStorage.clear();
-                  window.location.replace('/login');
-                }}
-              >
-                Sair
-              </Button>
-            </>
+            <Typography sx={styles.typography}>
+              {'Olá ' +
+                user?.fullName +
+                ', Você já está cadastrado no ' +
+                nameEvent +
+                ' !'}
+            </Typography>
           )}
+          <Button
+            variant="contained"
+            sx={styles.button}
+            type="submit"
+            color="secondary"
+            startIcon={<Logout />}
+            onClick={() => {
+              localStorage.clear();
+              window.location.replace('/login');
+            }}
+          >
+            Sair
+          </Button>
         </Box>
       ) : (
         <Loading />
