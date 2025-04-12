@@ -2,6 +2,7 @@ import { Grid } from '@mui/material';
 import { Input } from '../../../components/input';
 import { Controller, useFormContext } from 'react-hook-form';
 import { LoginFormType } from '../../../types/login';
+import { formatCPF } from '../../../utils';
 // import { useState } from 'react';
 // import { Visibility, VisibilityOff } from '@mui/icons-material';
 
@@ -25,7 +26,7 @@ function FormLogin() {
               value={value}
               error={!!errors.cpf}
               errorMessage={errors.cpf?.message}
-              onChange={onChange}
+              onChange={(event) => onChange(formatCPF(event.target.value))}
             />
           )}
         />

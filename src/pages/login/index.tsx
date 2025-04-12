@@ -29,7 +29,8 @@ function Login() {
   function onSubmitForm(data: LoginFormType) {
     //handleLoginApi(data);
     const { cpf } = data;
-    mutatePostLogin({ document: cpf, password: 'password123' });
+    const cleanedCpf = cpf.replace(/[.\-\s]/g, '');
+    mutatePostLogin({ document: cleanedCpf, password: 'password123' });
   }
 
   useEffect(() => {
