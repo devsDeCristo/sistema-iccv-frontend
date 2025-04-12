@@ -37,7 +37,7 @@ function Login() {
       localStorage.setItem('access_token', response.access_token);
       localStorage.setItem('user', JSON.stringify(response.user));
 
-      //navigate('/eventos');
+      //navigate('/eventos')
       navigate('/cadastrar-cursilho');
     },
     onError: (error: any) => {
