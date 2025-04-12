@@ -1,4 +1,11 @@
-import { Box, Button, Icon, Paper, Typography } from '@mui/material';
+import {
+  Box,
+  Button,
+  CircularProgress,
+  Icon,
+  Paper,
+  Typography,
+} from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import logo from '../../assets/ic-logo.png';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -32,7 +39,7 @@ function Login() {
     }
   }, []);
 
-  const { mutate: mutatePostLogin } = usePostLogin({
+  const { mutate: mutatePostLogin, isLoading } = usePostLogin({
     onSuccess: (response) => {
       localStorage.setItem('access_token', response.access_token);
       localStorage.setItem('user', JSON.stringify(response.user));
@@ -46,8 +53,8 @@ function Login() {
       }
       Swal.fire({
         title: 'Atenção',
-        text: 'Você não possui cadastro ainda, vamos te direcionar para o realizá-lo',
-        icon: 'error',
+        text: 'Você não possui cadastro ainda, se cadastre para se inscrever no cursilho',
+        icon: 'info',
         confirmButtonText: 'Ok',
       });
     },
@@ -139,7 +146,11 @@ function Login() {
               }}
               type="submit"
             >
-              Entrar
+              {isLoading ? (
+                <CircularProgress size={20} color="inherit" />
+              ) : (
+                'Entrar'
+              )}
             </Button>
           </form>
         </FormProvider>
