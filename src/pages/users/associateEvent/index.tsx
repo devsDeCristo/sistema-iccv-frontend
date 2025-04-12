@@ -155,7 +155,7 @@ function AssociateEvent() {
                       ]}
                     />
                     <Typography sx={styles.typography}>
-                      Cursilheiro (1ª vez)
+                      Cursilhista (1ª vez)
                     </Typography>
                     <Radio value={0} />
                   </Box>
@@ -183,7 +183,7 @@ function AssociateEvent() {
                       ]}
                     />
                     <Typography sx={styles.typography}>
-                      Cursilhista (Trabalhar)
+                      Cursilheiro (Trabalhar)
                     </Typography>
                     <Radio value={1} />
                   </Box>
