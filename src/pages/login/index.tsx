@@ -40,7 +40,7 @@ function Login() {
       //navigate('/eventos');
       navigate('/cadastrar-cursilho');
     },
-    onError: (error) => {
+    onError: (error: any) => {
       if (error.response.status === 401) {
         navigate('/user/register');
       }
