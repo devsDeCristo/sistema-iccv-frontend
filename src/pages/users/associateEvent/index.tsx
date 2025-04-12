@@ -44,7 +44,6 @@ function AssociateEvent() {
   const nameEvent =
     (!Array.isArray(eventData) && eventData && eventData.name) ||
     'Cursilho da cristandade';
-  console.log(user, eventData);
 
   const { mutate: mutatePostCreateReEventUser } =
     usePostCreRelationEventateUser({
