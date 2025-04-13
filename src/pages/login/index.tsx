@@ -50,14 +50,15 @@ function Login() {
     },
     onError: (error: any) => {
       if (error.response.status === 401) {
+        localStorage.setItem('cpf', JSON.parse(error.config.data).document);
         navigate('/user/register');
+        Swal.fire({
+          title: 'Atenção',
+          text: 'Você não possui cadastro ainda, se cadastre para se inscrever no cursilho',
+          icon: 'info',
+          confirmButtonText: 'Ok',
+        });
       }
-      Swal.fire({
-        title: 'Atenção',
-        text: 'Você não possui cadastro ainda, se cadastre para se inscrever no cursilho',
-        icon: 'info',
-        confirmButtonText: 'Ok',
-      });
     },
   });
 

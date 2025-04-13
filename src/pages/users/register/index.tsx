@@ -11,14 +11,15 @@ import {
   REGISTER_USERS_SCHEMA,
 } from '../../../features/users/constants';
 import { RegisterUsersFormType } from '../../../types/user';
-import { removeMask } from '../../../utils';
+import { formatCPF, removeMask } from '../../../utils';
 import { usePostCreateUser } from '../../../features/users/api/postUser';
 import { useNavigate } from 'react-router-dom';
 
 function RegisterUser() {
+  const cpfLogin = localStorage.getItem('cpf') || '';
   const DEFAULT_VALUES: RegisterUsersFormType = {
     fullName: '',
-    cpf: '',
+    cpf: formatCPF(cpfLogin) ? formatCPF(cpfLogin) : '',
     birthday: new Date(),
     cellphone: '',
     emergencyContact: '',
