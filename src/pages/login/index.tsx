@@ -18,6 +18,7 @@ import { useEffect } from 'react';
 import { usePermission } from '../../hooks/usePermission';
 import { usePostLogin } from '../../features/login/api/postLogin';
 import Swal from 'sweetalert2';
+import { useRole } from '../../hooks/useRole';
 
 function Login() {
   const navigate = useNavigate();
@@ -35,8 +36,12 @@ function Login() {
 
   useEffect(() => {
     const permission = usePermission();
-    if (permission) {
+    const role = useRole();
+    if (permission && role) {
       navigate('/eventos');
+    }
+    if (permission) {
+      navigate('/cadastrar-cursilho');
     }
   }, []);
 
@@ -45,8 +50,11 @@ function Login() {
       localStorage.setItem('access_token', response.access_token);
       localStorage.setItem('user', JSON.stringify(response.user));
 
-      //navigate('/eventos')
-      navigate('/cadastrar-cursilho');
+      if (response.user.role === 1) {
+        navigate('/eventos');
+      } else {
+        navigate('/cadastrar-cursilho');
+      }
     },
     onError: (error: any) => {
       if (error.response.status === 401) {

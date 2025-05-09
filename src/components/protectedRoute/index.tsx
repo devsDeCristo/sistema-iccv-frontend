@@ -1,32 +1,21 @@
-import { Navigate, useLocation } from 'react-router-dom';
-import { ReactNode, useEffect } from 'react';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
+import { ReactNode } from 'react';
 import { usePermission } from '../../hooks/usePermission';
 import { Loading } from '../loading';
 import { useRole } from '../../hooks/useRole';
 
 type ProtectedRouteProps = {
-  permission?: boolean | null;
-  setPermission: (permission: boolean) => void;
-  validRole?: boolean | null;
-  setValidRole: (permission: boolean) => void;
-  children: ReactNode;
+  children?: ReactNode;
+  isAdmin?: boolean;
 };
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children,
-  permission,
-  setPermission,
-  validRole,
-  setValidRole,
+  isAdmin,
 }) => {
-  const pageName = useLocation().pathname;
-  useEffect(() => {
-    const permissionTeste = usePermission();
-    const validRoleTeste = useRole();
-
-    if (permission !== permissionTeste) setPermission(permissionTeste);
-    if (validRole !== validRoleTeste) setValidRole(validRoleTeste);
-  }, []);
+  // const pageName = useLocation().pathname;
+  const permission = usePermission();
+  const validRole = useRole();
 
   if (permission === null) {
     return <Loading />;
@@ -34,12 +23,16 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   if (!permission) {
     return <Navigate to="/login" />;
   }
-
-  if (validRole === false && permission && pageName !== '/cadastrar-cursilho') {
-    return <Navigate to="/cadastrar-cursilho" />;
+  if (isAdmin && validRole && permission) {
+    if (children) return children;
+    // return <Outlet />;
   }
-  //return <Navigate to="/cadastrar-cursilho" />;
-  return children;
+  if (!isAdmin && permission) {
+    // if (children) return children;
+    return <Outlet />;
+  }
+
+  return <Navigate to="/login" />;
 };
 
 export default ProtectedRoute;

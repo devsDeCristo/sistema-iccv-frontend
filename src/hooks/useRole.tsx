@@ -1,15 +1,13 @@
-// import { User } from '../types/user';
+import { User } from '../types/user';
 
 function useRole() {
-  // const localStorageUser = localStorage.getItem('user');
-  // const user: User | null = localStorageUser
-  //   ? JSON.parse(localStorageUser)
-  //   : null;
-  // const role = user?.role;
-  const role = localStorage.getItem('role');
+  const localStorageUser = localStorage.getItem('user');
+  const user: User = localStorageUser ? JSON.parse(localStorageUser) : null;
 
-  if (role === '1') {
-    return true;
+  if (user) {
+    const { role } = user;
+    if (role && role === 1) return true;
+    return false;
   } else {
     return false;
   }

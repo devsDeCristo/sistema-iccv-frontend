@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { RoutesUsers } from './pages/users/routes';
+import { RoutesUsers, RoutesUsersAdmin } from './pages/users/routes';
 import { SideBar } from './components/sideBar';
 import { RoutesEvents } from './pages/events/routes';
 import { ToastContainer } from 'react-toastify';
@@ -15,9 +15,6 @@ function Loading() {
   return <p>Loading ...</p>;
 }
 function App() {
-  const [permission, setPermission] = useState<boolean | null>(null);
-  const [validRole, setValidRole] = useState<boolean | null>(null);
-
   const prefersDarkMode = false; // useMediaQuery('(prefers-color-scheme: dark)');
   const [colorMode, setColorMode] = useState(prefersDarkMode);
 
@@ -43,18 +40,16 @@ function App() {
             <Route path="*" element={<Navigate replace to="/login" />} />
             <Route
               element={
-                <ProtectedRoute
-                  permission={permission}
-                  setPermission={setPermission}
-                  validRole={validRole}
-                  setValidRole={setValidRole}
-                >
-                  <SideBar validRole={validRole} />
+                <ProtectedRoute isAdmin={true}>
+                  <SideBar />
                 </ProtectedRoute>
               }
             >
-              {RoutesUsers()}
+              {RoutesUsersAdmin()}
               {RoutesEvents()}
+            </Route>
+            <Route element={<ProtectedRoute isAdmin={false} />}>
+              {RoutesUsers()}
             </Route>
           </Routes>
         </React.Suspense>
