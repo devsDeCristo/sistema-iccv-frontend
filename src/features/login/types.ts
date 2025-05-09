@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { LOGIN_SCHEMA } from '../features/users/constants';
+import { LOGIN_SCHEMA } from './constants';
 
 export interface User {
   //login: string;

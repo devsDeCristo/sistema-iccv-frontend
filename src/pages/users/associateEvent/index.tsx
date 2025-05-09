@@ -13,7 +13,7 @@ import {
 // import { usePermission } from '../../../hooks/usePermission';
 import { usePostCreRelationEventateUser } from '../../../features/users/api/postRelationEventUser';
 import { useGetEvents } from '../../../features/events/api/getEvents';
-import { EmojiPeople, Logout, Work } from '@mui/icons-material';
+import {  Logout, Work } from '@mui/icons-material';
 import { useState } from 'react';
 import { Loading } from '../../../components/loading';
 
@@ -130,7 +130,7 @@ function AssociateEvent() {
                 value={worker}
               >
                 <Stack sx={styles.containerOptions}>
-                  <Box
+                  {/* <Box
                     sx={[
                       styles.boxOption,
                       {
@@ -157,7 +157,7 @@ function AssociateEvent() {
                       Cursilhista (1ª vez)
                     </Typography>
                     <Radio value={0} />
-                  </Box>
+                  </Box> */}
                   <Box
                     sx={[
                       styles.boxOption,
