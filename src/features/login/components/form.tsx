@@ -1,7 +1,7 @@
 import { Grid } from '@mui/material';
 import { Input } from '../../../components/input';
 import { Controller, useFormContext } from 'react-hook-form';
-import { LoginFormType } from '../../../types/login';
+import { LoginFormType } from '../../../features/login/types';
 import { formatCPF } from '../../../utils';
 // import { useState } from 'react';
 // import { Visibility, VisibilityOff } from '@mui/icons-material';
