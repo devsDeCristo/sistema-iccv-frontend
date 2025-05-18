@@ -3,9 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { PageStyle } from '../../components/pageStyle';
 import { Header } from '../../components/header';
 import { List } from '../../features/users/components/list';
+import { useRole } from '../../hooks/useRole';
 
 function Users() {
   const navigate = useNavigate();
+
+  const isAdmin = useRole();
+
   return (
     <PageStyle>
       <Header title="Usuários" />
@@ -18,8 +22,11 @@ function Users() {
       >
         <Button
           variant="contained"
-          // onClick={() => navigate('/cadastro-cursilho-work')}
-          onClick={() => navigate('/user/register')}
+          onClick={() =>
+            isAdmin
+              ? navigate('/user/register')
+              : navigate('/cadastro-cursilho-work')
+          }
         >
           Cadastrar usuario
         </Button>
