@@ -89,8 +89,8 @@ function ModalAddUserOnEvent({
             Adicionar usuário ao evento
           </Typography>
           <form onSubmit={handleSubmit(onSubimitAddUserOnEvent)}>
-            <Grid>
-              <Grid item xs={12}>
+            <Grid mb={2}>
+              <Grid item xs={12} mt={2}>
                 <Controller
                   control={control}
                   name="user"
@@ -99,6 +99,7 @@ function ModalAddUserOnEvent({
                       name="colors"
                       options={options || []}
                       value={value}
+                      isClearable
                       onChange={onChange}
                       className="basic-multi-select"
                       classNamePrefix="select"
