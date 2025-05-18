@@ -18,12 +18,14 @@ import { useGetBedrooms } from '../../../features/events/api/getBedrooms';
 import PdfBedRooms from '../../../components/pdfRooms';
 import { useGetEvents } from '../../../features/events/api/getEvents';
 import PdfBadge from '../../../components/pdfBadge';
+import { ModalAddUserOnEvent } from '../../../features/events/components/modalAddUser';
 
 function Details() {
   const { id } = useParams();
 
   const [openModalBedRoom, setOpenModalBedRoom] = useState(false);
   const [openModalTeam, setOpenModalTeam] = useState(false);
+  const [openModalAddUser, setOpenModalAddUser] = useState(false);
 
   const { id: eventId = '' } = useParams();
   const { data: teamsData = [] } = useGetTeams({
@@ -64,11 +66,16 @@ function Details() {
       blob = await pdf(<PdfBedRooms data={bedroomsData} />).toBlob();
       FileSaver.saveAs(blob, 'quartos.pdf');
     } else {
-      blob = await pdf(<PdfBadge data={eventData.users?.filter(({worker})=>!worker) || []} />).toBlob();
+      blob = await pdf(
+        <PdfBadge
+          data={eventData.users?.filter(({ worker }) => !worker) || []}
+        />
+      ).toBlob();
       FileSaver.saveAs(blob, 'crachas.pdf');
     }
   }
-    return (
+
+  return (
     <PageStyle>
       <Header title="Detalhes do evento" buttonBack pageBack="/eventos" />
 
@@ -135,9 +142,18 @@ function Details() {
         >
           <Typography color="#000">Usuários</Typography>
 
-          <Button variant="outlined" onClick={() => handleDownloadPDF(3)}>
-            Gerar Crachás
-          </Button>
+          <Box display="flex" gap={2}>
+            <Button variant="outlined" onClick={() => handleDownloadPDF(3)}>
+              Gerar Crachás
+            </Button>
+
+            <Button
+              variant="contained"
+              onClick={() => setOpenModalAddUser(true)}
+            >
+              Adicionar usuário
+            </Button>
+          </Box>
         </Box>
 
         <Card>
@@ -148,6 +164,12 @@ function Details() {
       <ModalBedRoom
         open={openModalBedRoom}
         handleClose={() => setOpenModalBedRoom(false)}
+        eventId={id || ''}
+      />
+
+      <ModalAddUserOnEvent
+        open={openModalAddUser}
+        handleClose={() => setOpenModalAddUser(false)}
         eventId={id || ''}
       />
 
