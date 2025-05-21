@@ -66,10 +66,14 @@ function List() {
         columns={columns}
         loading={isLoading}
         slots={{ toolbar: GridToolbar }}
+        pageSizeOptions={[10, 25, 50, 100]}
         slotProps={{
           toolbar: {
             printOptions: { getRowsToExport: getSelectedRowsToExport },
           },
+        }}
+        initialState={{
+          pagination: { paginationModel: { pageSize: 10 } },
         }}
       />
     </Card>

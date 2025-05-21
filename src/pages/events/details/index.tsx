@@ -1,6 +1,15 @@
 import { Header } from '../../../components/header';
 import { PageStyle } from '../../../components/pageStyle';
-import { Card, Typography, Box, Button, Divider, Stack } from '@mui/material';
+import {
+  Card,
+  Typography,
+  Box,
+  Button,
+  Divider,
+  Stack,
+  Tabs,
+  Tab,
+} from '@mui/material';
 import { useParams } from 'react-router-dom';
 import { ListTeams } from '../../../features/events/components/listTeams';
 import { ListBedRooms } from '../../../features/events/components/listBedRooms';
@@ -24,7 +33,7 @@ function Details() {
 
   const [openModalBedRoom, setOpenModalBedRoom] = useState(false);
   const [openModalTeam, setOpenModalTeam] = useState(false);
-
+  const [value, setValue] = useState(1);
   const { id: eventId = '' } = useParams();
   const { data: teamsData = [] } = useGetTeams({
     eventId,
@@ -64,86 +73,112 @@ function Details() {
       blob = await pdf(<PdfBedRooms data={bedroomsData} />).toBlob();
       FileSaver.saveAs(blob, 'quartos.pdf');
     } else {
-      blob = await pdf(<PdfBadge data={eventData.users?.filter(({worker})=>!worker) || []} />).toBlob();
+      blob = await pdf(
+        <PdfBadge
+          data={eventData.users?.filter(({ worker }) => !worker) || []}
+        />
+      ).toBlob();
       FileSaver.saveAs(blob, 'crachas.pdf');
     }
   }
-    return (
+  const handleChange = (event: React.SyntheticEvent, newValue: number) => {
+    setValue(newValue);
+  };
+  return (
     <PageStyle>
       <Header title="Detalhes do evento" buttonBack pageBack="/eventos" />
-
-      <Box component="div">
-        <Box
-          component="div"
-          display="flex"
-          alignItems="center"
-          justifyContent="space-between"
-          mb={2}
+      <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+        <Tabs
+          value={value}
+          onChange={handleChange}
+          aria-label="basic tabs example"
         >
-          <Typography color="#000">Quartos</Typography>
-          <Stack direction={'row'} gap={2}>
-            <Button variant="outlined" onClick={() => handleDownloadPDF(1)}>
-              Pdf quartos
-            </Button>
-            <Button
-              variant="contained"
-              onClick={() => setOpenModalBedRoom(true)}
-            >
-              Adicionar quarto
-            </Button>
-          </Stack>
-        </Box>
-        <Card sx={{ padding: 2 }}>
-          <ListBedRooms />
-        </Card>
+          <Tab label="Quartos" value={1} />
+          <Tab label="Equipes" value={2} />
+          <Tab label="Usuários" value={3} />
+        </Tabs>
       </Box>
-
-      <Divider color="#000" sx={{ marginY: 2 }} />
-
-      <Box component="div">
-        <Box
-          component="div"
-          display="flex"
-          alignItems="center"
-          justifyContent="space-between"
-          mb={2}
-        >
-          <Typography color="#000">Times</Typography>
-          <Stack direction={'row'} gap={2}>
-            <Button variant="outlined" onClick={() => handleDownloadPDF(0)}>
-              Gerar Quadrantes
-            </Button>
-            <Button variant="contained" onClick={() => setOpenModalTeam(true)}>
-              Adicionar time
-            </Button>
-          </Stack>
+      {value === 1 && (
+        <Box component="div">
+          <Box
+            component="div"
+            display="flex"
+            alignItems="center"
+            justifyContent="end"
+            marginY={2}
+          >
+            {/* <Typography color="#000">Quartos</Typography> */}
+            <Stack direction={'row'} gap={2}>
+              <Button variant="outlined" onClick={() => handleDownloadPDF(1)}>
+                Pdf quartos
+              </Button>
+              <Button
+                variant="contained"
+                onClick={() => setOpenModalBedRoom(true)}
+              >
+                Adicionar quarto
+              </Button>
+            </Stack>
+          </Box>
+          <Card sx={{ padding: 2 }}>
+            <ListBedRooms />
+          </Card>
         </Box>
-        <Card sx={{ padding: 2 }}>
-          <ListTeams />
-        </Card>
-      </Box>
+      )}
 
-      <Divider color="#000" sx={{ marginY: 2 }} />
+      {/* <Divider color="#000" sx={{ marginY: 2 }} /> */}
 
-      <Box component="div">
-        <Box
-          component="div"
-          display="flex"
-          alignItems="center"
-          justifyContent="space-between"
-          mb={2}
-        >
-          <Typography color="#000">Usuários</Typography>
-
-          <Button variant="outlined" onClick={() => handleDownloadPDF(3)}>
-            Gerar Crachás
-          </Button>
+      {value === 2 && (
+        <Box component="div">
+          <Box
+            component="div"
+            display="flex"
+            alignItems="center"
+            justifyContent="end"
+            marginY={2}
+          >
+            {/* <Typography color="#000">Times</Typography> */}
+            <Stack direction={'row'} gap={2}>
+              <Button variant="outlined" onClick={() => handleDownloadPDF(0)}>
+                Gerar Quadrantes
+              </Button>
+              <Button
+                variant="contained"
+                onClick={() => setOpenModalTeam(true)}
+              >
+                Adicionar time
+              </Button>
+            </Stack>
+          </Box>
+          <Card sx={{ padding: 2 }}>
+            <ListTeams />
+          </Card>
         </Box>
+      )}
 
-        <Card>
-          <ListUsers />
-        </Card>
-      </Box>
+      {/* <Divider color="#000" sx={{ marginY: 2 }} /> */}
+
+      {value === 3 && (
+        <Box component="div">
+          <Box
+            component="div"
+            display="flex"
+            alignItems="center"
+            justifyContent="end"
+            marginY={2}
+          >
+            {/* <Typography color="#000">Usuários</Typography> */}
+
+            <Button variant="outlined" onClick={() => handleDownloadPDF(3)}>
+              Gerar Crachás
+            </Button>
+          </Box>
+
+          <Card>
+            <ListUsers />
+          </Card>
+        </Box>
+      )}
 
       <ModalBedRoom
         open={openModalBedRoom}

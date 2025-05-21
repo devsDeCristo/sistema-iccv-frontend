@@ -157,7 +157,12 @@ function ListUsers() {
       },
     },
   ];
-
+  const handleRowClick = (params: any, event: React.MouseEvent) => {
+    if (event.ctrlKey || event.metaKey) {
+      const link = `${window.location.origin}/user/${params.row.id}/editar`;
+      window.open(link, '_blank');
+    }
+  };
   return (
     <Card>
       <DataGrid
@@ -165,9 +170,12 @@ function ListUsers() {
         columns={columns}
         loading={isLoading}
         autoHeight={true}
+        onRowClick={handleRowClick}
         slots={{
           toolbar: GridToolbar,
         }}
+        pageSizeOptions={[25, 50, 100]}
+        checkboxSelection
         initialState={{
           columns: {
             columnVisibilityModel: {
@@ -186,6 +194,7 @@ function ListUsers() {
               createdAt: false,
             },
           },
+          pagination: { paginationModel: { pageSize: 25 } },
         }}
         slotProps={{
           toolbar: {
