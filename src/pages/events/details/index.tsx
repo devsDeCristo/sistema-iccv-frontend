@@ -115,7 +115,6 @@ function Details() {
               label="Pesquisar quarto"
               variant="outlined"
               size="small"
-              // sx={{ marginY: 2, width: '300px' }}
               value={searchBedroom}
               onChange={(e) => setSearchBedroom(e.target.value)}
             />
@@ -153,9 +152,8 @@ function Details() {
               label="Pesquisar equipe"
               variant="outlined"
               size="small"
-              // sx={{ marginY: 2, width: '300px' }}
               value={searchTeam}
-              onChange={(e) => setSearchBedroom(e.target.value)}
+              onChange={(e) => setSearchTeam(e.target.value)}
             />
             {/* <Typography color="#000">Times</Typography> */}
             <Stack direction={'row'} gap={2}>
@@ -187,14 +185,14 @@ function Details() {
             justifyContent="space-between"
             marginY={2}
           >
-            <TextField
+            {/* <TextField
               label="Pesquisar usuário"
               variant="outlined"
               size="small"
               // sx={{ marginY: 2, width: '300px' }}
               value={searchUser}
-              onChange={(e) => setSearchBedroom(e.target.value)}
-            />
+              onChange={(e) => setSearchUser(e.target.value)}
+            /> */}
             {/* <Typography color="#000">Usuários</Typography> */}
 
             <Button variant="outlined" onClick={() => handleDownloadPDF(3)}>
