@@ -27,7 +27,7 @@ const getSelectedRowsToExport = ({
 
   return gridFilteredSortedRowIdsSelector(apiRef);
 };
-function ListUsers() {
+function ListUsers({ search }: { search: string }) {
   const { id: eventId = '' } = useParams();
   const { data: eventData, isLoading } = useGetEvents(
     {

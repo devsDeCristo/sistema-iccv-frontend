@@ -10,9 +10,8 @@ type SideBarProps = {
 
 const SideBar: React.FC<SideBarProps> = ({ validRole = true }) => {
   const [openDrawer, setOpenDrawer] = useState(false);
-  const theme = useTheme();
-  const image =
-    'https://www.holiness.org.br/wp-content/uploads/2021/04/cruz.jpg';
+  // const image =
+  // ('https://www.holiness.org.br/wp-content/uploads/2021/04/cruz.jpg');
   const optionsPages = [
     {
       itemId: '1',
@@ -38,7 +37,6 @@ const SideBar: React.FC<SideBarProps> = ({ validRole = true }) => {
       <Box
         sx={{
           display: validRole ? { xs: 'none', lg: 'flex' } : 'none',
-          // display: { xs: 'none', sm: 'flex' },
         }}
       >
         <Sidebar className="sidebar">

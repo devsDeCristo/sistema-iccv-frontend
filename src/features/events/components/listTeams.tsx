@@ -6,6 +6,7 @@ import {
   Tooltip,
   Typography,
   Button,
+  Pagination,
 } from '@mui/material';
 import { stringAvatar } from '../../../utils';
 import { useParams } from 'react-router-dom';
@@ -18,7 +19,7 @@ import { ConfirmModal } from '../../../components/ConfirmModal';
 import { ModalTeam } from './modalTeam';
 import { useDeleteTeam } from '../api/deleteTeam';
 
-function ListTeams() {
+function ListTeams({ search }: { search: string }) {
   const { id: eventId = '' } = useParams();
   const { data: teamsData = [], isLoading } = useGetTeams(
     {
@@ -31,6 +32,7 @@ function ListTeams() {
 
   const [openModalTeam, setOpenModalTeam] = useState(false);
   const [selectTeam, setSelectTeam] = useState<Team | null>(null);
+  const [page, setPage] = useState(1);
 
   const [openModalDeleteTeam, setOpenModalDeleteTeam] = useState(false);
   const [selectedDeleteIdTeam, setSelectedDeleteIdTeam] = useState<
@@ -55,12 +57,39 @@ function ListTeams() {
       setOpenModalDeleteTeam(false);
     }
   };
-  // teamsData.map((team) => {
+  const handleChange = (event: React.ChangeEvent<unknown>, value: number) => {
+    setPage(value);
+  };
+  const paginateData = (data: Team[], page: number, itemsPerPage: number) => {
+    const startIndex = (page - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return {
+      paginatedData: data.slice(startIndex, endIndex),
+      totalPages: Math.ceil(data.length / itemsPerPage),
+    };
+  };
+  const filteredData = (teamsData: Team[]) =>
+    teamsData.filter((team) =>
+      team.name?.toLowerCase().includes(search.toLowerCase())
+    );
+  const itemsPerPage = 8;
+  const { paginatedData, totalPages } = paginateData(
+    filteredData(teamsData),
+    page,
+    itemsPerPage
+  );
   return (
-    <>
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 2,
+        alignItems: 'end',
+      }}
+    >
       {isLoading && <Loading />}
       <Grid container spacing={2}>
-        {teamsData.map((team) => (
+        {paginatedData.map((team) => (
           <Grid item xs={12} md={6} key={team.id}>
             <Card variant="outlined" sx={{ padding: 1 }}>
               <Box
@@ -138,6 +167,9 @@ function ListTeams() {
           </Grid>
         ))}
       </Grid>
+      {/* <Box sx={{ paddingY: 2, width: '100%' }}> */}
+      <Pagination count={totalPages} page={page} onChange={handleChange} />
+      {/* </Box> */}
       <ModalTeam
         open={openModalTeam}
         handleClose={() => setOpenModalTeam(false)}
@@ -152,7 +184,7 @@ function ListTeams() {
         message="Você tem certeza que deseja deletar esse time?"
         onConfirm={handleConfirmDelete}
       />
-    </>
+    </Box>
   );
 }
 

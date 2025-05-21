@@ -9,6 +9,7 @@ import {
   Stack,
   Tabs,
   Tab,
+  TextField,
 } from '@mui/material';
 import { useParams } from 'react-router-dom';
 import { ListTeams } from '../../../features/events/components/listTeams';
@@ -33,6 +34,9 @@ function Details() {
 
   const [openModalBedRoom, setOpenModalBedRoom] = useState(false);
   const [openModalTeam, setOpenModalTeam] = useState(false);
+  const [searchBedroom, setSearchBedroom] = useState('');
+  const [searchTeam, setSearchTeam] = useState('');
+  const [searchUser, setSearchUser] = useState('');
   const [value, setValue] = useState(1);
   const { id: eventId = '' } = useParams();
   const { data: teamsData = [] } = useGetTeams({
@@ -104,9 +108,17 @@ function Details() {
             component="div"
             display="flex"
             alignItems="center"
-            justifyContent="end"
+            justifyContent="space-between"
             marginY={2}
           >
+            <TextField
+              label="Pesquisar quarto"
+              variant="outlined"
+              size="small"
+              // sx={{ marginY: 2, width: '300px' }}
+              value={searchBedroom}
+              onChange={(e) => setSearchBedroom(e.target.value)}
+            />
             {/* <Typography color="#000">Quartos</Typography> */}
             <Stack direction={'row'} gap={2}>
               <Button variant="outlined" onClick={() => handleDownloadPDF(1)}>
@@ -121,7 +133,7 @@ function Details() {
             </Stack>
           </Box>
           <Card sx={{ padding: 2 }}>
-            <ListBedRooms />
+            <ListBedRooms search={searchBedroom} />
           </Card>
         </Box>
       )}
@@ -134,9 +146,17 @@ function Details() {
             component="div"
             display="flex"
             alignItems="center"
-            justifyContent="end"
+            justifyContent="space-between"
             marginY={2}
           >
+            <TextField
+              label="Pesquisar equipe"
+              variant="outlined"
+              size="small"
+              // sx={{ marginY: 2, width: '300px' }}
+              value={searchTeam}
+              onChange={(e) => setSearchBedroom(e.target.value)}
+            />
             {/* <Typography color="#000">Times</Typography> */}
             <Stack direction={'row'} gap={2}>
               <Button variant="outlined" onClick={() => handleDownloadPDF(0)}>
@@ -151,7 +171,7 @@ function Details() {
             </Stack>
           </Box>
           <Card sx={{ padding: 2 }}>
-            <ListTeams />
+            <ListTeams search={searchTeam} />
           </Card>
         </Box>
       )}
@@ -164,9 +184,17 @@ function Details() {
             component="div"
             display="flex"
             alignItems="center"
-            justifyContent="end"
+            justifyContent="space-between"
             marginY={2}
           >
+            <TextField
+              label="Pesquisar usuário"
+              variant="outlined"
+              size="small"
+              // sx={{ marginY: 2, width: '300px' }}
+              value={searchUser}
+              onChange={(e) => setSearchBedroom(e.target.value)}
+            />
             {/* <Typography color="#000">Usuários</Typography> */}
 
             <Button variant="outlined" onClick={() => handleDownloadPDF(3)}>
@@ -175,7 +203,7 @@ function Details() {
           </Box>
 
           <Card>
-            <ListUsers />
+            <ListUsers search={searchUser} />
           </Card>
         </Box>
       )}
