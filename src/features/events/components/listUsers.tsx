@@ -29,6 +29,8 @@ import { pdf } from '@react-pdf/renderer';
 import PdfBadge from '../../../components/pdfBadge';
 import { User } from '../../../types/user';
 import { useState } from 'react';
+import { useDeleteRelationEventUser } from '../../users/api/deleteRelationEventUser';
+import { toast } from 'react-toastify';
 const getSelectedRowsToExport = ({
   apiRef,
 }: GridGetRowsToExportParams): GridRowId[] => {
@@ -59,6 +61,8 @@ function ListUsers({ search }: { search: string }) {
   if (!eventData || Array.isArray(eventData)) {
     return null;
   }
+
+  const { mutate: mutateDeleteEventUser } = useDeleteRelationEventUser({});
   async function handleDownloadPDF(data: User[]) {
     if (!eventData || Array.isArray(eventData)) {
       return null;
@@ -223,7 +227,17 @@ function ListUsers({ search }: { search: string }) {
   };
   const handleClickDownloadBadge = (event: React.MouseEvent) => {
     event.stopPropagation();
-    if (rowSelected) handleDownloadPDF([rowSelected]);
+    if (!rowSelected) return;
+    handleDownloadPDF([rowSelected]);
+  };
+  const handleClickRemoveUser = (event: React.MouseEvent) => {
+    event.stopPropagation();
+    if (!rowSelected) return;
+    mutateDeleteEventUser({
+      eventId: eventId,
+      userId: rowSelected?.id,
+    });
+    handleClose();
   };
   return (
     <Card>
@@ -286,7 +300,7 @@ function ListUsers({ search }: { search: string }) {
           <ListItemText>Baixar Crachá</ListItemText>
         </MenuItem>
         <Divider />
-        <MenuItem onClick={handleClose}>
+        <MenuItem onClick={handleClickRemoveUser}>
           <ListItemIcon>
             <Delete fontSize="small" color="error" />
           </ListItemIcon>

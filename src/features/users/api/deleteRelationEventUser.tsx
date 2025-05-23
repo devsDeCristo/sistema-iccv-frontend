@@ -4,16 +4,20 @@ import {
   handleResponseSuccess,
   handleResponseThrowError,
 } from '../../../utils/service';
-// import { queryClient } from '../../../config/lib/react-query/query-client';
-// import { GET_TEAMS } from '../../events/constants';
+import { GET_EVENTS } from '../../events/constants';
+import { queryClient } from '../../../config/lib/react-query/query-client';
 
 type DeleteRelationEventUserProps = {
   eventId: string;
+  userId: string;
 };
 
-const deleteRelationEventUser = ({ eventId }: DeleteRelationEventUserProps) =>
+const deleteRelationEventUser = ({
+  eventId,
+  userId,
+}: DeleteRelationEventUserProps) =>
   apiClient
-    .delete<boolean>(`/events/${eventId}`)
+    .delete<boolean>(`/events/${eventId}/users/${userId}`)
     .then((response) => {
       handleResponseSuccess(response.data, 'Usuário removido com sucesso!')();
     })
@@ -30,7 +34,7 @@ export const useDeleteRelationEventUser = ({
   return useMutation({
     mutationFn: deleteRelationEventUser,
     onSuccess: (...args) => {
-      //queryClient.invalidateQueries(GET_TEAMS);
+      queryClient.invalidateQueries(GET_EVENTS);
       onSuccess?.(...args);
     },
     ...options,
