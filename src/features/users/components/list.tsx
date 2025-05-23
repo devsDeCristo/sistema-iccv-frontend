@@ -1,4 +1,4 @@
-import { Card } from '@mui/material';
+import { Avatar, Card, Stack } from '@mui/material';
 import {
   DataGrid,
   GridColDef,
@@ -31,6 +31,24 @@ function List() {
   }
 
   const columns: GridColDef[] = [
+    {
+      sortable: false,
+      field: 'foto',
+      headerName: '',
+      width: 60,
+      renderCell: (params) => {
+        return (
+          <Avatar
+            alt={params?.row?.fullName}
+            src={params?.row?.profilePhotoUrl || '/'}
+            sx={{
+              width: '30px',
+              height: '30px',
+            }}
+          />
+        );
+      },
+    },
     { field: 'fullName', headerName: 'Nome', flex: 1 },
     {
       field: 'birthday',

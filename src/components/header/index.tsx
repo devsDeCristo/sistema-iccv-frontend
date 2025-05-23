@@ -1,4 +1,13 @@
-import { Box, Button, Divider, Typography } from '@mui/material';
+import { ThemeContext } from '@emotion/react';
+import { ArrowBack } from '@mui/icons-material';
+import {
+  Box,
+  Button,
+  Divider,
+  IconButton,
+  Typography,
+  useTheme,
+} from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 
 interface HeaderProps {
@@ -9,24 +18,26 @@ interface HeaderProps {
 
 function Header({ title, buttonBack = false, pageBack }: HeaderProps) {
   const navigate = useNavigate();
-
+  const theme = useTheme();
   function GoPage() {
     if (pageBack) {
       navigate(pageBack);
-    }
-
-    navigate(-1);
+    } else navigate(-1);
   }
 
   return (
     <>
-      <Box display="flex" justifyContent="space-between">
-        <Typography fontSize={22} color="#000">
+      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+        {buttonBack && (
+          <IconButton onClick={GoPage}>
+            <ArrowBack color="primary" />
+          </IconButton>
+        )}
+        <Typography fontSize={22} color={theme.palette.text.primary}>
           {title}
         </Typography>
-        {buttonBack && <Button onClick={GoPage}>Voltar</Button>}
       </Box>
-      <Divider color="#000" sx={{ marginY: 2 }} />
+      <Divider color={theme.palette.text.primary} sx={{ marginY: 2 }} />
     </>
   );
 }

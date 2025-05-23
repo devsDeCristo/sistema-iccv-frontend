@@ -1,4 +1,15 @@
-import { Box, Card, IconButton, Tooltip } from '@mui/material';
+import {
+  Avatar,
+  Box,
+  Card,
+  Divider,
+  IconButton,
+  ListItemIcon,
+  ListItemText,
+  Menu,
+  MenuItem,
+  Tooltip,
+} from '@mui/material';
 import { formatDate } from '../../../utils';
 import {
   DataGrid,
@@ -12,11 +23,12 @@ import {
 } from '@mui/x-data-grid';
 import { useGetEvents } from '../api/getEvents';
 import { useParams } from 'react-router-dom';
-import { Badge } from '@mui/icons-material';
+import { Badge, Delete, Edit, MoreVert } from '@mui/icons-material';
 import FileSaver from 'file-saver';
 import { pdf } from '@react-pdf/renderer';
 import PdfBadge from '../../../components/pdfBadge';
 import { User } from '../../../types/user';
+import { useState } from 'react';
 const getSelectedRowsToExport = ({
   apiRef,
 }: GridGetRowsToExportParams): GridRowId[] => {
@@ -37,7 +49,13 @@ function ListUsers({ search }: { search: string }) {
       enabled: !!eventId,
     }
   );
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const openMenu = Boolean(anchorEl);
+  const [rowSelected, setRowSelected] = useState<User | null>(null);
 
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
   if (!eventData || Array.isArray(eventData)) {
     return null;
   }
@@ -48,7 +66,33 @@ function ListUsers({ search }: { search: string }) {
     const blob = await pdf(<PdfBadge data={data || []} />).toBlob();
     FileSaver.saveAs(blob, 'crachas.pdf');
   }
+  const handleClickOptions = (
+    event: React.MouseEvent<HTMLElement>,
+    params: GridCellParams
+  ) => {
+    setRowSelected(params.row);
+    setAnchorEl(event.currentTarget);
+  };
+
   const columns: GridColDef[] = [
+    {
+      sortable: false,
+      field: 'foto',
+      headerName: '',
+      width: 60,
+      renderCell: (params) => {
+        return (
+          <Avatar
+            alt={params?.row?.fullName}
+            src={params?.row?.profilePhotoUrl || '/'}
+            sx={{
+              width: '30px',
+              height: '30px',
+            }}
+          />
+        );
+      },
+    },
     { field: 'fullName', headerName: 'Nome', flex: 1 },
     {
       field: 'birthday',
@@ -137,19 +181,28 @@ function ListUsers({ search }: { search: string }) {
       width: 80,
       //flex: 1,
       renderCell: (params: GridCellParams) => {
-        const onClick = () => {
-          handleDownloadPDF([params.row]);
-        };
+        // const handleClickDownloadBadge = () => {
+        //   handleDownloadPDF([params.row]);
+        // };
 
         return (
           <Box key={params.id}>
-            <Tooltip
+            {/* <Tooltip
               title={'Baixar crachá'}
               id="basic-button"
-              onClick={onClick}
+              onClick={handleClickDownloadBadge}
             >
               <IconButton size="small">
                 <Badge color="primary" />
+              </IconButton>
+            </Tooltip> */}
+            <Tooltip
+              title={'Remover do evento'}
+              id="basic-button"
+              onClick={(event) => handleClickOptions(event, params)}
+            >
+              <IconButton size="small">
+                <MoreVert color="inherit" />
               </IconButton>
             </Tooltip>
           </Box>
@@ -157,11 +210,20 @@ function ListUsers({ search }: { search: string }) {
       },
     },
   ];
-  const handleRowClick = (params: any, event: React.MouseEvent) => {
-    if (event.ctrlKey || event.metaKey) {
-      const link = `${window.location.origin}/user/${params.row.id}/editar`;
-      window.open(link, '_blank');
-    }
+  // const handleRowClick = (params: any, event: React.MouseEvent) => {
+  //   if (event.ctrlKey || event.metaKey) {
+  //     const link = `${window.location.origin}/user/${params.row.id}/editar`;
+  //     window.open(link, '_blank');
+  //   }
+  // };
+  const handleClickEdit = (event: React.MouseEvent) => {
+    event.stopPropagation();
+    const link = `${window.location.origin}/user/${rowSelected?.id}/editar`;
+    window.open(link, '_blank');
+  };
+  const handleClickDownloadBadge = (event: React.MouseEvent) => {
+    event.stopPropagation();
+    if (rowSelected) handleDownloadPDF([rowSelected]);
   };
   return (
     <Card>
@@ -170,12 +232,12 @@ function ListUsers({ search }: { search: string }) {
         columns={columns}
         loading={isLoading}
         autoHeight={true}
-        onRowClick={handleRowClick}
+        // onRowClick={handleRowClick}
         slots={{
           toolbar: GridToolbar,
         }}
         pageSizeOptions={[25, 50, 100]}
-        checkboxSelection
+        // checkboxSelection
         initialState={{
           columns: {
             columnVisibilityModel: {
@@ -202,6 +264,35 @@ function ListUsers({ search }: { search: string }) {
           },
         }}
       />
+      <Menu
+        id="basic-menu"
+        anchorEl={anchorEl}
+        open={openMenu}
+        onClose={handleClose}
+        MenuListProps={{
+          'aria-labelledby': 'options-button',
+        }}
+      >
+        <MenuItem onClick={handleClickEdit}>
+          <ListItemIcon>
+            <Edit fontSize="small" color="primary" />
+          </ListItemIcon>
+          <ListItemText>Editar Usuário</ListItemText>
+        </MenuItem>
+        <MenuItem onClick={handleClickDownloadBadge}>
+          <ListItemIcon>
+            <Badge fontSize="small" color="primary" />
+          </ListItemIcon>
+          <ListItemText>Baixar Crachá</ListItemText>
+        </MenuItem>
+        <Divider />
+        <MenuItem onClick={handleClose}>
+          <ListItemIcon>
+            <Delete fontSize="small" color="error" />
+          </ListItemIcon>
+          <ListItemText>Remover do evento</ListItemText>
+        </MenuItem>
+      </Menu>
     </Card>
   );
 }

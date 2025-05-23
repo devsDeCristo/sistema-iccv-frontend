@@ -13,7 +13,7 @@ const getTeams = ({ eventId, teamId }: GetTeamsParams) => {
   const urlWithId = teamId ? `/${teamId}` : '';
 
   return apiClient
-    .get<Team[]>(`/events/${eventId}/teams${urlWithId}`)
+    .get<Team[] | Team>(`/events/${eventId}/teams${urlWithId}`)
     .then((response) => response.data)
     .catch(handleResponseThrowError());
 };

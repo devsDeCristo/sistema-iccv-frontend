@@ -59,7 +59,7 @@ function Details() {
       enabled: !!eventId,
     }
   );
-
+  const event = eventData as Event;
   async function handleDownloadPDF(type: number) {
     if (!eventData || Array.isArray(eventData)) {
       return null;
@@ -90,7 +90,11 @@ function Details() {
   };
   return (
     <PageStyle>
-      <Header title="Detalhes do evento" buttonBack pageBack="/eventos" />
+      <Header
+        title={'Detalhes do evento: ' + event?.name}
+        buttonBack
+        pageBack="/eventos"
+      />
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
         <Tabs
           value={value}
