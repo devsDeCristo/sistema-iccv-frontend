@@ -109,6 +109,9 @@ function ModalTeam({ open, handleClose, team, eventId }: ModalTeamProps) {
           timeout: 500,
         },
       }}
+      sx={{
+        '& .MuiBox-root': { borderRadius: 1 },
+      }}
     >
       <Fade in={open}>
         <Box sx={style}>

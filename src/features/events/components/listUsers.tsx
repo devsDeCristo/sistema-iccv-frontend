@@ -30,7 +30,6 @@ import PdfBadge from '../../../components/pdfBadge';
 import { User } from '../../../types/user';
 import { useState } from 'react';
 import { useDeleteRelationEventUser } from '../../users/api/deleteRelationEventUser';
-import { toast } from 'react-toastify';
 import Swal from 'sweetalert2';
 import { useRemoveUserFromEvent } from '../api/deleteUser';
 const getSelectedRowsToExport = ({
@@ -205,40 +204,8 @@ function ListUsers({ search }: { search: string }) {
       width: 80,
       //flex: 1,
       renderCell: (params: GridCellParams) => {
-        // const handleClickDownloadBadge = () => {
-        //   handleDownloadPDF([params.row]);
-        // };
-
-        const onClickRemove = () => {
-          Swal.fire({
-            title: 'Tem certeza que deseja desvincular o usuário do evento?',
-            text: 'Esta ação não poderá ser desfeita!',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Sim, desvincular do evento!',
-          }).then((result) => {
-            if (result.isConfirmed) {
-              mutateRemoveUserFromEvent({
-                idEvent: eventId,
-                idUser: params.row.id.toString(),
-              });
-            }
-          });
-        };
-
         return (
           <Box key={params.id}>
-            {/* <Tooltip
-              title={'Baixar crachá'}
-              id="basic-button"
-              onClick={handleClickDownloadBadge}
-            >
-              <IconButton size="small">
-                <Badge color="primary" />
-              </IconButton>
-            </Tooltip> */}
             <Tooltip
               title={'Remover do evento'}
               id="basic-button"
@@ -285,6 +252,25 @@ function ListUsers({ search }: { search: string }) {
     mutateDeleteEventUser({
       eventId: eventId,
       userId: rowSelected?.id,
+    });
+    handleClose();
+  };
+  const onClickRemove = () => {
+    Swal.fire({
+      title: 'Tem certeza que deseja desvincular o usuário do evento?',
+      text: 'Esta ação não poderá ser desfeita!',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Sim, desvincular do evento!',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        mutateRemoveUserFromEvent({
+          idEvent: eventId,
+          idUser: rowSelected?.id.toString(),
+        });
+      }
     });
     handleClose();
   };
@@ -349,7 +335,7 @@ function ListUsers({ search }: { search: string }) {
           <ListItemText>Baixar Crachá</ListItemText>
         </MenuItem>
         <Divider />
-        <MenuItem onClick={handleClickRemoveUser}>
+        <MenuItem onClick={onClickRemove}>
           <ListItemIcon>
             <Delete fontSize="small" color="error" />
           </ListItemIcon>
