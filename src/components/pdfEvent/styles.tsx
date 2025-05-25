@@ -5,6 +5,10 @@ const stylesPdf = StyleSheet.create({
     paddingHorizontal: 25,
     paddingBottom: '80px',
   },
+  bodyCover: {
+    paddingVertical: 15,
+    paddingHorizontal: 15,
+  },
   page: {
     padding: 40,
   },
@@ -19,7 +23,7 @@ const stylesPdf = StyleSheet.create({
     borderRadius: '8px',
     height: '125px',
     //backgroundColor: '#97E1E2',
-    backgroundColor: '#B2E3E3',
+    // backgroundColor: '#B2E3E3',
   },
   footer: {
     position: 'absolute',
@@ -33,7 +37,7 @@ const stylesPdf = StyleSheet.create({
     justifyContent: 'center',
     flexDirection: 'column',
     //backgroundColor: '#f8d2f8',
-    backgroundColor: '#B2E3E3',
+    // backgroundColor: '#B2E3E3',
     padding: '10px',
     borderRadius: '8px',
   },
@@ -43,7 +47,7 @@ const stylesPdf = StyleSheet.create({
     borderRadius: '8px',
     width: '100%',
     height: '100%',
-    backgroundColor: '#B2E3E3',
+    // backgroundColor: '#B2E3E3',
   },
   title: {
     fontSize: 15,
@@ -67,7 +71,7 @@ const stylesPdf = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 10,
-    marginBottom: '60px',//muda essa linha sempre que mudar altura ou largura de algo
+    marginBottom: '60px', //muda essa linha sempre que mudar altura ou largura de algo
   },
   cell: {
     width: '24%',
@@ -78,7 +82,7 @@ const stylesPdf = StyleSheet.create({
     flexDirection: 'row',
   },
   decuria: {
- //   minHeight:"80%",
+    //   minHeight:"80%",
     margin: 6,
     marginTop: 10,
     display: 'flex',
@@ -87,7 +91,7 @@ const stylesPdf = StyleSheet.create({
     flexDirection: 'row',
   },
   image: { height: 50 },
-  imageCover: { height: '60%' },
+  imageCover: { height: '100%' },
   imageFooter: { height: 40 },
   imageEvent: {
     width: '20%',

@@ -1,6 +1,6 @@
 import { Image, View } from '@react-pdf/renderer';
 import { stylesPdf } from './styles';
-import coverImg from '../../assets/capa-curs-fem.png';
+import coverImg from '../../assets/cover-img.png';
 function CoverPdf() {
   return (
     <View style={stylesPdf.cover} wrap={false}>

@@ -17,18 +17,17 @@ Font.register({
 function PdfEvent({ data }: PdfProps) {
   return (
     <Document>
-      <Page orientation="landscape" style={stylesPdf.body}>
+      <Page orientation="landscape" style={stylesPdf.bodyCover}>
         <CoverPdf />
       </Page>
       <Page orientation="landscape" style={stylesPdf.body}>
         <HeaderPdf />
         {data.map(({ name, users }, index) => (
-
-          <View break={index!=0} wrap>
+          <View break={index != 0} wrap>
             <View fixed style={stylesPdf.decuria} key={'titulo-pdf' + index}>
               <Text style={stylesPdf.title}>{name}</Text>
             </View>
-            <View  style={stylesPdf.rectangleRow} key={'quadrantes-pdf' + index}>
+            <View style={stylesPdf.rectangleRow} key={'quadrantes-pdf' + index}>
               {users?.map((user, index) => (
                 <UserRectangle key={index} user={user} />
               ))}

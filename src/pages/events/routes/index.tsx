@@ -8,7 +8,7 @@ function RoutesEvents() {
     <>
       <Route path="/eventos" element={<Events />} />
       <Route path="/eventos/cadastro" element={<Register />} />
-      <Route path="/eventos/:id/detalhes" element={<Details />} />
+      <Route path="/eventos/:id/detalhes/:subPage" element={<Details />} />
     </>
   );
 }

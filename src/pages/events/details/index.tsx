@@ -11,7 +11,7 @@ import {
   Tab,
   TextField,
 } from '@mui/material';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { ListTeams } from '../../../features/events/components/listTeams';
 import { ListBedRooms } from '../../../features/events/components/listBedRooms';
 import { ModalBedRoom } from '../../../features/events/components/modalBedRoom';
@@ -31,14 +31,16 @@ import PdfBadge from '../../../components/pdfBadge';
 import { ModalAddUserOnEvent } from '../../../features/events/components/modalAddUser';
 
 function Details() {
-  const { id } = useParams();
-
+  const { id, subPage } = useParams();
+  const navigate = useNavigate();
   const [openModalBedRoom, setOpenModalBedRoom] = useState(false);
   const [openModalTeam, setOpenModalTeam] = useState(false);
   const [searchBedroom, setSearchBedroom] = useState('');
   const [searchTeam, setSearchTeam] = useState('');
   const [searchUser, setSearchUser] = useState('');
-  const [value, setValue] = useState(1);
+
+  const [pageValue, setPageValue] = useState(subPage || 'quartos');
+
   const [openModalAddUser, setOpenModalAddUser] = useState(false);
 
   const { id: eventId = '' } = useParams();
@@ -88,8 +90,9 @@ function Details() {
       FileSaver.saveAs(blob, 'crachas.pdf');
     }
   }
-  const handleChange = (event: React.SyntheticEvent, newValue: number) => {
-    setValue(newValue);
+  const handleChange = (event: React.SyntheticEvent, newValue: string) => {
+    setPageValue(newValue);
+    navigate(`/eventos/${id}/detalhes/${newValue}`);
   };
 
   return (
@@ -101,16 +104,16 @@ function Details() {
       />
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
         <Tabs
-          value={value}
+          value={pageValue}
           onChange={handleChange}
           aria-label="basic tabs example"
         >
-          <Tab label="Quartos" value={1} />
-          <Tab label="Equipes" value={2} />
-          <Tab label="Usuários" value={3} />
+          <Tab label="Quartos" value={'quartos'} />
+          <Tab label="Equipes" value={'equipes'} />
+          <Tab label="Usuários" value={'usuarios'} />
         </Tabs>
       </Box>
-      {value === 1 && (
+      {pageValue === 'quartos' && (
         <Box component="div">
           <Box
             component="div"
@@ -147,7 +150,7 @@ function Details() {
 
       {/* <Divider color="#000" sx={{ marginY: 2 }} /> */}
 
-      {value === 2 && (
+      {pageValue === 'equipes' && (
         <Box component="div">
           <Box
             component="div"
@@ -184,7 +187,7 @@ function Details() {
 
       {/* <Divider color="#000" sx={{ marginY: 2 }} /> */}
 
-      {value === 3 && (
+      {pageValue === 'usuarios' && (
         <Box component="div">
           <Box
             component="div"
