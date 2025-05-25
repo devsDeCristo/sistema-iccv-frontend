@@ -28,6 +28,7 @@ import { useGetBedrooms } from '../../../features/events/api/getBedrooms';
 import PdfBedRooms from '../../../components/pdfRooms';
 import { useGetEvents } from '../../../features/events/api/getEvents';
 import PdfBadge from '../../../components/pdfBadge';
+import { ModalAddUserOnEvent } from '../../../features/events/components/modalAddUser';
 
 function Details() {
   const { id } = useParams();
@@ -38,6 +39,8 @@ function Details() {
   const [searchTeam, setSearchTeam] = useState('');
   const [searchUser, setSearchUser] = useState('');
   const [value, setValue] = useState(1);
+  const [openModalAddUser, setOpenModalAddUser] = useState(false);
+
   const { id: eventId = '' } = useParams();
   const { data: teamsData = [] } = useGetTeams({
     eventId,
@@ -88,6 +91,7 @@ function Details() {
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
     setValue(newValue);
   };
+
   return (
     <PageStyle>
       <Header
@@ -186,7 +190,8 @@ function Details() {
             component="div"
             display="flex"
             alignItems="center"
-            justifyContent="space-between"
+            justifyContent="end"
+            gap={2}
             marginY={2}
           >
             {/* <TextField
@@ -202,6 +207,12 @@ function Details() {
             <Button variant="outlined" onClick={() => handleDownloadPDF(3)}>
               Gerar Crachás
             </Button>
+            <Button
+              variant="contained"
+              onClick={() => setOpenModalAddUser(true)}
+            >
+              Adicionar usuário
+            </Button>
           </Box>
 
           <Card>
@@ -213,6 +224,12 @@ function Details() {
       <ModalBedRoom
         open={openModalBedRoom}
         handleClose={() => setOpenModalBedRoom(false)}
+        eventId={id || ''}
+      />
+
+      <ModalAddUserOnEvent
+        open={openModalAddUser}
+        handleClose={() => setOpenModalAddUser(false)}
         eventId={id || ''}
       />
 

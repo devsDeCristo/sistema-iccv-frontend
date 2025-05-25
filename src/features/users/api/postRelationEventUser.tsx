@@ -5,10 +5,20 @@ import {
   handleResponseThrowError,
 } from '../../../utils/service';
 
-const postCreateRelationEventUser = (data: any) =>
+type PostCreateRelationEventUserProps = {
+  idUser: string;
+  idEvent: string;
+  worker: boolean;
+};
+
+const postCreateRelationEventUser = ({
+  idUser,
+  idEvent,
+  worker,
+}: PostCreateRelationEventUserProps) =>
   apiClient
-    .post<any>(`/users/${data.idUser}/event/${data.idEvent}`, {
-      worker: data.worker,
+    .post<boolean>(`/users/${idUser}/event/${idEvent}`, {
+      worker: worker,
     })
     .then((response) => {
       handleResponseSuccess(
@@ -23,10 +33,14 @@ type PostCreateRelationEventUserData = Awaited<
   ReturnType<typeof postCreateRelationEventUser>
 >;
 
-export const usePostCreRelationEventateUser = ({
+export const usePostCreRelationEventToUser = ({
   onSuccess,
   ...options
-}: MutationOptions<PostCreateRelationEventUserData, unknown, any> = {}) => {
+}: MutationOptions<
+  PostCreateRelationEventUserData,
+  unknown,
+  PostCreateRelationEventUserProps
+> = {}) => {
   return useMutation({
     mutationFn: postCreateRelationEventUser,
     onSuccess: (...args) => {

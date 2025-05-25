@@ -11,9 +11,9 @@ import {
   useTheme,
 } from '@mui/material';
 // import { usePermission } from '../../../hooks/usePermission';
-import { usePostCreRelationEventateUser } from '../../../features/users/api/postRelationEventUser';
+import { usePostCreRelationEventToUser } from '../../../features/users/api/postRelationEventUser';
 import { useGetEvents } from '../../../features/events/api/getEvents';
-import { EmojiPeople, Logout, Work } from '@mui/icons-material';
+import { Logout, Work } from '@mui/icons-material';
 import { useState } from 'react';
 import { Loading } from '../../../components/loading';
 
@@ -45,8 +45,8 @@ function AssociateEvent() {
     (!Array.isArray(eventData) && eventData && eventData.name) ||
     'Cursilho da cristandade';
 
-  const { mutate: mutatePostCreateReEventUser } =
-    usePostCreRelationEventateUser({
+  const { mutate: mutatePostCreateReEventUser } = usePostCreRelationEventToUser(
+    {
       onSuccess: () => {
         Swal.fire({
           title: 'Cadastro efetuado com sucesso',
@@ -61,19 +61,19 @@ function AssociateEvent() {
           }
         });
       },
-    });
+    }
+  );
 
   const handleButton = () => {
     if (user === null) {
       return;
     }
     const idUser = user?.id;
-    const formatData = {
+    mutatePostCreateReEventUser({
       idUser,
       idEvent: eventId,
       worker: worker === 0 ? false : true,
-    };
-    mutatePostCreateReEventUser(formatData);
+    });
   };
   const styles = {
     boxContainer: {
@@ -130,7 +130,7 @@ function AssociateEvent() {
                 value={worker}
               >
                 <Stack sx={styles.containerOptions}>
-                  <Box
+                  {/* <Box
                     sx={[
                       styles.boxOption,
                       {
@@ -157,7 +157,7 @@ function AssociateEvent() {
                       Cursilhista (1ª vez)
                     </Typography>
                     <Radio value={0} />
-                  </Box>
+                  </Box> */}
                   <Box
                     sx={[
                       styles.boxOption,

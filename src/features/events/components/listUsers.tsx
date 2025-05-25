@@ -31,6 +31,8 @@ import { User } from '../../../types/user';
 import { useState } from 'react';
 import { useDeleteRelationEventUser } from '../../users/api/deleteRelationEventUser';
 import { toast } from 'react-toastify';
+import Swal from 'sweetalert2';
+import { useRemoveUserFromEvent } from '../api/deleteUser';
 const getSelectedRowsToExport = ({
   apiRef,
 }: GridGetRowsToExportParams): GridRowId[] => {
@@ -58,6 +60,24 @@ function ListUsers({ search }: { search: string }) {
   const handleClose = () => {
     setAnchorEl(null);
   };
+  const { mutate: mutateRemoveUserFromEvent } = useRemoveUserFromEvent({
+    onSuccess: () => {
+      Swal.fire({
+        title: 'Desvinculado!',
+        text: 'Usuário desvinculado do evento com sucesso.',
+        icon: 'success',
+      });
+    },
+    onError: () => {
+      Swal.fire({
+        title: 'Erro ao remover usuário do evento',
+        text: 'Ocorreu um erro ao tentar desvincular o usuário do evento. Por favor, tente novamente mais tarde.',
+        icon: 'error',
+        confirmButtonText: 'OK',
+      });
+    },
+  });
+
   if (!eventData || Array.isArray(eventData)) {
     return null;
   }
@@ -189,6 +209,25 @@ function ListUsers({ search }: { search: string }) {
         //   handleDownloadPDF([params.row]);
         // };
 
+        const onClickRemove = () => {
+          Swal.fire({
+            title: 'Tem certeza que deseja desvincular o usuário do evento?',
+            text: 'Esta ação não poderá ser desfeita!',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Sim, desvincular do evento!',
+          }).then((result) => {
+            if (result.isConfirmed) {
+              mutateRemoveUserFromEvent({
+                idEvent: eventId,
+                idUser: params.row.id.toString(),
+              });
+            }
+          });
+        };
+
         return (
           <Box key={params.id}>
             {/* <Tooltip
@@ -207,6 +246,16 @@ function ListUsers({ search }: { search: string }) {
             >
               <IconButton size="small">
                 <MoreVert color="inherit" />
+              </IconButton>
+            </Tooltip>
+
+            <Tooltip
+              title="Remover usuário do evento"
+              id="button-remove-user"
+              onClick={onClickRemove}
+            >
+              <IconButton size="small">
+                <Delete color="primary" />
               </IconButton>
             </Tooltip>
           </Box>

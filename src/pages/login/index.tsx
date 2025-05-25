@@ -9,8 +9,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import logo from '../../assets/ic-logo.png';
 import { FormProvider, useForm } from 'react-hook-form';
-import { LoginFormType } from '../../types/login';
-import { LOGIN_SCHEMA } from '../../features/users/constants';
+import { LOGIN_SCHEMA } from '../../features/login/constants';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { FormLogin } from '../../features/login/components/form';
 import { useEffect } from 'react';
@@ -19,6 +18,7 @@ import { usePermission } from '../../hooks/usePermission';
 import { usePostLogin } from '../../features/login/api/postLogin';
 import Swal from 'sweetalert2';
 import { useRole } from '../../hooks/useRole';
+import { LoginFormType } from '../../features/login/types';
 
 function Login() {
   const navigate = useNavigate();
@@ -28,7 +28,6 @@ function Login() {
   });
 
   function onSubmitForm(data: LoginFormType) {
-    //handleLoginApi(data);
     const { cpf } = data;
     const cleanedCpf = cpf.replace(/[.\-\s]/g, '');
     mutatePostLogin({ document: cleanedCpf, password: 'password123' });
@@ -58,14 +57,15 @@ function Login() {
     },
     onError: (error: any) => {
       if (error.response.status === 401) {
+        localStorage.setItem('cpf', JSON.parse(error.config.data).document);
         navigate('/user/register');
+        Swal.fire({
+          title: 'Atenção',
+          text: 'Você não possui cadastro ainda, se cadastre para se inscrever no cursilho',
+          icon: 'info',
+          confirmButtonText: 'Ok',
+        });
       }
-      Swal.fire({
-        title: 'Atenção',
-        text: 'Você não possui cadastro ainda, se cadastre para se inscrever no cursilho',
-        icon: 'info',
-        confirmButtonText: 'Ok',
-      });
     },
   });
 
