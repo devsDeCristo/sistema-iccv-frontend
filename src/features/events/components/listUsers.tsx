@@ -29,7 +29,6 @@ import { pdf } from '@react-pdf/renderer';
 import PdfBadge from '../../../components/pdfBadge';
 import { User } from '../../../types/user';
 import { useState } from 'react';
-import { useDeleteRelationEventUser } from '../../users/api/deleteRelationEventUser';
 import Swal from 'sweetalert2';
 import { useRemoveUserFromEvent } from '../api/deleteUser';
 const getSelectedRowsToExport = ({
@@ -81,7 +80,7 @@ function ListUsers({ search }: { search: string }) {
     return null;
   }
 
-  const { mutate: mutateDeleteEventUser } = useDeleteRelationEventUser({});
+  // const { mutate: mutateDeleteEventUser } = useDeleteRelationEventUser({});
   async function handleDownloadPDF(data: User[]) {
     if (!eventData || Array.isArray(eventData)) {
       return null;
@@ -207,7 +206,7 @@ function ListUsers({ search }: { search: string }) {
         return (
           <Box key={params.id}>
             <Tooltip
-              title={'Remover do evento'}
+              title={'Opções'}
               id="basic-button"
               onClick={(event) => handleClickOptions(event, params)}
             >
@@ -215,47 +214,27 @@ function ListUsers({ search }: { search: string }) {
                 <MoreVert color="inherit" />
               </IconButton>
             </Tooltip>
-
-            <Tooltip
-              title="Remover usuário do evento"
-              id="button-remove-user"
-              onClick={onClickRemove}
-            >
-              <IconButton size="small">
-                <Delete color="primary" />
-              </IconButton>
-            </Tooltip>
           </Box>
         );
       },
     },
   ];
-  // const handleRowClick = (params: any, event: React.MouseEvent) => {
-  //   if (event.ctrlKey || event.metaKey) {
-  //     const link = `${window.location.origin}/user/${params.row.id}/editar`;
-  //     window.open(link, '_blank');
-  //   }
-  // };
+
   const handleClickEdit = (event: React.MouseEvent) => {
     event.stopPropagation();
     const link = `${window.location.origin}/user/${rowSelected?.id}/editar`;
     window.open(link, '_blank');
+    handleClose();
   };
   const handleClickDownloadBadge = (event: React.MouseEvent) => {
     event.stopPropagation();
     if (!rowSelected) return;
     handleDownloadPDF([rowSelected]);
-  };
-  const handleClickRemoveUser = (event: React.MouseEvent) => {
-    event.stopPropagation();
-    if (!rowSelected) return;
-    mutateDeleteEventUser({
-      eventId: eventId,
-      userId: rowSelected?.id,
-    });
     handleClose();
   };
-  const onClickRemove = () => {
+
+  const handleClickRemoveUser = () => {
+    if (!rowSelected) return;
     Swal.fire({
       title: 'Tem certeza que deseja desvincular o usuário do evento?',
       text: 'Esta ação não poderá ser desfeita!',
@@ -281,7 +260,6 @@ function ListUsers({ search }: { search: string }) {
         columns={columns}
         loading={isLoading}
         autoHeight={true}
-        // onRowClick={handleRowClick}
         slots={{
           toolbar: GridToolbar,
         }}
@@ -335,7 +313,7 @@ function ListUsers({ search }: { search: string }) {
           <ListItemText>Baixar Crachá</ListItemText>
         </MenuItem>
         <Divider />
-        <MenuItem onClick={onClickRemove}>
+        <MenuItem onClick={handleClickRemoveUser}>
           <ListItemIcon>
             <Delete fontSize="small" color="error" />
           </ListItemIcon>
