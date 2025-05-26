@@ -29,7 +29,7 @@ function ListTeams({ search }: { search: string }) {
       enabled: !!eventId,
     }
   );
-
+  const teams = teamsData as Team[];
   const [openModalTeam, setOpenModalTeam] = useState(false);
   const [selectTeam, setSelectTeam] = useState<Team | null>(null);
   const [page, setPage] = useState(1);
@@ -74,7 +74,7 @@ function ListTeams({ search }: { search: string }) {
     );
   const itemsPerPage = 8;
   const { paginatedData, totalPages } = paginateData(
-    filteredData(teamsData),
+    filteredData(teams),
     page,
     itemsPerPage
   );

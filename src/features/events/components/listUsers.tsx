@@ -253,10 +253,14 @@ function ListUsers({ search }: { search: string }) {
     });
     handleClose();
   };
+  const filteredData = (usersData: User[]) =>
+    usersData.filter((user) =>
+      user.fullName?.toLowerCase().includes(search.toLowerCase())
+    );
   return (
     <Card>
       <DataGrid
-        rows={eventData.users || []}
+        rows={filteredData(eventData.users || [])}
         columns={columns}
         loading={isLoading}
         autoHeight={true}
