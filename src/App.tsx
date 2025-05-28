@@ -9,6 +9,7 @@ import { ThemeProvider } from '@emotion/react';
 import ProtectedRoute from './components/protectedRoute';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { RegisterUser } from './pages/users/register';
+import { CssBaseline } from '@mui/material';
 // import { useMediaQuery } from '@mui/material';
 
 function Loading() {
@@ -32,7 +33,8 @@ function App() {
   const theme = useMemo(() => myTheme(colorMode), [colorMode]);
   return (
     <ThemeProvider theme={theme}>
-      <div style={{ display: 'flex' }}>
+      <CssBaseline />
+      <div className="App">
         <React.Suspense fallback={<Loading />}>
           <Routes>
             {RoutesLogin()}

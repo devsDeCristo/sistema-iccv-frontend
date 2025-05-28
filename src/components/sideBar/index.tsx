@@ -1,7 +1,17 @@
 import { Sidebar, Menu, MenuItem } from 'react-pro-sidebar';
-import { People, Event, Logout } from '@mui/icons-material';
+import { People, Event, Logout, Menu as MenuIcon } from '@mui/icons-material';
 import { Link, Outlet } from 'react-router-dom';
-import { Box, Drawer, useTheme } from '@mui/material';
+import {
+  AppBar,
+  Box,
+  Container,
+  CssBaseline,
+  Drawer,
+  IconButton,
+  Paper,
+  Toolbar,
+  useTheme,
+} from '@mui/material';
 import { useState } from 'react';
 
 type SideBarProps = {
@@ -10,6 +20,7 @@ type SideBarProps = {
 
 const SideBar: React.FC<SideBarProps> = ({ validRole = true }) => {
   const [openDrawer, setOpenDrawer] = useState(false);
+  const theme = useTheme();
   // const image =
   // ('https://www.holiness.org.br/wp-content/uploads/2021/04/cruz.jpg');
   const optionsPages = [
@@ -27,47 +38,151 @@ const SideBar: React.FC<SideBarProps> = ({ validRole = true }) => {
     },
   ];
   return (
-    <Box
-      style={{
-        display: 'flex',
-        minHeight: '100vh',
-        width: '100%',
-      }}
-    >
+    <Box display={'flex'}>
+      <CssBaseline />
       <Box
         sx={{
-          display: validRole ? { xs: 'none', lg: 'flex' } : 'none',
+          display: 'flex',
+          minHeight: '100vh',
+          width: '100%',
+          minWidth: '340px',
+          flexDirection: { xs: 'column', lg: 'row' },
         }}
       >
-        <Sidebar className="sidebar">
-          <Menu>
-            <MenuItem className="menu1">
-              <h2>ICCV</h2>
-            </MenuItem>
-            {optionsPages.map(({ link, itemId, icon, title }) => (
-              <MenuItem id={itemId} icon={icon} component={<Link to={link} />}>
-                {title}
+        <Box
+          sx={{
+            display: validRole ? { xs: 'none', lg: 'flex' } : 'none',
+            boxShadow: '0px 1px 4px 0px' + theme.palette.border,
+            position: 'sticky',
+          }}
+        >
+          <Sidebar className="sidebar">
+            <Menu>
+              <MenuItem className="menu1">
+                <h2>ICCV</h2>
               </MenuItem>
-            ))}
-            <MenuItem
-              icon={<Logout />}
-              onClick={() => {
-                localStorage.clear();
+              {optionsPages.map(({ link, itemId, icon, title }) => (
+                <MenuItem
+                  id={itemId}
+                  icon={icon}
+                  component={<Link to={link} />}
+                >
+                  {title}
+                </MenuItem>
+              ))}
+              <MenuItem
+                icon={<Logout />}
+                onClick={() => {
+                  localStorage.clear();
+                }}
+                component={<Link to="/login" />}
+              >
+                Sair
+              </MenuItem>
+            </Menu>
+          </Sidebar>
+        </Box>
+        <Drawer
+          variant="temporary"
+          open={openDrawer}
+          onClose={() => setOpenDrawer(false)}
+          sx={{ display: { xs: 'inline', lg: 'none' } }}
+        >
+          <Sidebar className="sidebar">
+            <Menu>
+              <MenuItem
+                className="menu1"
+                component={<Link to={'/eventos'} />}
+                onClick={() => setOpenDrawer(false)}
+              >
+                <h2>ICCV</h2>
+              </MenuItem>
+              {optionsPages.map(({ link, itemId, icon, title }) => (
+                <MenuItem
+                  id={itemId}
+                  icon={icon}
+                  component={<Link to={link} />}
+                  onClick={() => setOpenDrawer(false)}
+                >
+                  {title}
+                </MenuItem>
+              ))}
+              <MenuItem
+                icon={<Logout />}
+                onClick={() => {
+                  localStorage.clear();
+                }}
+                component={<Link to="/login" />}
+              >
+                Sair
+              </MenuItem>
+            </Menu>
+          </Sidebar>
+        </Drawer>
+        <AppBar
+          position="sticky"
+          sx={{
+            // /display: "relative",
+            display: validRole ? { xs: 'flex', lg: 'none' } : 'none',
+            minWidth: '350px',
+            width: '100%',
+            borderTop: 'none',
+            borderLeft: 'none',
+            borderRight: 'none',
+            position: 'sticky',
+            top: 0,
+            left: 0,
+            // right: '950',
+            bgcolor: theme.palette.background.paper,
+            //border: "none",
+            // borderBottom: '1px solid ' + theme.palette.border,
+            boxShadow: '0px 1px 4px 0px' + theme.palette.border,
+            zIndex: 1200,
+          }}
+          elevation={0}
+          variant="outlined"
+        >
+          <Container
+            sx={{
+              padding: 0,
+              '&.MuiContainer-root': { paddingX: 0 },
+              // maxWidth: '100vw',
+            }}
+          >
+            <Toolbar
+              sx={{
+                width: '100%',
+                padding: 0,
+                display: 'flex',
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                pr: 5,
+                pl: 3,
+                color: theme.palette.text.primary,
               }}
-              component={<Link to="/login" />}
+              disableGutters
             >
-              Sair
-            </MenuItem>
-          </Menu>
-        </Sidebar>
+              {' '}
+              <IconButton onClick={() => setOpenDrawer(!openDrawer)}>
+                <MenuIcon />
+              </IconButton>
+              <h2>ICCV</h2>
+            </Toolbar>
+          </Container>
+        </AppBar>
+        <Box
+          sx={{
+            flexGrow: 1,
+            // paddingTop: 5,
+            width: '100%',
+            // width: 'calc(100vw - 250px)',
+            gap: 2,
+            // minWidth: 'calc(100vw - 250px)',
+          }}
+        >
+          <Outlet />
+        </Box>
       </Box>
-      <Drawer
-        variant="temporary"
-        open={openDrawer}
-        onClose={() => setOpenDrawer(false)}
-        sx={{ display: { xs: 'inline', lg: 'none' } }}
-      ></Drawer>
-      <Outlet />
     </Box>
   );
 };
