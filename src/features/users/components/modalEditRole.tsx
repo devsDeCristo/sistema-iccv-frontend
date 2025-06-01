@@ -11,12 +11,11 @@ import {
   RadioGroup,
   Typography,
 } from '@mui/material';
-import { Controller, useForm } from 'react-hook-form';
-import { useGetUsers } from '../../users/api/getUsers';
+import { useForm } from 'react-hook-form';
 import { queryClient } from '../../../config/lib/react-query/query-client';
 import { GET_USERS } from '../constants';
 import { usePutUser } from '../api/putUser';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { User } from '../../../types/user';
 
 interface ModalAddUserProps {
@@ -32,23 +31,11 @@ function ModalEditRole({
   userId = '',
   user,
 }: ModalAddUserProps) {
-  // const { data: userData = '' } = useGetUsers(
-  //   // { userId: userId },
-  //   // { enabled: Boolean(userId) }
-  //   { userId: userId || 'd28c1370-3123-4f1e-9113-f0500510341a' },
-  //   {
-  //     enabled: !!userId,
-  //   }
-  // );
-  // console.log('userData', userData);
-  // const user = userData as User;
-
   const [valueRole, setValueRole] = useState(user?.role || 5);
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setValueRole(Number((event.target as HTMLInputElement).value));
   };
-  console.log('valueRole', valueRole);
 
   const style = {
     position: 'absolute' as 'absolute',
@@ -61,7 +48,7 @@ function ModalEditRole({
     boxShadow: 14,
     p: 4,
   };
-  const { control, reset, handleSubmit } = useForm();
+  const { reset, handleSubmit } = useForm();
 
   const { mutate: putUser } = usePutUser({
     onSuccess: () => {

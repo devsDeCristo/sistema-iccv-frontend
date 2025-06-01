@@ -40,7 +40,7 @@ const getSelectedRowsToExport = ({
 
 function List() {
   const { data = [], isLoading } = useGetUsers({});
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const openMenu = Boolean(anchorEl);
   const [openModalEditRole, setOpenModalEditRole] = useState(false);
