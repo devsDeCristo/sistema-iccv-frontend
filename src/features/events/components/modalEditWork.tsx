@@ -63,8 +63,6 @@ function ModalEditWork({
   });
 
   const onSubimitEditRoleUser = () => {
-    console.log('eventId', !!eventId, !!user);
-
     if (!eventId || !user) return;
     putEventToUser({
       idUser: user.id,
