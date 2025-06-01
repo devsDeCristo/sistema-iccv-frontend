@@ -101,14 +101,14 @@ function List() {
       headerName: 'Permissão',
       flex: 1,
       renderCell: (params: GridCellParams) => {
-        console.log('params', params);
-
         return (
           <Box>
             {params.row.role === 1 ? (
               <Chip label="Super Admin" color="primary" variant="outlined" />
+            ) : params.row.role === 5 ? (
+              <Chip label="Usuário" color="success" variant="outlined" />
             ) : (
-              <Chip label="Usuário" variant="outlined" />
+              <Chip label="Indefinido" variant="outlined" />
             )}
           </Box>
         );
@@ -153,8 +153,6 @@ function List() {
   const handleClickEditRole = (event: React.MouseEvent) => {
     event.stopPropagation();
     if (!rowSelected) return;
-    console.log('rowSelected', rowSelected);
-
     setOpenModalEditRole(true);
     handleClose();
   };

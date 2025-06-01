@@ -15,7 +15,7 @@ import { useForm } from 'react-hook-form';
 import { queryClient } from '../../../config/lib/react-query/query-client';
 import { GET_USERS } from '../constants';
 import { usePutUser } from '../api/putUser';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { User } from '../../../types/user';
 
 interface ModalAddUserProps {
@@ -36,7 +36,11 @@ function ModalEditRole({
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setValueRole(Number((event.target as HTMLInputElement).value));
   };
-
+  useEffect(() => {
+    if (user) {
+      setValueRole(user.role || 5);
+    }
+  }, [user]);
   const style = {
     position: 'absolute' as 'absolute',
     top: '50%',
