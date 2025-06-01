@@ -23,7 +23,13 @@ import {
 } from '@mui/x-data-grid';
 import { useGetEvents } from '../api/getEvents';
 import { useParams } from 'react-router-dom';
-import { Badge, Delete, Edit, MoreVert } from '@mui/icons-material';
+import {
+  AssignmentInd,
+  Badge,
+  Delete,
+  Edit,
+  MoreVert,
+} from '@mui/icons-material';
 import FileSaver from 'file-saver';
 import { pdf } from '@react-pdf/renderer';
 import PdfBadge from '../../../components/pdfBadge';
@@ -31,6 +37,7 @@ import { User } from '../../../types/user';
 import { useState } from 'react';
 import Swal from 'sweetalert2';
 import { useRemoveUserFromEvent } from '../api/deleteUser';
+import { ModalEditWork } from './modalEditWork';
 const getSelectedRowsToExport = ({
   apiRef,
 }: GridGetRowsToExportParams): GridRowId[] => {
@@ -54,7 +61,8 @@ function ListUsers({ search }: { search: string }) {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const openMenu = Boolean(anchorEl);
   const [rowSelected, setRowSelected] = useState<User | null>(null);
-
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [openModalEditWork, setOpenModalEditWork] = useState(false);
   const handleClose = () => {
     setAnchorEl(null);
   };
@@ -93,6 +101,7 @@ function ListUsers({ search }: { search: string }) {
     params: GridCellParams
   ) => {
     setRowSelected(params.row);
+    setSelectedUser(params.row as User);
     setAnchorEl(event.currentTarget);
   };
 
@@ -257,6 +266,13 @@ function ListUsers({ search }: { search: string }) {
     usersData.filter((user) =>
       user.fullName?.toLowerCase().includes(search.toLowerCase())
     );
+
+  const handleClickEditWork = (event: React.MouseEvent) => {
+    event.stopPropagation();
+    if (!rowSelected) return;
+    setOpenModalEditWork(true);
+    handleClose();
+  };
   return (
     <Card>
       <DataGrid
@@ -295,6 +311,12 @@ function ListUsers({ search }: { search: string }) {
           },
         }}
       />
+      <ModalEditWork
+        open={openModalEditWork}
+        user={selectedUser}
+        eventId={eventData.id || ''}
+        handleClose={() => setOpenModalEditWork(false)}
+      />
       <Menu
         id="basic-menu"
         anchorEl={anchorEl}
@@ -309,6 +331,12 @@ function ListUsers({ search }: { search: string }) {
             <Edit fontSize="small" color="primary" />
           </ListItemIcon>
           <ListItemText>Editar Usuário</ListItemText>
+        </MenuItem>
+        <MenuItem onClick={handleClickEditWork}>
+          <ListItemIcon>
+            <AssignmentInd fontSize="small" color="primary" />
+          </ListItemIcon>
+          <ListItemText>Participação no evento</ListItemText>
         </MenuItem>
         <MenuItem onClick={handleClickDownloadBadge}>
           <ListItemIcon>

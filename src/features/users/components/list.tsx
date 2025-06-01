@@ -22,7 +22,7 @@ import {
 } from '@mui/x-data-grid';
 import { useGetUsers } from '../api/getUsers';
 import { formatDate, formatPhoneNumber } from '../../../utils';
-import { useNavigate } from 'react-router-dom';
+// import { useNavigate } from 'react-router-dom';
 import { Edit, Key, MoreVert } from '@mui/icons-material';
 import { useState } from 'react';
 import { User } from '../../../types/user';
