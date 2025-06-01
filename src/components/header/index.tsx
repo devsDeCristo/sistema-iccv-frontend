@@ -1,13 +1,5 @@
-import { ThemeContext } from '@emotion/react';
 import { ArrowBack } from '@mui/icons-material';
-import {
-  Box,
-  Button,
-  Divider,
-  IconButton,
-  Typography,
-  useTheme,
-} from '@mui/material';
+import { Box, Divider, IconButton, Typography, useTheme } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 
 interface HeaderProps {

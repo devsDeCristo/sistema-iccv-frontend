@@ -8,7 +8,6 @@ import {
   CssBaseline,
   Drawer,
   IconButton,
-  Paper,
   Toolbar,
   useTheme,
 } from '@mui/material';

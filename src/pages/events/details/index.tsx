@@ -1,16 +1,6 @@
 import { Header } from '../../../components/header';
 import { PageStyle } from '../../../components/pageStyle';
-import {
-  Card,
-  Typography,
-  Box,
-  Button,
-  Divider,
-  Stack,
-  Tabs,
-  Tab,
-  TextField,
-} from '@mui/material';
+import { Card, Box, Button, Stack, Tabs, Tab, TextField } from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ListTeams } from '../../../features/events/components/listTeams';
 import { ListBedRooms } from '../../../features/events/components/listBedRooms';
@@ -115,7 +105,7 @@ function Details() {
       FileSaver.saveAs(blob, 'crachas.pdf');
     }
   }
-  const handleChange = (event: React.SyntheticEvent, newValue: string) => {
+  const handleChange = (_: unknown, newValue: string) => {
     setPageValue(newValue);
     navigate(`/eventos/${id}/detalhes/${newValue}`);
   };
@@ -217,16 +207,14 @@ function Details() {
             gap={2}
             marginY={2}
           >
-            {/* <TextField
+            <TextField
               label="Pesquisar usuário"
               variant="outlined"
               size="small"
-              // sx={{ marginY: 2, width: '300px' }}
               value={searchUser}
               onChange={(e) => setSearchUser(e.target.value)}
-            /> */}
+            />
             {/* <Typography color="#000">Usuários</Typography> */}
-
             <Button variant="outlined" onClick={() => handleDownloadPDF(3)}>
               Gerar Crachás
             </Button>

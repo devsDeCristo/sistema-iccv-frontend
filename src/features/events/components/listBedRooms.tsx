@@ -57,8 +57,8 @@ function ListBedRooms({ search }: { search: string }) {
       setOpenModalDeleteBedRoom(false);
     }
   };
-  const handleChange = (event: React.ChangeEvent<unknown>, value: number) => {
-    setPage(value);
+  const handleChange = (_: unknown, page: number) => {
+    setPage(page);
   };
 
   const paginateData = (

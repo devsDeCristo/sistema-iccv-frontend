@@ -57,7 +57,7 @@ function ListTeams({ search }: { search: string }) {
       setOpenModalDeleteTeam(false);
     }
   };
-  const handleChange = (event: React.ChangeEvent<unknown>, value: number) => {
+  const handleChange = (_: unknown, value: number) => {
     setPage(value);
   };
   const paginateData = (data: Team[], page: number, itemsPerPage: number) => {

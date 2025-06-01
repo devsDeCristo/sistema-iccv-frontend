@@ -1,4 +1,4 @@
-import { Navigate, Outlet, useLocation } from 'react-router-dom';
+import { Navigate, Outlet } from 'react-router-dom';
 import { ReactNode } from 'react';
 import { usePermission } from '../../hooks/usePermission';
 import { Loading } from '../loading';
