@@ -8,6 +8,7 @@ import {
   Menu,
   Tooltip,
   MenuItem,
+  Chip,
 } from '@mui/material';
 import {
   DataGrid,
@@ -43,6 +44,7 @@ function List() {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const openMenu = Boolean(anchorEl);
   const [openModalEditRole, setOpenModalEditRole] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [rowSelected, setRowSelected] = useState<User | null>(null);
 
   if (!Array.isArray(data)) {
@@ -56,6 +58,7 @@ function List() {
     params: GridCellParams
   ) => {
     setRowSelected(params.row);
+    setSelectedUser(params.row as User);
     setAnchorEl(event.currentTarget);
   };
 
@@ -93,6 +96,24 @@ function List() {
     },
     { field: 'religion', headerName: 'Religião', flex: 1 },
     { field: 'notes', headerName: 'Observações', flex: 1 },
+    {
+      field: 'role',
+      headerName: 'Permissão',
+      flex: 1,
+      renderCell: (params: GridCellParams) => {
+        console.log('params', params);
+
+        return (
+          <Box>
+            {params.row.role === 1 ? (
+              <Chip label="Super Admin" color="primary" variant="outlined" />
+            ) : (
+              <Chip label="Usuário" variant="outlined" />
+            )}
+          </Box>
+        );
+      },
+    },
     {
       field: 'actions',
       headerName: '',
@@ -161,6 +182,7 @@ function List() {
       />
       <ModalEditRole
         open={openModalEditRole}
+        user={selectedUser}
         handleClose={() => setOpenModalEditRole(false)}
         userId={rowSelected?.id || ''}
       />

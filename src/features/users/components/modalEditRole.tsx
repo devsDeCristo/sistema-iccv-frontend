@@ -16,28 +16,39 @@ import { useGetUsers } from '../../users/api/getUsers';
 import { queryClient } from '../../../config/lib/react-query/query-client';
 import { GET_USERS } from '../constants';
 import { usePutUser } from '../api/putUser';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { User } from '../../../types/user';
 
 interface ModalAddUserProps {
   open: boolean;
   handleClose: () => void;
   userId: string;
+  user: User | null;
 }
 
-function ModalEditRole({ open, handleClose, userId = '' }: ModalAddUserProps) {
-  console.log('userId', userId);
-  const { data: userData = '' } = useGetUsers(
-    { userId: userId },
-    { enabled: Boolean(userId) }
-  );
-  console.log('userData', userData);
-  const user = userData as User;
+function ModalEditRole({
+  open,
+  handleClose,
+  userId = '',
+  user,
+}: ModalAddUserProps) {
+  // const { data: userData = '' } = useGetUsers(
+  //   // { userId: userId },
+  //   // { enabled: Boolean(userId) }
+  //   { userId: userId || 'd28c1370-3123-4f1e-9113-f0500510341a' },
+  //   {
+  //     enabled: !!userId,
+  //   }
+  // );
+  // console.log('userData', userData);
+  // const user = userData as User;
+
   const [valueRole, setValueRole] = useState(user?.role || 5);
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setValueRole(Number((event.target as HTMLInputElement).value));
   };
+  console.log('valueRole', valueRole);
 
   const style = {
     position: 'absolute' as 'absolute',
@@ -61,6 +72,7 @@ function ModalEditRole({ open, handleClose, userId = '' }: ModalAddUserProps) {
   });
 
   const onSubimitEditRoleUser = () => {
+    if (!userId) return;
     putUser({
       userId: userId,
       data: {
@@ -93,7 +105,7 @@ function ModalEditRole({ open, handleClose, userId = '' }: ModalAddUserProps) {
       <Fade in={open}>
         <Box sx={style}>
           <Typography id="transition-modal-title" variant="h6" component="h2">
-            {'Editar Permissões do Usuário:' + user?.fullName}
+            {'Editar Permissões do Usuário: ' + user?.fullName}
           </Typography>
           <form onSubmit={handleSubmit(onSubimitEditRoleUser)}>
             <FormControl>
@@ -107,12 +119,12 @@ function ModalEditRole({ open, handleClose, userId = '' }: ModalAddUserProps) {
                 onChange={handleChange}
               >
                 <FormControlLabel
-                  value={5}
+                  value={1}
                   control={<Radio />}
                   label="Super Admin"
                 />
                 <FormControlLabel
-                  value={1}
+                  value={5}
                   control={<Radio />}
                   label="Usuário"
                 />
