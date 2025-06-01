@@ -9,7 +9,7 @@ function PageStyle({ children }: PageProps) {
   const theme = useTheme();
   return (
     <Box
-      padding={5}
+      padding={4}
       width="100%"
       sx={{ backgroundColor: theme.palette.background.default }}
     >

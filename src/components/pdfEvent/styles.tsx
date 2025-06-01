@@ -94,7 +94,7 @@ const stylesPdf = StyleSheet.create({
   imageCover: { height: '100%' },
   imageFooter: { height: 40 },
   imageEvent: {
-    width: '20%',
+    width: '30%',
     objectFit: 'fill',
   },
   imageDecuria: { height: 30 },

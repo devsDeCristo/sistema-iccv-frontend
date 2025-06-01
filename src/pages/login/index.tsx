@@ -28,9 +28,12 @@ function Login() {
   });
 
   function onSubmitForm(data: LoginFormType) {
-    const { cpf } = data;
+    const { cpf, password } = data;
     const cleanedCpf = cpf.replace(/[.\-\s]/g, '');
-    mutatePostLogin({ document: cleanedCpf, password: 'password123' });
+    console.log('password', password);
+
+    // mutatePostLogin({ document: cleanedCpf, password: '123456' });
+    mutatePostLogin({ document: cleanedCpf, password });
   }
 
   useEffect(() => {
@@ -56,7 +59,7 @@ function Login() {
       }
     },
     onError: (error: any) => {
-      if (error.response.status === 401) {
+      if (error.response.status === 404) {
         localStorage.setItem('cpf', JSON.parse(error.config.data).document);
         navigate('/user/register');
         Swal.fire({

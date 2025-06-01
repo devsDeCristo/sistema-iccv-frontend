@@ -10,7 +10,7 @@ const postLogin = (data: any) =>
   axios
     .post<{ access_token: string; user: any }>(`${API_URL}auth/login`, {
       document: data.document,
-      password: data.document,
+      password: data.password,
     })
     .then((response) => {
       handleResponseSuccess(

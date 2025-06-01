@@ -64,6 +64,31 @@ function Details() {
       enabled: !!eventId,
     }
   );
+  const styles = {
+    boxFilterAndPdf: {
+      display: 'flex',
+      // flexDirection: { xs: 'column', sm: 'row' },
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      flexWrap: 'wrap',
+      width: '100%',
+      gap: 2,
+      marginY: 2,
+    },
+    stackButtons: {
+      direction: 'row',
+      flexDirection: { xs: 'column', sm: 'row' },
+      // flexDirection: 'row',
+      flexWrap: 'wrap',
+      width: { xs: '100%', sm: 'fit-content' },
+      // backgroundColor: 'red',
+      gap: 2,
+    },
+    textField: {
+      width: { xs: '100%', sm: '250px' },
+    },
+  };
   const event = eventData as Event;
   async function handleDownloadPDF(type: number) {
     if (!eventData || Array.isArray(eventData)) {
@@ -115,22 +140,17 @@ function Details() {
       </Box>
       {pageValue === 'quartos' && (
         <Box component="div">
-          <Box
-            component="div"
-            display="flex"
-            alignItems="center"
-            justifyContent="space-between"
-            marginY={2}
-          >
+          <Box sx={styles.boxFilterAndPdf} component="div">
             <TextField
               label="Pesquisar quarto"
               variant="outlined"
               size="small"
               value={searchBedroom}
+              sx={styles.textField}
               onChange={(e) => setSearchBedroom(e.target.value)}
             />
             {/* <Typography color="#000">Quartos</Typography> */}
-            <Stack direction={'row'} gap={2}>
+            <Stack sx={styles.stackButtons}>
               <Button variant="outlined" onClick={() => handleDownloadPDF(1)}>
                 Pdf quartos
               </Button>

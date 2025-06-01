@@ -53,10 +53,10 @@ const stylesPdfRooms = StyleSheet.create({
     borderColor: '#DBDBDB',
     // width: '8.5cm',
     // height: '11cm',
-    //width: '18cm',
-    // height: '25cm',
-    width: '100%',
-    height: '100%',
+    width: '18cm',
+    height: '25cm',
+    // width: '100%',
+    // height: '100%',
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'center',
@@ -64,7 +64,7 @@ const stylesPdfRooms = StyleSheet.create({
     gap: '80px',
     marginTop: '20px',
   },
-  image: { height: 50 },
+  image: { height: 80 },
   imageBackground: {
     position: 'absolute',
     width: '100%',
@@ -73,7 +73,7 @@ const stylesPdfRooms = StyleSheet.create({
     opacity: 0.1,
   },
   imageEvent: {
-    height: 190,
+    height: 250,
     objectFit: 'fill',
   },
 });

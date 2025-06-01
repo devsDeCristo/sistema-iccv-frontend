@@ -37,25 +37,66 @@ const SideBar: React.FC<SideBarProps> = ({ validRole = true }) => {
       title: 'Eventos',
     },
   ];
+  const styles = {
+    boxContainer: {
+      display: 'flex',
+      minHeight: '100vh',
+      width: '100%',
+      minWidth: '340px',
+      flexDirection: { xs: 'column', lg: 'row' },
+    },
+    boxSidebar: (validRole: boolean | Boolean | null) => ({
+      display: validRole ? { xs: 'none', lg: 'flex' } : 'none',
+      boxShadow: '0px 1px 4px 0px' + theme.palette.border,
+      position: 'sticky',
+    }),
+    boxSidebarMobile: { display: { xs: 'inline', lg: 'none' } },
+    boxAppBar: (validRole: boolean | Boolean | null) => ({
+      // /display: "relative",
+      display: validRole ? { xs: 'flex', lg: 'none' } : 'none',
+      minWidth: '350px',
+      width: '100%',
+      borderTop: 'none',
+      borderLeft: 'none',
+      borderRight: 'none',
+      position: 'sticky',
+      top: 0,
+      left: 0,
+      // right: '950',
+      bgcolor: theme.palette.background.paper,
+      //border: "none",
+      // borderBottom: '1px solid ' + theme.palette.border,
+      boxShadow: '0px 1px 4px 0px' + theme.palette.border,
+      zIndex: 1200,
+    }),
+    toolbar: {
+      width: '100%',
+      padding: 0,
+      display: 'flex',
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      pr: 5,
+      pl: 3,
+      color: theme.palette.text.primary,
+    },
+    appBarContainer: {
+      padding: 0,
+      '&.MuiContainer-root': { paddingX: 0 },
+    },
+    boxOutlet: {
+      flexGrow: 1,
+      // paddingTop: 5,
+      width: '100%',
+      // width: 'calc(100vw - 250px)',
+      gap: 2,
+      // minWidth: 'calc(100vw - 250px)',
+    },
+  };
   return (
     <Box display={'flex'}>
       <CssBaseline />
-      <Box
-        sx={{
-          display: 'flex',
-          minHeight: '100vh',
-          width: '100%',
-          minWidth: '340px',
-          flexDirection: { xs: 'column', lg: 'row' },
-        }}
-      >
-        <Box
-          sx={{
-            display: validRole ? { xs: 'none', lg: 'flex' } : 'none',
-            boxShadow: '0px 1px 4px 0px' + theme.palette.border,
-            position: 'sticky',
-          }}
-        >
+      <Box sx={styles.boxContainer}>
+        <Box sx={styles.boxSidebar(validRole)}>
           <Sidebar className="sidebar">
             <Menu>
               <MenuItem className="menu1">
@@ -86,7 +127,7 @@ const SideBar: React.FC<SideBarProps> = ({ validRole = true }) => {
           variant="temporary"
           open={openDrawer}
           onClose={() => setOpenDrawer(false)}
-          sx={{ display: { xs: 'inline', lg: 'none' } }}
+          sx={styles.boxSidebarMobile}
         >
           <Sidebar className="sidebar">
             <Menu>
@@ -121,24 +162,7 @@ const SideBar: React.FC<SideBarProps> = ({ validRole = true }) => {
         </Drawer>
         <AppBar
           position="sticky"
-          sx={{
-            // /display: "relative",
-            display: validRole ? { xs: 'flex', lg: 'none' } : 'none',
-            minWidth: '350px',
-            width: '100%',
-            borderTop: 'none',
-            borderLeft: 'none',
-            borderRight: 'none',
-            position: 'sticky',
-            top: 0,
-            left: 0,
-            // right: '950',
-            bgcolor: theme.palette.background.paper,
-            //border: "none",
-            // borderBottom: '1px solid ' + theme.palette.border,
-            boxShadow: '0px 1px 4px 0px' + theme.palette.border,
-            zIndex: 1200,
-          }}
+          sx={styles.boxAppBar(validRole)}
           elevation={0}
           variant="outlined"
         >
@@ -149,20 +173,7 @@ const SideBar: React.FC<SideBarProps> = ({ validRole = true }) => {
               // maxWidth: '100vw',
             }}
           >
-            <Toolbar
-              sx={{
-                width: '100%',
-                padding: 0,
-                display: 'flex',
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                pr: 5,
-                pl: 3,
-                color: theme.palette.text.primary,
-              }}
-              disableGutters
-            >
-              {' '}
+            <Toolbar sx={styles.toolbar} disableGutters>
               <IconButton onClick={() => setOpenDrawer(!openDrawer)}>
                 <MenuIcon />
               </IconButton>
@@ -170,16 +181,7 @@ const SideBar: React.FC<SideBarProps> = ({ validRole = true }) => {
             </Toolbar>
           </Container>
         </AppBar>
-        <Box
-          sx={{
-            flexGrow: 1,
-            // paddingTop: 5,
-            width: '100%',
-            // width: 'calc(100vw - 250px)',
-            gap: 2,
-            // minWidth: 'calc(100vw - 250px)',
-          }}
-        >
+        <Box sx={styles.boxOutlet}>
           <Outlet />
         </Box>
       </Box>
