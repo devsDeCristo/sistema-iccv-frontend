@@ -46,7 +46,7 @@ function List() {
   ];
 
   function onRowClick({ row }: GridRowParams) {
-    navigate(`/eventos/${row.id}/detalhes/quartos`);
+    navigate(`/eventos/${row.id}/detalhes/usuarios`);
   }
 
   return (

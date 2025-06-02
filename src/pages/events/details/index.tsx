@@ -29,7 +29,7 @@ function Details() {
   const [searchTeam, setSearchTeam] = useState('');
   const [searchUser, setSearchUser] = useState('');
 
-  const [pageValue, setPageValue] = useState(subPage || 'quartos');
+  const [pageValue, setPageValue] = useState(subPage || 'usuarios');
 
   const [openModalAddUser, setOpenModalAddUser] = useState(false);
 
@@ -157,27 +157,52 @@ function Details() {
           </Card>
         </Box>
       )}
+      {pageValue === 'usuarios' && (
+        <Box component="div">
+          <Box component="div" sx={styles.boxFilterAndPdf}>
+            <TextField
+              label="Pesquisar usuário"
+              variant="outlined"
+              size="small"
+              value={searchUser}
+              sx={styles.textField}
+              onChange={(e) => setSearchUser(e.target.value)}
+            />
+            {/* <Typography color="#000">Usuários</Typography> */}
+            <Stack sx={styles.stackButtons}>
+              <Button variant="outlined" onClick={() => handleDownloadPDF(3)}>
+                Gerar Crachás
+              </Button>
+              <Button
+                variant="contained"
+                onClick={() => setOpenModalAddUser(true)}
+              >
+                Adicionar usuário
+              </Button>
+            </Stack>
+          </Box>
+
+          <Card>
+            <ListUsers search={searchUser} />
+          </Card>
+        </Box>
+      )}
 
       {/* <Divider color="#000" sx={{ marginY: 2 }} /> */}
 
       {pageValue === 'equipes' && (
         <Box component="div">
-          <Box
-            component="div"
-            display="flex"
-            alignItems="center"
-            justifyContent="space-between"
-            marginY={2}
-          >
+          <Box component="div" sx={styles.boxFilterAndPdf}>
             <TextField
               label="Pesquisar equipe"
               variant="outlined"
               size="small"
               value={searchTeam}
+              sx={styles.textField}
               onChange={(e) => setSearchTeam(e.target.value)}
             />
             {/* <Typography color="#000">Times</Typography> */}
-            <Stack direction={'row'} gap={2}>
+            <Stack sx={styles.stackButtons}>
               <Button variant="outlined" onClick={() => handleDownloadPDF(0)}>
                 Gerar Quadrantes
               </Button>
@@ -196,41 +221,6 @@ function Details() {
       )}
 
       {/* <Divider color="#000" sx={{ marginY: 2 }} /> */}
-
-      {pageValue === 'usuarios' && (
-        <Box component="div">
-          <Box
-            component="div"
-            display="flex"
-            alignItems="center"
-            justifyContent="end"
-            gap={2}
-            marginY={2}
-          >
-            <TextField
-              label="Pesquisar usuário"
-              variant="outlined"
-              size="small"
-              value={searchUser}
-              onChange={(e) => setSearchUser(e.target.value)}
-            />
-            {/* <Typography color="#000">Usuários</Typography> */}
-            <Button variant="outlined" onClick={() => handleDownloadPDF(3)}>
-              Gerar Crachás
-            </Button>
-            <Button
-              variant="contained"
-              onClick={() => setOpenModalAddUser(true)}
-            >
-              Adicionar usuário
-            </Button>
-          </Box>
-
-          <Card>
-            <ListUsers search={searchUser} />
-          </Card>
-        </Box>
-      )}
 
       <ModalBedRoom
         open={openModalBedRoom}
