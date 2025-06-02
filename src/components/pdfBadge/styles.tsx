@@ -64,7 +64,7 @@ const stylesPdfRooms = StyleSheet.create({
     gap: '80px',
     marginTop: '20px',
   },
-  image: { height: 80 },
+  image: { height: 40, marginTop: 10 },
   imageBackground: {
     position: 'absolute',
     width: '100%',
@@ -73,7 +73,7 @@ const stylesPdfRooms = StyleSheet.create({
     opacity: 0.1,
   },
   imageEvent: {
-    height: 250,
+    height: 100,
     objectFit: 'fill',
   },
 });
