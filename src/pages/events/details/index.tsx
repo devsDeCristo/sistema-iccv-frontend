@@ -128,35 +128,6 @@ function Details() {
           <Tab label="Equipes" value={'equipes'} />
         </Tabs>
       </Box>
-      {pageValue === 'quartos' && (
-        <Box component="div">
-          <Box sx={styles.boxFilterAndPdf} component="div">
-            <TextField
-              label="Pesquisar quarto"
-              variant="outlined"
-              size="small"
-              value={searchBedroom}
-              sx={styles.textField}
-              onChange={(e) => setSearchBedroom(e.target.value)}
-            />
-            {/* <Typography color="#000">Quartos</Typography> */}
-            <Stack sx={styles.stackButtons}>
-              <Button variant="outlined" onClick={() => handleDownloadPDF(1)}>
-                Pdf quartos
-              </Button>
-              <Button
-                variant="contained"
-                onClick={() => setOpenModalBedRoom(true)}
-              >
-                Adicionar quarto
-              </Button>
-            </Stack>
-          </Box>
-          <Card sx={{ padding: 2 }}>
-            <ListBedRooms search={searchBedroom} />
-          </Card>
-        </Box>
-      )}
       {pageValue === 'usuarios' && (
         <Box component="div">
           <Box component="div" sx={styles.boxFilterAndPdf}>
@@ -184,6 +155,35 @@ function Details() {
 
           <Card>
             <ListUsers search={searchUser} />
+          </Card>
+        </Box>
+      )}
+      {pageValue === 'quartos' && (
+        <Box component="div">
+          <Box sx={styles.boxFilterAndPdf} component="div">
+            <TextField
+              label="Pesquisar quarto"
+              variant="outlined"
+              size="small"
+              value={searchBedroom}
+              sx={styles.textField}
+              onChange={(e) => setSearchBedroom(e.target.value)}
+            />
+            {/* <Typography color="#000">Quartos</Typography> */}
+            <Stack sx={styles.stackButtons}>
+              <Button variant="outlined" onClick={() => handleDownloadPDF(1)}>
+                Pdf quartos
+              </Button>
+              <Button
+                variant="contained"
+                onClick={() => setOpenModalBedRoom(true)}
+              >
+                Adicionar quarto
+              </Button>
+            </Stack>
+          </Box>
+          <Card sx={{ padding: 2 }}>
+            <ListBedRooms search={searchBedroom} />
           </Card>
         </Box>
       )}

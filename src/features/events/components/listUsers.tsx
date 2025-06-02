@@ -124,21 +124,21 @@ function ListUsers({ search }: { search: string }) {
         );
       },
     },
-    { field: 'fullName', headerName: 'Nome', flex: 1 },
+    { field: 'fullName', headerName: 'Nome', flex: 1, minWidth: 200 },
     {
       field: 'birthday',
       headerName: 'Data de nascimento',
-      flex: 1,
+      width: 100,
       valueGetter: (params) => formatDate(params.row.birthday),
     },
     {
       field: 'worker',
       headerName: 'Trabalhar',
-      flex: 1,
+      width: 80,
       valueGetter: (params) => (params.row.worker ? 'Sim' : 'Não'),
     },
-    { field: 'neighborhood', headerName: 'Bairro', flex: 1 },
-    { field: 'city', headerName: 'Cidade', flex: 1 },
+    { field: 'neighborhood', headerName: 'Bairro', flex: 1, minWidth: 100 },
+    { field: 'city', headerName: 'Cidade', flex: 1, minWidth: 120 },
     { field: 'leadershipPosition', headerName: 'Cargo na igreja', flex: 1 },
     {
       field: 'hypertensive',
@@ -152,7 +152,7 @@ function ListUsers({ search }: { search: string }) {
       flex: 1,
       valueGetter: (params) => (params.row.diabetes ? 'Sim' : 'Não'),
     },
-    { field: 'notes', headerName: 'Observações', flex: 1 },
+    { field: 'notes', headerName: 'Observações', flex: 1, minWidth: 80 },
     {
       field: 'badgeName',
       headerName: 'Nome do crachá',
@@ -161,12 +161,12 @@ function ListUsers({ search }: { search: string }) {
     {
       field: 'cellphone',
       headerName: 'Telefone',
-      flex: 1,
+      width: 128,
     },
     {
       field: 'cpf',
       headerName: 'CPF',
-      flex: 1,
+      width: 110,
     },
     {
       field: 'email',
@@ -202,7 +202,7 @@ function ListUsers({ search }: { search: string }) {
     {
       field: 'paid',
       headerName: 'Pago',
-      flex: 1,
+      width: 60,
       valueGetter: (params) => (params.row.paid ? 'Sim' : 'Não'),
     },
     {
@@ -210,7 +210,6 @@ function ListUsers({ search }: { search: string }) {
       headerName: '',
       sortable: false,
       width: 80,
-      //flex: 1,
       renderCell: (params: GridCellParams) => {
         return (
           <Box key={params.id}>
