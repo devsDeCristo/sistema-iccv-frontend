@@ -8,7 +8,7 @@ import { API_URL } from '../../../config/env';
 
 const postLogin = (data: any) =>
   axios
-    .post<{ access_token: string; user: any }>(`${API_URL}auth/login`, {
+    .post<{ access_token: string; user: any }>(`${API_URL}/auth/login`, {
       document: data.document,
       password: data.password,
     })
