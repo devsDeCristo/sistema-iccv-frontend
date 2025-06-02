@@ -17,6 +17,7 @@ import { useEffect } from 'react';
 import { usePermission } from '../../hooks/usePermission';
 import { usePostLogin } from '../../features/login/api/postLogin';
 import Swal from 'sweetalert2';
+import { useRole } from '../../hooks/useRole';
 import { LoginFormType } from '../../features/login/types';
 
 function Login() {
@@ -27,15 +28,22 @@ function Login() {
   });
 
   function onSubmitForm(data: LoginFormType) {
-    const { cpf } = data;
+    const { cpf, password } = data;
     const cleanedCpf = cpf.replace(/[.\-\s]/g, '');
-    mutatePostLogin({ document: cleanedCpf, password: 'password123' });
+    console.log('password', password);
+
+    // mutatePostLogin({ document: cleanedCpf, password: '123456' });
+    mutatePostLogin({ document: cleanedCpf, password });
   }
 
   useEffect(() => {
     const permission = usePermission();
-    if (permission) {
+    const role = useRole();
+    if (permission && role) {
       navigate('/eventos');
+    }
+    if (permission) {
+      navigate('/cadastrar-cursilho');
     }
   }, []);
 
@@ -44,11 +52,14 @@ function Login() {
       localStorage.setItem('access_token', response.access_token);
       localStorage.setItem('user', JSON.stringify(response.user));
 
-      //navigate('/eventos')
-      navigate('/cadastrar-cursilho');
+      if (response.user.role === 1) {
+        navigate('/eventos');
+      } else {
+        navigate('/cadastrar-cursilho');
+      }
     },
     onError: (error: any) => {
-      if (error.response.status === 401) {
+      if (error.response.status === 404) {
         localStorage.setItem('cpf', JSON.parse(error.config.data).document);
         navigate('/user/register');
         Swal.fire({

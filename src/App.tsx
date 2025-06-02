@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { RoutesUsers } from './pages/users/routes';
+import { RoutesUsers, RoutesUsersAdmin } from './pages/users/routes';
 import { SideBar } from './components/sideBar';
 import { RoutesEvents } from './pages/events/routes';
 import { ToastContainer } from 'react-toastify';
@@ -9,15 +9,13 @@ import { ThemeProvider } from '@emotion/react';
 import ProtectedRoute from './components/protectedRoute';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { RegisterUser } from './pages/users/register';
+import { CssBaseline } from '@mui/material';
 // import { useMediaQuery } from '@mui/material';
 
 function Loading() {
   return <p>Loading ...</p>;
 }
 function App() {
-  const [permission, setPermission] = useState<boolean | null>(null);
-  const [validRole, setValidRole] = useState<boolean | null>(null);
-
   const prefersDarkMode = false; // useMediaQuery('(prefers-color-scheme: dark)');
   const [colorMode, setColorMode] = useState(prefersDarkMode);
 
@@ -35,7 +33,8 @@ function App() {
   const theme = useMemo(() => myTheme(colorMode), [colorMode]);
   return (
     <ThemeProvider theme={theme}>
-      <div style={{ display: 'flex' }}>
+      <CssBaseline />
+      <div className="App">
         <React.Suspense fallback={<Loading />}>
           <Routes>
             {RoutesLogin()}
@@ -43,18 +42,16 @@ function App() {
             <Route path="*" element={<Navigate replace to="/login" />} />
             <Route
               element={
-                <ProtectedRoute
-                  permission={permission}
-                  setPermission={setPermission}
-                  validRole={validRole}
-                  setValidRole={setValidRole}
-                >
-                  <SideBar validRole={validRole} />
+                <ProtectedRoute isAdmin={true}>
+                  <SideBar />
                 </ProtectedRoute>
               }
             >
-              {RoutesUsers()}
+              {RoutesUsersAdmin()}
               {RoutesEvents()}
+            </Route>
+            <Route element={<ProtectedRoute isAdmin={false} />}>
+              {RoutesUsers()}
             </Route>
           </Routes>
         </React.Suspense>

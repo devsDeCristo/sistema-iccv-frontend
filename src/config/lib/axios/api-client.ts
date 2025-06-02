@@ -38,8 +38,8 @@ apiClient.interceptors.request.use(
         console.error(error);
       }
     } else {
-      // localStorage.clear();
-      // window.location.replace('/login');
+      localStorage.clear();
+      window.location.replace('/login');
     }
 
     return config; // Retorna o config mesmo em caso de erro para evitar problemas

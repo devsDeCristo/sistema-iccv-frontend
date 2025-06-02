@@ -81,7 +81,7 @@ export const OPTIONS_WORKER = [
   { value: 1, name: 'Servir (Cursilheiro)' },
 ];
 
-export const OPTIONS_ROLE = [
+export const OPTIONS_LEADERSHIP = [
   {
     value: ENUM_OPTION_LEADERSHIP_POSITION.NOT_POSITION,
     name: ENUM_OPTION_LEADERSHIP_POSITION.NOT_POSITION,

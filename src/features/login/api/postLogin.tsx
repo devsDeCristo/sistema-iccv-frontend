@@ -1,15 +1,16 @@
 import { MutationOptions, useMutation } from 'react-query';
-import { apiClient } from '../../../config/lib/axios/api-client';
 import {
   handleResponseSuccess,
   handleResponseThrowError,
 } from '../../../utils/service';
+import axios from 'axios';
+import { API_URL } from '../../../config/env';
 
 const postLogin = (data: any) =>
-  apiClient
-    .post<{ access_token: string; user: any }>('/auth/login', {
+  axios
+    .post<{ access_token: string; user: any }>(`${API_URL}auth/login`, {
       document: data.document,
-      password: data.document,
+      password: data.password,
     })
     .then((response) => {
       handleResponseSuccess(

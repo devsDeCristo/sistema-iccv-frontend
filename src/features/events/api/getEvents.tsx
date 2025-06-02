@@ -2,6 +2,7 @@ import { UseQueryOptions, useQuery } from 'react-query';
 import { apiClient } from '../../../config/lib/axios/api-client';
 import { Event } from '../types';
 import { GET_EVENTS } from '../constants';
+import { handleResponseThrowError } from '../../../utils/service';
 
 interface GetEventsParams {
   eventId?: string;
@@ -12,7 +13,8 @@ const getEvents = ({ eventId }: GetEventsParams) => {
 
   return apiClient
     .get<Event[] | Event>(`/events${urlWithId}`)
-    .then((response) => response.data);
+    .then((response) => response.data)
+    .catch(handleResponseThrowError());
 };
 
 type GetEventsData = Awaited<ReturnType<typeof getEvents>>;

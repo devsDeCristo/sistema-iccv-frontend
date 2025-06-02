@@ -1,7 +1,7 @@
 import { Header } from '../../../components/header';
 import { PageStyle } from '../../../components/pageStyle';
-import { Card, Typography, Box, Button, Divider, Stack } from '@mui/material';
-import { useParams } from 'react-router-dom';
+import { Card, Box, Button, Stack, Tabs, Tab, TextField } from '@mui/material';
+import { useNavigate, useParams } from 'react-router-dom';
 import { ListTeams } from '../../../features/events/components/listTeams';
 import { ListBedRooms } from '../../../features/events/components/listBedRooms';
 import { ModalBedRoom } from '../../../features/events/components/modalBedRoom';
@@ -21,10 +21,16 @@ import PdfBadge from '../../../components/pdfBadge';
 import { ModalAddUserOnEvent } from '../../../features/events/components/modalAddUser';
 
 function Details() {
-  const { id } = useParams();
-
+  const { id, subPage } = useParams();
+  const navigate = useNavigate();
   const [openModalBedRoom, setOpenModalBedRoom] = useState(false);
   const [openModalTeam, setOpenModalTeam] = useState(false);
+  const [searchBedroom, setSearchBedroom] = useState('');
+  const [searchTeam, setSearchTeam] = useState('');
+  const [searchUser, setSearchUser] = useState('');
+
+  const [pageValue, setPageValue] = useState(subPage || 'usuarios');
+
   const [openModalAddUser, setOpenModalAddUser] = useState(false);
 
   const { id: eventId = '' } = useParams();
@@ -48,7 +54,32 @@ function Details() {
       enabled: !!eventId,
     }
   );
-
+  const styles = {
+    boxFilterAndPdf: {
+      display: 'flex',
+      // flexDirection: { xs: 'column', sm: 'row' },
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      flexWrap: 'wrap',
+      width: '100%',
+      gap: 2,
+      marginY: 2,
+    },
+    stackButtons: {
+      direction: 'row',
+      flexDirection: { xs: 'column', sm: 'row' },
+      // flexDirection: 'row',
+      flexWrap: 'wrap',
+      width: { xs: '100%', sm: 'fit-content' },
+      // backgroundColor: 'red',
+      gap: 2,
+    },
+    textField: {
+      width: { xs: '100%', sm: '250px' },
+    },
+  };
+  const event = eventData as Event;
   async function handleDownloadPDF(type: number) {
     if (!eventData || Array.isArray(eventData)) {
       return null;
@@ -74,92 +105,122 @@ function Details() {
       FileSaver.saveAs(blob, 'crachas.pdf');
     }
   }
+  const handleChange = (_: unknown, newValue: string) => {
+    setPageValue(newValue);
+    navigate(`/eventos/${id}/detalhes/${newValue}`);
+  };
 
   return (
     <PageStyle>
-      <Header title="Detalhes do evento" buttonBack pageBack="/eventos" />
-
-      <Box component="div">
-        <Box
-          component="div"
-          display="flex"
-          alignItems="center"
-          justifyContent="space-between"
-          mb={2}
+      <Header
+        title={'Detalhes do evento: ' + event?.name}
+        buttonBack
+        pageBack="/eventos"
+      />
+      <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+        <Tabs
+          value={pageValue}
+          onChange={handleChange}
+          aria-label="basic tabs example"
         >
-          <Typography color="#000">Quartos</Typography>
-          <Stack direction={'row'} gap={2}>
-            <Button variant="outlined" onClick={() => handleDownloadPDF(1)}>
-              Pdf quartos
-            </Button>
-            <Button
-              variant="contained"
-              onClick={() => setOpenModalBedRoom(true)}
-            >
-              Adicionar quarto
-            </Button>
-          </Stack>
-        </Box>
-        <Card sx={{ padding: 2 }}>
-          <ListBedRooms />
-        </Card>
+          <Tab label="Usuários" value={'usuarios'} />
+          <Tab label="Quartos" value={'quartos'} />
+          <Tab label="Equipes" value={'equipes'} />
+        </Tabs>
       </Box>
-
-      <Divider color="#000" sx={{ marginY: 2 }} />
-
-      <Box component="div">
-        <Box
-          component="div"
-          display="flex"
-          alignItems="center"
-          justifyContent="space-between"
-          mb={2}
-        >
-          <Typography color="#000">Times</Typography>
-          <Stack direction={'row'} gap={2}>
-            <Button variant="outlined" onClick={() => handleDownloadPDF(0)}>
-              Gerar Quadrantes
-            </Button>
-            <Button variant="contained" onClick={() => setOpenModalTeam(true)}>
-              Adicionar time
-            </Button>
-          </Stack>
-        </Box>
-        <Card sx={{ padding: 2 }}>
-          <ListTeams />
-        </Card>
-      </Box>
-
-      <Divider color="#000" sx={{ marginY: 2 }} />
-
-      <Box component="div">
-        <Box
-          component="div"
-          display="flex"
-          alignItems="center"
-          justifyContent="space-between"
-          mb={2}
-        >
-          <Typography color="#000">Usuários</Typography>
-
-          <Box display="flex" gap={2}>
-            <Button variant="outlined" onClick={() => handleDownloadPDF(3)}>
-              Gerar Crachás
-            </Button>
-
-            <Button
-              variant="contained"
-              onClick={() => setOpenModalAddUser(true)}
-            >
-              Adicionar usuário
-            </Button>
+      {pageValue === 'usuarios' && (
+        <Box component="div">
+          <Box component="div" sx={styles.boxFilterAndPdf}>
+            <TextField
+              label="Pesquisar usuário"
+              variant="outlined"
+              size="small"
+              value={searchUser}
+              sx={styles.textField}
+              onChange={(e) => setSearchUser(e.target.value)}
+            />
+            {/* <Typography color="#000">Usuários</Typography> */}
+            <Stack sx={styles.stackButtons}>
+              <Button variant="outlined" onClick={() => handleDownloadPDF(3)}>
+                Gerar Crachás
+              </Button>
+              <Button
+                variant="contained"
+                onClick={() => setOpenModalAddUser(true)}
+              >
+                Adicionar usuário
+              </Button>
+            </Stack>
           </Box>
-        </Box>
 
-        <Card>
-          <ListUsers />
-        </Card>
-      </Box>
+          <Card>
+            <ListUsers search={searchUser} />
+          </Card>
+        </Box>
+      )}
+      {pageValue === 'quartos' && (
+        <Box component="div">
+          <Box sx={styles.boxFilterAndPdf} component="div">
+            <TextField
+              label="Pesquisar quarto"
+              variant="outlined"
+              size="small"
+              value={searchBedroom}
+              sx={styles.textField}
+              onChange={(e) => setSearchBedroom(e.target.value)}
+            />
+            {/* <Typography color="#000">Quartos</Typography> */}
+            <Stack sx={styles.stackButtons}>
+              <Button variant="outlined" onClick={() => handleDownloadPDF(1)}>
+                Pdf quartos
+              </Button>
+              <Button
+                variant="contained"
+                onClick={() => setOpenModalBedRoom(true)}
+              >
+                Adicionar quarto
+              </Button>
+            </Stack>
+          </Box>
+          <Card sx={{ padding: 2 }}>
+            <ListBedRooms search={searchBedroom} />
+          </Card>
+        </Box>
+      )}
+
+      {/* <Divider color="#000" sx={{ marginY: 2 }} /> */}
+
+      {pageValue === 'equipes' && (
+        <Box component="div">
+          <Box component="div" sx={styles.boxFilterAndPdf}>
+            <TextField
+              label="Pesquisar equipe"
+              variant="outlined"
+              size="small"
+              value={searchTeam}
+              sx={styles.textField}
+              onChange={(e) => setSearchTeam(e.target.value)}
+            />
+            {/* <Typography color="#000">Times</Typography> */}
+            <Stack sx={styles.stackButtons}>
+              <Button variant="outlined" onClick={() => handleDownloadPDF(0)}>
+                Gerar Quadrantes
+              </Button>
+              <Button
+                variant="contained"
+                onClick={() => setOpenModalTeam(true)}
+              >
+                Adicionar time
+              </Button>
+            </Stack>
+          </Box>
+          <Card sx={{ padding: 2 }}>
+            <ListTeams search={searchTeam} />
+          </Card>
+        </Box>
+      )}
+
+      {/* <Divider color="#000" sx={{ marginY: 2 }} /> */}
 
       <ModalBedRoom
         open={openModalBedRoom}

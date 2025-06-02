@@ -5,7 +5,7 @@ import { InputSelect } from '../../../components/inputSelect';
 import { Controller, useFormContext } from 'react-hook-form';
 import { RegisterUsersFormType } from '../../../types/user';
 import { formatCPF, formatPhoneNumber, formatState } from '../../../utils';
-import { OPTIONS_BOOLEAN, OPTIONS_ROLE } from '../constants';
+import { OPTIONS_BOOLEAN, OPTIONS_LEADERSHIP } from '../constants';
 
 function Form() {
   const {
@@ -256,7 +256,7 @@ function Form() {
           render={({ field: { onChange, value } }) => (
             <InputSelect
               label="Possui ministerio na igreja? Qual?"
-              menuOptions={OPTIONS_ROLE}
+              menuOptions={OPTIONS_LEADERSHIP}
               value={value}
               onChange={onChange}
               helperText={errors.leadershipPosition?.message}

@@ -9,6 +9,14 @@ declare module '@mui/material/styles' {
     lg: true;
     xl: true;
   }
+
+  interface Palette {
+    border: string;
+  }
+
+  interface PaletteOptions {
+    border?: string;
+  }
 }
 
 export const myTheme = (colorMode: boolean) =>
@@ -30,6 +38,7 @@ export const myTheme = (colorMode: boolean) =>
         secondary: colorMode ? '#9FAAB0' : '#495C67',
         disabled: colorMode ? '#495C67' : '#696A6A',
       },
+      border: colorMode ? '#495C67' : '#D0D0D0',
     },
     breakpoints: {
       values: {

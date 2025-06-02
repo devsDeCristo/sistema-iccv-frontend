@@ -1,13 +1,13 @@
-import { Grid } from '@mui/material';
+import { Grid, IconButton, InputAdornment } from '@mui/material';
 import { Input } from '../../../components/input';
 import { Controller, useFormContext } from 'react-hook-form';
 import { LoginFormType } from '../../../features/login/types';
 import { formatCPF } from '../../../utils';
-// import { useState } from 'react';
-// import { Visibility, VisibilityOff } from '@mui/icons-material';
+import { useState } from 'react';
+import { Visibility, VisibilityOff } from '@mui/icons-material';
 
 function FormLogin() {
-  // const [showPassword, setShowPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const {
     control,
     formState: { errors },
@@ -31,13 +31,13 @@ function FormLogin() {
           )}
         />
       </Grid>
-      {/* <Grid item xs={12} md={12}>
+      <Grid item xs={12} md={12}>
         <Controller
           name="password"
           control={control}
           render={({ field: { onChange, value } }) => (
             <Input
-              //required
+              required
               label="Senha"
               value={value}
               error={!!errors.password}
@@ -67,7 +67,7 @@ function FormLogin() {
             />
           )}
         />
-      </Grid> */}
+      </Grid>
     </Grid>
   );
 }

@@ -6,6 +6,7 @@ import {
   Tooltip,
   Typography,
   Button,
+  Pagination,
 } from '@mui/material';
 import { stringAvatar } from '../../../utils';
 import { useGetBedrooms } from '../api/getBedrooms';
@@ -18,7 +19,7 @@ import { Bedroom } from '../types';
 import { useDeleteBedroom } from '../api/deleteBedroom';
 import { ConfirmModal } from '../../../components/ConfirmModal';
 
-function ListBedRooms() {
+function ListBedRooms({ search }: { search: string }) {
   const { id: eventId = '' } = useParams();
   const { data: bedroomsData = [], isLoading } = useGetBedrooms(
     {
@@ -31,6 +32,7 @@ function ListBedRooms() {
 
   const [openModalBedRoom, setOpenModalBedRoom] = useState(false);
   const [selectBedRoom, setSelectBedRoom] = useState<Bedroom | null>(null);
+  const [page, setPage] = useState(1);
 
   const [openModalDeleteBedRoom, setOpenModalDeleteBedRoom] = useState(false);
   const [selectedDeleteIdBedRoom, setSelectedDeleteIdBedRoom] = useState<
@@ -55,12 +57,44 @@ function ListBedRooms() {
       setOpenModalDeleteBedRoom(false);
     }
   };
+  const handleChange = (_: unknown, page: number) => {
+    setPage(page);
+  };
 
+  const paginateData = (
+    data: Bedroom[],
+    page: number,
+    itemsPerPage: number
+  ) => {
+    const startIndex = (page - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return {
+      paginatedData: data.slice(startIndex, endIndex),
+      totalPages: Math.ceil(data.length / itemsPerPage),
+    };
+  };
+  const filteredData = (bedroomsData: Bedroom[]) =>
+    bedroomsData.filter((bedroom) =>
+      bedroom.note?.toLowerCase().includes(search.toLowerCase())
+    );
+  const itemsPerPage = 8;
+  const { paginatedData, totalPages } = paginateData(
+    filteredData(bedroomsData),
+    page,
+    itemsPerPage
+  );
   return (
-    <>
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 2,
+        alignItems: 'end',
+      }}
+    >
       {isLoading && <Loading />}
       <Grid container spacing={2}>
-        {bedroomsData.map((bedroom) => (
+        {paginatedData.map((bedroom) => (
           <Grid item xs={12} md={6} key={bedroom.id}>
             <Card variant="outlined" sx={{ padding: 1 }}>
               <Box
@@ -74,8 +108,11 @@ function ListBedRooms() {
                     display="flex"
                     alignItems="center"
                     gap={0.5}
+                    flexWrap={'wrap'}
                   >
-                    <Typography component="label">Observações:</Typography>
+                    <Typography component="label" fontWeight={'bold'}>
+                      Observações:
+                    </Typography>
                     <Typography>{bedroom.note}</Typography>
                   </Box>
                   <Box
@@ -83,8 +120,11 @@ function ListBedRooms() {
                     display="flex"
                     alignItems="center"
                     gap={0.5}
+                    flexWrap={'wrap'}
                   >
-                    <Typography component="label">Quantidade:</Typography>
+                    <Typography component="label" fontWeight={'bold'}>
+                      Quantidade:
+                    </Typography>
                     <Typography>{bedroom.users.length || 0}</Typography>
                   </Box>
                   <Box
@@ -92,8 +132,11 @@ function ListBedRooms() {
                     display="flex"
                     alignItems="center"
                     gap={0.5}
+                    flexWrap={'wrap'}
                   >
-                    <Typography component="label">Usuários:</Typography>
+                    <Typography component="label" fontWeight={'bold'}>
+                      Usuários:
+                    </Typography>
                     <Box
                       display="flex"
                       flexWrap="wrap"
@@ -137,6 +180,7 @@ function ListBedRooms() {
         ))}
       </Grid>
 
+      <Pagination count={totalPages} page={page} onChange={handleChange} />
       <ModalBedRoom
         open={openModalBedRoom}
         handleClose={() => setOpenModalBedRoom(false)}
@@ -151,7 +195,7 @@ function ListBedRooms() {
         message="Você tem certeza que deseja deletar esse quarto?"
         onConfirm={handleConfirmDelete}
       />
-    </>
+    </Box>
   );
 }
 

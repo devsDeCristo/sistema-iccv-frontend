@@ -2,9 +2,9 @@ import { Page, Text, View, Document, Font, Image } from '@react-pdf/renderer';
 
 import { stylesPdfRooms } from './styles';
 import type { PdfProps } from './types';
-import logoIc from '../../assets/logoic-rosa.png';
-import logoEvento from '../../assets/5-curs-fem.png';
-import bgbadge from '../../assets/bg-badge.png';
+import logoIc from '../../assets/logo-ic-preta.png';
+import logoEvento from '../../assets/8-cur-mas.png';
+import bgbadge from '../../assets/galo.png';
 Font.register({
   family: 'Helvetica',
   src: 'https://fonts.gstatic.com/s/oswald/v13/Y_TKV6o8WovbUd3m_X9aAA.ttf',
@@ -17,7 +17,7 @@ function PdfBadge({ data }: PdfProps) {
     <Document>
       <Page orientation="portrait" style={stylesPdfRooms.body}>
         <View style={stylesPdfRooms.container} wrap={true}>
-          {filterBadgeName?.map(({ fullName}, index) => (
+          {filterBadgeName?.map(({ fullName }, index) => (
             <View
               style={stylesPdfRooms.badge}
               key={'cracha-pdf' + index}
@@ -28,7 +28,10 @@ function PdfBadge({ data }: PdfProps) {
                 <Image style={stylesPdfRooms.image} src={logoIc} />
                 <Image style={stylesPdfRooms.imageEvent} src={logoEvento} />
               </View>
-             <Text wrap={false} style={stylesPdfRooms.textName}> {fullName?.toLowerCase()}</Text>
+              <Text wrap={false} style={stylesPdfRooms.textName}>
+                {' '}
+                {fullName?.toLowerCase()}
+              </Text>
             </View>
           ))}
           {filterBadgeName.length % 2 !== 0 && (

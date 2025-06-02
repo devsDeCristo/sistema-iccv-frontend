@@ -2,6 +2,7 @@ import { UseQueryOptions, useQuery } from 'react-query';
 import { apiClient } from '../../../config/lib/axios/api-client';
 import { Bedroom } from '../types';
 import { GET_BEDROOMS } from '../constants';
+import { handleResponseThrowError } from '../../../utils/service';
 
 interface GetBedroomsParams {
   eventId: string;
@@ -13,7 +14,8 @@ const getBedrooms = ({ eventId, bedroomId }: GetBedroomsParams) => {
 
   return apiClient
     .get<Bedroom[]>(`/events/${eventId}/bedrooms${urlWithId}`)
-    .then((response) => response.data);
+    .then((response) => response.data)
+    .catch(handleResponseThrowError());
 };
 
 type GetBedroomsData = Awaited<ReturnType<typeof getBedrooms>>;

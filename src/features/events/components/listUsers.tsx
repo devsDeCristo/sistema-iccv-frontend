@@ -1,4 +1,15 @@
-import { Box, Card, IconButton, Tooltip } from '@mui/material';
+import {
+  Avatar,
+  Box,
+  Card,
+  Divider,
+  IconButton,
+  ListItemIcon,
+  ListItemText,
+  Menu,
+  MenuItem,
+  Tooltip,
+} from '@mui/material';
 import { formatDate } from '../../../utils';
 import {
   DataGrid,
@@ -12,13 +23,21 @@ import {
 } from '@mui/x-data-grid';
 import { useGetEvents } from '../api/getEvents';
 import { useParams } from 'react-router-dom';
-import { Badge, Delete } from '@mui/icons-material';
+import {
+  AssignmentInd,
+  Badge,
+  Delete,
+  Edit,
+  MoreVert,
+} from '@mui/icons-material';
 import FileSaver from 'file-saver';
 import { pdf } from '@react-pdf/renderer';
 import PdfBadge from '../../../components/pdfBadge';
 import { User } from '../../../types/user';
+import { useState } from 'react';
 import Swal from 'sweetalert2';
 import { useRemoveUserFromEvent } from '../api/deleteUser';
+import { ModalEditWork } from './modalEditWork';
 const getSelectedRowsToExport = ({
   apiRef,
 }: GridGetRowsToExportParams): GridRowId[] => {
@@ -29,7 +48,7 @@ const getSelectedRowsToExport = ({
 
   return gridFilteredSortedRowIdsSelector(apiRef);
 };
-function ListUsers() {
+function ListUsers({ search }: { search: string }) {
   const { id: eventId = '' } = useParams();
   const { data: eventData, isLoading } = useGetEvents(
     {
@@ -39,7 +58,14 @@ function ListUsers() {
       enabled: !!eventId,
     }
   );
-
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const openMenu = Boolean(anchorEl);
+  const [rowSelected, setRowSelected] = useState<User | null>(null);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [openModalEditWork, setOpenModalEditWork] = useState(false);
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
   const { mutate: mutateRemoveUserFromEvent } = useRemoveUserFromEvent({
     onSuccess: () => {
       Swal.fire({
@@ -61,6 +87,8 @@ function ListUsers() {
   if (!eventData || Array.isArray(eventData)) {
     return null;
   }
+
+  // const { mutate: mutateDeleteEventUser } = useDeleteRelationEventUser({});
   async function handleDownloadPDF(data: User[]) {
     if (!eventData || Array.isArray(eventData)) {
       return null;
@@ -68,22 +96,49 @@ function ListUsers() {
     const blob = await pdf(<PdfBadge data={data || []} />).toBlob();
     FileSaver.saveAs(blob, 'crachas.pdf');
   }
+  const handleClickOptions = (
+    event: React.MouseEvent<HTMLElement>,
+    params: GridCellParams
+  ) => {
+    setRowSelected(params.row);
+    setSelectedUser(params.row as User);
+    setAnchorEl(event.currentTarget);
+  };
+
   const columns: GridColDef[] = [
-    { field: 'fullName', headerName: 'Nome', flex: 1 },
+    {
+      sortable: false,
+      field: 'foto',
+      headerName: '',
+      width: 60,
+      renderCell: (params) => {
+        return (
+          <Avatar
+            alt={params?.row?.fullName}
+            src={params?.row?.profilePhotoUrl || '/'}
+            sx={{
+              width: '30px',
+              height: '30px',
+            }}
+          />
+        );
+      },
+    },
+    { field: 'fullName', headerName: 'Nome', flex: 1, minWidth: 200 },
     {
       field: 'birthday',
       headerName: 'Data de nascimento',
-      flex: 1,
+      width: 100,
       valueGetter: (params) => formatDate(params.row.birthday),
     },
     {
       field: 'worker',
       headerName: 'Trabalhar',
-      flex: 1,
+      width: 80,
       valueGetter: (params) => (params.row.worker ? 'Sim' : 'Não'),
     },
-    { field: 'neighborhood', headerName: 'Bairro', flex: 1 },
-    { field: 'city', headerName: 'Cidade', flex: 1 },
+    { field: 'neighborhood', headerName: 'Bairro', flex: 1, minWidth: 100 },
+    { field: 'city', headerName: 'Cidade', flex: 1, minWidth: 120 },
     { field: 'leadershipPosition', headerName: 'Cargo na igreja', flex: 1 },
     {
       field: 'hypertensive',
@@ -97,7 +152,7 @@ function ListUsers() {
       flex: 1,
       valueGetter: (params) => (params.row.diabetes ? 'Sim' : 'Não'),
     },
-    { field: 'notes', headerName: 'Observações', flex: 1 },
+    { field: 'notes', headerName: 'Observações', flex: 1, minWidth: 80 },
     {
       field: 'badgeName',
       headerName: 'Nome do crachá',
@@ -106,12 +161,12 @@ function ListUsers() {
     {
       field: 'cellphone',
       headerName: 'Telefone',
-      flex: 1,
+      width: 128,
     },
     {
       field: 'cpf',
       headerName: 'CPF',
-      flex: 1,
+      width: 110,
     },
     {
       field: 'email',
@@ -147,7 +202,7 @@ function ListUsers() {
     {
       field: 'paid',
       headerName: 'Pago',
-      flex: 1,
+      width: 60,
       valueGetter: (params) => (params.row.paid ? 'Sim' : 'Não'),
     },
     {
@@ -155,50 +210,16 @@ function ListUsers() {
       headerName: '',
       sortable: false,
       width: 80,
-      //flex: 1,
       renderCell: (params: GridCellParams) => {
-        const onClick = () => {
-          handleDownloadPDF([params.row]);
-        };
-
-        const onClickRemove = () => {
-          Swal.fire({
-            title: 'Tem certeza que deseja desvincular o usuário do evento?',
-            text: 'Esta ação não poderá ser desfeita!',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Sim, desvincular do evento!',
-          }).then((result) => {
-            if (result.isConfirmed) {
-              mutateRemoveUserFromEvent({
-                idEvent: eventId,
-                idUser: params.row.id.toString(),
-              });
-            }
-          });
-        };
-
         return (
           <Box key={params.id}>
             <Tooltip
-              title={'Baixar crachá'}
+              title={'Opções'}
               id="basic-button"
-              onClick={onClick}
+              onClick={(event) => handleClickOptions(event, params)}
             >
               <IconButton size="small">
-                <Badge color="primary" />
-              </IconButton>
-            </Tooltip>
-
-            <Tooltip
-              title="Remover usuário do evento"
-              id="button-remove-user"
-              onClick={onClickRemove}
-            >
-              <IconButton size="small">
-                <Delete color="primary" />
+                <MoreVert color="inherit" />
               </IconButton>
             </Tooltip>
           </Box>
@@ -207,16 +228,62 @@ function ListUsers() {
     },
   ];
 
+  const handleClickEdit = (event: React.MouseEvent) => {
+    event.stopPropagation();
+    const link = `${window.location.origin}/user/${rowSelected?.id}/editar`;
+    window.open(link, '_blank');
+    handleClose();
+  };
+  const handleClickDownloadBadge = (event: React.MouseEvent) => {
+    event.stopPropagation();
+    if (!rowSelected) return;
+    handleDownloadPDF([rowSelected]);
+    handleClose();
+  };
+
+  const handleClickRemoveUser = () => {
+    if (!rowSelected) return;
+    Swal.fire({
+      title: 'Tem certeza que deseja desvincular o usuário do evento?',
+      text: 'Esta ação não poderá ser desfeita!',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Sim, desvincular do evento!',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        mutateRemoveUserFromEvent({
+          idEvent: eventId,
+          idUser: rowSelected?.id.toString(),
+        });
+      }
+    });
+    handleClose();
+  };
+  const filteredData = (usersData: User[]) =>
+    usersData.filter((user) =>
+      user.fullName?.toLowerCase().includes(search.toLowerCase())
+    );
+
+  const handleClickEditWork = (event: React.MouseEvent) => {
+    event.stopPropagation();
+    if (!rowSelected) return;
+    setOpenModalEditWork(true);
+    handleClose();
+  };
   return (
     <Card>
       <DataGrid
-        rows={eventData.users || []}
+        rows={filteredData(eventData.users || [])}
         columns={columns}
         loading={isLoading}
         autoHeight={true}
         slots={{
           toolbar: GridToolbar,
         }}
+        pageSizeOptions={[25, 50, 100]}
+        // checkboxSelection
         initialState={{
           columns: {
             columnVisibilityModel: {
@@ -235,6 +302,7 @@ function ListUsers() {
               createdAt: false,
             },
           },
+          pagination: { paginationModel: { pageSize: 25 } },
         }}
         slotProps={{
           toolbar: {
@@ -242,6 +310,47 @@ function ListUsers() {
           },
         }}
       />
+      <ModalEditWork
+        open={openModalEditWork}
+        user={selectedUser}
+        eventId={eventData.id || ''}
+        handleClose={() => setOpenModalEditWork(false)}
+      />
+      <Menu
+        id="basic-menu"
+        anchorEl={anchorEl}
+        open={openMenu}
+        onClose={handleClose}
+        MenuListProps={{
+          'aria-labelledby': 'options-button',
+        }}
+      >
+        <MenuItem onClick={handleClickEdit}>
+          <ListItemIcon>
+            <Edit fontSize="small" color="primary" />
+          </ListItemIcon>
+          <ListItemText>Editar Usuário</ListItemText>
+        </MenuItem>
+        <MenuItem onClick={handleClickEditWork}>
+          <ListItemIcon>
+            <AssignmentInd fontSize="small" color="primary" />
+          </ListItemIcon>
+          <ListItemText>Participação no evento</ListItemText>
+        </MenuItem>
+        <MenuItem onClick={handleClickDownloadBadge}>
+          <ListItemIcon>
+            <Badge fontSize="small" color="primary" />
+          </ListItemIcon>
+          <ListItemText>Baixar Crachá</ListItemText>
+        </MenuItem>
+        <Divider />
+        <MenuItem onClick={handleClickRemoveUser}>
+          <ListItemIcon>
+            <Delete fontSize="small" color="error" />
+          </ListItemIcon>
+          <ListItemText>Remover do evento</ListItemText>
+        </MenuItem>
+      </Menu>
     </Card>
   );
 }
