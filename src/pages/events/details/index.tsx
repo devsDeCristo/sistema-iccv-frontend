@@ -123,9 +123,9 @@ function Details() {
           onChange={handleChange}
           aria-label="basic tabs example"
         >
+          <Tab label="Usuários" value={'usuarios'} />
           <Tab label="Quartos" value={'quartos'} />
           <Tab label="Equipes" value={'equipes'} />
-          <Tab label="Usuários" value={'usuarios'} />
         </Tabs>
       </Box>
       {pageValue === 'quartos' && (

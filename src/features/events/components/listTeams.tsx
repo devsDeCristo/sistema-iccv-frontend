@@ -103,8 +103,11 @@ function ListTeams({ search }: { search: string }) {
                     display="flex"
                     alignItems="center"
                     gap={0.5}
+                    flexWrap={'wrap'}
                   >
-                    <Typography component="label">Observações:</Typography>
+                    <Typography component="label" fontWeight={'bold'}>
+                      Observações:
+                    </Typography>
                     <Typography>{team.name}</Typography>
                   </Box>
                   <Box
@@ -112,8 +115,11 @@ function ListTeams({ search }: { search: string }) {
                     display="flex"
                     alignItems="center"
                     gap={0.5}
+                    flexWrap={'wrap'}
                   >
-                    <Typography component="label">Quantidade:</Typography>
+                    <Typography component="label" fontWeight={'bold'}>
+                      Quantidade:
+                    </Typography>
                     <Typography>{team.users?.length || 0}</Typography>
                   </Box>
                   <Box
@@ -121,8 +127,11 @@ function ListTeams({ search }: { search: string }) {
                     display="flex"
                     alignItems="center"
                     gap={0.5}
+                    flexWrap={'wrap'}
                   >
-                    <Typography component="label">Usuários:</Typography>
+                    <Typography component="label" fontWeight={'bold'}>
+                      Usuários:
+                    </Typography>
                     <Box
                       display="flex"
                       flexWrap="wrap"
