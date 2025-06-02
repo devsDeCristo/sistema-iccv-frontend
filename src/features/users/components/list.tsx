@@ -38,7 +38,7 @@ const getSelectedRowsToExport = ({
   return gridFilteredSortedRowIdsSelector(apiRef);
 };
 
-function List() {
+function List({ search }: { search: string }) {
   const { data = [], isLoading } = useGetUsers({});
   // const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -81,25 +81,25 @@ function List() {
         );
       },
     },
-    { field: 'fullName', headerName: 'Nome', flex: 1 },
+    { field: 'fullName', headerName: 'Nome', flex: 1, minWidth: 150 },
     {
       field: 'birthday',
       headerName: 'Data de nascimento',
-      flex: 1,
+      width: 100,
       valueGetter: (params) => formatDate(params.row.birthday),
     },
     {
       field: 'cellphone',
       headerName: 'Telefone',
-      flex: 1,
+      width: 128,
       valueGetter: (params) => formatPhoneNumber(params.row.cellphone),
     },
-    { field: 'religion', headerName: 'Religião', flex: 1 },
-    { field: 'notes', headerName: 'Observações', flex: 1 },
+    { field: 'religion', headerName: 'Religião', flex: 1, minWidth: 100 },
+    { field: 'notes', headerName: 'Observações', flex: 1, minWidth: 80 },
     {
       field: 'role',
       headerName: 'Permissão',
-      flex: 1,
+      width: 120,
       renderCell: (params: GridCellParams) => {
         return (
           <Box>
@@ -121,6 +121,9 @@ function List() {
       width: 80,
       //flex: 1,
       renderCell: (params: GridCellParams) => {
+        const user = JSON.parse(localStorage.getItem('user') || '{}') as User;
+        const disabledButton = user ? params.row.id === user.id : false;
+
         return (
           <Box key={params.id}>
             <Tooltip
@@ -128,7 +131,7 @@ function List() {
               id="basic-button"
               onClick={(event) => handleClickOptions(event, params)}
             >
-              <IconButton size="small">
+              <IconButton size="small" disabled={disabledButton}>
                 <MoreVert color="inherit" />
               </IconButton>
             </Tooltip>
@@ -156,10 +159,15 @@ function List() {
     setOpenModalEditRole(true);
     handleClose();
   };
+  const filteredData = (usersData: User[]) =>
+    usersData.filter((user) =>
+      user.fullName?.toLowerCase().includes(search.toLowerCase())
+    );
+
   return (
     <Card>
       <DataGrid
-        rows={data}
+        rows={filteredData(data || [])}
         // onRowClick={handleRowClick}
         // onRowDoubleClick={(params) => {
         //   navigate(`/user/${params.row.id}/editar`);
