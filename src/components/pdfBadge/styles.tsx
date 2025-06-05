@@ -20,7 +20,7 @@ const stylesPdfRooms = StyleSheet.create({
     width: '100%',
   },
   textName: {
-    fontSize: 24,
+    fontSize: 22,
     // fontSize: 35,
     padding: 3,
     paddingTop: -20,
@@ -62,7 +62,7 @@ const stylesPdfRooms = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     gap: '80px',
-    marginTop: '20px',
+    marginTop: '40px',
   },
   image: { height: 40, marginTop: 10 },
   imageBackground: {
