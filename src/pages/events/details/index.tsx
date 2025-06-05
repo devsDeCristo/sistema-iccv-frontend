@@ -97,11 +97,7 @@ function Details() {
       blob = await pdf(<PdfBedRooms data={bedroomsData} />).toBlob();
       FileSaver.saveAs(blob, 'quartos.pdf');
     } else {
-      blob = await pdf(
-        <PdfBadge
-          data={eventData.users?.filter(({ worker }) => !worker) || []}
-        />
-      ).toBlob();
+      blob = await pdf(<PdfBadge data={eventData.users || []} />).toBlob();
       FileSaver.saveAs(blob, 'crachas.pdf');
     }
   }
