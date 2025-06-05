@@ -283,7 +283,7 @@ function ListUsers({ search }: { search: string }) {
           toolbar: GridToolbar,
         }}
         pageSizeOptions={[25, 50, 100]}
-        // checkboxSelection
+        checkboxSelection
         initialState={{
           columns: {
             columnVisibilityModel: {

@@ -19,6 +19,7 @@ import PdfBedRooms from '../../../components/pdfRooms';
 import { useGetEvents } from '../../../features/events/api/getEvents';
 import PdfBadge from '../../../components/pdfBadge';
 import { ModalAddUserOnEvent } from '../../../features/events/components/modalAddUser';
+import PdfEnvelope from '../../../components/pdfEnvelope';
 
 function Details() {
   const { id, subPage } = useParams();
@@ -96,6 +97,13 @@ function Details() {
     } else if (type === 1) {
       blob = await pdf(<PdfBedRooms data={bedroomsData} />).toBlob();
       FileSaver.saveAs(blob, 'quartos.pdf');
+    } else if (type === 2) {
+      blob = await pdf(
+        <PdfEnvelope
+          data={eventData.users?.filter(({ worker }) => !worker) || []}
+        />
+      ).toBlob();
+      FileSaver.saveAs(blob, 'envelopes.pdf');
     } else {
       blob = await pdf(<PdfBadge data={eventData.users || []} />).toBlob();
       FileSaver.saveAs(blob, 'crachas.pdf');
@@ -137,6 +145,9 @@ function Details() {
             />
             {/* <Typography color="#000">Usuários</Typography> */}
             <Stack sx={styles.stackButtons}>
+              <Button variant="outlined" onClick={() => handleDownloadPDF(2)}>
+                Gerar Envelopes
+              </Button>
               <Button variant="outlined" onClick={() => handleDownloadPDF(3)}>
                 Gerar Crachás
               </Button>

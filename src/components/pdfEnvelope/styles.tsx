@@ -1,0 +1,83 @@
+import { StyleSheet } from '@react-pdf/renderer';
+const stylesPdfEnvelope = StyleSheet.create({
+  body: {
+    paddingVertical: 0,
+    paddingHorizontal: 0,
+    paddingTop: 0,
+  },
+  page: {
+    paddingTop: 0,
+    padding: 0,
+    display: 'flex',
+    textAlign: 'center',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  text: {
+    fontFamily: 'Helvetica',
+    fontSize: 8,
+    padding: 3,
+    width: '100%',
+  },
+  textName: {
+    // fontSize: 22,
+    fontSize: 35,
+    padding: 3,
+    paddingTop: -20,
+    fontFamily: 'Helvetica-Bold',
+    maxWidth: '80%',
+    display: 'flex',
+    flexWrap: 'nowrap',
+    textAlign: 'center',
+    textTransform: 'capitalize',
+  },
+  container: {
+    width: '100%',
+    height: '100%',
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: -1,
+    flexWrap: 'wrap',
+  },
+  headerBadge: {
+    width: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+  },
+  badge: {
+    borderWidth: 1,
+    borderColor: '#DBDBDB',
+    // width: '8.5cm',
+    // height: '11cm',
+    // width: '18cm',
+    // height: '25cm',
+    width: '100%',
+    height: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: '80px',
+    marginTop: '40px',
+  },
+  image: {
+    height: 80,
+    // marginTop: 10
+  },
+  imageBackground: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover',
+    opacity: 0.1,
+  },
+  imageEvent: {
+    height: 250,
+    objectFit: 'fill',
+  },
+});
+export { stylesPdfEnvelope };
