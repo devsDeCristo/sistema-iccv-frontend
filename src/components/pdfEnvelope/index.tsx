@@ -17,7 +17,12 @@ function PdfEnvelope({ data }: PdfProps) {
   return (
     <Document>
       {filterBadgeName.map(({ fullName }, index) => (
-        <Page key={index} orientation="portrait" style={stylesPdfEnvelope.body}>
+        <Page
+          key={index}
+          orientation="portrait"
+          size="A4"
+          style={stylesPdfEnvelope.body}
+        >
           <View style={stylesPdfEnvelope.container}>
             <View style={stylesPdfEnvelope.badge} wrap={false}>
               <Image style={stylesPdfEnvelope.imageBackground} src={bgbadge} />

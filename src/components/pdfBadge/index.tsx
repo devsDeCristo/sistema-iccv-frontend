@@ -1,55 +1,56 @@
 import { Page, Text, View, Document, Font, Image } from '@react-pdf/renderer';
-
-import { stylesPdfBadge } from './styles';
+import { stylesPdfRooms } from './styles';
 import type { PdfProps } from './types';
 import logoIc from '../../assets/logo-ic-preta.png';
 import logoEvento from '../../assets/8-cur-mas.png';
 import bgbadge from '../../assets/galo.png';
+
 Font.register({
   family: 'Helvetica',
   src: 'https://fonts.gstatic.com/s/oswald/v13/Y_TKV6o8WovbUd3m_X9aAA.ttf',
 });
 
-// Create Document Component
+function chunkArray<T>(arr: T[], size: number): T[][] {
+  const result: T[][] = [];
+  for (let i = 0; i < arr.length; i += size) {
+    result.push(arr.slice(i, i + size));
+  }
+  return result;
+}
+
 function PdfBadge({ data }: PdfProps) {
   const filterBadgeName = data.filter(({ badgeName }) => !!badgeName);
+  const pages = chunkArray(filterBadgeName, 4); // 4 crachás por página
 
-  const chunked = [];
-  for (let i = 0; i < filterBadgeName.length; i += 4) {
-    chunked.push(filterBadgeName.slice(i, i + 4));
-  }
   return (
     <Document>
-      {chunked.map((group, pageIndex) => (
-        <Page
-          key={pageIndex}
-          orientation="portrait"
-          style={stylesPdfBadge.body}
-        >
-          <View style={stylesPdfBadge.container}>
-            {group.map(({ fullName }, index) => (
+      {pages.map((group, pageIndex) => (
+        <Page key={`page-${pageIndex}`} size="A4" style={stylesPdfRooms.body}>
+          <View style={stylesPdfRooms.container}>
+            {group.map((user, index) => (
               <View
+                style={stylesPdfRooms.badge}
                 key={`cracha-${pageIndex}-${index}`}
-                style={stylesPdfBadge.badge}
                 wrap={false}
               >
-                <Image style={stylesPdfBadge.imageBackground} src={bgbadge} />
-                <View style={stylesPdfBadge.headerBadge} wrap={false}>
-                  <Image style={stylesPdfBadge.image} src={logoIc} />
-                  <Image style={stylesPdfBadge.imageEvent} src={logoEvento} />
+                <Image style={stylesPdfRooms.imageBackground} src={bgbadge} />
+                <View style={stylesPdfRooms.headerBadge}>
+                  <Image style={stylesPdfRooms.image} src={logoIc} />
+                  <Image style={stylesPdfRooms.imageEvent} src={logoEvento} />
                 </View>
-                <Text wrap={false} style={stylesPdfBadge.textName}>
-                  {fullName?.toLowerCase()}
+                <Text style={stylesPdfRooms.textName}>
+                  {user.badgeName?.toLowerCase()}
                 </Text>
               </View>
             ))}
-            {group.length % 2 !== 0 && (
-              <View
-                style={[stylesPdfBadge.badge, { border: 'none' }]}
-                key={'cracha-pdf'}
-                wrap={false}
-              ></View>
-            )}
+            {group.length < 4 &&
+              Array.from({ length: 4 - group.length }).map((_, i) => (
+                <View
+                  key={`empty-${pageIndex}-${i}`}
+                  style={[stylesPdfRooms.badge, { border: 'none' }]}
+                  wrap={false}
+                />
+              ))}
           </View>
         </Page>
       ))}

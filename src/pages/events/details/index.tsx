@@ -105,12 +105,7 @@ function Details() {
       ).toBlob();
       FileSaver.saveAs(blob, 'envelopes.pdf');
     } else {
-      blob = await pdf(
-        <PdfBadge
-          // data={eventData.users?.filter(({ worker }) => !worker) || []}
-          data={eventData.users || []}
-        />
-      ).toBlob();
+      blob = await pdf(<PdfBadge data={eventData.users || []} />).toBlob();
       FileSaver.saveAs(blob, 'crachas.pdf');
     }
   }
