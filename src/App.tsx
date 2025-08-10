@@ -1,16 +1,15 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { RoutesUsers, RoutesUsersAdmin } from './pages/admin/users/routes';
-import { SideBar } from './components/sideBar';
-import {RoutesEventsAdmin } from './pages/admin/events/routes';
+// import { RoutesUsers, RoutesUsersAdmin } from './pages/admin/users/routes';
+// import { SideBar } from './components/sideBar';
+// import { RoutesEventsAdmin } from './pages/admin/events/routes';
 import { ToastContainer } from 'react-toastify';
-import { RoutesLogin } from './pages/login/routes';
 import { myTheme } from './themes';
 import { ThemeProvider } from '@emotion/react';
-import ProtectedRoute from './components/protectedRoute';
-import { Navigate, Route, Routes } from 'react-router-dom';
-import { RegisterUser } from './pages/admin/users/register';
+import {RouterProvider,} from 'react-router-dom';
 import { CssBaseline } from '@mui/material';
-import { RoutesEvents } from './pages/events/routes';
+// import { RoutesEvents } from './pages/events/routes';
+// import { authLoader } from './auth/functions/authLoader';
+import routers from './routes';
 // import { useMediaQuery } from '@mui/material';
 
 function Loading() {
@@ -32,34 +31,16 @@ function App() {
     }
   }, []);
   const theme = useMemo(() => myTheme(colorMode), [colorMode]);
+  const router = routers();
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
+      <React.Suspense fallback={<Loading />}>
       <div className="App">
-        <React.Suspense fallback={<Loading />}>
-          <Routes>
-            <Route path="*" element={<Navigate replace to="/login" />} />
-            {RoutesLogin()}
-            <Route path="/user/register" element={<RegisterUser />} />
-            
-            <Route
-              element={
-                <ProtectedRoute isAdmin={true}>
-                  <SideBar />
-                </ProtectedRoute>
-              }
-            >
-              {RoutesUsersAdmin()}
-              {RoutesEventsAdmin()}
-            </Route>
-            <Route element={<ProtectedRoute isAdmin={false} />}>
-              {RoutesUsers()}
-              {RoutesEvents()}
-            </Route>
-          </Routes>
-        </React.Suspense>
+        <RouterProvider router={router} />
         <ToastContainer autoClose={5000} closeOnClick />
       </div>
+      </React.Suspense>
     </ThemeProvider>
   );
 }

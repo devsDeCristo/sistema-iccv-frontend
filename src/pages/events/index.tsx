@@ -9,14 +9,7 @@ function Events() {
   return (
     <PageStyle>
       <Header title="Eventos" />
-      <Box component="div" justifyContent="end" display="flex" mb={2}>
-        <Button
-          variant="contained"
-          onClick={() => navigate('/eventos/cadastro')}
-        >
-          Cadastrar evento
-        </Button>
-      </Box>
+      
       <List />
     </PageStyle>
   );

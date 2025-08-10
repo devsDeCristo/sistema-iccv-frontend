@@ -15,14 +15,15 @@ import { useState } from 'react';
 
 type SideBarProps = {
   validRole?: Boolean | null;
+  isAdmin?: Boolean;
 };
 
-const SideBar: React.FC<SideBarProps> = ({ validRole = true }) => {
+const SideBar: React.FC<SideBarProps> = ({ validRole = true, isAdmin = false }) => {
   const [openDrawer, setOpenDrawer] = useState(false);
   const theme = useTheme();
   // const image =
   // ('https://www.holiness.org.br/wp-content/uploads/2021/04/cruz.jpg');
-  const optionsPages = [
+  const optionsPages = isAdmin ? [
     {
       itemId: '1',
       link: '/admin/users',
@@ -32,6 +33,13 @@ const SideBar: React.FC<SideBarProps> = ({ validRole = true }) => {
     {
       itemId: '2',
       link: '/admin/eventos',
+      icon: <Event />,
+      title: 'Eventos',
+    },
+  ]:[
+    {
+      itemId: '1',
+      link: '/eventos',
       icon: <Event />,
       title: 'Eventos',
     },
@@ -188,4 +196,4 @@ const SideBar: React.FC<SideBarProps> = ({ validRole = true }) => {
   );
 };
 
-export { SideBar };
+export default SideBar;
