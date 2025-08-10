@@ -6,7 +6,6 @@ import {
 } from 'react-router-dom';
 import { RoutesLogin } from '../pages/login/routes';
 import { RegisterUser } from '../pages/users/register';
-import ProtectedRoute from '../components/protectedRoute';
 
 import { RoutesUsersAdmin } from '../pages/admin/users/routes';
 import { RoutesUsers } from '../pages/users/routes';

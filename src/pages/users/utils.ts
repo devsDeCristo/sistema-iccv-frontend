@@ -1,4 +1,4 @@
-import { ENUM_OPTION_LEADERSHIP_POSITION } from '../../../features/admin/users/constants';
+import { ENUM_OPTION_LEADERSHIP_POSITION } from '../../features/admin/users/constants';
 
 export function getRole(leadershipPosition: string) {
   switch (leadershipPosition) {

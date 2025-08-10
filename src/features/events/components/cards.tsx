@@ -1,7 +1,6 @@
 import {
   Card,
   CardContent,
-  CardMedia,
   Typography,
   Chip,
   Box,

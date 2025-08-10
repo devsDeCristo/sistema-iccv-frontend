@@ -36,7 +36,7 @@ function EditUser() {
       : '',
     emergencyContact: userData?.emergencyContact
       ? formatPhoneNumber(userData?.emergencyContact)
-      : null,
+      : '',
     email: userData?.email || '',
     worker: userData?.worker ? 1 : 0,
     profession: userData?.profession || '',
@@ -119,7 +119,11 @@ function EditUser() {
 
   return (
     <PageStyle>
-    <Header title="Edição de usuário" buttonBack={permission} pageBack={"/admin/users"} />
+      <Header
+        title="Edição de usuário"
+        buttonBack={permission}
+        pageBack={'/admin/users'}
+      />
       <Box display="flex" justifyContent="center" alignItems="center">
         <Button variant="contained" onClick={() => setIsOpenWebcamModal(true)}>
           Abrir webcam
