@@ -7,6 +7,8 @@ export interface Event {
   name: string;
   startDate: Date;
   endDate: Date;
+  img: string;
+  groupLink: string;
   isActive: boolean;
   price: number;
   workerPrice: number;

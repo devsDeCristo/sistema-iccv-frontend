@@ -7,7 +7,7 @@ import { AssociateEvent } from '../associateEvent';
 function RoutesUsers() {
   return (
     <>
-      <Route path="/cadastrar-cursilho" element={<AssociateEvent />} />
+      <Route path="/cadastrar-cursilho/:eventId" element={<AssociateEvent />} />
       {/* <Route path="/usuario/cadastrar" element={<RegisterUser />} /> */}
       {/* <Route
         path="/cadastro-cursilho-work/participar"

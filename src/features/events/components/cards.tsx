@@ -166,7 +166,7 @@ function EventCard({ event }: { event: Event }) {
           disabled={!event.isActive || exhausted}
           size="small"
           sx={styles.button}
-          onClick={() => navigate(`/eventos/${event.id}`)}
+          onClick={() => navigate(`/cadastrar-cursilho/${event.id}`)}
         >
           Inscrever-se
         </Button>

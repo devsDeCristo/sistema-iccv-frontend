@@ -16,6 +16,7 @@ import { useGetEvents } from '../../../features/admin/events/api/getEvents';
 import { Logout, Work } from '@mui/icons-material';
 import { useState } from 'react';
 import { Loading } from '../../../components/loading';
+import { useParams } from 'react-router-dom';
 
 // import { setBearerToken } from '../../../config/lib/axios/api-client';
 
@@ -25,8 +26,9 @@ function AssociateEvent() {
   const user = localStorage.getItem('user')
     ? JSON.parse(localStorage.getItem('user') as string)
     : '';
-  const eventId = import.meta.env.VITE_EVENT_ID;
-  const linkInviteGroupWpp = import.meta.env.VITE_LINK_INVITE_GROUP_WPP;
+  const params = useParams();
+  const eventId = params.eventId || import.meta.env.VITE_EVENT_ID;
+  //const linkInviteGroupWpp = import.meta.env.VITE_LINK_INVITE_GROUP_WPP;
   const { data: eventData, isLoading } = useGetEvents(
     {
       eventId,
@@ -50,10 +52,10 @@ function AssociateEvent() {
       onSuccess: () => {
         Swal.fire({
           title: 'Cadastro efetuado com sucesso',
-          icon: 'success',
+          icon: 'success', 
         }).then((result) => {
           if (result.isConfirmed && !worker) {
-            window.open(linkInviteGroupWpp, '_blank');
+            window.open(eventData?.groupLink, '_blank');
           }
           if (result.isConfirmed) {
             localStorage.clear();
