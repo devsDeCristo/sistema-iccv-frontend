@@ -24,12 +24,12 @@ export const REGISTER_USERS_SCHEMA = z.object({
     .string({
       required_error: DEFAULT_MESSAGE,
     })
-    .min(8, { message: 'CPF deve conter 11 digitos' }),
+    .min(14, { message: 'CPF deve conter 11 digitos' }),
   cellphone: z
     .string({
       required_error: DEFAULT_MESSAGE,
     })
-    .min(8, { message: 'Preencha um número válido' }),
+    .min(15, { message: 'Preencha um número válido' }),
   profession: z.string(),
   notes: z.string().optional(),
   religion: z.string().optional(),
@@ -40,14 +40,16 @@ export const REGISTER_USERS_SCHEMA = z.object({
     .nullable()
     .refine((value) => value !== null, {
       message: DEFAULT_MESSAGE,
-    }).nullable(),
+    })
+    .nullable(),
   emergencyContact: z
     .string({
       required_error: DEFAULT_MESSAGE,
     })
-    .optional()
-    .nullable(),
-  indicatedBy: z.string().optional(),
+    .min(15, { message: 'Preencha um número válido' }),
+  indicatedBy: z.string({
+    required_error: DEFAULT_MESSAGE,
+  }),
   leadershipPosition: z.string().optional(),
   worker: z.number({
     required_error: DEFAULT_MESSAGE,

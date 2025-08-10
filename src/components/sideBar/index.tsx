@@ -18,32 +18,37 @@ type SideBarProps = {
   isAdmin?: Boolean;
 };
 
-const SideBar: React.FC<SideBarProps> = ({ validRole = true, isAdmin = false }) => {
+const SideBar: React.FC<SideBarProps> = ({
+  validRole = true,
+  isAdmin = false,
+}) => {
   const [openDrawer, setOpenDrawer] = useState(false);
   const theme = useTheme();
   // const image =
   // ('https://www.holiness.org.br/wp-content/uploads/2021/04/cruz.jpg');
-  const optionsPages = isAdmin ? [
-    {
-      itemId: '1',
-      link: '/admin/users',
-      icon: <People />,
-      title: 'Usuários',
-    },
-    {
-      itemId: '2',
-      link: '/admin/eventos',
-      icon: <Event />,
-      title: 'Eventos',
-    },
-  ]:[
-    {
-      itemId: '1',
-      link: '/eventos',
-      icon: <Event />,
-      title: 'Eventos',
-    },
-  ];
+  const optionsPages = isAdmin
+    ? [
+        {
+          itemId: '1',
+          link: '/admin/usuarios',
+          icon: <People />,
+          title: 'Usuários',
+        },
+        {
+          itemId: '2',
+          link: '/admin/eventos',
+          icon: <Event />,
+          title: 'Eventos',
+        },
+      ]
+    : [
+        {
+          itemId: '1',
+          link: '/eventos',
+          icon: <Event />,
+          title: 'Eventos',
+        },
+      ];
   const styles = {
     boxContainer: {
       display: 'flex',

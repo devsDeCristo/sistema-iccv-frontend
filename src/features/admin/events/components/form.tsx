@@ -63,7 +63,22 @@ function Form() {
           )}
         />
       </Grid>
-
+      <Grid item xs={12} md={6}>
+        <Controller
+          control={control}
+          name="capacity"
+          render={({ field: { onChange, value } }) => (
+            <Input
+              value={value}
+              onChange={(event) => onChange(onlyNumber(event.target.value))}
+              required
+              error={!!errors.capacity}
+              errorMessage={errors.capacity?.message}
+              label="Capacidade máxima de inscrições"
+            />
+          )}
+        />
+      </Grid>
       <Grid item xs={12} md={6}>
         <Controller
           name="startDate"

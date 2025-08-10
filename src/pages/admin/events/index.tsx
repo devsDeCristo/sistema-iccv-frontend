@@ -12,7 +12,7 @@ function Events() {
       <Box component="div" justifyContent="end" display="flex" mb={2}>
         <Button
           variant="contained"
-          onClick={() => navigate('admin/eventos/cadastro')}
+          onClick={() => navigate('/admin/eventos/cadastro')}
         >
           Cadastrar evento
         </Button>

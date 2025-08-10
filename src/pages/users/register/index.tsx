@@ -1,21 +1,19 @@
 import Swal from 'sweetalert2';
-import { Header } from '../../../../components/header';
+import { Header } from '../../../components/header';
 import { useForm, FormProvider } from 'react-hook-form';
-import { PageStyle } from '../../../../components/pageStyle';
-import { Form } from '../../../../features/admin/users/components/form';
+import { PageStyle } from '../../../components/pageStyle';
+import { Form } from '../../../features/admin/users/components/form';
 import { Button } from '@mui/material';
-import { usePermission } from '../../../../hooks/usePermission';
+import { usePermission } from '../../../hooks/usePermission';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   ENUM_OPTION_LEADERSHIP_POSITION,
-  GET_USERS,
   REGISTER_USERS_SCHEMA,
-} from '../../../../features/admin/users/constants';
-import { RegisterUsersFormType } from '../../../../types/user';
-import { formatCPF, removeMask } from '../../../../utils';
-import { usePostCreateUser } from '../../../../features/admin/users/api/postUser';
+} from '../../../features/admin/users/constants';
+import { RegisterUsersFormType } from '../../../types/user';
+import { formatCPF, removeMask } from '../../../utils';
+import { usePostCreateUser } from '../../../features/admin/users/api/postUser';
 import { useNavigate } from 'react-router-dom';
-import { queryClient } from '../../../../config/lib/react-query/query-client';
 
 function RegisterUser() {
   const cpfLogin = localStorage.getItem('cpf') || '';
@@ -49,11 +47,11 @@ function RegisterUser() {
   const permission = usePermission();
 
   const { mutate: mutatePostCreateUser } = usePostCreateUser({
-    onSuccess: () => {
-      queryClient.invalidateQueries(GET_USERS);
+    onSuccess: (response) => {
       methods.reset(DEFAULT_VALUES);
-      // localStorage.setItem('access_token', response.access_token);
-      // localStorage.setItem('user', JSON.stringify(response.user));
+      localStorage.setItem('access_token', response.access_token);
+      localStorage.setItem('user', JSON.stringify(response.user));
+      console.log('vai a merda');
 
       //navigate('/cadastrar-cursilho');
       Swal.fire({
@@ -61,8 +59,15 @@ function RegisterUser() {
         icon: 'success',
       }).then((result) => {
         if (result.isConfirmed) {
-          navigate('/admin/usuarios');
+          navigate('/eventos');
         }
+      });
+    },
+    onError: (error: any) => {
+      Swal.fire({
+        title: 'Erro ao cadastrar',
+        text: error.response.data.message,
+        icon: 'error',
       });
     },
   });
@@ -91,12 +96,13 @@ function RegisterUser() {
       role: 5,
       password: 'password123',
     };
+
     mutatePostCreateUser(formatData);
   }
 
   return (
     <PageStyle>
-      <Header title="Novo Usuário" buttonBack={permission} />
+      <Header title="Faça seu cadastro" buttonBack={permission} />
       <FormProvider {...methods}>
         <form onSubmit={methods.handleSubmit(onSubmitForm)}>
           <Form />
@@ -106,7 +112,7 @@ function RegisterUser() {
             sx={{ marginTop: 2 }}
             type="submit"
           >
-            Cadastrar
+            Cadastrar-se
           </Button>
         </form>
       </FormProvider>

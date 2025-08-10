@@ -52,7 +52,7 @@ function Users() {
           sx={styles.button}
           onClick={() =>
             isAdmin
-              ? navigate('/user/register')
+              ? navigate('/admin/usuario/cadastrar')
               : navigate('/cadastro-cursilho-work')
           }
         >

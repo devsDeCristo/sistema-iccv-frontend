@@ -61,7 +61,7 @@ function Login() {
     onError: (error: any) => {
       if (error.response.status === 404) {
         localStorage.setItem('cpf', JSON.parse(error.config.data).document);
-        navigate('/user/register');
+        navigate('/usuario/cadastrar');
         Swal.fire({
           title: 'Atenção',
           text: 'Você não possui cadastro ainda, se cadastre para se inscrever no cursilho',
@@ -128,7 +128,7 @@ function Login() {
     },
   };
   const handleButton = () => {
-    navigate('/user/register');
+    navigate('/usuario/cadastrar');
   };
   {
     /* <Box sx={styles.boxContainer}>

@@ -210,8 +210,11 @@ function Form() {
           control={control}
           render={({ field: { onChange, value } }) => (
             <Input
+              required
               label="Contato de Emergência"
               value={value}
+              error={!!errors.emergencyContact}
+              errorMessage={errors.emergencyContact?.message}
               onChange={(event) =>
                 onChange(formatPhoneNumber(event.target.value))
               }
@@ -225,9 +228,12 @@ function Form() {
           control={control}
           render={({ field: { onChange, value } }) => (
             <Input
+              required
               label="Foi indicado por alguem? Se sim, quem?"
               value={value}
               onChange={onChange}
+              error={!!errors.indicatedBy}
+              errorMessage={errors.indicatedBy?.message}
             />
           )}
         />
@@ -241,7 +247,7 @@ function Form() {
             <Input
               label="Religião"
               value={value}
-              error={!!errors.cpf}
+              error={!!errors.religion}
               errorMessage={errors.religion?.message}
               onChange={onChange}
             />

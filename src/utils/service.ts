@@ -1,5 +1,5 @@
 import { AxiosError } from 'axios';
-import { redirect } from 'react-router-dom';
+// import { redirect } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
 export const handleResponseThrowError = (
@@ -9,10 +9,10 @@ export const handleResponseThrowError = (
   return (error: AxiosError<any>) => {
     const errorMessage = errorDefaultMessage || error.response?.data.message;
 
-    if (error.response?.status === 401) {
-      localStorage.clear();
-      redirect('/login');
-    }
+    // if (error.response?.status === 401) {
+    //   localStorage.clear();
+    //   redirect('/login');
+    // }
 
     if (showToast) {
       if (Array.isArray(errorMessage)) {

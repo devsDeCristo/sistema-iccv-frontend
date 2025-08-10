@@ -33,4 +33,7 @@ export const REGISTER_EVENT_SCHEMA = z.object({
     required_error: DEFAULT_MESSAGE,
   }),
   users: z.string().array().optional(),
+  capacity: z.coerce.number({
+    required_error: DEFAULT_MESSAGE,
+  }),
 });

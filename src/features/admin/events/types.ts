@@ -28,6 +28,7 @@ export interface Team {
   name: string;
   event: Event;
   users: User[];
+  capacity: number;
 }
 
 export type RegisterEventFormType = z.infer<typeof REGISTER_EVENT_SCHEMA>;
