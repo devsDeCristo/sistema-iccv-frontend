@@ -1,7 +1,7 @@
 import { Card, CardContent, CardMedia, Typography, Chip, Box, LinearProgress } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useGetEvents } from '../../admin/events/api/getEvents';
-import { mockEvents } from '../constants';
+import dayjs from 'dayjs';
 
 type Event = {
   id: string;
@@ -33,7 +33,7 @@ function EventCard({ event }: { event: Event }) {
         <CardMedia
           component="img"
           height="180"
-          image={event.image}
+          image={"https://www.guiaviagensbrasil.com/imagens/Imagem%20do%20mar%20calma%20e%20belo%20da%20Praia%20da%20Engenhoca-Itacar%C3%A9-Bahia-BA.jpg"}
           alt={event.name}
           sx={{ objectFit: 'cover' }}
         />
@@ -48,7 +48,7 @@ function EventCard({ event }: { event: Event }) {
       {/* Conteúdo */}
       <CardContent sx={{ p: 2 }}>
         <Typography variant="body2" color="text.secondary">
-          {event.startDate}
+          {dayjs(event.startDate).format('DD/MM/YYYY')} ás {dayjs(event.startDate).format('HH:mm')}
         </Typography>
         <Typography variant="h6" fontWeight="bold" sx={{ mt: 0.5 }}>
           {event.name}

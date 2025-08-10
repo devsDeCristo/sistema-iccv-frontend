@@ -43,7 +43,7 @@ function Login() {
       navigate('/admin/eventos');
     }
     if (permission) {
-      navigate('/cadastrar-cursilho');
+      navigate('/eventos');
     }
   }, []);
 
@@ -55,7 +55,7 @@ function Login() {
       if (response.user.role === 1) {
         navigate('/admin/eventos');
       } else {
-        navigate('/cadastrar-cursilho');
+        navigate('/eventos');
       }
     },
     onError: (error: any) => {
