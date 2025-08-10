@@ -21,7 +21,8 @@ import { Event } from '../../admin/events/types';
 function EventCard({ event }: { event: Event }) {
   const navigate = useNavigate();
   const theme = useTheme();
-  const percentOcupped = 44; // (event.users.length / event.capacity) * 100;
+  const percentOcupped = ((event.users?.length ?? 0)/ event.capacity) * 100;
+  const exhausted = (event.users?.length ?? 0) >= event.capacity;
 
   const styles = {
     card: {
@@ -90,7 +91,7 @@ function EventCard({ event }: { event: Event }) {
           <Chip label="evento" color="primary" size="small" sx={styles.chipEvento} />
         </Box>
         <Box sx={styles.chipTopRight}>
-          <Chip label={event.isActive ? 'Aberto' : 'Finalizado'} size="small" sx={styles.chipStatus} />
+          <Chip label={event.isActive ? 'Aberto' : exhausted?"Esgotado":'Finalizado'} size="small" sx={styles.chipStatus} />
         </Box>
       </Box>
 
@@ -130,7 +131,7 @@ function EventCard({ event }: { event: Event }) {
 
         <Button
           variant="contained"
-          disabled={!event.isActive}
+          disabled={!event.isActive||exhausted}
           size="small"
           sx={styles.button}
           onClick={() => navigate(`/eventos/${event.id}`)}
