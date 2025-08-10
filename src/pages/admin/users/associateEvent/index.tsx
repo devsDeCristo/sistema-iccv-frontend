@@ -23,7 +23,7 @@ import { useParams } from 'react-router-dom';
 function AssociateEvent() {
   const [worker, setWorker] = useState<number | null>(null);
   const theme = useTheme();
-    const params = useParams();
+  const params = useParams();
   const user = localStorage.getItem('user')
     ? JSON.parse(localStorage.getItem('user') as string)
     : '';
@@ -55,11 +55,17 @@ function AssociateEvent() {
           icon: 'success',
         }).then((result) => {
           if (result.isConfirmed && !worker) {
-            window.open((!Array.isArray(eventData) && eventData && eventData?.groupLink) || '', '_blank');
+            window.open(
+              (!Array.isArray(eventData) &&
+                eventData &&
+                eventData?.groupLink) ||
+                '',
+              '_blank'
+            );
           }
           if (result.isConfirmed) {
             localStorage.clear();
-            window.location.replace('/login');
+            window.location.replace('/eventos');
           }
         });
       },

@@ -9,6 +9,7 @@ import {
   Stack,
   useTheme,
   Button,
+  Alert,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useGetEvents } from '../../admin/events/api/getEvents';
@@ -25,7 +26,9 @@ function EventCard({ event }: { event: Event }) {
   const percentOcupped = ((event.users?.length ?? 0) / event.capacity) * 100;
   const exhausted = (event.users?.length ?? 0) >= event.capacity;
   // const percentOcupped = 44; // (event.users.length / event.capacity) * 100;
-
+  const user = localStorage.getItem('user');
+  const userId = user ? JSON.parse(user).id : null;
+  const isUserRegistered = event.users?.some((u) => u.id === userId);
   const usersWorker = event.users?.filter((user) => user.worker);
   const usersParticipant = event.users?.filter((user) => !user.worker);
 
@@ -37,7 +40,8 @@ function EventCard({ event }: { event: Event }) {
       maxWidth: 320,
       position: 'relative',
       width: '100%',
-      pb: 4,
+      // pb: 4,
+
       opacity: event.isActive ? 1 : 0.6,
       cursor: event.isActive ? 'pointer' : 'not-allowed',
     },
@@ -58,7 +62,13 @@ function EventCard({ event }: { event: Event }) {
         : theme.palette.chips.canceled,
       color: theme.palette.text.primary,
     },
-    cardContent: { p: 2, display: 'flex', flexDirection: 'column', gap: 2 },
+    cardContent: {
+      p: 2,
+      pt: 6,
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 2,
+    },
     title: { fontSize: '1.1rem', fontWeight: 500 },
     description: { fontSize: '0.875rem', color: 'text.secondary' },
     icon: { color: theme.palette.text.secondary, fontSize: '20px' },
@@ -83,7 +93,7 @@ function EventCard({ event }: { event: Event }) {
   return (
     <Card sx={styles.card}>
       <Box sx={styles.imageBox}>
-        <CardMedia
+        {/* <CardMedia
           component="img"
           height="180"
           image={
@@ -91,7 +101,7 @@ function EventCard({ event }: { event: Event }) {
           }
           alt={event.name}
           sx={styles.cardMedia}
-        />
+        /> */}
         <Box sx={styles.chipTopLeft}>
           <Chip
             label="evento"
@@ -160,16 +170,21 @@ function EventCard({ event }: { event: Event }) {
             sx={styles.progressBar}
           />
         </Box>
-
-        <Button
-          variant="contained"
-          disabled={!event.isActive || exhausted}
-          size="small"
-          sx={styles.button}
-          onClick={() => navigate(`/cadastrar-cursilho/${event.id}`)}
-        >
-          Inscrever-se
-        </Button>
+        {isUserRegistered ? (
+          <Alert severity="success" sx={{ width: '100%' }} icon={false}>
+            Você já está inscrito neste evento!
+          </Alert>
+        ) : (
+          <Button
+            variant="contained"
+            disabled={!event.isActive || exhausted || isUserRegistered}
+            size="small"
+            sx={styles.button}
+            onClick={() => navigate(`/cadastrar-cursilho/${event.id}`)}
+          >
+            Inscrever-se
+          </Button>
+        )}
       </CardContent>
     </Card>
   );

@@ -13,7 +13,7 @@ import {
 // import { usePermission } from '../../../hooks/usePermission';
 import { usePostCreRelationEventToUser } from '../../../features/admin/users/api/postRelationEventUser';
 import { useGetEvents } from '../../../features/admin/events/api/getEvents';
-import { Logout, Work } from '@mui/icons-material';
+import { EmojiPeople, Logout, Work } from '@mui/icons-material';
 import { useState } from 'react';
 import { Loading } from '../../../components/loading';
 import { useParams } from 'react-router-dom';
@@ -52,10 +52,16 @@ function AssociateEvent() {
       onSuccess: () => {
         Swal.fire({
           title: 'Cadastro efetuado com sucesso',
-          icon: 'success', 
+          icon: 'success',
         }).then((result) => {
           if (result.isConfirmed && !worker) {
-            window.open((!Array.isArray(eventData) && eventData && eventData?.groupLink) || '', '_blank');
+            window.open(
+              (!Array.isArray(eventData) &&
+                eventData &&
+                eventData?.groupLink) ||
+                '',
+              '_blank'
+            );
           }
           if (result.isConfirmed) {
             localStorage.clear();
@@ -132,7 +138,7 @@ function AssociateEvent() {
                 value={worker}
               >
                 <Stack sx={styles.containerOptions}>
-                  {/* <Box
+                  <Box
                     sx={[
                       styles.boxOption,
                       {
@@ -159,7 +165,7 @@ function AssociateEvent() {
                       Cursilhista (1ª vez)
                     </Typography>
                     <Radio value={0} />
-                  </Box> */}
+                  </Box>
                   <Box
                     sx={[
                       styles.boxOption,
