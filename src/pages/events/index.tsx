@@ -1,16 +1,18 @@
-import { Box, Button } from '@mui/material';
+
 import { useNavigate } from 'react-router-dom';
 import { Header } from '../../components/header';
-import { List } from '../../features/admin/events/components/list';
+
 import { PageStyle } from '../../components/pageStyle';
+import { Cards } from '../../features/events/components/cards';
 
 function Events() {
+
   const navigate = useNavigate();
   return (
     <PageStyle>
-      <Header title="Eventos" />
+      <Header title="Eventos Abertos  " />
       
-      <List />
+      <Cards />
     </PageStyle>
   );
 }
