@@ -12,10 +12,22 @@ declare module '@mui/material/styles' {
 
   interface Palette {
     border: string;
+    chips: {
+      completed: string;
+      pending: string;
+      canceled: string;
+      active: string;
+    };
   }
 
   interface PaletteOptions {
     border?: string;
+    chips?: {
+      completed: string;
+      pending: string;
+      canceled: string;
+      active: string;
+    };
   }
 }
 
@@ -39,6 +51,12 @@ export const myTheme = (colorMode: boolean) =>
         disabled: colorMode ? '#495C67' : '#696A6A',
       },
       border: colorMode ? '#495C67' : '#D0D0D0',
+      chips:{
+        completed: colorMode ? '#1C0F4D' : '#362f4dff',
+        pending: colorMode ? '#28363F' : '#F0F1F4',
+        canceled: colorMode ? '#F44336' : '#FFCDD2',
+        active: colorMode ? '#6aad6cff' : '#62df66ff'
+      }
     },
     breakpoints: {
       values: {

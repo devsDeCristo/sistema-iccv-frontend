@@ -7,9 +7,11 @@ export interface Event {
   name: string;
   startDate: Date;
   endDate: Date;
+  isActive: boolean;
   price: number;
   workerPrice: number;
   createdAt: Date;
+  capacity: number;
   updateAt: Date;
   users?: User[];
 }

@@ -1,101 +1,156 @@
-import { Card, CardContent, CardMedia, Typography, Chip, Box, LinearProgress } from '@mui/material';
+import {
+  Card,
+  CardContent,
+  CardMedia,
+  Typography,
+  Chip,
+  Box,
+  LinearProgress,
+  Stack,
+  useTheme,
+  Button,
+} from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useGetEvents } from '../../admin/events/api/getEvents';
 import dayjs from 'dayjs';
+import CalendarMonthOutlinedIcon from '@mui/icons-material/CalendarMonthOutlined';
+import RoomOutlinedIcon from '@mui/icons-material/RoomOutlined';
+import GroupOutlinedIcon from '@mui/icons-material/GroupOutlined';
+import { Event } from '../../admin/events/types';
 
-type Event = {
-  id: string;
-  name: string;
-  startDate: string;
-  endDate: string;
-  isActive: boolean;
-  location: string;
-  image: string;
-  price: number;
- 
-};
 function EventCard({ event }: { event: Event }) {
   const navigate = useNavigate();
+  const theme = useTheme();
+  const percentOcupped = 44; // (event.users.length / event.capacity) * 100;
+
+  const styles = {
+    card: {
+      borderRadius: 3,
+      overflow: 'hidden',
+      boxShadow: 1,
+      maxWidth: 320,
+      position: 'relative',
+      width: '100%',
+      pb: 4,
+      opacity: event.isActive ? 1 : 0.6,
+      cursor: event.isActive ? 'pointer' : 'not-allowed',
+    },
+    imageBox: { position: 'relative' },
+    cardMedia: { objectFit: 'cover' },
+    chipTopLeft: {
+      position: 'absolute',
+      top: 12,
+      left: 12,
+      display: 'flex',
+      gap: 1,
+    },
+    chipTopRight: { position: 'absolute', top: 12, right: 12 },
+    chipEvento: { background: '#e0f2ff', color: '#0077cc' },
+    chipStatus: {
+      background: event.isActive
+        ? theme.palette.chips.active
+        : theme.palette.chips.canceled,
+      color: theme.palette.text.primary,
+    },
+    cardContent: { p: 2, display: 'flex', flexDirection: 'column', gap: 2 },
+    title: { fontSize: '1.1rem', fontWeight: 500 },
+    description: { fontSize: '0.875rem', color: 'text.secondary' },
+    icon: { color: theme.palette.text.secondary, fontSize: '20px' },
+    infoText: { fontSize: '0.875rem' },
+    progressBox: { flexGrow: 1 },
+    progressBar: {
+      height: 8,
+      borderRadius: 5,
+      '&.MuiLinearProgress-colorPrimary': {
+        backgroundColor: '#ebececff',
+      },
+    },
+    button: {
+      position: 'absolute',
+      bottom: 10,
+      left: 10,
+      right: 10,
+      borderRadius: 2,
+    },
+  };
 
   return (
-    <Card
-      sx={{
-        borderRadius: 3,
-        overflow: 'hidden',
-        boxShadow: 1,
-        maxWidth: 320,
-        position: 'relative',
-        width: '100%',
-      }}
-    >
-      {/* Imagem com chips sobrepostos */}
-      <Box sx={{ position: 'relative' }}>
+    <Card sx={styles.card}>
+      <Box sx={styles.imageBox}>
         <CardMedia
           component="img"
           height="180"
-          image={"https://www.guiaviagensbrasil.com/imagens/Imagem%20do%20mar%20calma%20e%20belo%20da%20Praia%20da%20Engenhoca-Itacar%C3%A9-Bahia-BA.jpg"}
+          image={
+            'https://www.guiaviagensbrasil.com/imagens/Imagem%20do%20mar%20calma%20e%20belo%20da%20Praia%20da%20Engenhoca-Itacar%C3%A9-Bahia-BA.jpg'
+          }
           alt={event.name}
-          sx={{ objectFit: 'cover' }}
+          sx={styles.cardMedia}
         />
-        <Box sx={{ position: 'absolute', top: 12, left: 12, display: 'flex', gap: 1 }}>
-          <Chip label={"evento"} color="primary" size="small" sx={{ background: '#e0f2ff', color: '#0077cc' }} />
+        <Box sx={styles.chipTopLeft}>
+          <Chip label="evento" color="primary" size="small" sx={styles.chipEvento} />
         </Box>
-        <Box sx={{ position: 'absolute', top: 12, right: 12 }}>
-          <Chip label="Active" size="small" sx={{ background: '#f3e8ff', color: '#a855f7' }} />
+        <Box sx={styles.chipTopRight}>
+          <Chip label={event.isActive ? 'Aberto' : 'Finalizado'} size="small" sx={styles.chipStatus} />
         </Box>
       </Box>
 
-      {/* Conteúdo */}
-      <CardContent sx={{ p: 2 }}>
-        <Typography variant="body2" color="text.secondary">
-          {dayjs(event.startDate).format('DD/MM/YYYY')} ás {dayjs(event.startDate).format('HH:mm')}
-        </Typography>
-        <Typography variant="h6" fontWeight="bold" sx={{ mt: 0.5 }}>
-          {event.name}
-        </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          {event.location}
-        </Typography>
-
-        {/* Barra de progresso e preço
-        <Box sx={{ display: 'flex', alignItems: 'center', mt: 1, gap: 1 }}>
-          <Box sx={{ flexGrow: 1 }}>
-            <LinearProgress
-              variant="determinate"
-              value={event.progress}
-              sx={{
-                height: 8,
-                borderRadius: 5,
-                backgroundColor: '#f1f5f9',
-                '& .MuiLinearProgress-bar': {
-                  backgroundColor: '#ec4899',
-                },
-              }}
-            />
-          </Box>
-          <Typography variant="body2" fontWeight="bold">
-            {event.progress}%
+      <CardContent sx={styles.cardContent}>
+        <Stack>
+          <Typography sx={styles.title}>{event.name}</Typography>
+          <Typography sx={styles.description}>
+            O cursilho é um retiro, promovendo a reflexão e o crescimento pessoal.
           </Typography>
-        </Box> */}
+        </Stack>
 
-        <Typography variant="h6" fontWeight="bold" sx={{ mt: 1, color: '#ec4899' }}>
-          ${event.price}
-        </Typography>
+        <Stack gap={1}>
+          <Stack direction="row" alignItems="center" gap={1}>
+            <CalendarMonthOutlinedIcon sx={styles.icon} />
+            <Typography sx={styles.infoText} color="text.secondary">
+              {dayjs(event.startDate).format('DD/MM/YYYY')} ás{' '}
+              {dayjs(event.startDate).format('HH:mm')}
+            </Typography>
+          </Stack>
+          <Stack direction="row" alignItems="center" gap={1}>
+            <RoomOutlinedIcon sx={styles.icon} />
+            <Typography sx={styles.infoText} color="text.secondary">
+              Chácara Moriá
+            </Typography>
+          </Stack>
+          <Stack direction="row" alignItems="center" gap={1}>
+            <GroupOutlinedIcon sx={styles.icon} />
+            <Typography sx={styles.infoText} color="text.secondary">
+              {event.users?.length} / {event.capacity} participantes
+            </Typography>
+          </Stack>
+        </Stack>
+
+        <Box sx={styles.progressBox}>
+          <LinearProgress variant="determinate" value={percentOcupped} sx={styles.progressBar} />
+        </Box>
+
+        <Button
+          variant="contained"
+          disabled={!event.isActive}
+          size="small"
+          sx={styles.button}
+          onClick={() => navigate(`/eventos/${event.id}`)}
+        >
+          Inscrever-se
+        </Button>
       </CardContent>
     </Card>
   );
 }
 
 function Cards() {
-  const {data=[]}  = useGetEvents({});
-
+  const { data = [] } = useGetEvents({});
 
   return (
     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
       {Array.isArray(data)
-        ? data.map((event: any) => {
-            return <EventCard key={event.id} event={event} />;
-          })
+        ? data.filter(event => event.isActive).map((event: Event) => (
+            <EventCard key={event.id} event={event} />
+          ))
         : null}
     </Box>
   );

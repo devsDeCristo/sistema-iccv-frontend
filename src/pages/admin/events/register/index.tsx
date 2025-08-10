@@ -29,7 +29,7 @@ function Register() {
 
   return (
     <PageStyle>
-      <Header title="Cadastrar evento" buttonBack pageBack="/eventos" />
+      <Header title="Cadastrar evento" buttonBack pageBack="/admin/eventos" />
       <FormProvider {...methods}>
         <form onSubmit={methods.handleSubmit(onSubmitForm)}>
           <Form />
