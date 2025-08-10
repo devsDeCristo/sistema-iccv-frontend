@@ -55,7 +55,7 @@ function AssociateEvent() {
           icon: 'success', 
         }).then((result) => {
           if (result.isConfirmed && !worker) {
-            window.open(eventData?.groupLink, '_blank');
+            window.open((!Array.isArray(eventData) && eventData && eventData?.groupLink) || '', '_blank');
           }
           if (result.isConfirmed) {
             localStorage.clear();
