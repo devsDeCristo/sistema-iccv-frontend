@@ -17,12 +17,17 @@ import CalendarMonthOutlinedIcon from '@mui/icons-material/CalendarMonthOutlined
 import RoomOutlinedIcon from '@mui/icons-material/RoomOutlined';
 import GroupOutlinedIcon from '@mui/icons-material/GroupOutlined';
 import { Event } from '../../admin/events/types';
+import { Work } from '@mui/icons-material';
 
 function EventCard({ event }: { event: Event }) {
   const navigate = useNavigate();
   const theme = useTheme();
-  const percentOcupped = ((event.users?.length ?? 0)/ event.capacity) * 100;
+  const percentOcupped = ((event.users?.length ?? 0) / event.capacity) * 100;
   const exhausted = (event.users?.length ?? 0) >= event.capacity;
+  // const percentOcupped = 44; // (event.users.length / event.capacity) * 100;
+
+  const usersWorker = event.users?.filter((user) => user.worker);
+  const usersParticipant = event.users?.filter((user) => !user.worker);
 
   const styles = {
     card: {
@@ -88,10 +93,21 @@ function EventCard({ event }: { event: Event }) {
           sx={styles.cardMedia}
         />
         <Box sx={styles.chipTopLeft}>
-          <Chip label="evento" color="primary" size="small" sx={styles.chipEvento} />
+          <Chip
+            label="evento"
+            color="primary"
+            size="small"
+            sx={styles.chipEvento}
+          />
         </Box>
         <Box sx={styles.chipTopRight}>
-          <Chip label={event.isActive ? 'Aberto' : exhausted?"Esgotado":'Finalizado'} size="small" sx={styles.chipStatus} />
+          <Chip
+            label={
+              event.isActive ? 'Aberto' : exhausted ? 'Esgotado' : 'Finalizado'
+            }
+            size="small"
+            sx={styles.chipStatus}
+          />
         </Box>
       </Box>
 
@@ -99,7 +115,8 @@ function EventCard({ event }: { event: Event }) {
         <Stack>
           <Typography sx={styles.title}>{event.name}</Typography>
           <Typography sx={styles.description}>
-            O cursilho é um retiro, promovendo a reflexão e o crescimento pessoal.
+            O cursilho é um retiro, promovendo a reflexão e o crescimento
+            pessoal.
           </Typography>
         </Stack>
 
@@ -117,21 +134,36 @@ function EventCard({ event }: { event: Event }) {
               Chácara Moriá
             </Typography>
           </Stack>
+
+          <Stack direction="row" alignItems="center" gap={1}>
+            <Work sx={styles.icon} />
+            <Typography sx={styles.infoText} color="text.secondary">
+              {usersWorker?.length} / {event.capacityWorker} participantes para
+              trabalhar
+            </Typography>
+          </Stack>
+
           <Stack direction="row" alignItems="center" gap={1}>
             <GroupOutlinedIcon sx={styles.icon} />
             <Typography sx={styles.infoText} color="text.secondary">
-              {event.users?.length} / {event.capacity} participantes
+              {usersParticipant?.length} / {event.capacity} participantes para
+              participar
             </Typography>
           </Stack>
         </Stack>
 
         <Box sx={styles.progressBox}>
-          <LinearProgress variant="determinate" value={percentOcupped} sx={styles.progressBar} />
+          <LinearProgress
+            valueBuffer={100}
+            value={percentOcupped}
+            variant="determinate"
+            sx={styles.progressBar}
+          />
         </Box>
 
         <Button
           variant="contained"
-          disabled={!event.isActive||exhausted}
+          disabled={!event.isActive || exhausted}
           size="small"
           sx={styles.button}
           onClick={() => navigate(`/eventos/${event.id}`)}
@@ -149,9 +181,9 @@ function Cards() {
   return (
     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
       {Array.isArray(data)
-        ? data.filter(event => event.isActive).map((event: Event) => (
-            <EventCard key={event.id} event={event} />
-          ))
+        ? data
+            .filter((event) => event.isActive)
+            .map((event: Event) => <EventCard key={event.id} event={event} />)
         : null}
     </Box>
   );

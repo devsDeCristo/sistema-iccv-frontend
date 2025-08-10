@@ -12,6 +12,7 @@ export interface Event {
   workerPrice: number;
   createdAt: Date;
   capacity: number;
+  capacityWorker: number;
   updateAt: Date;
   users?: User[];
 }
@@ -29,6 +30,10 @@ export interface Team {
   event: Event;
   users: User[];
   capacity: number;
+  capacityWorker: number;
+  price: number;
+  workerPrice: number;
+  groupLink?: string;
 }
 
 export type RegisterEventFormType = z.infer<typeof REGISTER_EVENT_SCHEMA>;

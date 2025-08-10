@@ -28,8 +28,22 @@ function Form() {
             />
           )}
         />
+      </Grid>{' '}
+      <Grid item xs={12} md={6}>
+        <Controller
+          control={control}
+          name="groupLink"
+          render={({ field: { onChange, value } }) => (
+            <Input
+              value={value}
+              onChange={onChange}
+              label="Link do grupo de whatsapp"
+              // error={!!errors.name}
+              // errorMessage={errors.groupLink?.message}
+            />
+          )}
+        />
       </Grid>
-
       <Grid item xs={12} md={6}>
         <Controller
           control={control}
@@ -46,7 +60,6 @@ function Form() {
           )}
         />
       </Grid>
-
       <Grid item xs={12} md={6}>
         <Controller
           control={control}
@@ -74,7 +87,23 @@ function Form() {
               required
               error={!!errors.capacity}
               errorMessage={errors.capacity?.message}
-              label="Capacidade máxima de inscrições"
+              label="Capacidade máxima de inscrições para fazer"
+            />
+          )}
+        />
+      </Grid>
+      <Grid item xs={12} md={6}>
+        <Controller
+          control={control}
+          name="capacityWorker"
+          render={({ field: { onChange, value } }) => (
+            <Input
+              value={value}
+              onChange={(event) => onChange(onlyNumber(event.target.value))}
+              required
+              error={!!errors.capacityWorker}
+              errorMessage={errors.capacityWorker?.message}
+              label="Capacidade máxima de inscrições para trabalhar"
             />
           )}
         />
@@ -93,7 +122,6 @@ function Form() {
           )}
         />
       </Grid>
-
       <Grid item xs={12} md={6}>
         <Controller
           name="endDate"
