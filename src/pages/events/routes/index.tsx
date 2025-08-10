@@ -3,14 +3,23 @@ import { Events } from '..';
 import { Register } from '../register';
 import { Details } from '../details';
 
-function RoutesEvents() {
+function RoutesEventsAdmin() {
   return (
     <>
-      <Route path="/eventos" element={<Events />} />
-      <Route path="/eventos/cadastro" element={<Register />} />
-      <Route path="/eventos/:id/detalhes/:subPage" element={<Details />} />
+      <Route path="/admin/eventos" element={<Events />} />
+      <Route path="/admin/eventos/cadastro" element={<Register />} />
+      <Route path="/admin/eventos/:id/detalhes/:subPage" element={<Details />} />
     </>
   );
 }
 
-export { RoutesEvents };
+function RoutesEvents() {
+  return (
+    <>
+      <Route path="/eventos" element={<Events />} />
+      <Route path="/eventos/:id/detalhes" element={<Details />} />
+    </>
+  );
+}
+
+export { RoutesEventsAdmin, RoutesEvents };

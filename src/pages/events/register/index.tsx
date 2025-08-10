@@ -17,7 +17,7 @@ function Register() {
 
   const { mutate: mutatePostCreateEvent } = usePostCreateEvent({
     onSuccess: () => {
-      navigate('/eventos');
+      navigate('/admin/eventos');
     },
   });
 

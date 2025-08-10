@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { RoutesUsers, RoutesUsersAdmin } from './pages/users/routes';
 import { SideBar } from './components/sideBar';
-import { RoutesEvents } from './pages/events/routes';
+import { RoutesEvents, RoutesEventsAdmin } from './pages/events/routes';
 import { ToastContainer } from 'react-toastify';
 import { RoutesLogin } from './pages/login/routes';
 import { myTheme } from './themes';
@@ -37,9 +37,10 @@ function App() {
       <div className="App">
         <React.Suspense fallback={<Loading />}>
           <Routes>
+            <Route path="*" element={<Navigate replace to="/login" />} />
             {RoutesLogin()}
             <Route path="/user/register" element={<RegisterUser />} />
-            <Route path="*" element={<Navigate replace to="/login" />} />
+            
             <Route
               element={
                 <ProtectedRoute isAdmin={true}>
@@ -48,10 +49,11 @@ function App() {
               }
             >
               {RoutesUsersAdmin()}
-              {RoutesEvents()}
+              {RoutesEventsAdmin()}
             </Route>
             <Route element={<ProtectedRoute isAdmin={false} />}>
               {RoutesUsers()}
+              {RoutesEvents()}
             </Route>
           </Routes>
         </React.Suspense>

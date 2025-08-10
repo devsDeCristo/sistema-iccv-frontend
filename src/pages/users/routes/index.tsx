@@ -19,8 +19,8 @@ function RoutesUsers() {
 function RoutesUsersAdmin() {
   return (
     <>
-      <Route path="/" element={<Users />} />
-      <Route path="/user/:id/editar" element={<EditUser />} />
+      <Route path="/admin/users" element={<Users />} />
+      <Route path="/admin/user/:id/editar" element={<EditUser />} />
       {/* <Route
         path="/cadastro-cursilho-work/participar"
         element={<AssociateUser />}

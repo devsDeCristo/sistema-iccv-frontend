@@ -149,7 +149,7 @@ function List({ search }: { search: string }) {
   // };
   const handleClickEdit = (event: React.MouseEvent) => {
     event.stopPropagation();
-    const link = `${window.location.origin}/user/${rowSelected?.id}/editar`;
+    const link = `${window.location.origin}/admin/user/${rowSelected?.id}/editar`;
     window.open(link, '_blank');
     handleClose();
   };

@@ -111,7 +111,7 @@ function Details() {
   }
   const handleChange = (_: unknown, newValue: string) => {
     setPageValue(newValue);
-    navigate(`/eventos/${id}/detalhes/${newValue}`);
+    navigate(`/admin/eventos/${id}/detalhes/${newValue}`);
   };
 
   return (
@@ -119,7 +119,7 @@ function Details() {
       <Header
         title={'Detalhes do evento: ' + event?.name}
         buttonBack
-        pageBack="/eventos"
+        pageBack="/admin/eventos"
       />
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
         <Tabs

@@ -66,7 +66,7 @@ function EditUser() {
 
   const { mutate: mutatePutUser } = usePutUser({
     onSuccess: () => {
-      navigate('/');
+      navigate('/admin/users');
     },
   });
   const { mutate: mutatePostProfilePhotoUser } = usePostProfilePhotoUser({

@@ -25,13 +25,13 @@ const SideBar: React.FC<SideBarProps> = ({ validRole = true }) => {
   const optionsPages = [
     {
       itemId: '1',
-      link: '/',
+      link: '/admin/users',
       icon: <People />,
       title: 'Usuários',
     },
     {
       itemId: '2',
-      link: '/eventos',
+      link: '/admin/eventos',
       icon: <Event />,
       title: 'Eventos',
     },
@@ -132,7 +132,7 @@ const SideBar: React.FC<SideBarProps> = ({ validRole = true }) => {
             <Menu>
               <MenuItem
                 className="menu1"
-                component={<Link to={'/eventos'} />}
+                component={<Link to={'/admin/eventos'} />}
                 onClick={() => setOpenDrawer(false)}
               >
                 <h2>ICCV</h2>

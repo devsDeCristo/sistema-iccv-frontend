@@ -40,7 +40,7 @@ function Login() {
     const permission = usePermission();
     const role = useRole();
     if (permission && role) {
-      navigate('/eventos');
+      navigate('/admin/eventos');
     }
     if (permission) {
       navigate('/cadastrar-cursilho');
@@ -53,7 +53,7 @@ function Login() {
       localStorage.setItem('user', JSON.stringify(response.user));
 
       if (response.user.role === 1) {
-        navigate('/eventos');
+        navigate('/admin/eventos');
       } else {
         navigate('/cadastrar-cursilho');
       }
