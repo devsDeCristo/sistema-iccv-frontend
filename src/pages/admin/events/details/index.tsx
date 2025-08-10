@@ -1,25 +1,25 @@
-import { Header } from '../../../components/header';
-import { PageStyle } from '../../../components/pageStyle';
+import { Header } from '../../../../components/header';
+import { PageStyle } from '../../../../components/pageStyle';
 import { Card, Box, Button, Stack, Tabs, Tab, TextField } from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ListTeams } from '../../../features/admin/events/components/listTeams';
-import { ListBedRooms } from '../../../features/admin/events/components/listBedRooms';
-import { ModalBedRoom } from '../../../features/admin/events/components/modalBedRoom';
+import { ListTeams } from '../../../../features/admin/events/components/listTeams';
+import { ListBedRooms } from '../../../../features/admin/events/components/listBedRooms';
+import { ModalBedRoom } from '../../../../features/admin/events/components/modalBedRoom';
 import { useState } from 'react';
-import { ModalTeam } from '../../../features/admin/events/components/modalTeam';
-import { ListUsers } from '../../../features/admin/events/components/listUsers';
+import { ModalTeam } from '../../../../features/admin/events/components/modalTeam';
+import { ListUsers } from '../../../../features/admin/events/components/listUsers';
 
-import PdfEvent from '../../../components/pdfEvent';
+import PdfEvent from '../../../../components/pdfEvent';
 import FileSaver from 'file-saver';
 import { pdf } from '@react-pdf/renderer';
-import { Event } from '../../../features/admin/events/types';
-import { useGetTeams } from '../../../features/admin/events/api/getTeams';
-import { useGetBedrooms } from '../../../features/admin/events/api/getBedrooms';
-import PdfBedRooms from '../../../components/pdfRooms';
-import { useGetEvents } from '../../../features/admin/events/api/getEvents';
-import PdfBadge from '../../../components/pdfBadge';
-import { ModalAddUserOnEvent } from '../../../features/admin/events/components/modalAddUser';
-import PdfEnvelope from '../../../components/pdfEnvelope';
+import { Event } from '../../../../features/admin/events/types';
+import { useGetTeams } from '../../../../features/admin/events/api/getTeams';
+import { useGetBedrooms } from '../../../../features/admin/events/api/getBedrooms';
+import PdfBedRooms from '../../../../components/pdfRooms';
+import { useGetEvents } from '../../../../features/admin/events/api/getEvents';
+import PdfBadge from '../../../../components/pdfBadge';
+import { ModalAddUserOnEvent } from '../../../../features/admin/events/components/modalAddUser';
+import PdfEnvelope from '../../../../components/pdfEnvelope';
 
 function Details() {
   const { id, subPage } = useParams();

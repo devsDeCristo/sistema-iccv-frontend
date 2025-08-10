@@ -1,15 +1,16 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { RoutesUsers, RoutesUsersAdmin } from './pages/users/routes';
+import { RoutesUsers, RoutesUsersAdmin } from './pages/admin/users/routes';
 import { SideBar } from './components/sideBar';
-import { RoutesEvents, RoutesEventsAdmin } from './pages/events/routes';
+import {RoutesEventsAdmin } from './pages/admin/events/routes';
 import { ToastContainer } from 'react-toastify';
 import { RoutesLogin } from './pages/login/routes';
 import { myTheme } from './themes';
 import { ThemeProvider } from '@emotion/react';
 import ProtectedRoute from './components/protectedRoute';
 import { Navigate, Route, Routes } from 'react-router-dom';
-import { RegisterUser } from './pages/users/register';
+import { RegisterUser } from './pages/admin/users/register';
 import { CssBaseline } from '@mui/material';
+import { RoutesEvents } from './pages/events/routes';
 // import { useMediaQuery } from '@mui/material';
 
 function Loading() {

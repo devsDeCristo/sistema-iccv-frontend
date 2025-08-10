@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { REGISTER_USERS_SCHEMA } from '../features/users/constants';
+import { REGISTER_USERS_SCHEMA } from '../features/admin/users/constants';
 
 export interface User {
   id: string;

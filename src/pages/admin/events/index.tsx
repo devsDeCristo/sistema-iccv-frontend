@@ -1,8 +1,8 @@
 import { Box, Button } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { Header } from '../../components/header';
-import { List } from '../../features/admin/events/components/list';
-import { PageStyle } from '../../components/pageStyle';
+import { PageStyle } from '../../../components/pageStyle';
+import { Header } from '../../../components/header';
+import { List } from '../../../features/admin/events/components/list';
 
 function Events() {
   const navigate = useNavigate();
