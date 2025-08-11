@@ -144,13 +144,13 @@ function EventCard({ event }: { event: Event }) {
             </Typography>
           </Stack>
 
-          <Stack direction="row" alignItems="center" gap={1}>
+          {/* <Stack direction="row" alignItems="center" gap={1}>
             <Work sx={styles.icon} />
             <Typography sx={styles.infoText} color="text.secondary">
               {usersWorker?.length} / {event.capacityWorker} Inscritos para
               trabalhar
             </Typography>
-          </Stack>
+          </Stack> */}
 
           <Stack direction="row" alignItems="center" gap={1}>
             <GroupOutlinedIcon sx={styles.icon} />
