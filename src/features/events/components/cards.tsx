@@ -124,8 +124,8 @@ function EventCard({ event }: { event: Event }) {
         <Stack>
           <Typography sx={styles.title}>{event.name}</Typography>
           <Typography sx={styles.description}>
-            O cursilho é um retiro, promovendo a reflexão e o crescimento
-            pessoal.
+            O Cursilho da Cristandade é um encontro intensivo para aprofundar a
+            fé e fortalecer o compromisso cristão na vida diária.
           </Typography>
         </Stack>
 
