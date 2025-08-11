@@ -94,7 +94,7 @@ function RegisterUser() {
           ? undefined
           : data.leadershipPosition,
       role: 5,
-      password: 'password123',
+      password: '$2b$10$QGF/lucztAy.bqQFEQcSOOjP3fGMZfSsCIl4t.dfFo15Hh0v/C8xW',
     };
 
     mutatePostCreateUser(formatData);
