@@ -13,10 +13,15 @@ import {
 // import { usePermission } from '../../../hooks/usePermission';
 import { usePostCreRelationEventToUser } from '../../../features/admin/users/api/postRelationEventUser';
 import { useGetEvents } from '../../../features/admin/events/api/getEvents';
-import { EmojiPeople, Logout, Work } from '@mui/icons-material';
+import {
+  EmojiPeople,
+  // Logout,
+  Work,
+} from '@mui/icons-material';
 import { useState } from 'react';
 import { Loading } from '../../../components/loading';
 import { useParams } from 'react-router-dom';
+import { Event } from '../../../features/admin/events/types';
 
 // import { setBearerToken } from '../../../config/lib/axios/api-client';
 
@@ -37,7 +42,14 @@ function AssociateEvent() {
       enabled: !!eventId,
     }
   );
+  const event = eventData as Event;
+  const usersParticipant = event?.users?.filter((user) => !user?.worker);
 
+  const usersWorker = event?.users?.filter((user) => user?.worker);
+
+  const exhaustedParticipant =
+    (usersParticipant?.length ?? 0) >= event?.capacity;
+  const exhaustedWorker = (usersWorker?.length ?? 0) >= event?.capacityWorker;
   const userIsRegister =
     !Array.isArray(eventData) &&
     eventData &&
@@ -55,13 +67,14 @@ function AssociateEvent() {
           icon: 'success',
         }).then((result) => {
           if (result.isConfirmed && !worker) {
-            window.open(
-              (!Array.isArray(eventData) &&
-                eventData &&
-                eventData?.groupLink) ||
-                '',
-              '_blank'
-            );
+            if (!Array.isArray(eventData))
+              window.open(
+                (!Array.isArray(eventData) &&
+                  eventData &&
+                  eventData?.groupLink) ||
+                  '',
+                '_blank'
+              );
           }
           if (result.isConfirmed) {
             localStorage.clear();
@@ -138,62 +151,66 @@ function AssociateEvent() {
                 value={worker}
               >
                 <Stack sx={styles.containerOptions}>
-                  <Box
-                    sx={[
-                      styles.boxOption,
-                      {
-                        border:
-                          worker == 0
-                            ? `1px solid ${theme.palette.primary.main}`
-                            : `1px solid ${theme.palette.text.primary}`,
-                      },
-                    ]}
-                    onClick={() => setWorker(0)}
-                  >
-                    <EmojiPeople
+                  {!exhaustedParticipant && (
+                    <Box
                       sx={[
-                        styles.icon,
+                        styles.boxOption,
                         {
-                          color:
+                          border:
                             worker == 0
-                              ? theme.palette.primary.main
-                              : theme.palette.text.secondary,
+                              ? `1px solid ${theme.palette.primary.main}`
+                              : `1px solid ${theme.palette.text.primary}`,
                         },
                       ]}
-                    />
-                    <Typography sx={styles.typography}>
-                      Cursilhista (1ª vez)
-                    </Typography>
-                    <Radio value={0} />
-                  </Box>
-                  <Box
-                    sx={[
-                      styles.boxOption,
-                      {
-                        border:
-                          worker == 1
-                            ? `1px solid ${theme.palette.primary.main}`
-                            : `1px solid ${theme.palette.text.primary}`,
-                      },
-                    ]}
-                    onClick={() => setWorker(1)}
-                  >
-                    <Work
+                      onClick={() => setWorker(0)}
+                    >
+                      <EmojiPeople
+                        sx={[
+                          styles.icon,
+                          {
+                            color:
+                              worker == 0
+                                ? theme.palette.primary.main
+                                : theme.palette.text.secondary,
+                          },
+                        ]}
+                      />
+                      <Typography sx={styles.typography}>
+                        Cursilhista (1ª vez)
+                      </Typography>
+                      <Radio value={0} />
+                    </Box>
+                  )}
+                  {!exhaustedWorker && (
+                    <Box
                       sx={[
-                        styles.icon,
+                        styles.boxOption,
                         {
-                          color:
+                          border:
                             worker == 1
-                              ? theme.palette.primary.main
-                              : theme.palette.text.secondary,
+                              ? `1px solid ${theme.palette.primary.main}`
+                              : `1px solid ${theme.palette.text.primary}`,
                         },
                       ]}
-                    />
-                    <Typography sx={styles.typography}>
-                      Cursilheiro (Trabalhar)
-                    </Typography>
-                    <Radio value={1} />
-                  </Box>
+                      onClick={() => setWorker(1)}
+                    >
+                      <Work
+                        sx={[
+                          styles.icon,
+                          {
+                            color:
+                              worker == 1
+                                ? theme.palette.primary.main
+                                : theme.palette.text.secondary,
+                          },
+                        ]}
+                      />
+                      <Typography sx={styles.typography}>
+                        Cursilheiro (Trabalhar)
+                      </Typography>
+                      <Radio value={1} />
+                    </Box>
+                  )}
                 </Stack>
               </RadioGroup>
               <Button
@@ -216,7 +233,7 @@ function AssociateEvent() {
                 ' !'}
             </Typography>
           )}
-          <Button
+          {/* <Button
             variant="contained"
             sx={styles.button}
             type="submit"
@@ -228,7 +245,7 @@ function AssociateEvent() {
             }}
           >
             Sair
-          </Button>
+          </Button> */}
         </Box>
       ) : (
         <Loading />

@@ -26,5 +26,5 @@ export const useGetEvents = (
     'queryKey' | 'queryFn'
   > = {}
 ) => {
-  return useQuery([GET_EVENTS], () => getEvents(params), options);
+  return useQuery([GET_EVENTS, params], () => getEvents(params), options);
 };

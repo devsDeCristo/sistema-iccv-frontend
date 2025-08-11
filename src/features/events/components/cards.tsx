@@ -22,14 +22,15 @@ import { Event } from '../../admin/events/types';
 function EventCard({ event }: { event: Event }) {
   const navigate = useNavigate();
   const theme = useTheme();
-  const percentOcupped = ((event.users?.length ?? 0) / event.capacity) * 100;
-  const exhausted = (event.users?.length ?? 0) >= event.capacity;
+  const usersParticipant = event.users?.filter((user) => !user.worker);
+  const percentOcupped =
+    ((usersParticipant?.length ?? 0) / event.capacity) * 100;
+  const exhausted = (usersParticipant?.length ?? 0) >= event.capacity;
   // const percentOcupped = 44; // (event.users.length / event.capacity) * 100;
   const user = localStorage.getItem('user');
   const userId = user ? JSON.parse(user).id : null;
   const isUserRegistered = event.users?.some((u) => u.id === userId);
   // const usersWorker = event.users?.filter((user) => user.worker);
-  const usersParticipant = event.users?.filter((user) => !user.worker);
 
   const styles = {
     card: {
@@ -176,7 +177,7 @@ function EventCard({ event }: { event: Event }) {
         ) : (
           <Button
             variant="contained"
-            disabled={!event.isActive || exhausted || isUserRegistered}
+            disabled={!event.isActive || isUserRegistered}
             size="small"
             sx={styles.button}
             onClick={() => navigate(`/cadastrar-cursilho/${event.id}`)}
