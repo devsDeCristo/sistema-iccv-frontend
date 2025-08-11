@@ -17,7 +17,7 @@ import CalendarMonthOutlinedIcon from '@mui/icons-material/CalendarMonthOutlined
 import RoomOutlinedIcon from '@mui/icons-material/RoomOutlined';
 import GroupOutlinedIcon from '@mui/icons-material/GroupOutlined';
 import { Event } from '../../admin/events/types';
-import { Work } from '@mui/icons-material';
+// import { Work } from '@mui/icons-material';
 
 function EventCard({ event }: { event: Event }) {
   const navigate = useNavigate();
@@ -28,7 +28,7 @@ function EventCard({ event }: { event: Event }) {
   const user = localStorage.getItem('user');
   const userId = user ? JSON.parse(user).id : null;
   const isUserRegistered = event.users?.some((u) => u.id === userId);
-  const usersWorker = event.users?.filter((user) => user.worker);
+  // const usersWorker = event.users?.filter((user) => user.worker);
   const usersParticipant = event.users?.filter((user) => !user.worker);
 
   const styles = {
