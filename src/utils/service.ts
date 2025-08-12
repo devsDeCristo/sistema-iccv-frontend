@@ -1,5 +1,4 @@
 import { AxiosError } from 'axios';
-// import { redirect } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
 export const handleResponseThrowError = (

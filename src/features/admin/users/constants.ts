@@ -30,7 +30,13 @@ export const REGISTER_USERS_SCHEMA = z.object({
       required_error: DEFAULT_MESSAGE,
     })
     .min(15, { message: 'Preencha um número válido' }),
-  profession: z.string(),
+  profession: z
+    .string({
+      required_error: DEFAULT_MESSAGE,
+    })
+    .min(2, {
+      message: 'Profissão deve conter no mínimo 2 caracteres',
+    }),
   notes: z.string().optional(),
   religion: z.string().optional(),
   birthday: z
@@ -47,9 +53,13 @@ export const REGISTER_USERS_SCHEMA = z.object({
       required_error: DEFAULT_MESSAGE,
     })
     .min(15, { message: 'Preencha um número válido' }),
-  indicatedBy: z.string({
-    required_error: DEFAULT_MESSAGE,
-  }),
+  indicatedBy: z
+    .string({
+      required_error: DEFAULT_MESSAGE,
+    })
+    .min(2, {
+      message: 'Indicado por deve conter no mínimo 2 caracteres',
+    }),
   leadershipPosition: z.string().optional(),
   worker: z.number({
     required_error: DEFAULT_MESSAGE,

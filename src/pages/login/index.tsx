@@ -30,9 +30,7 @@ function Login() {
   function onSubmitForm(data: LoginFormType) {
     const { cpf, password } = data;
     const cleanedCpf = cpf.replace(/[.\-\s]/g, '');
-    console.log('password', password);
 
-    // mutatePostLogin({ document: cleanedCpf, password: '123456' });
     mutatePostLogin({ document: cleanedCpf, password });
   }
 

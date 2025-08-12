@@ -46,14 +46,12 @@ function RegisterUser() {
   });
   const permission = usePermission();
 
-  const { mutate: mutatePostCreateUser } = usePostCreateUser({
-    onSuccess: (response) => {
+  const { mutate: mutatePostCreateUser, isLoading } = usePostCreateUser({
+    onSuccess: (response: any) => {
       methods.reset(DEFAULT_VALUES);
       localStorage.setItem('access_token', response.access_token);
       localStorage.setItem('user', JSON.stringify(response.user));
-      console.log('vai a merda');
 
-      //navigate('/cadastrar-cursilho');
       Swal.fire({
         title: 'Cadastro efetuado com sucesso',
         icon: 'success',
@@ -111,8 +109,9 @@ function RegisterUser() {
             fullWidth
             sx={{ marginTop: 2 }}
             type="submit"
+            disabled={isLoading}
           >
-            Cadastrar-se
+            {isLoading ? 'Cadastrando...' : 'Cadastrar-se'}
           </Button>
         </form>
       </FormProvider>

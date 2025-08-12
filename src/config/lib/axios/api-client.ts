@@ -1,53 +1,64 @@
-import axios, { InternalAxiosRequestConfig } from 'axios';
-
+import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { API_URL } from '../../env';
-// import {
-//   handleInterceptResponseError,
-//   handleInterceptResponseSuccess,
-// } from './interceptors';
-const token = (): string | null => {
-  const result = localStorage.getItem('access_token');
-  return result;
-};
 
-const apiClient = axios.create({});
-apiClient.defaults.baseURL = API_URL;
-// apiClient.interceptors.response.use(
-//   handleInterceptResponseSuccess,
-//   handleInterceptResponseError,
-// );
-//const apiClient = axios.create({});
-apiClient.interceptors.request.use(
-  async (config: InternalAxiosRequestConfig) => {
-    const url = API_URL;
+// ----------------------------
+// Token management (cache em memória + persistência)
+// ----------------------------
+let cachedToken: string | null = localStorage.getItem('access_token');
 
-    if (token()) {
-      try {
-        const accessToken = token();
-        config.baseURL = url;
-
-        if (config.headers) {
-          config.headers.set(
-            'Authorization',
-            accessToken ? `Bearer ${accessToken}` : ''
-          );
-        }
-
-        return config;
-      } catch (error) {
-        console.error(error);
-      }
-    } else {
-      localStorage.clear();
-      window.location.replace('/login');
-    }
-
-    return config; // Retorna o config mesmo em caso de erro para evitar problemas
-  }
-);
+const getToken = (): string | null => cachedToken;
 
 export const setBearerToken = (token: string | null) => {
-  apiClient.defaults.headers.common.Authorization = `Bearer ${token}`;
+  cachedToken = token;
+  if (token) {
+    localStorage.setItem('access_token', token);
+    apiClient.defaults.headers.common.Authorization = `Bearer ${token}`;
+  } else {
+    localStorage.removeItem('access_token');
+    delete apiClient.defaults.headers.common.Authorization;
+  }
 };
+
+// ----------------------------
+// API client instance
+// ----------------------------
+const apiClient = axios.create({
+  baseURL: API_URL,
+});
+
+// ----------------------------
+// Request Interceptor
+// - Adiciona Authorization apenas se houver token
+// ----------------------------
+apiClient.interceptors.request.use(
+  (config: InternalAxiosRequestConfig) => {
+    const token = getToken();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+// ----------------------------
+// Response Interceptor
+// - Tratamento global de erro 401
+// - Evita redirecionar várias vezes
+// ----------------------------
+let isRedirecting = false;
+
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error: AxiosError) => {
+    if (error.response?.status === 401 && !isRedirecting) {
+      isRedirecting = true;
+      setBearerToken(null); // limpa token (cache + localStorage)
+      console.log('Sessão expirada. Faça login novamente.');
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
 
 export { apiClient };

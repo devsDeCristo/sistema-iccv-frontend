@@ -5,10 +5,9 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { ToastContainer } from 'react-toastify';
 import { myTheme } from './themes';
 import { ThemeProvider } from '@emotion/react';
-import {RouterProvider,} from 'react-router-dom';
+import { RouterProvider } from 'react-router-dom';
 import { CssBaseline } from '@mui/material';
 // import { RoutesEvents } from './pages/events/routes';
-// import { authLoader } from './auth/functions/authLoader';
 import routers from './routes';
 // import { useMediaQuery } from '@mui/material';
 
@@ -36,10 +35,10 @@ function App() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <React.Suspense fallback={<Loading />}>
-      <div className="App">
-        <RouterProvider router={router} />
-        <ToastContainer autoClose={5000} closeOnClick />
-      </div>
+        <div className="App">
+          <RouterProvider router={router} />
+          <ToastContainer autoClose={5000} closeOnClick />
+        </div>
       </React.Suspense>
     </ThemeProvider>
   );
