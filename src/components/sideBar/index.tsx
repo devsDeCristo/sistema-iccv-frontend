@@ -39,7 +39,7 @@ const SideBar: React.FC<SideBarProps> = ({
           itemId: '1',
           link: '/eventos',
           icon: <Event />,
-          title: 'Eventos',
+          title: 'Eventos Abertos',
         },
       ];
   const styles = {
