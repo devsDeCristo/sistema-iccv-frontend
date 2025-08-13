@@ -5,9 +5,8 @@ import { apiClient } from "../../config/lib/axios/api-client";
 
 export async function authLoader() {
   try {
-    // tenta validar o token antes de montar a rota
-    await apiClient.get("/auth/validate");
-    return null;
+    const { data } = await apiClient.get("/auth/validate");
+    return data; 
   } catch {
   
     localStorage.removeItem("access_token");
