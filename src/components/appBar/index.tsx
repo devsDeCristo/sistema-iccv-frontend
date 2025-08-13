@@ -134,12 +134,12 @@ export default function MenuAppBar({
                 </Stack>
               </Stack>
               <Divider sx={{ mb: 0.5 }} />
-              <MenuItem onClick={handleClose}>
+              {/* <MenuItem onClick={handleClose}>
                 <ListItemIcon>
                   <Person fontSize="small" />
                 </ListItemIcon>
                 Perfil
-              </MenuItem>
+              </MenuItem> */}
               {user?.role === 1 && !isAdminRoute && (
                 <MenuItem
                   onClick={() => {
