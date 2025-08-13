@@ -109,6 +109,13 @@ const SideBar: React.FC<SideBarProps> = ({
         borderRight: `3px solid ${theme.palette.primary.main}`,
       },
     },
+    sessaoMenu: {
+      px: 2,
+      mt: 2,
+      fontWeight: 'bold',
+      fontSize: 14,
+      color: 'gray',
+    },
   };
   return (
     <Box sx={styles.boxContainer}>
@@ -127,6 +134,7 @@ const SideBar: React.FC<SideBarProps> = ({
               button: () => styles.buttonMenu,
             }}
           >
+            <Box sx={styles.sessaoMenu}>{isAdmin ? 'Administrador' : 'Inscrições'}</Box>
             {optionsPages.map(({ link, itemId, icon, title }) => (
               <MenuItem
                 id={itemId}
@@ -136,7 +144,13 @@ const SideBar: React.FC<SideBarProps> = ({
                 {title}
               </MenuItem>
             ))}
-
+          </Menu>
+          <Menu
+            style={{ position: 'absolute', bottom: 0, width: '100%' }}
+            menuItemStyles={{
+              button: () => styles.buttonMenu,
+            }}
+          >
             <MenuItem
               icon={<Logout />}
               onClick={() => {
