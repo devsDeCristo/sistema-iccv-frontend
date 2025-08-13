@@ -122,7 +122,7 @@ function EditUser() {
       <Header
         title="Edição de usuário"
         buttonBack={permission}
-        pageBack={'/admin/users'}
+        pageBack={'/admin/usuarios'}
       />
       <Box display="flex" justifyContent="center" alignItems="center">
         <Button variant="contained" onClick={() => setIsOpenWebcamModal(true)}>
