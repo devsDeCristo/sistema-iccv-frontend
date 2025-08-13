@@ -7,7 +7,7 @@ import IconButton from '@mui/material/IconButton';
 import MenuIcon from '@mui/icons-material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import Menu from '@mui/material/Menu';
-import { DarkMode, Light, LightMode, Logout, Person, Settings } from '@mui/icons-material';
+import { DarkMode, LightMode, Logout, Person, Settings } from '@mui/icons-material';
 
 import { Avatar, Divider, ListItemIcon, Stack } from '@mui/material';
 import { useUser } from '../../contexts/userContext';
@@ -123,8 +123,8 @@ export default function MenuAppBar({
                 />
                 <Stack>
                   <Typography sx={{ fontWeight: 'bold', fontSize: '1rem' }}>
-                    {user?.fullName.split(' ')[0]}{' '}
-                    {user?.fullName.split(' ')[1]}
+                    {user?.fullName?.split(' ')[0]}{' '}
+                    {user?.fullName?.split(' ')[1]}
                   </Typography>
                   <Typography
                     sx={{ color: 'text.secondary', fontSize: '0.8rem' }}

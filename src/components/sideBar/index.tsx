@@ -1,7 +1,7 @@
 import { Sidebar, Menu, MenuItem, sidebarClasses } from 'react-pro-sidebar';
 import { People, Event, Logout } from '@mui/icons-material';
 import { Link, NavLink } from 'react-router-dom';
-import { alpha, Box, CssBaseline, Drawer, useTheme } from '@mui/material';
+import { Box, CssBaseline, Drawer, useTheme } from '@mui/material';
 
 type SideBarProps = {
   validRole?: Boolean | null;
@@ -97,6 +97,18 @@ const SideBar: React.FC<SideBarProps> = ({
       gap: 2,
       // minWidth: 'calc(100vw - 250px)',
     },
+    buttonMenu: {
+      '&:hover': {
+        backgroundColor: theme.palette.background.hover,
+        color: theme.palette.text.primary,
+      },
+      '&.active': {
+        backgroundColor: theme.palette.background.hover,
+        color: theme.palette.text.primary,
+        fontWeight: 500,
+        borderRight: `3px solid ${theme.palette.primary.main}`,
+      },
+    },
   };
   return (
     <Box sx={styles.boxContainer}>
@@ -112,18 +124,7 @@ const SideBar: React.FC<SideBarProps> = ({
         >
           <Menu
             menuItemStyles={{
-              button: () => ({
-                '&:hover': {
-                  backgroundColor: theme.palette.background.hover,
-                  color: theme.palette.text.primary,
-                },
-                '&.active': {
-                  backgroundColor: theme.palette.background.hover,
-                  color: theme.palette.text.primary,
-                  fontWeight: 500,
-                  borderRight: `3px solid ${theme.palette.primary.main}`,
-                },
-              }),
+              button: () => styles.buttonMenu,
             }}
           >
             {optionsPages.map(({ link, itemId, icon, title }) => (
