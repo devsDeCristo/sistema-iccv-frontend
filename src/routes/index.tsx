@@ -14,6 +14,7 @@ import { authLoader } from '../auth/functions/authLoader';
 import { RoutesEvents } from '../pages/events/routes';
 import SideBar from '../components/sideBar';
 import { authLoaderAdmin } from '../auth/functions/authLoaderAdmin';
+import { Layout } from '../pages/layout';
 
 const routers = (): ReturnType<typeof createBrowserRouter> => {
   return createBrowserRouter(
@@ -28,7 +29,7 @@ const routers = (): ReturnType<typeof createBrowserRouter> => {
           shouldRevalidate={({ currentUrl, nextUrl }) => {
             return currentUrl.pathname !== nextUrl.pathname;
           }}
-          element={<SideBar isAdmin={true} />}
+          element={<Layout isAdmin={true} />}
         >
           {RoutesUsersAdmin()}
           {RoutesEventsAdmin()}
@@ -38,7 +39,7 @@ const routers = (): ReturnType<typeof createBrowserRouter> => {
           shouldRevalidate={({ currentUrl, nextUrl }) => {
             return currentUrl.pathname !== nextUrl.pathname;
           }}
-          element={<SideBar isAdmin={false} />}
+          element={<Layout isAdmin={false} />}
         >
           {RoutesUsers()}
           {RoutesEvents()}

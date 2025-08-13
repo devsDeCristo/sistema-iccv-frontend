@@ -2,13 +2,9 @@ import { Sidebar, Menu, MenuItem } from 'react-pro-sidebar';
 import { People, Event, Logout, Menu as MenuIcon } from '@mui/icons-material';
 import { Link, Outlet } from 'react-router-dom';
 import {
-  AppBar,
   Box,
-  Container,
-  CssBaseline,
+  Button,
   Drawer,
-  IconButton,
-  Toolbar,
   useTheme,
 } from '@mui/material';
 import { useState } from 'react';
@@ -52,9 +48,9 @@ const SideBar: React.FC<SideBarProps> = ({
   const styles = {
     boxContainer: {
       display: 'flex',
-      minHeight: '100vh',
-      width: '100%',
-      minWidth: '340px',
+      height: 'calc(100vh - 64px)',
+      //width: '100%',
+      //minWidth: '340px',
       flexDirection: { xs: 'column', lg: 'row' },
     },
     boxSidebar: (validRole: boolean | Boolean | null) => ({
@@ -105,15 +101,11 @@ const SideBar: React.FC<SideBarProps> = ({
     },
   };
   return (
-    <Box display={'flex'}>
-      <CssBaseline />
+  
       <Box sx={styles.boxContainer}>
         <Box sx={styles.boxSidebar(validRole)}>
           <Sidebar className="sidebar">
-            <Menu>
-              <MenuItem className="menu1">
-                <h2>ICCV</h2>
-              </MenuItem>
+            <Menu  >
               {optionsPages.map(({ link, itemId, icon, title }) => (
                 <MenuItem
                   id={itemId}
@@ -123,6 +115,7 @@ const SideBar: React.FC<SideBarProps> = ({
                   {title}
                 </MenuItem>
               ))}
+              
               <MenuItem
                 icon={<Logout />}
                 onClick={() => {
@@ -133,6 +126,7 @@ const SideBar: React.FC<SideBarProps> = ({
                 Sair
               </MenuItem>
             </Menu>
+            
           </Sidebar>
         </Box>
         <Drawer
@@ -172,32 +166,8 @@ const SideBar: React.FC<SideBarProps> = ({
             </Menu>
           </Sidebar>
         </Drawer>
-        <AppBar
-          position="sticky"
-          sx={styles.boxAppBar(validRole)}
-          elevation={0}
-          variant="outlined"
-        >
-          <Container
-            sx={{
-              padding: 0,
-              '&.MuiContainer-root': { paddingX: 0 },
-              // maxWidth: '100vw',
-            }}
-          >
-            <Toolbar sx={styles.toolbar} disableGutters>
-              <IconButton onClick={() => setOpenDrawer(!openDrawer)}>
-                <MenuIcon />
-              </IconButton>
-              <h2>ICCV</h2>
-            </Toolbar>
-          </Container>
-        </AppBar>
-        <Box sx={styles.boxOutlet}>
-          <Outlet />
-        </Box>
       </Box>
-    </Box>
+    
   );
 };
 

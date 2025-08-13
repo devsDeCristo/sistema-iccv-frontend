@@ -67,7 +67,7 @@ function AssociateEvent() {
           icon: 'success',
         }).then((result) => {
           if (result.isConfirmed && !worker) {
-            if (!Array.isArray(eventData))
+            if (!Array.isArray(eventData) && eventData?.groupLink)
               window.open(
                 (!Array.isArray(eventData) &&
                   eventData &&
@@ -77,8 +77,7 @@ function AssociateEvent() {
               );
           }
           if (result.isConfirmed) {
-            localStorage.clear();
-            window.location.replace('/login');
+            window.location.replace('/eventos');
           }
         });
       },
