@@ -6,9 +6,17 @@ interface HeaderProps {
   title: string;
   buttonBack?: boolean;
   pageBack?: string;
+  description?: string;
+  children?: React.ReactNode;
 }
 
-function Header({ title, buttonBack = false, pageBack }: HeaderProps) {
+function Header({
+  title,
+  buttonBack = false,
+  pageBack,
+  description,
+  children,
+}: HeaderProps) {
   const navigate = useNavigate();
   const theme = useTheme();
   function GoPage() {
@@ -18,19 +26,40 @@ function Header({ title, buttonBack = false, pageBack }: HeaderProps) {
   }
 
   return (
-    <>
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 1,
+        mb: 2,
+        alignItems: 'flex-start',
+        justifyContent: 'center',
+      }}
+    >
       <Box sx={{ display: 'flex', alignItems: 'center' }}>
         {buttonBack && (
-          <IconButton onClick={GoPage}>
+          <IconButton onClick={GoPage} size="small">
             <ArrowBack color="primary" />
           </IconButton>
         )}
-        <Typography fontSize={22} color={theme.palette.text.primary}>
-          {title}
-        </Typography>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+          <Typography
+            fontSize={22}
+            color={theme.palette.text.primary}
+            sx={{ fontWeight: 500 }}
+          >
+            {title}
+          </Typography>
+          {description ? (
+            <Typography fontSize={16} color={theme.palette.text.primary}>
+              {description}
+            </Typography>
+          ) : null}
+        </Box>
+        {children}
       </Box>
-      <Divider color={theme.palette.text.primary} sx={{ marginY: 2 }} />
-    </>
+      {/* <Divider color={theme.palette.text.primary} sx={{ marginY: 2 }} /> */}
+    </Box>
   );
 }
 

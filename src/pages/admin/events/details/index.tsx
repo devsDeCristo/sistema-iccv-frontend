@@ -117,7 +117,23 @@ function Details() {
   return (
     <PageStyle>
       <Header
-        title={'Detalhes do evento: ' + event?.name}
+        title={'Detalhes do evento:' + event?.name}
+        // description={(event?.startDate) + ' - ' + event?.endDate}
+        description={
+          event
+            ? new Date(event.startDate).toLocaleDateString('pt-BR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: '2-digit',
+              }) +
+              ' - ' +
+              new Date(event.endDate).toLocaleDateString('pt-BR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: '2-digit',
+              })
+            : ''
+        }
         buttonBack
         pageBack="/admin/eventos"
       />

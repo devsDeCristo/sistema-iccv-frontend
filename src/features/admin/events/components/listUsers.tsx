@@ -2,6 +2,7 @@ import {
   Avatar,
   Box,
   Card,
+  Chip,
   Divider,
   IconButton,
   ListItemIcon,
@@ -138,9 +139,26 @@ function ListUsers({ search }: { search: string }) {
     },
     {
       field: 'worker',
-      headerName: 'Trabalhar',
-      width: 80,
-      valueGetter: (params) => (params.row.worker ? 'Sim' : 'Não'),
+      headerName: 'Tipo',
+      width: 120,
+      renderCell: (params: GridCellParams) => {
+        return params.row.worker ? (
+          <Chip
+            label="Servindo"
+            color="success"
+            size="small"
+            sx={{ fontWeight: 'bold' }}
+          />
+        ) : (
+          <Chip
+            label="Participando"
+            color="primary"
+            size="small"
+            sx={{ fontWeight: 'bold' }}
+          />
+        );
+      },
+      // valueGetter: (params) => (params.row.worker ? 'Sim' : 'Não'),
     },
     { field: 'neighborhood', headerName: 'Bairro', flex: 1, minWidth: 100 },
     { field: 'city', headerName: 'Cidade', flex: 1, minWidth: 120 },
