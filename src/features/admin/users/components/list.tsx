@@ -83,6 +83,11 @@ function List({ search }: { search: string }) {
     },
     { field: 'fullName', headerName: 'Nome', flex: 1, minWidth: 150 },
     {
+      field: 'cpf',
+      headerName: 'CPF',
+      width: 110,
+    },
+    {
       field: 'birthday',
       headerName: 'Data de nascimento',
       width: 100,
@@ -160,8 +165,10 @@ function List({ search }: { search: string }) {
     handleClose();
   };
   const filteredData = (usersData: User[]) =>
-    usersData.filter((user) =>
-      user.fullName?.toLowerCase().includes(search.toLowerCase())
+    usersData.filter(
+      (user) =>
+        user.fullName?.toLowerCase().includes(search.toLowerCase()) ||
+        user.cpf?.includes(search)
     );
 
   return (

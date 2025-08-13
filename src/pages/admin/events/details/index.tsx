@@ -77,7 +77,7 @@ function Details() {
       gap: 2,
     },
     textField: {
-      width: { xs: '100%', sm: '250px' },
+      width: { xs: '100%', sm: '300px' },
     },
   };
   const event = eventData as Event;
@@ -136,7 +136,7 @@ function Details() {
         <Box component="div">
           <Box component="div" sx={styles.boxFilterAndPdf}>
             <TextField
-              label="Pesquisar usuário"
+              label="Pesquisar usuário por nome ou CPF"
               variant="outlined"
               size="small"
               value={searchUser}

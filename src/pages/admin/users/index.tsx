@@ -26,7 +26,7 @@ function Users() {
       width: { xs: '100%', sm: 'fit-content' },
     },
     textField: {
-      width: { xs: '100%', sm: '250px' },
+      width: { xs: '100%', sm: '300px' },
     },
   };
   return (
@@ -40,7 +40,7 @@ function Users() {
         sx={styles.boxFilterAndButton}
       >
         <TextField
-          label="Pesquisar usuário"
+          label="Pesquisar usuário por nome ou CPF"
           variant="outlined"
           size="small"
           value={searchUser}
