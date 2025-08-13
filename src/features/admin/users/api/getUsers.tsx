@@ -23,5 +23,5 @@ export const useGetUsers = (
     'queryKey' | 'queryFn'
   > = {}
 ) => {
-  return useQuery([GET_USERS], () => getUsers(params), options);
+  return useQuery([GET_USERS, params], () => getUsers(params), options);
 };

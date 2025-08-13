@@ -27,5 +27,5 @@ export const useGetTeams = (
     'queryKey' | 'queryFn'
   > = {}
 ) => {
-  return useQuery([GET_TEAMS], () => getTeams(params), options);
+  return useQuery([GET_TEAMS, params], () => getTeams(params), options);
 };

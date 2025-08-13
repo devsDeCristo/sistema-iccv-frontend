@@ -27,5 +27,5 @@ export const useGetBedrooms = (
     'queryKey' | 'queryFn'
   > = {}
 ) => {
-  return useQuery([GET_BEDROOMS], () => getBedrooms(params), options);
+  return useQuery([GET_BEDROOMS, params], () => getBedrooms(params), options);
 };
