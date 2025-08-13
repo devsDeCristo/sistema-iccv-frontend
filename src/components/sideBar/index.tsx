@@ -1,13 +1,7 @@
-import { Sidebar, Menu, MenuItem } from 'react-pro-sidebar';
-import { People, Event, Logout} from '@mui/icons-material';
-import { Link} from 'react-router-dom';
-import {
-  Box,
-
-  Drawer,
-  useTheme,
-} from '@mui/material';
-
+import { Sidebar, Menu, MenuItem, sidebarClasses } from 'react-pro-sidebar';
+import { People, Event, Logout } from '@mui/icons-material';
+import { Link, NavLink } from 'react-router-dom';
+import { alpha, Box, CssBaseline, Drawer, useTheme } from '@mui/material';
 
 type SideBarProps = {
   validRole?: Boolean | null;
@@ -60,6 +54,7 @@ const SideBar: React.FC<SideBarProps> = ({
       display: validRole ? { xs: 'none', lg: 'flex' } : 'none',
       boxShadow: '0px 1px 4px 0px' + theme.palette.border,
       position: 'sticky',
+      bgcolor: theme.palette.background.paper,
     }),
     boxSidebarMobile: { display: { xs: 'inline', lg: 'none' } },
     boxAppBar: (validRole: boolean | Boolean | null) => ({
@@ -104,73 +99,93 @@ const SideBar: React.FC<SideBarProps> = ({
     },
   };
   return (
-  
-      <Box sx={styles.boxContainer}>
-        <Box sx={styles.boxSidebar(validRole)}>
-          <Sidebar className="sidebar">
-            <Menu  >
-              {optionsPages.map(({ link, itemId, icon, title }) => (
-                <MenuItem
-                  id={itemId}
-                  icon={icon}
-                  component={<Link to={link} />}
-                >
-                  {title}
-                </MenuItem>
-              ))}
-              
-              <MenuItem
-                icon={<Logout />}
-                onClick={() => {
-                  localStorage.clear();
-                }}
-                component={<Link to="/login" />}
-              >
-                Sair
-              </MenuItem>
-            </Menu>
-            
-          </Sidebar>
-        </Box>
-        <Drawer
-          variant="temporary"
-          open={openDrawer}
-          onClose={() => setOpenDrawer(false)}
-          sx={styles.boxSidebarMobile}
+    <Box sx={styles.boxContainer}>
+      <CssBaseline />
+      <Box sx={styles.boxSidebar(validRole)}>
+        <Sidebar
+          rootStyles={{
+            borderRight: 'none',
+            [`& .${sidebarClasses.container}`]: {
+              backgroundColor: theme.palette.background.paper,
+            },
+          }}
         >
-          <Sidebar className="sidebar">
-            <Menu>
+          <Menu
+            menuItemStyles={{
+              button: () => ({
+                '&:hover': {
+                  backgroundColor: theme.palette.background.hover,
+                  color: theme.palette.text.primary,
+                },
+                '&.active': {
+                  backgroundColor: theme.palette.background.hover,
+                  color: theme.palette.text.primary,
+                  fontWeight: 500,
+                  borderRight: `3px solid ${theme.palette.primary.main}`,
+                },
+              }),
+            }}
+          >
+            {optionsPages.map(({ link, itemId, icon, title }) => (
               <MenuItem
-                className="menu1"
-                component={<Link to={'/admin/eventos'} />}
+                id={itemId}
+                icon={icon}
+                component={<NavLink to={link} />}
+              >
+                {title}
+              </MenuItem>
+            ))}
+
+            <MenuItem
+              icon={<Logout />}
+              onClick={() => {
+                localStorage.clear();
+              }}
+              component={<Link to="/login" />}
+            >
+              Sair
+            </MenuItem>
+          </Menu>
+        </Sidebar>
+      </Box>
+      <Drawer
+        variant="temporary"
+        open={openDrawer}
+        onClose={() => setOpenDrawer(false)}
+        sx={styles.boxSidebarMobile}
+      >
+        <Sidebar>
+          <Menu>
+            <MenuItem
+              className="menu1"
+              component={<Link to={'/admin/eventos'} />}
+              onClick={() => setOpenDrawer(false)}
+            >
+              <h2>ICCV</h2>
+            </MenuItem>
+            {optionsPages.map(({ link, itemId, icon, title }) => (
+              <MenuItem
+                id={itemId}
+                icon={icon}
+                component={<Link to={link} />}
                 onClick={() => setOpenDrawer(false)}
               >
-                <h2>ICCV</h2>
+                {title}
               </MenuItem>
-              {optionsPages.map(({ link, itemId, icon, title }) => (
-                <MenuItem
-                  id={itemId}
-                  icon={icon}
-                  component={<Link to={link} />}
-                  onClick={() => setOpenDrawer(false)}
-                >
-                  {title}
-                </MenuItem>
-              ))}
-              <MenuItem
-                icon={<Logout />}
-                onClick={() => {
-                  localStorage.clear();
-                }}
-                component={<Link to="/login" />}
-              >
-                Sair
-              </MenuItem>
-            </Menu>
-          </Sidebar>
-        </Drawer>
-      </Box>
-    
+            ))}
+            <MenuItem
+              icon={<Logout />}
+              onClick={() => {
+                localStorage.clear();
+              }}
+              component={<Link to="/login" />}
+            >
+              Sair
+            </MenuItem>
+          </Menu>
+        </Sidebar>
+      </Drawer>
+    </Box>
   );
 };
 

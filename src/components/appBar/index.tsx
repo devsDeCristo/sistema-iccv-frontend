@@ -7,12 +7,13 @@ import IconButton from '@mui/material/IconButton';
 import MenuIcon from '@mui/icons-material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import Menu from '@mui/material/Menu';
-import { Logout, Person, Settings } from '@mui/icons-material';
+import { DarkMode, Light, LightMode, Logout, Person, Settings } from '@mui/icons-material';
 
 import { Avatar, Divider, ListItemIcon, Stack } from '@mui/material';
 import { useUser } from '../../contexts/userContext';
 import { useNavigate } from 'react-router-dom';
 import Logo from '../../assets/logo-ic.svg?react';
+import { useThemeContext } from '../../contexts/themeContext';
 
 export default function MenuAppBar({
   setOpenDrawer,
@@ -23,6 +24,7 @@ export default function MenuAppBar({
 }) {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const { user, logout } = useUser();
+  const { colorMode,toggleColorMode } = useThemeContext();
   const navigate = useNavigate();
   const [isAdminRoute, setIsAdminRoute] = React.useState(false);
 
@@ -73,9 +75,19 @@ export default function MenuAppBar({
             CIDADE VERDE
           </Typography>
 
-          <div>
+          <Stack direction="row" spacing={1} alignItems="center">
             <IconButton
-              size="large"
+              size="medium"
+              aria-label="account of current user"
+              aria-controls="menu-appbar"
+              aria-haspopup="true"
+              onClick={toggleColorMode}
+              color="inherit"
+            >
+              {colorMode ? <LightMode /> : <DarkMode />}
+            </IconButton>
+            <IconButton
+              size="small"
               aria-label="account of current user"
               aria-controls="menu-appbar"
               aria-haspopup="true"
@@ -165,7 +177,7 @@ export default function MenuAppBar({
                 Sair
               </MenuItem>
             </Menu>
-          </div>
+          </Stack>
         </Toolbar>
       </AppBar>
     </Box>

@@ -10,6 +10,12 @@ declare module '@mui/material/styles' {
     xl: true;
   }
 
+  interface TypeBackground {
+    default: string;
+    paper: string;
+    hover: string;
+  }
+
   interface Palette {
     border: string;
     chips: {
@@ -37,6 +43,7 @@ export const myTheme = (colorMode: boolean) =>
       mode: colorMode ? 'dark' : 'light',
       primary: {
         main: colorMode ? '#1952BC' : '#1C0F4D',
+        
       },
       secondary: {
         main: colorMode ? '#28363F' : '#111B21',
@@ -44,6 +51,7 @@ export const myTheme = (colorMode: boolean) =>
       background: {
         default: colorMode ? '#111B21' : '#F0F1F4',
         paper: colorMode ? '#202C33' : '#F8F8F8',
+        hover: colorMode ? '#2A3942' : '#EDEDED',
       },
       text: {
         primary: colorMode ? '#EBEBEB' : '#111B21',
