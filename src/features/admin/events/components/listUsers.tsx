@@ -126,9 +126,14 @@ function ListUsers({ search }: { search: string }) {
     },
     { field: 'fullName', headerName: 'Nome', flex: 1, minWidth: 200 },
     {
+      field: 'cpf',
+      headerName: 'CPF',
+      width: 110,
+    },
+    {
       field: 'birthday',
       headerName: 'Data de nascimento',
-      width: 100,
+      width: 140,
       valueGetter: (params) => formatDate(params.row.birthday),
     },
     {
@@ -162,11 +167,6 @@ function ListUsers({ search }: { search: string }) {
       field: 'cellphone',
       headerName: 'Telefone',
       width: 128,
-    },
-    {
-      field: 'cpf',
-      headerName: 'CPF',
-      width: 110,
     },
     {
       field: 'email',
@@ -262,8 +262,10 @@ function ListUsers({ search }: { search: string }) {
     handleClose();
   };
   const filteredData = (usersData: User[]) =>
-    usersData.filter((user) =>
-      user.fullName?.toLowerCase().includes(search.toLowerCase())
+    usersData.filter(
+      (user) =>
+        user.fullName?.toLowerCase().includes(search.toLowerCase()) ||
+        user.cpf?.includes(search)
     );
 
   const handleClickEditWork = (event: React.MouseEvent) => {
@@ -292,13 +294,13 @@ function ListUsers({ search }: { search: string }) {
               indicatedBy: false,
               emergencyContact: false,
               email: false,
-              cpf: false,
+              // cpf: false,
               cellphone: false,
-              badgeName: false,
+              // badgeName: false,
               diabetes: false,
               hypertensive: false,
               notes: false,
-              leadershipPosition: false,
+              // leadershipPosition: false,
               createdAt: false,
             },
           },
