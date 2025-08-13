@@ -1,24 +1,27 @@
 import { Sidebar, Menu, MenuItem } from 'react-pro-sidebar';
-import { People, Event, Logout, Menu as MenuIcon } from '@mui/icons-material';
-import { Link, Outlet } from 'react-router-dom';
+import { People, Event, Logout} from '@mui/icons-material';
+import { Link} from 'react-router-dom';
 import {
   Box,
-  Button,
+
   Drawer,
   useTheme,
 } from '@mui/material';
-import { useState } from 'react';
+
 
 type SideBarProps = {
   validRole?: Boolean | null;
   isAdmin?: Boolean;
+  openDrawer: boolean;
+  setOpenDrawer: (open: boolean) => void;
 };
 
 const SideBar: React.FC<SideBarProps> = ({
   validRole = true,
   isAdmin = false,
+  openDrawer,
+  setOpenDrawer,
 }) => {
-  const [openDrawer, setOpenDrawer] = useState(false);
   const theme = useTheme();
   // const image =
   // ('https://www.holiness.org.br/wp-content/uploads/2021/04/cruz.jpg');
@@ -48,7 +51,7 @@ const SideBar: React.FC<SideBarProps> = ({
   const styles = {
     boxContainer: {
       display: 'flex',
-      height: 'calc(100vh - 64px)',
+      height: 'calc(100vh - 70px)',
       //width: '100%',
       //minWidth: '340px',
       flexDirection: { xs: 'column', lg: 'row' },

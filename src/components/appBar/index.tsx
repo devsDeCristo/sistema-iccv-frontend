@@ -5,12 +5,32 @@ import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import MenuIcon from '@mui/icons-material/Menu';
-import AccountCircle from '@mui/icons-material/AccountCircle';
 import MenuItem from '@mui/material/MenuItem';
 import Menu from '@mui/material/Menu';
+import { Logout, Person, Settings } from '@mui/icons-material';
 
-export default function MenuAppBar() {
+import { Avatar, Divider, ListItemIcon, Stack } from '@mui/material';
+import { useUser } from '../../contexts/userContext';
+import { useNavigate } from 'react-router-dom';
+import Logo from '../../assets/logo-ic.svg?react';
+
+export default function MenuAppBar({
+  setOpenDrawer,
+  openDrawer,
+}: {
+  setOpenDrawer: (open: boolean) => void;
+  openDrawer: boolean;
+}) {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  const { user, logout } = useUser();
+  const navigate = useNavigate();
+  const [isAdminRoute, setIsAdminRoute] = React.useState(false);
+
+  //verifica se a rota url é de admin
+  React.useEffect(() => {
+    const isAdminRoute = window.location.pathname.includes('/admin');
+    setIsAdminRoute(isAdminRoute);
+  }, [window.location.pathname]);
 
   const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -20,57 +40,132 @@ export default function MenuAppBar() {
     setAnchorEl(null);
   };
 
+  const styles = {
+    menuIcon: { mr: 2, display: { xs: 'inline', lg: 'none' } },
+  };
+
   return (
     <Box sx={{ flexGrow: 1 }}>
-      
-      <AppBar position="static">
+      <AppBar
+        sx={{ height: '70px', display: 'flex', justifyContent: 'center' }}
+        position="static"
+      >
         <Toolbar>
           <IconButton
             size="large"
             edge="start"
             color="inherit"
             aria-label="menu"
-            sx={{ mr: 2 }}
+            sx={styles.menuIcon}
+            onClick={() => setOpenDrawer(!openDrawer)}
           >
             <MenuIcon />
           </IconButton>
+          <Logo
+            style={{
+              height: '40px',
+              width: 'auto',
+              fill: 'white',
+              margin: '10px',
+            }}
+          />
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            ICCV
+            CIDADE VERDE
           </Typography>
-         
-            <div>
-              <IconButton
-                size="large"
-                aria-label="account of current user"
-                aria-controls="menu-appbar"
-                aria-haspopup="true"
-                onClick={handleMenu}
-                color="inherit"
-                
+
+          <div>
+            <IconButton
+              size="large"
+              aria-label="account of current user"
+              aria-controls="menu-appbar"
+              aria-haspopup="true"
+              onClick={handleMenu}
+              color="inherit"
+            >
+              <Avatar alt={user?.fullName} src="/static/images/avatar/1.jpg" />
+            </IconButton>
+
+            <Menu
+              anchorEl={anchorEl}
+              open={Boolean(anchorEl)}
+              onClose={handleClose}
+              anchorOrigin={{
+                vertical: 'bottom',
+                horizontal: 'left',
+              }}
+              transformOrigin={{
+                vertical: 'top',
+                horizontal: 'left',
+              }}
+            >
+              <Stack
+                direction="row"
+                justifyContent={'center'}
+                alignItems="center"
+                gap={2}
+                sx={{ padding: 2 }}
               >
-                <AccountCircle sx={{ fontSize: '20px' }} />
-              </IconButton>
-              <Menu
-                id="menu-appbar"
-                anchorEl={anchorEl}
-                anchorOrigin={{
-                  vertical: 'top',
-                  horizontal: 'right',
+                <Avatar
+                  alt={user?.fullName}
+                  src="/static/images/avatar/1.jpg"
+                />
+                <Stack>
+                  <Typography sx={{ fontWeight: 'bold', fontSize: '1rem' }}>
+                    {user?.fullName.split(' ')[0]}{' '}
+                    {user?.fullName.split(' ')[1]}
+                  </Typography>
+                  <Typography
+                    sx={{ color: 'text.secondary', fontSize: '0.8rem' }}
+                  >
+                    {user?.email}
+                  </Typography>
+                </Stack>
+              </Stack>
+              <Divider sx={{ mb: 0.5 }} />
+              <MenuItem onClick={handleClose}>
+                <ListItemIcon>
+                  <Person fontSize="small" />
+                </ListItemIcon>
+                Perfil
+              </MenuItem>
+              {user?.role === 1 && !isAdminRoute && (
+                <MenuItem
+                  onClick={() => {
+                    navigate('/admin/eventos');
+                  }}
+                >
+                  <ListItemIcon>
+                    <Settings fontSize="small" />
+                  </ListItemIcon>
+                  Área do Administrador
+                </MenuItem>
+              )}
+              {user?.role === 1 && isAdminRoute && (
+                <MenuItem
+                  onClick={() => {
+                    navigate('/eventos');
+                  }}
+                >
+                  <ListItemIcon>
+                    <Settings fontSize="small" />
+                  </ListItemIcon>
+                  Área do Usuário
+                </MenuItem>
+              )}
+
+              <MenuItem
+                onClick={() => {
+                  logout();
+                  handleClose();
                 }}
-                keepMounted
-                transformOrigin={{
-                  vertical: 'top',
-                  horizontal: 'right',
-                }}
-                open={Boolean(anchorEl)}
-                onClose={handleClose}
               >
-                <MenuItem onClick={handleClose}>Perfil</MenuItem>
-                <MenuItem onClick={() => {}}>Admin</MenuItem>
-                 <MenuItem onClick={() => {}}>Sar</MenuItem>
-              </Menu>
-            </div>
-          
+                <ListItemIcon>
+                  <Logout fontSize="small" />
+                </ListItemIcon>
+                Sair
+              </MenuItem>
+            </Menu>
+          </div>
         </Toolbar>
       </AppBar>
     </Box>

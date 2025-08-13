@@ -12,9 +12,9 @@ import { RoutesUsers } from '../pages/users/routes';
 import { RoutesEventsAdmin } from '../pages/admin/events/routes';
 import { authLoader } from '../auth/functions/authLoader';
 import { RoutesEvents } from '../pages/events/routes';
-import SideBar from '../components/sideBar';
 import { authLoaderAdmin } from '../auth/functions/authLoaderAdmin';
 import { Layout } from '../pages/layout';
+import { UserProvider } from '../contexts/userContext';
 
 const routers = (): ReturnType<typeof createBrowserRouter> => {
   return createBrowserRouter(
@@ -29,7 +29,11 @@ const routers = (): ReturnType<typeof createBrowserRouter> => {
           shouldRevalidate={({ currentUrl, nextUrl }) => {
             return currentUrl.pathname !== nextUrl.pathname;
           }}
-          element={<Layout isAdmin={true} />}
+          element={
+            <UserProvider>
+              <Layout isAdmin={true} />
+            </UserProvider>
+          }
         >
           {RoutesUsersAdmin()}
           {RoutesEventsAdmin()}
@@ -39,7 +43,11 @@ const routers = (): ReturnType<typeof createBrowserRouter> => {
           shouldRevalidate={({ currentUrl, nextUrl }) => {
             return currentUrl.pathname !== nextUrl.pathname;
           }}
-          element={<Layout isAdmin={false} />}
+          element={
+            <UserProvider>
+              <Layout isAdmin={false} />
+            </UserProvider>
+          }
         >
           {RoutesUsers()}
           {RoutesEvents()}
