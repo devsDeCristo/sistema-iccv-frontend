@@ -18,9 +18,11 @@ function FormLogin() {
       <Grid item xs={12} md={12}>
         <Controller
           name="cpf"
+          
           control={control}
           render={({ field: { onChange, value } }) => (
             <Input
+              autoComplete='new-user'
               required
               label="CPF"
               value={value}
@@ -39,6 +41,7 @@ function FormLogin() {
             <Input
               required
               label="Senha"
+              autoComplete='new-password'
               value={value}
               error={!!errors.password}
               errorMessage={errors.password?.message}
