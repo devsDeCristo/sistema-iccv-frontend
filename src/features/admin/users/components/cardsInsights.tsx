@@ -1,13 +1,13 @@
 import { ReactNode } from "react";
-import { useGetInsights } from "../api/getInsights";
+import { useGetInsightsUsers } from "../api/getInsights";
 import { Box, CardContent, Typography, Card, Grid } from "@mui/material";
-import { EventAvailable, EventNote, People } from "@mui/icons-material";
+import { EventAvailable, People, Person, WidthFull } from "@mui/icons-material";
 
 const styles = {
   gridContainer: {
     mb: 2
   },
- card: {
+  card: {
     position: "relative",
     height: "100%",
   },
@@ -31,7 +31,7 @@ const styles = {
 };
 
 export const CardsInsights = () => {
-  const { data } = useGetInsights();
+  const { data } = useGetInsightsUsers();
 
   const CardTemplate = ({
     title,
@@ -60,38 +60,31 @@ export const CardsInsights = () => {
 
   return (
     <Grid container justifyContent="space-between" sx={styles.gridContainer} spacing={2}>
-      <Grid item xs={12} sm={6} md={3}>
+      <Grid item xs={12} sm={6} md={4}>
         <CardTemplate
-          title="Total de Eventos"
-          data={data?.totalEvents || 0}
-          subtitle="Eventos cadastrados"
+          title="Total de Usuários"
+          data={data?.totalUsers || 0}
+          subtitle="Usuários cadastrados"
+          icon={<Person />}
+        />
+      </Grid>
+      <Grid item xs={12} sm={6} md={4}>
+        <CardTemplate
+          title="Usuários com Participação em Eventos no Ano"
+          data={data?.usersWithEvents || 0}
+          subtitle="Usuários atualmente ativos"
           icon={<EventAvailable />}
         />
       </Grid>
-      <Grid item xs={12} sm={6} md={3}>
+      <Grid item xs={12} sm={6} md={4}>
         <CardTemplate
-          title="Eventos Ativos"
-          data={data?.totalEventsActive || 0}
-          subtitle="Eventos atualmente ativos"
-          icon={<EventNote />}
-        />
-      </Grid>
-      <Grid item xs={12} sm={6} md={3}>
-        <CardTemplate
-          title="Tempo médio para lotar vagas"
-          data={data?.timeToFillHours || 0}
-          subtitle="Horas"
+          title="Total de Usuários Administradores"
+          data={data?.totalUsersAdmin || 0}
+          subtitle="Usuários com permissão de administrador"
           icon={<People />}
         />
       </Grid>
-      <Grid item xs={12} sm={6} md={3}>
-        <CardTemplate
-          title="Média trimestral de eventos"
-          data={data?.eventsInCurrentQuarter || 0}
-          subtitle="Eventos"
-          icon={<People />}
-        />
-      </Grid>
+      
     </Grid>
   );
 };

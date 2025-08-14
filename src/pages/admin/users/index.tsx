@@ -5,6 +5,7 @@ import { Header } from '../../../components/header';
 import { List } from '../../../features/admin/users/components/list';
 import { useRole } from '../../../hooks/useRole';
 import { useState } from 'react';
+import { CardsInsights } from '../../../features/admin/users/components/cardsInsights';
 
 function Users() {
   const navigate = useNavigate();
@@ -59,6 +60,7 @@ function Users() {
           Cadastrar usuario
         </Button>
       </Box>
+      <CardsInsights />
 
       <List search={searchUser} />
     </PageStyle>

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 export const GET_USERS = 'GET_USERS';
+export const GET_INSIGHTS_USERS = 'GET_INSIGHTS_USERS';
 
 const DEFAULT_MESSAGE = 'Campo obrigatório';
 
