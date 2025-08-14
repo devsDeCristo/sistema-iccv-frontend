@@ -49,7 +49,7 @@ export const myTheme = (colorMode: boolean) =>
       secondary: {
         main: colorMode ? '#28363F' : '#111B21',
       },
-      divider: colorMode ? '#918fd1' : '#D0D0D0',
+      divider: colorMode ? '#343F4D' : '#DCDEE1',
       background: {
         default: colorMode ? '#030617' : '#F0F1F4',
         paper: colorMode ? '#0F172A' : '#F8F8F8',
