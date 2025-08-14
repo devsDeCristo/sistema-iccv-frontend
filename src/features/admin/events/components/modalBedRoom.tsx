@@ -5,6 +5,7 @@ import {
   Fade,
   Grid,
   Modal,
+  TextField,
   Typography,
 } from '@mui/material';
 import { Input } from '../../../../components/input';
@@ -28,16 +29,19 @@ function ModalBedRoom({
   eventId = '',
   bedRoom,
 }: ModalBedRoomProps) {
-  const style = {
-    position: 'absolute' as 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: 400,
-    color: '#000',
-    bgcolor: 'background.paper',
-    boxShadow: 14,
-    p: 4,
+  const styles = {
+    container: {
+      
+      position: 'absolute' as 'absolute',
+      top: '50%',
+      left: '50%',
+      transform: 'translate(-50%, -50%)',
+      width: { xs: '90%', sm: 600 },
+      color: '#000',
+      bgcolor: 'background.paper',
+      boxShadow: 14,
+      p: 4,
+    },
   };
   const { control, reset, handleSubmit } = useForm();
   const { mutate: putBedroom } = usePutBedroom({
@@ -74,7 +78,7 @@ function ModalBedRoom({
 
   const options =
     !Array.isArray(eventData) &&
-    eventData?.users?.map((user:any) => ({
+    eventData?.users?.map((user: any) => ({
       value: user.id,
       label: user.fullName,
     }));
@@ -100,6 +104,17 @@ function ModalBedRoom({
     });
   };
 
+  const Title = ({ title }: { title: string }) => {
+    return (
+      <Typography
+        id="transition-modal-title"
+        sx={{ fontWeight: 400, fontSize: '1rem' }}
+      >
+        {title}
+      </Typography>
+    );
+  };
+
   return (
     <Modal
       aria-labelledby="transition-modal-title"
@@ -118,7 +133,7 @@ function ModalBedRoom({
       }}
     >
       <Fade in={open}>
-        <Box sx={style}>
+        <Box sx={styles.container}>
           <Typography id="transition-modal-title" variant="h6" component="h2">
             {bedRoom ? 'Editar ' : 'Adicionar '} quarto
           </Typography>
@@ -127,19 +142,101 @@ function ModalBedRoom({
               id="transition-modal-description"
               my={2}
               container
-              spacing={2}
+              spacing={1}
             >
+              <Grid item xs={6}>
+                <Controller
+                  control={control}
+                  name="name"
+                  render={({ field: { onChange, value } }) => (
+                    <>
+                      <Title title="Nome" />
+                      <TextField
+                        fullWidth
+                        variant="outlined"
+                        required
+                        size='small'
+                        placeholder="Informe o nome do quarto"
+                        value={value}
+                        onChange={onChange}
+                      />
+                    </>
+                  )}
+                />
+              </Grid>
+            
+              <Grid item xs={6}>
+                <Controller
+                  control={control}
+                  name="capacity"
+                  render={({ field: { onChange, value } }) => (
+                    <>
+                      <Title title="Capacidade" />
+                      <TextField
+                        fullWidth
+                        type='number'
+                        variant="outlined"
+                        required
+                        size='small'
+                        placeholder="Informe a capacidade"
+                        value={value}
+                        onChange={onChange}
+                      />
+                    </>
+                  )}
+                />
+              </Grid>
+               
               <Grid item xs={12}>
+                <Controller
+                  control={control}
+                  name="tag"
+                  render={({ field: { onChange, value } }) => (
+                    <>
+                      <Title title="Tags" />
+                      <Select
+                        isMulti
+                        name="colors"
+                        options={[
+                          { value: 'Feminino', label: 'Feminino' },
+                          { value: 'Masculino', label: 'Masculino' },
+                          { value: 'Familia', label: 'Familia' },
+                          { value: 'Outro', label: 'Outro' },
+                        ]}
+                        value={value?.map((tag: string) => ({
+                          value: tag,
+                          label: tag,
+                        }))}
+                        onChange={(selectedOptions) =>
+                          onChange(
+                            selectedOptions.map((option) => option.value)
+                          )
+                        }
+                        className="basic-multi-select"
+                        classNamePrefix="select"
+                      />
+                    </>
+                  )}
+                />
+              </Grid>
+               <Grid item xs={12}>
                 <Controller
                   control={control}
                   name="note"
                   render={({ field: { onChange, value } }) => (
-                    <Input
-                    required
-                      label="Identificação"
-                      value={value}
-                      onChange={onChange}
-                    />
+                      <>
+                      <Title title="Anotações" />
+                      <TextField
+                        multiline
+                        rows={4}
+                        fullWidth
+                        variant="outlined"
+                        size='small'
+                        placeholder="Adicione uma anotação"
+                        value={value}
+                        onChange={onChange}
+                      />
+                    </>
                   )}
                 />
               </Grid>
@@ -148,15 +245,18 @@ function ModalBedRoom({
                   control={control}
                   name="usersId"
                   render={({ field: { onChange, value } }) => (
-                    <Select
-                      isMulti
-                      name="colors"
-                      options={options || []}
-                      value={value}
-                      onChange={onChange}
-                      className="basic-multi-select"
-                      classNamePrefix="select"
-                    />
+                    <>
+                      <Title title="Usuários" />
+                      <Select
+                        isMulti
+                        name="colors"
+                        options={options || []}
+                        value={value}
+                        onChange={onChange}
+                        className="basic-multi-select"
+                        classNamePrefix="select"
+                      />
+                    </>
                   )}
                 />
               </Grid>

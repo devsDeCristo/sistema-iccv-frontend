@@ -28,6 +28,9 @@ export interface Insights {
 
 export interface Bedroom {
   id: string;
+  name: string;
+  capacity: number;
+  tag:String[];
   note: string | null;
   event: Event;
   users: User[];

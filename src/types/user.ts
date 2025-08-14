@@ -24,5 +24,6 @@ export interface User {
   religion?: string;
   notes?: string;
   eventId?: string;
+
 }
 export type RegisterUsersFormType = z.infer<typeof REGISTER_USERS_SCHEMA>;

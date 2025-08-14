@@ -235,9 +235,9 @@ function Details() {
               </Button>
             </Stack>
           </Paper>
-          <Card sx={{ padding: 2 }}>
+         
             <ListBedRooms search={searchBedroom} />
-          </Card>
+          
         </Box>
       )}
 
