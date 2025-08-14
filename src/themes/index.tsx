@@ -118,6 +118,7 @@ export const myTheme = (colorMode: boolean) =>
             elevation: 0,
             border: 'none',
             borderRadius: 8,
+            boxShadow: "0px 0px 6px  #0000000a",
           },
         },
       },

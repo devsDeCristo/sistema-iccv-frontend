@@ -1,5 +1,5 @@
 import {
-  Card,
+  Paper,
   CardContent,
   Typography,
   Chip,
@@ -36,14 +36,10 @@ function EventCard({ event }: { event: Event }) {
     card: {
       borderRadius: 3,
       overflow: 'hidden',
-      boxShadow: 1,
       maxWidth: 320,
       position: 'relative',
       width: '100%',
-      // pb: 4,
-
       opacity: event.isActive ? 1 : 0.6,
-      cursor: event.isActive ? 'pointer' : 'not-allowed',
     },
     imageBox: { position: 'relative' },
     cardMedia: { objectFit: 'cover' },
@@ -63,8 +59,8 @@ function EventCard({ event }: { event: Event }) {
       color: theme.palette.text.primary,
     },
     cardContent: {
-      p: 2,
-      pt: 6,
+      pt:6,
+      mb: 4,
       display: 'flex',
       flexDirection: 'column',
       gap: 2,
@@ -91,7 +87,7 @@ function EventCard({ event }: { event: Event }) {
   };
 
   return (
-    <Card sx={styles.card}>
+    <Paper sx={styles.card}>
       <Box sx={styles.imageBox}>
         {/* <CardMedia
           component="img"
@@ -186,7 +182,7 @@ function EventCard({ event }: { event: Event }) {
           </Button>
         )}
       </CardContent>
-    </Card>
+    </Paper>
   );
 }
 
