@@ -7,13 +7,8 @@ import IconButton from '@mui/material/IconButton';
 import MenuIcon from '@mui/icons-material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import Menu from '@mui/material/Menu';
-import {
-  DarkMode,
-  LightMode,
-  Logout,
-  Person,
-  Settings,
-} from '@mui/icons-material';
+
+import { DarkMode, LightMode, Logout, Settings } from '@mui/icons-material';
 
 import { Avatar, Divider, ListItemIcon, Stack, useTheme } from '@mui/material';
 import { useUser } from '../../contexts/userContext';
@@ -148,12 +143,12 @@ export default function MenuAppBar({
                 </Stack>
               </Stack>
               <Divider sx={{ mb: 0.5 }} />
-              <MenuItem onClick={handleClose}>
+              {/* <MenuItem onClick={handleClose}>
                 <ListItemIcon>
                   <Person fontSize="small" />
                 </ListItemIcon>
                 Perfil
-              </MenuItem>
+              </MenuItem> */}
               {user?.role === 1 && !isAdminRoute && (
                 <MenuItem
                   onClick={() => {

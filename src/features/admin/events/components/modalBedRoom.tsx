@@ -135,7 +135,8 @@ function ModalBedRoom({
                   name="note"
                   render={({ field: { onChange, value } }) => (
                     <Input
-                      label="Observações"
+                    required
+                      label="Identificação"
                       value={value}
                       onChange={onChange}
                     />

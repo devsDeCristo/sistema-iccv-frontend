@@ -16,7 +16,7 @@ interface ThemeProviderProps {
 }
 
 export const CustomThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
-  const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
+  const prefersDarkMode = useMediaQuery('(prefers-color-scheme: light)');
   const [colorMode, setColorMode] = useState(false);
 
   useEffect(() => {
