@@ -130,6 +130,8 @@ function Details() {
           <Tab label="Usuários" value={'usuarios'} />
           <Tab label="Quartos" value={'quartos'} />
           <Tab label="Equipes" value={'equipes'} />
+          {/* <Tab label="Lista de Espera" value={'lista-espera'} />
+          <Tab label="Alerta de Inscrições" value={'alerta-inscricoes'} /> */}
         </Tabs>
       </Box>
       {pageValue === 'usuarios' && (

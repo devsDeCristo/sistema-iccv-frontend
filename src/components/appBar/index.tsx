@@ -7,7 +7,7 @@ import IconButton from '@mui/material/IconButton';
 import MenuIcon from '@mui/icons-material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import Menu from '@mui/material/Menu';
-import { DarkMode, LightMode, Logout, Person, Settings } from '@mui/icons-material';
+import { DarkMode, LightMode, Logout, Settings } from '@mui/icons-material';
 
 import { Avatar, Divider, ListItemIcon, Stack } from '@mui/material';
 import { useUser } from '../../contexts/userContext';
