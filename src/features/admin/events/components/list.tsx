@@ -48,7 +48,7 @@ function List() {
       field: 'location',
       headerName: 'Local',
       width: 200,
-      valueGetter: (params) => params.row.location,
+      valueGetter: () => "Chácara Monte Moriá",
     },
     {
       field: 'type',
@@ -110,6 +110,47 @@ function List() {
       },
     },
     {
+      field: 'bedrooms',
+      headerName: 'Quartos',
+      width: 100,
+       align: 'center',
+      headerAlign: 'center',
+      renderCell: (params) => {
+       
+        return (
+          <Stack direction="column" alignItems="center">
+            <Typography color={theme.palette.text.primary} variant="body2">
+              {params.row._count?.bedrooms || 0}
+              
+            </Typography>
+            <Typography color={theme.palette.text.secondary} variant="caption">
+              {"Quartos"}
+            </Typography>
+          </Stack>
+        );
+      },
+    },
+    {
+      field: 'team',
+      headerName: 'Equipes',
+      width: 100,
+       align: 'center',
+      headerAlign: 'center',
+      renderCell: (params) => {
+       
+        return (
+          <Stack direction="column" alignItems="center">
+            <Typography color={theme.palette.text.primary} variant="body2">
+              {params.row._count?.Team || 0}
+            </Typography>
+            <Typography color={theme.palette.text.secondary} variant="caption">
+              {"Equipes"}
+            </Typography>
+          </Stack>
+        );
+      },
+    },
+    {
       field: 'isActive',
       headerName: 'Status',
       width: 100,
@@ -122,8 +163,7 @@ function List() {
         />
       ),
     },
-    { field: 'price', headerName: 'Preço',  width: 100,valueGetter: (params) => ("R$ "+params.row.price),
-    },
+    
     {
       field: 'actions',
       headerName: 'Ações',

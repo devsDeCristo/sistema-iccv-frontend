@@ -19,6 +19,13 @@ export interface Event {
   users?: User[];
 }
 
+export interface Insights {
+   totalEvents:number;
+   totalEventsActive:number;
+   timeToFillHours: number;
+   eventsInCurrentQuarter:number
+}
+
 export interface Bedroom {
   id: string;
   note: string | null;

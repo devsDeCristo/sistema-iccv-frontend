@@ -3,6 +3,7 @@ import { z } from 'zod';
 export const GET_EVENTS = 'GET_EVENTS';
 export const GET_BEDROOMS = 'GET_BEDROOMS';
 export const GET_TEAMS = 'GET_TEAMS';
+export const GET_INSIGHTS = 'GET_INSIGHTS';
 
 const DEFAULT_MESSAGE = 'Campo obrigatório';
 
