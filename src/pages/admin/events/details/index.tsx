@@ -1,6 +1,15 @@
 import { Header } from '../../../../components/header';
 import { PageStyle } from '../../../../components/pageStyle';
-import { Card, Box, Button, Stack, Tabs, Tab, TextField } from '@mui/material';
+import {
+  Card,
+  Box,
+  Button,
+  Stack,
+  Tabs,
+  Tab,
+  TextField,
+  Paper,
+} from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ListTeams } from '../../../../features/admin/events/components/listTeams';
 import { ListBedRooms } from '../../../../features/admin/events/components/listBedRooms';
@@ -20,6 +29,12 @@ import { useGetEvents } from '../../../../features/admin/events/api/getEvents';
 import PdfBadge from '../../../../components/pdfBadge';
 import { ModalAddUserOnEvent } from '../../../../features/admin/events/components/modalAddUser';
 import PdfEnvelope from '../../../../components/pdfEnvelope';
+import {
+  BadgeOutlined,
+  BedOutlined,
+  EmailOutlined,
+  ViewModuleOutlined,
+} from '@mui/icons-material';
 
 function Details() {
   const { id, subPage } = useParams();
@@ -66,6 +81,7 @@ function Details() {
       width: '100%',
       gap: 2,
       marginY: 2,
+      p: 2,
     },
     stackButtons: {
       direction: 'row',
@@ -152,7 +168,7 @@ function Details() {
       </Box>
       {pageValue === 'usuarios' && (
         <Box component="div">
-          <Box component="div" sx={styles.boxFilterAndPdf}>
+          <Paper component="div" sx={styles.boxFilterAndPdf}>
             <TextField
               label="Pesquisar usuário por nome ou CPF"
               variant="outlined"
@@ -163,11 +179,19 @@ function Details() {
             />
             {/* <Typography color="#000">Usuários</Typography> */}
             <Stack sx={styles.stackButtons}>
-              <Button variant="outlined" onClick={() => handleDownloadPDF(2)}>
-                Gerar Envelopes
+              <Button
+                variant="outlined"
+                onClick={() => handleDownloadPDF(2)}
+                startIcon={<EmailOutlined />}
+              >
+                PDF Envelopes
               </Button>
-              <Button variant="outlined" onClick={() => handleDownloadPDF(3)}>
-                Gerar Crachás
+              <Button
+                variant="outlined"
+                onClick={() => handleDownloadPDF(3)}
+                startIcon={<BadgeOutlined />}
+              >
+                PDF Crachás
               </Button>
               <Button
                 variant="contained"
@@ -176,7 +200,7 @@ function Details() {
                 Adicionar usuário
               </Button>
             </Stack>
-          </Box>
+          </Paper>
 
           <Card>
             <ListUsers search={searchUser} />
@@ -185,7 +209,7 @@ function Details() {
       )}
       {pageValue === 'quartos' && (
         <Box component="div">
-          <Box sx={styles.boxFilterAndPdf} component="div">
+          <Paper sx={styles.boxFilterAndPdf} component="div">
             <TextField
               label="Pesquisar quarto"
               variant="outlined"
@@ -196,8 +220,12 @@ function Details() {
             />
             {/* <Typography color="#000">Quartos</Typography> */}
             <Stack sx={styles.stackButtons}>
-              <Button variant="outlined" onClick={() => handleDownloadPDF(1)}>
-                Pdf quartos
+              <Button
+                variant="outlined"
+                onClick={() => handleDownloadPDF(1)}
+                startIcon={<BedOutlined />}
+              >
+                PDF quartos
               </Button>
               <Button
                 variant="contained"
@@ -206,7 +234,7 @@ function Details() {
                 Adicionar quarto
               </Button>
             </Stack>
-          </Box>
+          </Paper>
           <Card sx={{ padding: 2 }}>
             <ListBedRooms search={searchBedroom} />
           </Card>
@@ -217,7 +245,7 @@ function Details() {
 
       {pageValue === 'equipes' && (
         <Box component="div">
-          <Box component="div" sx={styles.boxFilterAndPdf}>
+          <Paper component="div" sx={styles.boxFilterAndPdf}>
             <TextField
               label="Pesquisar equipe"
               variant="outlined"
@@ -228,8 +256,12 @@ function Details() {
             />
             {/* <Typography color="#000">Times</Typography> */}
             <Stack sx={styles.stackButtons}>
-              <Button variant="outlined" onClick={() => handleDownloadPDF(0)}>
-                Gerar Quadrantes
+              <Button
+                variant="outlined"
+                onClick={() => handleDownloadPDF(0)}
+                startIcon={<ViewModuleOutlined />}
+              >
+                PDF Quadrantes
               </Button>
               <Button
                 variant="contained"
@@ -238,7 +270,7 @@ function Details() {
                 Adicionar time
               </Button>
             </Stack>
-          </Box>
+          </Paper>
           <Card sx={{ padding: 2 }}>
             <ListTeams search={searchTeam} />
           </Card>

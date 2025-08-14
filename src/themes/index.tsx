@@ -97,6 +97,14 @@ export const myTheme = (colorMode: boolean) =>
             },
             color: !colorMode ? '#EBEBEB' : '#111B21',
           },
+          outlined: {
+            borderColor: colorMode ? '#EBEBEB' : '#1C0F4D',
+            color: colorMode ? '#EBEBEB' : '#1C0F4D',
+            '&:hover': {
+              borderColor: alpha(colorMode ? '#EBEBEB' : '#1C0F4D', 0.8),
+              backgroundColor: alpha(colorMode ? '#EBEBEB' : '#1C0F4D', 0.04),
+            },
+          },
         },
       },
       MuiPaper: {
