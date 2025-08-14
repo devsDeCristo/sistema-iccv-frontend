@@ -9,6 +9,7 @@ import {
   Tab,
   TextField,
   Paper,
+  InputAdornment,
 } from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ListTeams } from '../../../../features/admin/events/components/listTeams';
@@ -33,6 +34,7 @@ import {
   BadgeOutlined,
   BedOutlined,
   EmailOutlined,
+  Search,
   ViewModuleOutlined,
 } from '@mui/icons-material';
 
@@ -93,7 +95,7 @@ function Details() {
       gap: 2,
     },
     textField: {
-      width: { xs: '100%', sm: '300px' },
+      width: { xs: '100%', sm: '350px' },
     },
   };
   const event = eventData as Event;
@@ -170,12 +172,19 @@ function Details() {
         <Box component="div">
           <Paper component="div" sx={styles.boxFilterAndPdf}>
             <TextField
-              label="Pesquisar usuário por nome ou CPF"
+              placeholder="Pesquisar usuário por nome ou CPF"
               variant="outlined"
               size="small"
               value={searchUser}
               sx={styles.textField}
               onChange={(e) => setSearchUser(e.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Search />
+                  </InputAdornment>
+                ),
+              }}
             />
             {/* <Typography color="#000">Usuários</Typography> */}
             <Stack sx={styles.stackButtons}>
