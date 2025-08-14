@@ -1,16 +1,16 @@
-import { alpha, Box, Button, TextField, useTheme } from '@mui/material';
+import { Button, InputAdornment, Paper, TextField } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { PageStyle } from '../../../components/pageStyle';
 import { Header } from '../../../components/header';
 import { List } from '../../../features/admin/users/components/list';
 import { useRole } from '../../../hooks/useRole';
 import { useState } from 'react';
-import { Add } from '@mui/icons-material';
+import { Add, Search } from '@mui/icons-material';
 
 function Users() {
   const navigate = useNavigate();
   const [searchUser, setSearchUser] = useState('');
-  const theme = useTheme();
+
   const isAdmin = useRole();
   const styles = {
     boxFilterAndButton: {
@@ -22,35 +22,32 @@ function Users() {
       width: '100%',
       gap: 2,
       marginY: 2,
+      padding: 2,
     },
     button: {
       width: { xs: '100%', sm: 'fit-content' },
-      backgroundColor: theme.palette.text.primary,
-      '&:hover': {
-        backgroundColor: alpha(theme.palette.text.primary, 0.8),
-      },
-      color: theme.palette.background.default,
     },
     textField: {
-      width: { xs: '100%', sm: '300px' },
+      width: { xs: '100%', sm: '350px' },
     },
   };
   return (
     <PageStyle>
       <Header title="Usuários" />
-      <Box
-        component="div"
-        justifyContent="space-between"
-        display="flex"
-        mb={2}
-        sx={styles.boxFilterAndButton}
-      >
+      <Paper sx={styles.boxFilterAndButton}>
         <TextField
-          label="Pesquisar usuário por nome ou CPF"
+          placeholder="Pesquisar usuário por nome ou CPF"
           variant="outlined"
           size="small"
           value={searchUser}
           sx={styles.textField}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <Search />
+              </InputAdornment>
+            ),
+          }}
           onChange={(e) => setSearchUser(e.target.value)}
         />
         <Button
@@ -63,9 +60,9 @@ function Users() {
           }
           startIcon={<Add />}
         >
-          Adicionar usuario
+          Novo usuario
         </Button>
-      </Box>
+      </Paper>
 
       <List search={searchUser} />
     </PageStyle>

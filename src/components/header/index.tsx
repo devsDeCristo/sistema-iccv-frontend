@@ -43,7 +43,8 @@ function Header({
       gap: 0,
     },
     title: {
-      fontSize: 26,
+      lineHeight: 1.2,
+      fontSize: 24,
       color: theme.palette.text.primary,
       fontWeight: 500,
     },

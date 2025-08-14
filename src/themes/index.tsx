@@ -1,4 +1,4 @@
-import { createTheme } from '@mui/material/styles';
+import { alpha, createTheme } from '@mui/material/styles';
 
 declare module '@mui/material/styles' {
   interface BreakpointOverrides {
@@ -49,7 +49,7 @@ export const myTheme = (colorMode: boolean) =>
       secondary: {
         main: colorMode ? '#28363F' : '#111B21',
       },
-      divider: colorMode ? '#343F4D' : '#DCDEE1',
+      divider: colorMode ? '#27303b' : '#DCDEE1',
       background: {
         default: colorMode ? '#030617' : '#F0F1F4',
         paper: colorMode ? '#0F172A' : '#F8F8F8',
@@ -90,6 +90,13 @@ export const myTheme = (colorMode: boolean) =>
               boxShadow: 'none',
             },
           },
+          contained: {
+            backgroundColor: colorMode ? '#EBEBEB' : '#1C0F4D',
+            '&:hover': {
+              backgroundColor: alpha(colorMode ? '#EBEBEB' : '#1C0F4D', 0.8),
+            },
+            color: !colorMode ? '#EBEBEB' : '#111B21',
+          },
         },
       },
       MuiPaper: {
@@ -97,12 +104,21 @@ export const myTheme = (colorMode: boolean) =>
           elevation: 0,
           variant: 'outlined',
         },
-
         styleOverrides: {
           root: {
             // borderRadius:8,
             elevation: 0,
             border: 'none',
+            borderRadius: 8,
+          },
+        },
+      },
+      MuiAppBar: {
+        styleOverrides: {
+          root: {
+            borderRadius: 0,
+            boxShadow: 'none',
+            borderBottom: `1px solid ${colorMode ? '#27303b' : '#DCDEE1'}`,
           },
         },
       },

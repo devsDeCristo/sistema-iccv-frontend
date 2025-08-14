@@ -9,6 +9,7 @@ import {
   Tooltip,
   MenuItem,
   Chip,
+  useTheme,
 } from '@mui/material';
 import {
   DataGrid,
@@ -21,9 +22,16 @@ import {
   GridCellParams,
 } from '@mui/x-data-grid';
 import { useGetUsers } from '../api/getUsers';
-import { formatDate, formatPhoneNumber } from '../../../../utils';
+import { formatCPF, formatDate, formatPhoneNumber } from '../../../../utils';
 // import { useNavigate } from 'react-router-dom';
-import { Edit, Key, MoreVert } from '@mui/icons-material';
+import {
+  ContentCopy,
+  Edit,
+  Key,
+  MailOutline,
+  MoreVert,
+  SmartphoneOutlined,
+} from '@mui/icons-material';
 import { useState } from 'react';
 import { User } from '../../../../types/user';
 import { ModalEditRole } from './modalEditRole';
@@ -37,7 +45,28 @@ const getSelectedRowsToExport = ({
 
   return gridFilteredSortedRowIdsSelector(apiRef);
 };
+const renderCellWithCopy = (value: string | number) => {
+  const handleCopy = () => {
+    navigator.clipboard.writeText(String(value));
+    alert('Conteúdo copiado para a área de transferência!');
+  };
 
+  return (
+    <Tooltip title="Clique para copiar">
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1,
+          cursor: 'copy',
+        }}
+        onClick={handleCopy}
+      >
+        {value}
+      </Box>
+    </Tooltip>
+  );
+};
 function List({ search }: { search: string }) {
   const { data = [], isLoading } = useGetUsers({});
   // const navigate = useNavigate();
@@ -46,7 +75,7 @@ function List({ search }: { search: string }) {
   const [openModalEditRole, setOpenModalEditRole] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [rowSelected, setRowSelected] = useState<User | null>(null);
-
+  const theme = useTheme();
   if (!Array.isArray(data)) {
     return null;
   }
@@ -81,30 +110,84 @@ function List({ search }: { search: string }) {
         );
       },
     },
-    { field: 'fullName', headerName: 'Nome', flex: 1, minWidth: 150 },
+    {
+      field: 'fullName',
+      headerName: 'Nome',
+      flex: 2,
+      minWidth: 200,
+      // maxWidth: 300,
+      renderCell: (params) => renderCellWithCopy(params.row.fullName),
+    },
     {
       field: 'cpf',
       headerName: 'CPF',
-      width: 110,
+      flex: 1,
+      minWidth: 140,
+      renderCell: (params) => renderCellWithCopy(formatCPF(params.row.cpf)),
     },
     {
       field: 'birthday',
       headerName: 'Data de nascimento',
-      width: 100,
+      flex: 1,
+      minWidth: 120,
       valueGetter: (params) => formatDate(params.row.birthday),
     },
     {
-      field: 'cellphone',
-      headerName: 'Telefone',
-      width: 128,
-      valueGetter: (params) => formatPhoneNumber(params.row.cellphone),
+      field: 'contato',
+      headerName: 'Contato',
+      flex: 1,
+      minWidth: 220,
+      renderCell: (params) => {
+        return (
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 1,
+              alignItems: 'flex-start',
+              justifyContent: 'center',
+            }}
+          >
+            {params.row.cellphone && (
+              <Box
+                sx={{
+                  display: 'flex',
+                  gap: 1,
+                }}
+              >
+                <SmartphoneOutlined color="action" fontSize="small" />
+                <Box>
+                  {renderCellWithCopy(formatPhoneNumber(params.row.cellphone))}
+                </Box>
+              </Box>
+            )}
+            {params.row.email && (
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <MailOutline color="action" fontSize="small" />
+                <Box>{renderCellWithCopy(params.row.email)}</Box>
+              </Box>
+            )}
+          </Box>
+        );
+      },
+
+      // valueGetter: (params) => formatPhoneNumber(params.row.cellphone),
     },
-    { field: 'religion', headerName: 'Religião', flex: 1, minWidth: 100 },
+    // {
+    //   field: 'cellphone',
+    //   headerName: 'Telefone',
+    //   flex: 1,
+    // minWidth: 128,
+    //   valueGetter: (params) => formatPhoneNumber(params.row.cellphone),
+    // },
+    { field: 'religion', headerName: 'Religião', minWidth: 180 },
+    { field: 'events', headerName: 'Eventos', minWidth: 180 },
     { field: 'notes', headerName: 'Observações', flex: 1, minWidth: 80 },
     {
       field: 'role',
       headerName: 'Permissão',
-      width: 120,
+      flex: 1,
+      minWidth: 120,
       renderCell: (params: GridCellParams) => {
         return (
           <Box>
@@ -123,7 +206,8 @@ function List({ search }: { search: string }) {
       field: 'actions',
       headerName: '',
       sortable: false,
-      width: 80,
+      flex: 1,
+      minWidth: 80,
       //flex: 1,
       renderCell: (params: GridCellParams) => {
         const user = JSON.parse(localStorage.getItem('user') || '{}') as User;
@@ -179,18 +263,53 @@ function List({ search }: { search: string }) {
         // onRowDoubleClick={(params) => {
         //   navigate(`/user/${params.row.id}/editar`);
         // }}
+        rowHeight={65}
         autoHeight={true}
         columns={columns}
         loading={isLoading}
-        slots={{ toolbar: GridToolbar }}
-        pageSizeOptions={[10, 25, 50, 100]}
-        slotProps={{
-          toolbar: {
-            printOptions: { getRowsToExport: getSelectedRowsToExport },
+        // slots={{ toolbar: GridToolbar }}
+        pageSizeOptions={[8, 10, 25, 50, 100]}
+        // slotProps={{
+        //   toolbar: {
+        //     printOptions: { getRowsToExport: getSelectedRowsToExport },
+        //   },
+        // }}
+        initialState={{
+          pagination: { paginationModel: { pageSize: 8 } },
+          columns: {
+            columnVisibilityModel: {
+              birthday: false,
+              notes: false,
+              // profession: false,
+              // religion: false,
+              // indicatedBy: false,
+              // emergencyContact: false,
+              // email: false,
+              // cpf: false,
+              // cellphone: false,
+              // badgeName: false,
+              // diabetes: false,
+              // hypertensive: false,
+              // notes: false,
+              // leadershipPosition: false,
+              // createdAt: false,
+            },
           },
         }}
-        initialState={{
-          pagination: { paginationModel: { pageSize: 10 } },
+        sx={{
+          p: 2,
+          '& .MuiDataGrid-row': {
+            // borderBottom: '1px solid ' + theme.palette.divider, // Define a cor da borda entre as linhas
+            borderTop: '1px solid ' + theme.palette.divider,
+            borderBottom: 'none',
+          },
+          '& .MuiDataGrid-columnHeaders': {
+            height: 50, // Define a altura do cabeçalho
+          },
+          '& .MuiDataGrid-columnHeader': {
+            height: 50,
+            lineHeight: 'normal', // Ajusta o espaçamento interno do texto
+          },
         }}
       />
       <ModalEditRole
