@@ -7,9 +7,15 @@ import IconButton from '@mui/material/IconButton';
 import MenuIcon from '@mui/icons-material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import Menu from '@mui/material/Menu';
-import { DarkMode, LightMode, Logout, Person, Settings } from '@mui/icons-material';
+import {
+  DarkMode,
+  LightMode,
+  Logout,
+  Person,
+  Settings,
+} from '@mui/icons-material';
 
-import { Avatar, Divider, ListItemIcon, Stack } from '@mui/material';
+import { Avatar, Divider, ListItemIcon, Stack, useTheme } from '@mui/material';
 import { useUser } from '../../contexts/userContext';
 import { useNavigate } from 'react-router-dom';
 import Logo from '../../assets/logo-ic.svg?react';
@@ -24,7 +30,7 @@ export default function MenuAppBar({
 }) {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const { user, logout } = useUser();
-  const { colorMode,toggleColorMode } = useThemeContext();
+  const { colorMode, toggleColorMode } = useThemeContext();
   const navigate = useNavigate();
   const [isAdminRoute, setIsAdminRoute] = React.useState(false);
 
@@ -45,11 +51,19 @@ export default function MenuAppBar({
   const styles = {
     menuIcon: { mr: 2, display: { xs: 'inline', lg: 'none' } },
   };
-
+  const theme = useTheme();
   return (
     <Box sx={{ flexGrow: 1 }}>
       <AppBar
-        sx={{ height: '70px', display: 'flex', justifyContent: 'center' }}
+        sx={{
+          height: '70px',
+          display: 'flex',
+          justifyContent: 'center',
+          backgroundColor:
+            theme.palette.mode === 'dark'
+              ? theme.palette.background.paperSecondary
+              : theme.palette.primary.main,
+        }}
         position="static"
       >
         <Toolbar>

@@ -117,7 +117,7 @@ function Details() {
   return (
     <PageStyle>
       <Header
-        title={'Detalhes do evento:' + event?.name}
+        title={event?.name}
         // description={(event?.startDate) + ' - ' + event?.endDate}
         description={
           event

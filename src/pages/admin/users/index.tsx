@@ -1,15 +1,16 @@
-import { Box, Button, TextField } from '@mui/material';
+import { alpha, Box, Button, TextField, useTheme } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { PageStyle } from '../../../components/pageStyle';
 import { Header } from '../../../components/header';
 import { List } from '../../../features/admin/users/components/list';
 import { useRole } from '../../../hooks/useRole';
 import { useState } from 'react';
+import { Add } from '@mui/icons-material';
 
 function Users() {
   const navigate = useNavigate();
   const [searchUser, setSearchUser] = useState('');
-
+  const theme = useTheme();
   const isAdmin = useRole();
   const styles = {
     boxFilterAndButton: {
@@ -24,6 +25,11 @@ function Users() {
     },
     button: {
       width: { xs: '100%', sm: 'fit-content' },
+      backgroundColor: theme.palette.text.primary,
+      '&:hover': {
+        backgroundColor: alpha(theme.palette.text.primary, 0.8),
+      },
+      color: theme.palette.background.default,
     },
     textField: {
       width: { xs: '100%', sm: '300px' },
@@ -55,8 +61,9 @@ function Users() {
               ? navigate('/admin/usuario/cadastrar')
               : navigate('/cadastro-cursilho-work')
           }
+          startIcon={<Add />}
         >
-          Cadastrar usuario
+          Adicionar usuario
         </Button>
       </Box>
 

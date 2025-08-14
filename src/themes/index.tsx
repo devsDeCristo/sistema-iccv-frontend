@@ -14,6 +14,8 @@ declare module '@mui/material/styles' {
     default: string;
     paper: string;
     hover: string;
+    input: string;
+    paperSecondary: string;
   }
 
   interface Palette {
@@ -42,16 +44,18 @@ export const myTheme = (colorMode: boolean) =>
     palette: {
       mode: colorMode ? 'dark' : 'light',
       primary: {
-        main: colorMode ? '#1952BC' : '#1C0F4D',
-        
+        main: colorMode ? '#2563EB' : '#1C0F4D',
       },
       secondary: {
         main: colorMode ? '#28363F' : '#111B21',
       },
+      divider: colorMode ? '#918fd1' : '#D0D0D0',
       background: {
-        default: colorMode ? '#111B21' : '#F0F1F4',
-        paper: colorMode ? '#202C33' : '#F8F8F8',
-        hover: colorMode ? '#2A3942' : '#EDEDED',
+        default: colorMode ? '#030617' : '#F0F1F4',
+        paper: colorMode ? '#0F172A' : '#F8F8F8',
+        paperSecondary: colorMode ? '#1E293B' : '#FFFFFF',
+        hover: colorMode ? '#1E293B' : '#EDEDED',
+        input: colorMode ? '#324154' : '#FFFFFF',
       },
       text: {
         primary: colorMode ? '#EBEBEB' : '#111B21',
@@ -59,12 +63,12 @@ export const myTheme = (colorMode: boolean) =>
         disabled: colorMode ? '#495C67' : '#696A6A',
       },
       border: colorMode ? '#495C67' : '#D0D0D0',
-      chips:{
+      chips: {
         completed: colorMode ? '#1C0F4D' : '#362f4dff',
         pending: colorMode ? '#28363F' : '#F0F1F4',
         canceled: colorMode ? '#F44336' : '#FFCDD2',
-        active: colorMode ? '#6aad6cff' : '#62df66ff'
-      }
+        active: colorMode ? '#6aad6cff' : '#62df66ff',
+      },
     },
     breakpoints: {
       values: {
@@ -85,6 +89,20 @@ export const myTheme = (colorMode: boolean) =>
             '&:hover': {
               boxShadow: 'none',
             },
+          },
+        },
+      },
+      MuiPaper: {
+        defaultProps: {
+          elevation: 0,
+          variant: 'outlined',
+        },
+
+        styleOverrides: {
+          root: {
+            // borderRadius:8,
+            elevation: 0,
+            border: 'none',
           },
         },
       },

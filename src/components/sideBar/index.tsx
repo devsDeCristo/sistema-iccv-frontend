@@ -52,7 +52,7 @@ const SideBar: React.FC<SideBarProps> = ({
     },
     boxSidebar: (validRole: boolean | Boolean | null) => ({
       display: validRole ? { xs: 'none', lg: 'flex' } : 'none',
-      boxShadow: '0px 1px 4px 0px' + theme.palette.border,
+      // boxShadow: '0px 1px 4px 0px' + theme.palette.border,
       position: 'sticky',
       bgcolor: theme.palette.background.paper,
     }),
@@ -134,7 +134,9 @@ const SideBar: React.FC<SideBarProps> = ({
               button: () => styles.buttonMenu,
             }}
           >
-            <Box sx={styles.sessaoMenu}>{isAdmin ? 'Administrador' : 'Inscrições'}</Box>
+            <Box sx={styles.sessaoMenu}>
+              {isAdmin ? 'Administrador' : 'Inscrições'}
+            </Box>
             {optionsPages.map(({ link, itemId, icon, title }) => (
               <MenuItem
                 id={itemId}

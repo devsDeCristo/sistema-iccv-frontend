@@ -1,5 +1,5 @@
 import { ArrowBack } from '@mui/icons-material';
-import { Box, Divider, IconButton, Typography, useTheme } from '@mui/material';
+import { Box, IconButton, Typography, useTheme } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 
 interface HeaderProps {
@@ -24,40 +24,58 @@ function Header({
       navigate(pageBack);
     } else navigate(-1);
   }
+  const style = {
+    boxContainer: {
+      display: 'flex',
+      flexDirection: 'row',
+      alignItems: 'start',
+      justifyContent: 'space-between',
+      mb: 2,
+    },
+    boxInner: {
+      gap: 2,
+      display: 'flex',
+      alignItems: 'center',
+    },
+    boxColumn: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 0,
+    },
+    title: {
+      fontSize: 26,
+      color: theme.palette.text.primary,
+      fontWeight: 500,
+    },
+    description: {
+      fontSize: 16,
+      color: theme.palette.text.secondary,
+    },
+  };
 
   return (
-    <Box
-      sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 1,
-        mb: 2,
-        alignItems: 'flex-start',
-        justifyContent: 'center',
-      }}
-    >
-      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+    <Box sx={style.boxContainer}>
+      <Box sx={style.boxInner}>
         {buttonBack && (
           <IconButton onClick={GoPage} size="small">
-            <ArrowBack color="primary" />
+            <ArrowBack
+              sx={{
+                color:
+                  theme.palette.mode === 'dark'
+                    ? theme.palette.text.primary
+                    : theme.palette.primary.main,
+              }}
+            />
           </IconButton>
         )}
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-          <Typography
-            fontSize={22}
-            color={theme.palette.text.primary}
-            sx={{ fontWeight: 500 }}
-          >
-            {title}
-          </Typography>
+        <Box sx={style.boxColumn}>
+          <Typography sx={style.title}>{title}</Typography>
           {description ? (
-            <Typography fontSize={16} color={theme.palette.text.primary}>
-              {description}
-            </Typography>
+            <Typography sx={style.description}>{description}</Typography>
           ) : null}
         </Box>
-        {children}
       </Box>
+      {children}
       {/* <Divider color={theme.palette.text.primary} sx={{ marginY: 2 }} /> */}
     </Box>
   );
