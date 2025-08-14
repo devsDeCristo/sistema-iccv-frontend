@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { PageStyle } from '../../../components/pageStyle';
 import { Header } from '../../../components/header';
 import { List } from '../../../features/admin/events/components/list';
+import { CardsInsights } from '../../../features/admin/events/components/cardsInsights';
 
 function Events() {
   const navigate = useNavigate();
@@ -18,6 +19,8 @@ function Events() {
           </Button>
         </Box>
       </Header>
+
+      <CardsInsights />
       <List />
     </PageStyle>
   );
