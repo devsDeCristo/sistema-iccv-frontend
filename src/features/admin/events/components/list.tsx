@@ -58,7 +58,7 @@ function List() {
       headerAlign: 'center',
       renderCell: (params) => (
         <Chip
-          label={params.value}
+          label={params.value||"Cursilho"}
          
         />
       ),
