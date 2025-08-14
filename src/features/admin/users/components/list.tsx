@@ -268,14 +268,14 @@ function List({ search }: { search: string }) {
         columns={columns}
         loading={isLoading}
         // slots={{ toolbar: GridToolbar }}
-        pageSizeOptions={[8, 10, 25, 50, 100]}
+        pageSizeOptions={[5, 10, 25, 50, 100]}
         // slotProps={{
         //   toolbar: {
         //     printOptions: { getRowsToExport: getSelectedRowsToExport },
         //   },
         // }}
         initialState={{
-          pagination: { paginationModel: { pageSize: 8 } },
+          pagination: { paginationModel: { pageSize: 5 } },
           columns: {
             columnVisibilityModel: {
               birthday: false,
