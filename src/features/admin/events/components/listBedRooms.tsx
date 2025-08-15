@@ -13,7 +13,7 @@ import {
   LinearProgress,
   IconButton,
   Menu,
-  MenuItem
+  MenuItem,
 } from '@mui/material';
 
 import { useGetBedrooms } from '../api/getBedrooms';
@@ -127,10 +127,10 @@ function ListBedRooms({ search }: { search: string }) {
     roomName: {
       fontSize: '1.3rem',
       fontWeight: 500,
-      maxWidth: "80%",
-      textOverflow: "ellipsis",
-      overflow: "hidden",
-      whiteSpace: "nowrap",
+      maxWidth: '80%',
+      textOverflow: 'ellipsis',
+      overflow: 'hidden',
+      whiteSpace: 'nowrap',
     },
     chip: {
       margin: '2px',
@@ -172,7 +172,7 @@ function ListBedRooms({ search }: { search: string }) {
                 <Box sx={styles.iconWrapper}>
                   <Bed sx={{ fontSize: '20px' }} />
                 </Box>
-                <Stack sx={{width: '100%'}}>
+                <Stack sx={{ width: '100%' }}>
                   <Typography sx={styles.roomName}>
                     {bedroom.name || 'Quarto sem nome'}
                   </Typography>
@@ -197,8 +197,8 @@ function ListBedRooms({ search }: { search: string }) {
                     alignItems="center"
                     justifyContent="space-between"
                   >
-                    <Typography variant="body2" fontWeight="bold">
-                      Ocupantes:
+                    <Typography variant="body2" fontWeight={500}>
+                      Capacidade:
                     </Typography>
                     <Typography variant="body2">
                       {bedroom.users.length || 0}/{bedroom.capacity || 0} (
@@ -217,6 +217,9 @@ function ListBedRooms({ search }: { search: string }) {
                     value={(bedroom.users.length / bedroom.capacity) * 100}
                     sx={styles.progressBar}
                   />
+                  <Typography variant="body2" fontWeight={500}>
+                    Participantes:
+                  </Typography>
                   <Stack direction="row" gap={1} flexWrap="wrap">
                     {bedroom.users.map((user) => (
                       <Tooltip title={user.fullName} arrow key={user.id}>
@@ -233,7 +236,9 @@ function ListBedRooms({ search }: { search: string }) {
 
               {/* opções para edição e exclusão para mobile*/}
               <Stack direction="row" sx={styles.actionButtonsMobile}>
-                <IconButton  onClick={(e) => setAnchorElOptionsMobile(e.currentTarget)}>
+                <IconButton
+                  onClick={(e) => setAnchorElOptionsMobile(e.currentTarget)}
+                >
                   <MoreVert />
                 </IconButton>
                 <Menu
@@ -243,8 +248,8 @@ function ListBedRooms({ search }: { search: string }) {
                   onClick={() => setAnchorElOptionsMobile(null)}
                 >
                   <MenuItem onClick={() => handleEditClick(bedroom)}>
-                    <Edit  color="warning" sx={{ mr: 1 }} />
-                   Editar
+                    <Edit color="warning" sx={{ mr: 1 }} />
+                    Editar
                   </MenuItem>
                   <MenuItem onClick={() => handleDeleteClick(bedroom.id)}>
                     <Delete color="error" sx={{ mr: 1 }} />

@@ -178,7 +178,7 @@ function ModalBedRoom({
           <form onSubmit={handleSubmit(onSubimitBedroom)}>
             <Box sx={styles.overflow}>
               <Grid id="transition-modal-description" container spacing={1.5}>
-                <Grid item xs={12} md={8}>
+                <Grid item xs={12} md={7}>
                   <Controller
                     control={control}
                     name="name"
@@ -199,7 +199,7 @@ function ModalBedRoom({
                   />
                 </Grid>
 
-                <Grid item xs={12} md={4}>
+                <Grid item xs={12} md={5}>
                   <Controller
                     control={control}
                     name="capacity"

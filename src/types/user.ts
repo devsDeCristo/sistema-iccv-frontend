@@ -26,4 +26,7 @@ export interface User {
   eventId?: string;
 
 }
+export interface UserTeam extends User {
+  roleTeam: string;
+}
 export type RegisterUsersFormType = z.infer<typeof REGISTER_USERS_SCHEMA>;
