@@ -16,7 +16,7 @@ import {
 
 import { Controller, useForm } from 'react-hook-form';
 import { useGetEvents } from '../api/getEvents';
-import { useEffect } from 'react';
+import { useEffect} from 'react';
 import { usePostCreateTeam } from '../api/postTeam';
 import { usePutTeam } from '../api/putTeam';
 import { CheckBox, CheckBoxOutlineBlank, Close } from '@mui/icons-material';
@@ -47,7 +47,6 @@ function ModalTeam({ open, handleClose, team, eventId }: ModalTeamProps) {
     overflow: {
       overflow: 'auto',
       maxHeight: '75vh',
-      p: 1,
       mb: 2,
     },
     container: {
@@ -79,30 +78,11 @@ function ModalTeam({ open, handleClose, team, eventId }: ModalTeamProps) {
     },
   });
   const { data: eventData } = useGetEvents(
-    { eventId: eventId || '' },
+    { eventId: eventId },
     {
       enabled: !!eventId,
     }
   );
-
-  useEffect(() => {
-    if (team) {
-      reset({
-        capacity: team.capacity||0,
-        note: team.note,
-        name: team.name,
-        usersId: team.users.filter((user) => user.roleTeam === 'MEMBER').map((user) => ({
-          value: user.id,
-          label: user.fullName,
-        })),
-        usersLeadersId: team.users.filter((user) => user.roleTeam === 'LEADER').map((user) => ({
-          value: user.id,
-          label: user.fullName,
-        })),
-      });
-    }
-  }, [team]);
-
   const options =
     !Array.isArray(eventData) &&
     eventData?.users?.map((user: any) => ({
@@ -141,6 +121,25 @@ function ModalTeam({ open, handleClose, team, eventId }: ModalTeamProps) {
     );
   };
 
+  useEffect(() => {
+    if (team) {
+      reset({
+        capacity: team.capacity||0,
+        note: team.note,
+        name: team.name,
+        usersId: team.users.filter((user) => user.roleTeam === 'MEMBER').map((user) => ({
+          value: user.id,
+          label: user.fullName,
+        })),
+        usersLeadersId: team.users.filter((user) => user.roleTeam === 'LEADER').map((user) => ({
+          value: user.id,
+          label: user.fullName,
+        })),
+      });
+    }
+  }, [team]);
+
+
   return (
     <Modal
       aria-labelledby="transition-modal-title"
@@ -173,7 +172,7 @@ function ModalTeam({ open, handleClose, team, eventId }: ModalTeamProps) {
             </IconButton>
           </Stack>
           <form onSubmit={handleSubmit(onSubimitTeam)}>
-            <Box sx={styles.overflow}>
+            <Box  sx={styles.overflow}>
               <Grid container spacing={1.5}>
                 <Grid item xs={12} md={7}>
                   <Controller

@@ -42,6 +42,7 @@ function ListTeams({ search }: { search: string }) {
   const [page, setPage] = useState(1);
   const [anchorElOptionsMobile, setAnchorElOptionsMobile] =
     useState<null | HTMLElement>(null);
+  const [dataOptionsMobile, setDataOptionsMobile] = useState<Team | null>(null);
   const [openModalDeleteTeam, setOpenModalDeleteTeam] = useState(false);
   const [selectedDeleteIdTeam, setSelectedDeleteIdTeam] = useState<
     string | null
@@ -49,9 +50,13 @@ function ListTeams({ search }: { search: string }) {
 
   const { mutate } = useDeleteTeam();
 
-  const handleEditClick = (team: Team) => {
+  const handleEditClick = (team: Team | null) => {
     setOpenModalTeam(true);
     setSelectTeam(team);
+  };
+  const handleCloseMenu = () => {
+    setAnchorElOptionsMobile(null);
+    setDataOptionsMobile(null);
   };
 
   const handleDeleteClick = (teamId: string) => {
@@ -251,27 +256,19 @@ function ListTeams({ search }: { search: string }) {
               )}
 
               {/* opções para edição e exclusão para mobile*/}
-              <Stack direction="row" sx={styles.actionButtonsMobile}>
+              <Stack
+                key={team.id + 'mobile'}
+                direction="row"
+                sx={styles.actionButtonsMobile}
+              >
                 <IconButton
-                  onClick={(e) => setAnchorElOptionsMobile(e.currentTarget)}
+                  onClick={(e) => {
+                    setAnchorElOptionsMobile(e.currentTarget);
+                    setDataOptionsMobile(team);
+                  }}
                 >
                   <MoreVert />
                 </IconButton>
-                <Menu
-                  anchorEl={anchorElOptionsMobile}
-                  open={Boolean(anchorElOptionsMobile)}
-                  onClose={() => setAnchorElOptionsMobile(null)}
-                  onClick={() => setAnchorElOptionsMobile(null)}
-                >
-                  <MenuItem onClick={() => handleEditClick(team)}>
-                    <Edit color="warning" sx={{ mr: 1 }} />
-                    Editar
-                  </MenuItem>
-                  <MenuItem onClick={() => handleDeleteClick(team.id)}>
-                    <Delete color="error" sx={{ mr: 1 }} />
-                    Deletar
-                  </MenuItem>
-                </Menu>
               </Stack>
 
               {/* opções para edição e exclusão para md*/}
@@ -316,6 +313,27 @@ function ListTeams({ search }: { search: string }) {
         message="Você tem certeza que deseja deletar esse time?"
         onConfirm={handleConfirmDelete}
       />
+      <Menu
+        anchorEl={anchorElOptionsMobile}
+        open={Boolean(anchorElOptionsMobile && dataOptionsMobile)}
+        onClose={handleCloseMenu}
+        onClick={handleCloseMenu}
+      >
+        <MenuItem
+          onClick={() => {
+            handleEditClick(dataOptionsMobile);
+          }}
+        >
+          <Edit color="warning" sx={{ mr: 1 }} />
+          Editar
+        </MenuItem>
+        <MenuItem
+          onClick={() => handleDeleteClick(dataOptionsMobile?.id || '')}
+        >
+          <Delete color="error" sx={{ mr: 1 }} />
+          Deletar
+        </MenuItem>
+      </Menu>
     </Box>
   );
 }
