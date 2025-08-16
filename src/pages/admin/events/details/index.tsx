@@ -10,6 +10,7 @@ import {
   TextField,
   Paper,
 } from '@mui/material';
+
 import { useNavigate, useParams } from 'react-router-dom';
 import { ListTeams } from '../../../../features/admin/events/components/listTeams';
 import { ListBedRooms } from '../../../../features/admin/events/components/listBedRooms';
@@ -32,24 +33,30 @@ import PdfEnvelope from '../../../../components/pdfEnvelope';
 import {
   BadgeOutlined,
   BedOutlined,
+  Download,
   EmailOutlined,
+  Filter1Outlined,
+  FilterAltOutlined,
   ViewModuleOutlined,
 } from '@mui/icons-material';
+import { GridApi, useGridApiRef } from '@mui/x-data-grid';
 
 function Details() {
   const { id, subPage } = useParams();
   const navigate = useNavigate();
+  const apiRefUsers = useGridApiRef();
+  const apiRefTeams = useGridApiRef();
+  const apiRefBedrooms = useGridApiRef();
   const [openModalBedRoom, setOpenModalBedRoom] = useState(false);
   const [openModalTeam, setOpenModalTeam] = useState(false);
   const [searchBedroom, setSearchBedroom] = useState('');
   const [searchTeam, setSearchTeam] = useState('');
   const [searchUser, setSearchUser] = useState('');
-
   const [pageValue, setPageValue] = useState(subPage || 'usuarios');
-
   const [openModalAddUser, setOpenModalAddUser] = useState(false);
-
+  const [panel, setPanel] = useState<string>('1');
   const { id: eventId = '' } = useParams();
+
   const { data: teamsData = [] } = useGetTeams({
     eventId,
   });
@@ -80,7 +87,7 @@ function Details() {
       flexWrap: 'wrap',
       width: '100%',
       gap: 2,
-      marginY: 2,
+      mt: 2,
       p: 2,
     },
     stackButtons: {
@@ -129,7 +136,71 @@ function Details() {
     setPageValue(newValue);
     navigate(`/admin/eventos/${id}/detalhes/${newValue}`);
   };
+  const handleExport = (apiRef: React.MutableRefObject<GridApi>) => {
+    apiRef.current.exportDataAsCsv(); // Exportação nativa do DataGrid
+  };
+  // const handlePrint = ({ apiRef, columns }) => {
+  //     // Obter TODAS as linhas diretamente do estado do grid
+  //     const allRows = apiRef.current.getSortedRows();
 
+  //     // Mapear as colunas e linhas corretamente
+  //     const pdfColumns = columns.map((col) => col.headerName);
+  //     const pdfRows = allRows.map((row) =>
+  //       columns.map((col) => row[col.field])
+  //     );
+
+  //     // Criar PDF
+  //     const doc = new jsPDF();
+
+  //     autoTable(doc, {
+  //       head: [pdfColumns],
+  //       body: pdfRows,
+  //       styles: {
+  //         fontSize: 8,
+  //         cellPadding: 2,
+  //       },
+  //       theme: "grid",
+  //       headStyles: {
+  //         fillColor: theme.palette.easyLog.primary,
+  //       },
+  //       alternateRowStyles: {
+  //         fillColor: [240, 240, 240], // cor de fundo das linhas alternadas
+  //       },
+  //       margin: { top: 25, bottom: 25 },
+  //       willDrawPage: (data) => {
+  //         doc.addImage(
+  //           LogoEasyLogSVG,
+  //           "PNG",
+  //           data.settings.margin.right,
+  //           data.settings.margin.top - 12,
+  //           36,
+  //           8
+  //         );
+  //       },
+  //       didDrawPage: (data) => {
+  //         const pageHeight = doc.internal.pageSize.height;
+  //         const marginRight = doc.internal.pageSize.width - 14;
+  //         const marginLeft = data.settings.margin.left;
+
+  //         doc.setDrawColor(0, 0, 0); // Cor da linha (preto)
+  //         doc.setLineWidth(0.1); // Largura da linha
+  //         doc.line(marginLeft, pageHeight - 15, marginRight, pageHeight - 15); // Linha horizontal
+  //         // Exibe o número da página atual no rodapé
+  //         doc.setFontSize(8);
+
+  //         doc.text(`${data.pageNumber}`, marginRight - 3, pageHeight - 10);
+  //         doc.text(
+  //           `Made by EasyLogs - MW Solucoes LTDA. Emitido em ${new Date().toLocaleString()}`,
+  //           marginLeft + 1,
+  //           pageHeight - 10
+  //         );
+  //       },
+  //     });
+
+  //     // Salvar o PDF
+  //     doc.save("todas-linhas.pdf");
+  //   };
+  
   return (
     <PageStyle>
       <Header
@@ -167,7 +238,7 @@ function Details() {
         </Tabs>
       </Box>
       {pageValue === 'usuarios' && (
-        <Box component="div">
+        <Stack gap={2} >
           <Paper component="div" sx={styles.boxFilterAndPdf}>
             <TextField
               label="Pesquisar usuário por nome ou CPF"
@@ -179,6 +250,20 @@ function Details() {
             />
             {/* <Typography color="#000">Usuários</Typography> */}
             <Stack sx={styles.stackButtons}>
+              <Button
+                variant="outlined"
+                onClick={() => handleDownloadPDF(2)}
+                startIcon={<FilterAltOutlined />}
+              >
+                Filtros
+              </Button>
+                <Button
+                variant="outlined"
+                onClick={() => handleExport(apiRefUsers)}
+                startIcon={<Download />}
+              >
+                Exportar
+              </Button>
               <Button
                 variant="outlined"
                 onClick={() => handleDownloadPDF(2)}
@@ -201,14 +286,22 @@ function Details() {
               </Button>
             </Stack>
           </Paper>
+          <Paper>
+            <Tabs variant='fullWidth' sx={{ textTransform: 'none'}} value={panel} onChange={(_, newValue) => setPanel(newValue)}>
+              <Tab label="Por Usuário" value={'1'} />
+              <Tab label="Por Evento" value={'2'} />
+             
+            </Tabs>
+          </Paper>
 
           <Card>
-            <ListUsers search={searchUser} />
+             {panel === '1' && <ListUsers apiRef={apiRefUsers} search={searchUser} />}
+             {/* {panel === '2' && <ListEvents apiRef={apiRefEvents} search={searchEvent} />} */}
           </Card>
-        </Box>
+        </Stack>
       )}
       {pageValue === 'quartos' && (
-        <Box component="div">
+        <Stack gap={2} >
           <Paper sx={styles.boxFilterAndPdf} component="div">
             <TextField
               label="Pesquisar quarto"
@@ -237,13 +330,13 @@ function Details() {
           </Paper>
 
           <ListBedRooms search={searchBedroom} />
-        </Box>
+        </Stack>
       )}
 
       {/* <Divider color="#000" sx={{ marginY: 2 }} /> */}
 
       {pageValue === 'equipes' && (
-        <Box component="div">
+        <Stack gap={2} >
           <Paper component="div" sx={styles.boxFilterAndPdf}>
             <TextField
               label="Pesquisar equipe"
@@ -272,7 +365,7 @@ function Details() {
           </Paper>
 
           <ListTeams search={searchTeam} />
-        </Box>
+        </Stack>
       )}
 
       {/* <Divider color="#000" sx={{ marginY: 2 }} /> */}
