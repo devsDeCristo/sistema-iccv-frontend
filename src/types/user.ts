@@ -24,6 +24,8 @@ export interface User {
   religion?: string;
   notes?: string;
   eventId?: string;
+  bedrooms?: any[];
+  teams?: any[];
 
 }
 export interface UserTeam extends User {

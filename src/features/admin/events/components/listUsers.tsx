@@ -2,6 +2,7 @@ import {
   Avatar,
   Box,
   Card,
+  Chip,
   Divider,
   IconButton,
   ListItemIcon,
@@ -9,6 +10,7 @@ import {
   Menu,
   MenuItem,
   Paper,
+  Stack,
   Tab,
   Tabs,
   Tooltip,
@@ -43,6 +45,7 @@ import Swal from 'sweetalert2';
 import { useRemoveUserFromEvent } from '../api/deleteUser';
 import { ModalEditWork } from './modalEditWork';
 import { useGetUsers } from '../api/getUsers';
+import { ListTeams } from './listTeams';
 const getSelectedRowsToExport = ({
   apiRef,
 }: GridGetRowsToExportParams): GridRowId[] => {
@@ -228,6 +231,78 @@ function ListUsers({
       },
     },
   ];
+  const columnsByEvent: GridColDef[] = [
+    {
+      sortable: false,
+      field: 'foto',
+      headerName: '',
+      width: 60,
+      renderCell: (params) => {
+        return (
+          <Avatar
+            alt={params?.row?.fullName}
+            src={params?.row?.profilePhotoUrl || '/'}
+            sx={{
+              width: '30px',
+              height: '30px',
+            }}
+          />
+        );
+      },
+    },
+    { field: 'fullName', headerName: 'Nome', flex: 1, minWidth: 200 },
+    {
+      field: 'paid',
+      headerName: 'Pago',
+      
+      width: 20,
+      renderCell: (params) => (params.row.paid ? 'Sim' : 'Não'),
+    },
+    {
+      field: 'worker',
+      headerName: 'Trabalhador',
+      width: 50,
+      renderCell: (params) => (params.row.worker ? 'Sim' : 'Não'),
+    },
+    {
+      field: 'bedrooms',
+      headerName: 'Quartos',
+      flex: 1,
+      minWidth: 100,
+      renderCell: (params) =>
+        params.row.bedrooms?.map((bedroom: any) => bedroom.name).join(', ') || 'Nenhum',
+
+    },
+    {
+      field: 'teams',
+      headerName: 'Equipes',
+      flex: 1,
+      minWidth: 100,
+      renderCell: (params) =>
+        params.row.teams?.map((team: any) => team.name).join(', ') || 'Nenhuma',
+    },
+    {
+      field: 'actions',
+      headerName: '',
+      sortable: false,
+      width: 80,
+      renderCell: (params: GridCellParams) => {
+        return (
+          <Box key={params.id}>
+            <Tooltip
+              title={'Opções'}
+              id="basic-button"
+              onClick={(event) => handleClickOptions(event, params)}
+            >
+              <IconButton size="small">
+                <MoreVert color="inherit" />
+              </IconButton>
+            </Tooltip>
+          </Box>
+        );
+      },
+    },
+  ];
 
   const handleClickEdit = (event: React.MouseEvent) => {
     event.stopPropagation();
@@ -296,7 +371,7 @@ function ListUsers({
           disableColumnSelector
           apiRef={apiRef}
           rows={filteredData(usersData || [])}
-          columns={columns}
+          columns={panel === '1' ? columns : columnsByEvent}
           loading={isLoading}
           autoHeight={true}
           slots={{
