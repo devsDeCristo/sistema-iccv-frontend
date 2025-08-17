@@ -12,9 +12,11 @@ import {
 import Select from 'react-select';
 import { Controller, useForm } from 'react-hook-form';
 import { usePostCreRelationEventToUser } from '../../users/api/postRelationEventUser';
-import { useGetUsers } from '../../users/api/getUsers';
+
 import { queryClient } from '../../../../config/lib/react-query/query-client';
 import { GET_EVENTS } from '../constants';
+import { useGetUsers } from '../../users/api/getUsers';
+
 
 interface ModalAddUserProps {
   open: boolean;
@@ -40,7 +42,12 @@ function ModalAddUserOnEvent({
   };
   const { control, reset, handleSubmit } = useForm();
 
-  const { data: users = [] } = useGetUsers({});
+  const { data: users} = useGetUsers(
+      {},
+      {
+        enabled: !!open,
+      }
+    );
 
   const { mutate: postCreateRelationEventToUser } =
     usePostCreRelationEventToUser({

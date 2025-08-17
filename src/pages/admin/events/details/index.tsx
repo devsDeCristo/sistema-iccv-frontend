@@ -1,7 +1,6 @@
 import { Header } from '../../../../components/header';
 import { PageStyle } from '../../../../components/pageStyle';
 import {
-  Card,
   Box,
   Button,
   Stack,
@@ -18,7 +17,6 @@ import { ModalBedRoom } from '../../../../features/admin/events/components/modal
 import { useState } from 'react';
 import { ModalTeam } from '../../../../features/admin/events/components/modalTeam';
 import { ListUsers } from '../../../../features/admin/events/components/listUsers';
-
 import PdfEvent from '../../../../components/pdfEvent';
 import FileSaver from 'file-saver';
 import { pdf } from '@react-pdf/renderer';
@@ -35,18 +33,16 @@ import {
   BedOutlined,
   Download,
   EmailOutlined,
-  Filter1Outlined,
   FilterAltOutlined,
   ViewModuleOutlined,
 } from '@mui/icons-material';
 import { GridApi, useGridApiRef } from '@mui/x-data-grid';
+import { useGetUsers } from '../../../../features/admin/events/api/getUsers';
 
 function Details() {
   const { id, subPage } = useParams();
   const navigate = useNavigate();
   const apiRefUsers = useGridApiRef();
-  const apiRefTeams = useGridApiRef();
-  const apiRefBedrooms = useGridApiRef();
   const [openModalBedRoom, setOpenModalBedRoom] = useState(false);
   const [openModalTeam, setOpenModalTeam] = useState(false);
   const [searchBedroom, setSearchBedroom] = useState('');
@@ -54,13 +50,11 @@ function Details() {
   const [searchUser, setSearchUser] = useState('');
   const [pageValue, setPageValue] = useState(subPage || 'usuarios');
   const [openModalAddUser, setOpenModalAddUser] = useState(false);
-  const [panel, setPanel] = useState<string>('1');
   const { id: eventId = '' } = useParams();
 
   const { data: teamsData = [] } = useGetTeams({
     eventId,
   });
-
   const { data: bedroomsData = [] } = useGetBedrooms(
     {
       eventId: eventId,
@@ -77,6 +71,15 @@ function Details() {
       enabled: !!eventId,
     }
   );
+  const { data: usersData } = useGetUsers(
+    {
+      eventId: eventId,
+    },
+    {
+      enabled: !!eventId,
+    }
+  );
+
   const styles = {
     boxFilterAndPdf: {
       display: 'flex',
@@ -104,6 +107,7 @@ function Details() {
     },
   };
   const event = eventData as Event;
+
   async function handleDownloadPDF(type: number) {
     if (!eventData || Array.isArray(eventData)) {
       return null;
@@ -122,13 +126,11 @@ function Details() {
       FileSaver.saveAs(blob, 'quartos.pdf');
     } else if (type === 2) {
       blob = await pdf(
-        <PdfEnvelope
-          data={eventData.users?.filter(({ worker }) => !worker) || []}
-        />
+        <PdfEnvelope data={usersData?.filter(({ worker }) => !worker) || []} />
       ).toBlob();
       FileSaver.saveAs(blob, 'envelopes.pdf');
     } else {
-      blob = await pdf(<PdfBadge data={eventData.users || []} />).toBlob();
+      blob = await pdf(<PdfBadge data={usersData || []} />).toBlob();
       FileSaver.saveAs(blob, 'crachas.pdf');
     }
   }
@@ -200,7 +202,7 @@ function Details() {
   //     // Salvar o PDF
   //     doc.save("todas-linhas.pdf");
   //   };
-  
+
   return (
     <PageStyle>
       <Header
@@ -238,7 +240,7 @@ function Details() {
         </Tabs>
       </Box>
       {pageValue === 'usuarios' && (
-        <Stack gap={2} >
+        <Stack gap={2}>
           <Paper component="div" sx={styles.boxFilterAndPdf}>
             <TextField
               label="Pesquisar usuário por nome ou CPF"
@@ -257,7 +259,7 @@ function Details() {
               >
                 Filtros
               </Button>
-                <Button
+              <Button
                 variant="outlined"
                 onClick={() => handleExport(apiRefUsers)}
                 startIcon={<Download />}
@@ -286,22 +288,14 @@ function Details() {
               </Button>
             </Stack>
           </Paper>
-          <Paper>
-            <Tabs variant='fullWidth' sx={{ textTransform: 'none'}} value={panel} onChange={(_, newValue) => setPanel(newValue)}>
-              <Tab label="Por Usuário" value={'1'} />
-              <Tab label="Por Evento" value={'2'} />
-             
-            </Tabs>
-          </Paper>
+          
 
-          <Card>
-             {panel === '1' && <ListUsers apiRef={apiRefUsers} search={searchUser} />}
-             {/* {panel === '2' && <ListEvents apiRef={apiRefEvents} search={searchEvent} />} */}
-          </Card>
+          <ListUsers apiRef={apiRefUsers} search={searchUser} />
         </Stack>
       )}
+
       {pageValue === 'quartos' && (
-        <Stack gap={2} >
+        <Stack gap={2}>
           <Paper sx={styles.boxFilterAndPdf} component="div">
             <TextField
               label="Pesquisar quarto"
@@ -333,10 +327,8 @@ function Details() {
         </Stack>
       )}
 
-      {/* <Divider color="#000" sx={{ marginY: 2 }} /> */}
-
       {pageValue === 'equipes' && (
-        <Stack gap={2} >
+        <Stack gap={2}>
           <Paper component="div" sx={styles.boxFilterAndPdf}>
             <TextField
               label="Pesquisar equipe"
@@ -367,8 +359,6 @@ function Details() {
           <ListTeams search={searchTeam} />
         </Stack>
       )}
-
-      {/* <Divider color="#000" sx={{ marginY: 2 }} /> */}
 
       <ModalBedRoom
         open={openModalBedRoom}
