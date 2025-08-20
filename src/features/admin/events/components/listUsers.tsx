@@ -298,7 +298,7 @@ function ListUsers({
       flex: 1,
       minWidth: 100,
       renderCell: (params) => (
-        <Stack direction="row" spacing={1} flexWrap="wrap">
+        <Stack direction="row" gap={1} flexWrap="wrap">
           {params.row.bedrooms?.map((bedroom: any) => (
             <CustomChip key={bedroom.id} label={bedroom.name} customColor={theme.palette.chips.default} size="small" />
           )) || 'Nenhum'}
@@ -311,7 +311,7 @@ function ListUsers({
       flex: 1,
       minWidth: 100,
       renderCell: (params) => (
-        <Stack direction="row" spacing={1} flexWrap="wrap">
+        <Stack direction="row" gap={1} flexWrap="wrap">
           {params.row.teams?.map((team: any) => (
             <CustomChip key={team.id} label={team.name} customColor={theme.palette.chips.default} size="small" />
           )) || 'Nenhuma'}
