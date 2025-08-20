@@ -139,6 +139,7 @@ const SideBar: React.FC<SideBarProps> = ({
             </Box>
             {optionsPages.map(({ link, itemId, icon, title }) => (
               <MenuItem
+                key={itemId}
                 id={itemId}
                 icon={icon}
                 component={<NavLink to={link} />}
@@ -182,6 +183,7 @@ const SideBar: React.FC<SideBarProps> = ({
             </MenuItem>
             {optionsPages.map(({ link, itemId, icon, title }) => (
               <MenuItem
+                key={itemId}
                 id={itemId}
                 icon={icon}
                 component={<Link to={link} />}

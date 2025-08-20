@@ -1,5 +1,5 @@
 import {
-  Card,
+  Paper,
   CardContent,
   Typography,
   Chip,
@@ -36,14 +36,10 @@ function EventCard({ event }: { event: Event }) {
     card: {
       borderRadius: 3,
       overflow: 'hidden',
-      boxShadow: 1,
       maxWidth: 320,
       position: 'relative',
       width: '100%',
-      // pb: 4,
-
       opacity: event.isActive ? 1 : 0.6,
-      cursor: event.isActive ? 'pointer' : 'not-allowed',
     },
     imageBox: { position: 'relative' },
     cardMedia: { objectFit: 'cover' },
@@ -57,14 +53,12 @@ function EventCard({ event }: { event: Event }) {
     chipTopRight: { position: 'absolute', top: 12, right: 12 },
     chipEvento: { background: '#e0f2ff', color: '#0077cc' },
     chipStatus: {
-      background: event.isActive
-        ? theme.palette.chips.active
-        : theme.palette.chips.canceled,
+      background: event.isActive ? (exhausted ? theme.palette.chips.canceled : theme.palette.chips.active) : theme.palette.text.primary,
       color: theme.palette.text.primary,
     },
     cardContent: {
-      p: 2,
-      pt: 6,
+      pt:6,
+      mb: 4,
       display: 'flex',
       flexDirection: 'column',
       gap: 2,
@@ -91,7 +85,7 @@ function EventCard({ event }: { event: Event }) {
   };
 
   return (
-    <Card sx={styles.card}>
+    <Paper sx={styles.card}>
       <Box sx={styles.imageBox}>
         {/* <CardMedia
           component="img"
@@ -113,7 +107,7 @@ function EventCard({ event }: { event: Event }) {
         <Box sx={styles.chipTopRight}>
           <Chip
             label={
-              event.isActive ? 'Aberto' : exhausted ? 'Esgotado' : 'Finalizado'
+              event.isActive ? exhausted ? 'Esgotado' :'Aberto' : 'Finalizado'
             }
             size="small"
             sx={styles.chipStatus}
@@ -186,7 +180,7 @@ function EventCard({ event }: { event: Event }) {
           </Button>
         )}
       </CardContent>
-    </Card>
+    </Paper>
   );
 }
 

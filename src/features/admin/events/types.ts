@@ -1,4 +1,4 @@
-import { User } from '../../../types/user';
+import { User, UserTeam } from '../../../types/user';
 import { z } from 'zod';
 import { REGISTER_EVENT_SCHEMA } from './constants';
 
@@ -28,6 +28,9 @@ export interface Insights {
 
 export interface Bedroom {
   id: string;
+  name: string;
+  capacity: number;
+  tag:String[];
   note: string | null;
   event: Event;
   users: User[];
@@ -37,7 +40,8 @@ export interface Team {
   id: string;
   name: string;
   event: Event;
-  users: User[];
+  users: UserTeam[];
+  note: string | null;
   capacity: number;
   capacityWorker: number;
   price: number;

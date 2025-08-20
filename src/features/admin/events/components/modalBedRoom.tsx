@@ -1,19 +1,25 @@
 import {
+  Autocomplete,
   Backdrop,
   Box,
   Button,
+  Checkbox,
   Fade,
   Grid,
+  IconButton,
   Modal,
+  Stack,
+  TextField,
   Typography,
+  useTheme,
 } from '@mui/material';
-import { Input } from '../../../../components/input';
-import Select from 'react-select';
+
 import { Controller, useForm } from 'react-hook-form';
 import { usePostCreateBedroom } from '../api/postBedroom';
 import { useEffect } from 'react';
 import { usePutBedroom } from '../api/putBedroom';
 import { useGetEvents } from '../api/getEvents';
+import { CheckBox, CheckBoxOutlineBlank, Close } from '@mui/icons-material';
 
 interface ModalBedRoomProps {
   open: boolean;
@@ -28,18 +34,38 @@ function ModalBedRoom({
   eventId = '',
   bedRoom,
 }: ModalBedRoomProps) {
-  const style = {
-    position: 'absolute' as 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: 400,
-    color: '#000',
-    bgcolor: 'background.paper',
-    boxShadow: 14,
-    p: 4,
+  const theme = useTheme();
+  const styles = {
+    title: {
+      fontWeight: 500,
+      fontSize: '1.25rem',
+      color: theme.palette.text.primary,
+    },
+    subTitle: {
+      fontWeight: 400,
+      fontSize: '1rem',
+      color: theme.palette.text.primary,
+    },
+    overflow: {
+      overflow: 'auto',
+      maxHeight: '75vh',
+      p: 1,
+      mb: 2,
+    },
+    container: {
+      position: 'absolute' as 'absolute',
+      top: '50%',
+      left: '50%',
+      transform: 'translate(-50%, -50%)',
+      width: { xs: '90%', sm: 600 },
+      color: '#000',
+      backgroundColor: theme.palette.background.paperSecondary,
+      boxShadow: 14,
+      p: { xs: 2, md: 3 },
+    },
   };
   const { control, reset, handleSubmit } = useForm();
+
   const { mutate: putBedroom } = usePutBedroom({
     onSuccess: () => {
       reset();
@@ -63,6 +89,12 @@ function ModalBedRoom({
   useEffect(() => {
     if (bedRoom) {
       reset({
+        name: bedRoom.name,
+        capacity: bedRoom.capacity,
+        tags: bedRoom?.tag?.map((tag: any) => ({
+          value: tag,
+          label: tag,
+        })),
         note: bedRoom.note,
         usersId: bedRoom.users.map((user: any) => ({
           value: user.id,
@@ -74,17 +106,21 @@ function ModalBedRoom({
 
   const options =
     !Array.isArray(eventData) &&
-    eventData?.users?.map((user:any) => ({
+    eventData?.users?.map((user: any) => ({
       value: user.id,
       label: user.fullName,
     }));
 
   const onSubimitBedroom = (data: any) => {
+
+    const { tags, capacity, ...rest } = data;
     const transoformData = {
-      ...data,
+      ...rest,
+      tags: tags.map((tag: any) => tag.value),
+      capacity: Number(capacity),
       usersId: data.usersId.map((user: any) => user.value),
     };
-
+    
     if (bedRoom) {
       putBedroom({
         eventId,
@@ -98,6 +134,14 @@ function ModalBedRoom({
       eventId,
       data: transoformData,
     });
+  };
+
+  const Title = ({ title }: { title: string }) => {
+    return (
+      <Typography id="transition-modal-title" sx={styles.subTitle}>
+        {title}
+      </Typography>
+    );
   };
 
   return (
@@ -118,52 +162,207 @@ function ModalBedRoom({
       }}
     >
       <Fade in={open}>
-        <Box sx={style}>
-          <Typography id="transition-modal-title" variant="h6" component="h2">
-            {bedRoom ? 'Editar ' : 'Adicionar '} quarto
-          </Typography>
+        <Box sx={styles.container}>
+          <Stack
+            direction="row"
+            alignItems="center"
+            justifyContent="space-between"
+          >
+            <Typography sx={styles.title}>
+              {bedRoom ? 'Editar ' : 'Adicionar '} quarto
+            </Typography>
+            <IconButton onClick={handleClose}>
+              <Close />
+            </IconButton>
+          </Stack>
           <form onSubmit={handleSubmit(onSubimitBedroom)}>
-            <Grid
-              id="transition-modal-description"
-              my={2}
-              container
-              spacing={2}
-            >
-              <Grid item xs={12}>
-                <Controller
-                  control={control}
-                  name="note"
-                  render={({ field: { onChange, value } }) => (
-                    <Input
-                    required
-                      label="Identificação"
-                      value={value}
-                      onChange={onChange}
-                    />
-                  )}
-                />
+            <Box sx={styles.overflow}>
+              <Grid id="transition-modal-description" container spacing={1.5}>
+                <Grid item xs={12} md={7}>
+                  <Controller
+                    control={control}
+                    name="name"
+                    render={({ field: { onChange, value } }) => (
+                      <>
+                        <Title title="Nome" />
+                        <TextField
+                          fullWidth
+                          variant="outlined"
+                          required
+                          size="small"
+                          placeholder="Informe o nome do quarto"
+                          value={value}
+                          onChange={onChange}
+                        />
+                      </>
+                    )}
+                  />
+                </Grid>
+
+                <Grid item xs={12} md={5}>
+                  <Controller
+                    control={control}
+                    name="capacity"
+                    render={({ field: { onChange, value } }) => (
+                      <>
+                        <Title title="Capacidade" />
+                        <TextField
+                          fullWidth
+                          type="number"
+                          variant="outlined"
+                          required
+                          size="small"
+                          placeholder="Informe a capacidade"
+                          value={value}
+                          onChange={onChange}
+                        />
+                      </>
+                    )}
+                  />
+                </Grid>
+
+                <Grid item xs={12}>
+                  <Controller
+                    control={control}
+                    name="tags"
+                    render={({ field: { onChange, value } }) => (
+                      <>
+                        <Title title="Tags" />
+
+                        <Autocomplete
+                          multiple
+                          size="small"
+                          disableCloseOnSelect
+                          options={[
+                            { value: 'Feminino', label: 'Feminino' },
+                            { value: 'Masculino', label: 'Masculino' },
+                            { value: 'Familia', label: 'Familia' },
+                            { value: 'Outro', label: 'Outro' },
+                          ]}
+                          isOptionEqualToValue={(option, value) =>
+                            option.label == value.label
+                          }
+                          getOptionLabel={(option) => option.label}
+                          ListboxProps={{
+                            style: {
+                              maxHeight: 200, // altura máxima
+                              overflowY: 'auto', // scroll vertical
+                            },
+                          }}
+                          renderOption={(props, option, { selected }) => {
+                            const { ...optionProps } = props;
+                            return (
+                              <li key={option.label} {...optionProps}>
+                                <Checkbox
+                                  icon={
+                                    <CheckBoxOutlineBlank fontSize="small" />
+                                  }
+                                  checkedIcon={<CheckBox fontSize="small" />}
+                                  style={{
+                                    marginLeft: '-10px',
+                                    marginRight: '5px',
+                                  }}
+                                  checked={selected}
+                                />
+                                {option.label}
+                              </li>
+                            );
+                          }}
+                          onChange={(_, newValue) => {
+                            onChange(newValue);
+                          }}
+                          value={value || []}
+                          renderInput={(params) => (
+                            <TextField {...params} placeholder="Tags" />
+                          )}
+                        />
+                      </>
+                    )}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <Controller
+                    control={control}
+                    name="note"
+                    render={({ field: { onChange, value } }) => (
+                      <>
+                        <Title title="Anotações" />
+                        <TextField
+                          multiline
+                          rows={2}
+                          fullWidth
+                          variant="outlined"
+                          size="small"
+                          placeholder="Adicione uma anotação"
+                          value={value}
+                          onChange={onChange}
+                        />
+                      </>
+                    )}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <Controller
+                    control={control}
+                    name="usersId"
+                    render={({ field: { onChange, value } }) => (
+                      <>
+                        <Title title="Participantes" />
+                        <Autocomplete
+                          multiple
+                          size='small'
+                          disableCloseOnSelect
+                          id="tags-outlined"
+                          options={options || []}
+                          isOptionEqualToValue={(option, value) =>
+                            option.label == value.label
+                          }
+                          getOptionLabel={(option) => option.label}
+                          ListboxProps={{
+                            style: {
+                              maxHeight: 200, // altura máxima
+                              overflowY: 'auto', // scroll vertical
+                            },
+                          }}
+                          renderOption={(props, option, { selected }) => {
+                            const { ...optionProps } = props;
+                            return (
+                              <li key={option.label} {...optionProps}>
+                                <Checkbox
+                                  icon={
+                                    <CheckBoxOutlineBlank fontSize="small" />
+                                  }
+                                  checkedIcon={<CheckBox fontSize="small" />}
+                                  style={{
+                                    marginLeft: '-10px',
+                                    marginRight: '5px',
+                                  }}
+                                  checked={selected}
+                                />
+                                {option.label}
+                              </li>
+                            );
+                          }}
+                          onChange={(_, newValue) => {
+                            onChange(newValue);
+                          }}
+                          value={value || []}
+                          renderInput={(params) => (
+                            <TextField
+                              {...params}
+                              placeholder="Participantes"
+                            />
+                          )}
+                        />
+                      </>
+                    )}
+                  />
+                </Grid>
               </Grid>
-              <Grid item xs={12}>
-                <Controller
-                  control={control}
-                  name="usersId"
-                  render={({ field: { onChange, value } }) => (
-                    <Select
-                      isMulti
-                      name="colors"
-                      options={options || []}
-                      value={value}
-                      onChange={onChange}
-                      className="basic-multi-select"
-                      classNamePrefix="select"
-                    />
-                  )}
-                />
-              </Grid>
-            </Grid>
+            </Box>
             <Button type="submit" variant="contained" fullWidth>
               Salvar
-            </Button>
+            </Button>{' '}
           </form>
         </Box>
       </Fade>

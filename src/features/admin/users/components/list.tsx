@@ -14,18 +14,16 @@ import {
 import {
   DataGrid,
   GridColDef,
-  GridRowId,
-  GridToolbar,
-  gridFilteredSortedRowIdsSelector,
-  GridGetRowsToExportParams,
-  selectedGridRowsSelector,
+  // GridRowId,
+  // gridFilteredSortedRowIdsSelector,
+  // GridGetRowsToExportParams,
+  // selectedGridRowsSelector,
   GridCellParams,
 } from '@mui/x-data-grid';
 import { useGetUsers } from '../api/getUsers';
 import { formatCPF, formatDate, formatPhoneNumber } from '../../../../utils';
 // import { useNavigate } from 'react-router-dom';
 import {
-  ContentCopy,
   Edit,
   Key,
   MailOutline,
@@ -35,16 +33,16 @@ import {
 import { useState } from 'react';
 import { User } from '../../../../types/user';
 import { ModalEditRole } from './modalEditRole';
-const getSelectedRowsToExport = ({
-  apiRef,
-}: GridGetRowsToExportParams): GridRowId[] => {
-  const selectedRowIds = selectedGridRowsSelector(apiRef);
-  if (selectedRowIds.size > 0) {
-    return Array.from(selectedRowIds.keys());
-  }
+// const getSelectedRowsToExport = ({
+//   apiRef,
+// }: GridGetRowsToExportParams): GridRowId[] => {
+//   const selectedRowIds = selectedGridRowsSelector(apiRef);
+//   if (selectedRowIds.size > 0) {
+//     return Array.from(selectedRowIds.keys());
+//   }
 
-  return gridFilteredSortedRowIdsSelector(apiRef);
-};
+//   return gridFilteredSortedRowIdsSelector(apiRef);
+// };
 const renderCellWithCopy = (value: string | number) => {
   const handleCopy = () => {
     navigator.clipboard.writeText(String(value));
@@ -274,6 +272,7 @@ function List({ search }: { search: string }) {
         //     printOptions: { getRowsToExport: getSelectedRowsToExport },
         //   },
         // }}
+        columnHeaderHeight={40}
         initialState={{
           pagination: { paginationModel: { pageSize: 5 } },
           columns: {
@@ -303,12 +302,12 @@ function List({ search }: { search: string }) {
             borderTop: '1px solid ' + theme.palette.divider,
             borderBottom: 'none',
           },
-          '& .MuiDataGrid-columnHeaders': {
-            height: 50, // Define a altura do cabeçalho
-          },
-          '& .MuiDataGrid-columnHeader': {
-            height: 50,
-            lineHeight: 'normal', // Ajusta o espaçamento interno do texto
+          '& .MuiDataGrid-footerContainer': {
+            backgroundColor: 'transparent', // Altera cor do rodapé
+            border: 0,
+            borderTop: `1px solid ${theme.palette.divider}`,
+            height: '40px !important', // Define a altura do rodapé
+            minHeight: '40px !important', // Define a altura do rodapé
           },
         }}
       />

@@ -24,5 +24,11 @@ export interface User {
   religion?: string;
   notes?: string;
   eventId?: string;
+  bedrooms?: any[];
+  teams?: any[];
+
+}
+export interface UserTeam extends User {
+  roleTeam: string;
 }
 export type RegisterUsersFormType = z.infer<typeof REGISTER_USERS_SCHEMA>;

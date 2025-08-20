@@ -1,11 +1,19 @@
-import { Card, Chip, IconButton, LinearProgress, Stack, Tooltip, Typography, useTheme } from '@mui/material';
+import {
+  Card,
+  Chip,
+  IconButton,
+  LinearProgress,
+  Stack,
+  Tooltip,
+  Typography,
+  useTheme,
+} from '@mui/material';
 import {
   DataGrid,
   GridColDef,
   GridGetRowsToExportParams,
   GridRowId,
   GridToolbar,
-  
   gridFilteredSortedRowIdsSelector,
   selectedGridRowsSelector,
 } from '@mui/x-data-grid';
@@ -18,18 +26,22 @@ const getSelectedRowsToExport = ({
   apiRef,
 }: GridGetRowsToExportParams): GridRowId[] => {
   const selectedRowIds = selectedGridRowsSelector(apiRef);
-  
+
   if (selectedRowIds.size > 0) {
     return Array.from(selectedRowIds.keys());
   }
 
   return gridFilteredSortedRowIdsSelector(apiRef);
 };
-function List() {
+function List({ search }: { search: string }) {
   const navigate = useNavigate();
   const theme = useTheme();
-  const { data = [], isLoading } = useGetEvents({});
-
+  const { data: eventData, isLoading } = useGetEvents({});
+  const events = Array.isArray(eventData) ? eventData : [];
+  const filteredData = events.filter((event: any) => {
+    const searchLower = search.toLowerCase();
+    return event.name.toLowerCase().includes(searchLower);
+  });
   const columns: GridColDef[] = [
     { field: 'name', headerName: 'Nome', flex: 1 },
     {
@@ -48,20 +60,15 @@ function List() {
       field: 'location',
       headerName: 'Local',
       width: 200,
-      valueGetter: () => "Chácara Monte Moriá",
+      valueGetter: () => 'Chácara Monte Moriá',
     },
     {
       field: 'type',
       headerName: 'Tipo',
       width: 100,
-       align: 'center',
+      align: 'center',
       headerAlign: 'center',
-      renderCell: (params) => (
-        <Chip
-          label={params.value||"Cursilho"}
-         
-        />
-      ),
+      renderCell: (params) => <Chip label={params.value || 'Cursilho'} />,
     },
     {
       field: 'capacity',
@@ -90,7 +97,7 @@ function List() {
       field: 'capacityWorker',
       headerName: 'Cursilheiros',
       width: 100,
-       align: 'center',
+      align: 'center',
       headerAlign: 'center',
       renderCell: (params) => {
         const participantsCount = params.row.users.filter(
@@ -113,18 +120,16 @@ function List() {
       field: 'bedrooms',
       headerName: 'Quartos',
       width: 100,
-       align: 'center',
+      align: 'center',
       headerAlign: 'center',
       renderCell: (params) => {
-       
         return (
           <Stack direction="column" alignItems="center">
             <Typography color={theme.palette.text.primary} variant="body2">
               {params.row._count?.bedrooms || 0}
-              
             </Typography>
             <Typography color={theme.palette.text.secondary} variant="caption">
-              {"Quartos"}
+              {'Quartos'}
             </Typography>
           </Stack>
         );
@@ -134,17 +139,16 @@ function List() {
       field: 'team',
       headerName: 'Equipes',
       width: 100,
-       align: 'center',
+      align: 'center',
       headerAlign: 'center',
       renderCell: (params) => {
-       
         return (
           <Stack direction="column" alignItems="center">
             <Typography color={theme.palette.text.primary} variant="body2">
               {params.row._count?.Team || 0}
             </Typography>
             <Typography color={theme.palette.text.secondary} variant="caption">
-              {"Equipes"}
+              {'Equipes'}
             </Typography>
           </Stack>
         );
@@ -154,7 +158,7 @@ function List() {
       field: 'isActive',
       headerName: 'Status',
       width: 100,
-       align: 'center',
+      align: 'center',
       headerAlign: 'center',
       renderCell: (params) => (
         <Chip
@@ -163,34 +167,36 @@ function List() {
         />
       ),
     },
-    
+
     {
       field: 'actions',
       headerName: 'Ações',
       width: 130,
-       align: 'center',
+      align: 'center',
       headerAlign: 'center',
       renderCell: (params) => (
-       <>
-       <Tooltip title="Detalhes">
-       <IconButton
-          onClick={() => navigate(`/admin/eventos/${params.row.id}/detalhes/usuarios`)}
-          sx={{color:theme.palette.text.primary}}
-          size="medium"
-        >
-          <VisibilityOutlined />
-        </IconButton>
-        </Tooltip>
-        <Tooltip title="Editar">
-        <IconButton
-          onClick={() => navigate(`/admin/eventos/${params.row.id}/editar`)}
-          sx={{color:theme.palette.text.primary}}
-          size="medium"
-        >
-          <EditNoteOutlined />
-        </IconButton>
-        </Tooltip>
-       </>
+        <>
+          <Tooltip title="Detalhes">
+            <IconButton
+              onClick={() =>
+                navigate(`/admin/eventos/${params.row.id}/detalhes/usuarios`)
+              }
+              sx={{ color: theme.palette.text.primary }}
+              size="medium"
+            >
+              <VisibilityOutlined />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Editar">
+            <IconButton
+              onClick={() => navigate(`/admin/eventos/${params.row.id}/editar`)}
+              sx={{ color: theme.palette.text.primary }}
+              size="medium"
+            >
+              <EditNoteOutlined />
+            </IconButton>
+          </Tooltip>
+        </>
       ),
     },
   ];
@@ -204,7 +210,7 @@ function List() {
       <DataGrid
         loading={isLoading}
         //onRowClick={onRowClick}
-        rows={Array.isArray(data) ? data : []}
+        rows={filteredData}
         columns={columns}
         autoHeight={true}
         slots={{
@@ -213,6 +219,21 @@ function List() {
         slotProps={{
           toolbar: {
             printOptions: { getRowsToExport: getSelectedRowsToExport },
+          },
+        }}
+        columnHeaderHeight={40}
+        sx={{
+          p: 2,
+          '& .MuiDataGrid-row': {
+            borderTop: '1px solid ' + theme.palette.divider,
+            borderBottom: 'none',
+          },
+          '& .MuiDataGrid-footerContainer': {
+            backgroundColor: 'transparent', // Altera cor do rodapé
+            border: 0,
+            borderTop: `1px solid ${theme.palette.divider}`,
+            height: '40px !important', // Define a altura do rodapé
+            minHeight: '40px !important', // Define a altura do rodapé
           },
         }}
       />

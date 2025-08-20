@@ -5,14 +5,21 @@ import {
   Grid,
   Tooltip,
   Typography,
-  Button,
   Pagination,
+  Stack,
+  Paper,
+  useTheme,
+  Chip,
+  LinearProgress,
+  IconButton,
+  Menu,
+  MenuItem,
 } from '@mui/material';
-import { stringAvatar } from '../../../../utils';
+
 import { useGetBedrooms } from '../api/getBedrooms';
 import { useParams } from 'react-router-dom';
 import { Loading } from '../../../../components/loading';
-import { Edit, Delete } from '@mui/icons-material';
+import { Edit, Delete, Bed, MoreVert } from '@mui/icons-material';
 import { useState } from 'react';
 import { ModalBedRoom } from './modalBedRoom';
 import { Bedroom } from '../types';
@@ -21,20 +28,18 @@ import { ConfirmModal } from '../../../../components/ConfirmModal';
 
 function ListBedRooms({ search }: { search: string }) {
   const { id: eventId = '' } = useParams();
+  const theme = useTheme();
   const { data: bedroomsData = [], isLoading } = useGetBedrooms(
-    {
-      eventId: eventId,
-    },
-    {
-      enabled: !!eventId,
-    }
+    { eventId },
+    { enabled: !!eventId }
   );
 
   const [openModalBedRoom, setOpenModalBedRoom] = useState(false);
   const [selectBedRoom, setSelectBedRoom] = useState<Bedroom | null>(null);
   const [page, setPage] = useState(1);
-
   const [openModalDeleteBedRoom, setOpenModalDeleteBedRoom] = useState(false);
+  const [anchorElOptionsMobile, setAnchorElOptionsMobile] =
+    useState<null | HTMLElement>(null);
   const [selectedDeleteIdBedRoom, setSelectedDeleteIdBedRoom] = useState<
     string | null
   >(null);
@@ -53,10 +58,11 @@ function ListBedRooms({ search }: { search: string }) {
 
   const handleConfirmDelete = () => {
     if (selectedDeleteIdBedRoom) {
-      mutate({ eventId: eventId, bedRoomId: selectedDeleteIdBedRoom });
+      mutate({ eventId, bedRoomId: selectedDeleteIdBedRoom });
       setOpenModalDeleteBedRoom(false);
     }
   };
+
   const handleChange = (_: unknown, page: number) => {
     setPage(page);
   };
@@ -73,121 +79,216 @@ function ListBedRooms({ search }: { search: string }) {
       totalPages: Math.ceil(data.length / itemsPerPage),
     };
   };
+
   const filteredData = (bedroomsData: Bedroom[]) =>
     bedroomsData.filter((bedroom) =>
-      bedroom.note?.toLowerCase().includes(search.toLowerCase())
+      bedroom.name?.toLowerCase().includes(search.toLowerCase())
     );
+
   const itemsPerPage = 8;
   const { paginatedData, totalPages } = paginateData(
     filteredData(bedroomsData),
     page,
     itemsPerPage
   );
+
+  const styles = {
+    container: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 2,
+      alignItems: 'end',
+    },
+    paperPagination: {
+      padding: 2,
+      width: '100%',
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    card: {
+      padding: 2,
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'space-between',
+      gap: 1,
+      position: 'relative',
+      height: '100%',
+    },
+    iconWrapper: {
+      background: theme.palette.background.hover,
+      borderRadius: '50%',
+      height: '35px',
+      width: '35px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    roomName: {
+      fontSize: '1.3rem',
+      fontWeight: 500,
+      maxWidth: '80%',
+      textOverflow: 'ellipsis',
+      overflow: 'hidden',
+      whiteSpace: 'nowrap',
+    },
+    chip: {
+      margin: '2px',
+      height: '24px',
+      //color: 'white',
+      fontSize: '0.9rem',
+    },
+    progressBar: {
+      width: '100%',
+      height: '8px',
+      borderRadius: '4px',
+    },
+    actionButtons: {
+      position: 'absolute',
+      top: 8,
+      right: 8,
+      display: { xs: 'none', md: 'flex' },
+    },
+    actionButtonsMobile: {
+      position: 'absolute',
+      top: 8,
+      right: 8,
+      display: { xs: 'flex', md: 'none' },
+    },
+    avatar: {
+      width: 35,
+      height: 35,
+    },
+  };
+
   return (
-    <Box
-      sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 2,
-        alignItems: 'end',
-      }}
-    >
+    <Box sx={styles.container}>
       {isLoading && <Loading />}
       <Grid container spacing={2}>
         {paginatedData.map((bedroom) => (
-          <Grid item xs={12} md={6} key={bedroom.id}>
-            <Card variant="outlined" sx={{ padding: 1 }}>
-              <Box
-                component="div"
-                display="flex"
-                justifyContent="space-between"
-              >
-                <Box>
-                  <Box
-                    component="div"
-                    display="flex"
-                    alignItems="center"
-                    gap={0.5}
-                    flexWrap={'wrap'}
-                  >
-                    <Typography component="label" fontWeight={'bold'}>
-                      Observações:
-                    </Typography>
-                    <Typography>{bedroom.note}</Typography>
-                  </Box>
-                  <Box
-                    component="div"
-                    display="flex"
-                    alignItems="center"
-                    gap={0.5}
-                    flexWrap={'wrap'}
-                  >
-                    <Typography component="label" fontWeight={'bold'}>
-                      Quantidade:
-                    </Typography>
-                    <Typography>{bedroom.users.length || 0}</Typography>
-                  </Box>
-                  <Box
-                    component="div"
-                    display="flex"
-                    alignItems="center"
-                    gap={0.5}
-                    flexWrap={'wrap'}
-                  >
-                    <Typography component="label" fontWeight={'bold'}>
-                      Usuários:
-                    </Typography>
-                    <Box
-                      display="flex"
-                      flexWrap="wrap"
-                      flexDirection="row"
-                      gap="5px"
-                    >
-                      {bedroom.users.map((user) => (
-                        <Tooltip title={user.fullName} arrow key={user.id}>
-                          <Avatar {...stringAvatar(user.fullName)} />
-                        </Tooltip>
-                      ))}
-                    </Box>
-                  </Box>
+          <Grid item xs={12} md={6} xl={4} key={bedroom.id}>
+            <Card sx={styles.card}>
+              <Stack direction="row" alignItems="center" gap={1}>
+                <Box sx={styles.iconWrapper}>
+                  <Bed sx={{ fontSize: '20px' }} />
                 </Box>
-                <Box gap={3} display="flex">
-                  <Button
-                    sx={{
-                      minWidth: 0,
-                      padding: '12px',
-                    }}
-                    variant="contained"
-                    onClick={() => handleEditClick(bedroom)}
+                <Stack sx={{ width: '100%' }}>
+                  <Typography sx={styles.roomName}>
+                    {bedroom.name || 'Quarto sem nome'}
+                  </Typography>
+                  <Typography variant="caption" mt={-0.5}>
+                    {bedroom.note}
+                  </Typography>
+                </Stack>
+              </Stack>
+              <Stack direction="row" flexWrap="wrap" gap={1}>
+                {bedroom.tag.map((tag) => (
+                  <Chip key={tag + 'chips'} label={tag} sx={styles.chip} />
+                ))}
+              </Stack>
+              {bedroom.users.length === 0 ? (
+                <Typography variant="body2" color="text.secondary">
+                  Nenhum usuário atribuído
+                </Typography>
+              ) : (
+                <Stack direction="column" gap={1}>
+                  <Stack
+                    direction="row"
+                    alignItems="center"
+                    justifyContent="space-between"
                   >
-                    <Edit />
-                  </Button>
-                  <Button
-                    sx={{
-                      minWidth: 0,
-                      padding: '12px',
-                      ':hover': { backgroundColor: 'red' },
-                    }}
-                    variant="contained"
-                    onClick={() => handleDeleteClick(bedroom.id)}
-                  >
-                    <Delete />
-                  </Button>
-                </Box>
-              </Box>
+                    <Typography variant="body2" fontWeight={500}>
+                      Capacidade:
+                    </Typography>
+                    <Typography variant="body2">
+                      {bedroom.users.length || 0}/{bedroom.capacity || 0} (
+                      <b>
+                        {(
+                          (bedroom.users.length / bedroom.capacity) *
+                          100
+                        ).toFixed(0)}
+                        %
+                      </b>
+                      )
+                    </Typography>
+                  </Stack>
+                  <LinearProgress
+                    variant="determinate"
+                    value={(bedroom.users.length / bedroom.capacity) * 100}
+                    sx={styles.progressBar}
+                  />
+                  <Typography variant="body2" fontWeight={500}>
+                    Participantes:
+                  </Typography>
+                  <Stack direction="row" gap={1} flexWrap="wrap">
+                    {bedroom.users.map((user) => (
+                      <Tooltip title={user.fullName} arrow key={user.id}>
+                        <Avatar
+                          alt={user.fullName}
+                          src={user.profilePhotoUrl}
+                          sx={styles.avatar}
+                        />
+                      </Tooltip>
+                    ))}
+                  </Stack>
+                </Stack>
+              )}
+
+              {/* opções para edição e exclusão para mobile*/}
+              <Stack direction="row" sx={styles.actionButtonsMobile}>
+                <IconButton
+                  onClick={(e) => setAnchorElOptionsMobile(e.currentTarget)}
+                >
+                  <MoreVert />
+                </IconButton>
+                <Menu
+                  anchorEl={anchorElOptionsMobile}
+                  open={Boolean(anchorElOptionsMobile)}
+                  onClose={() => setAnchorElOptionsMobile(null)}
+                  onClick={() => setAnchorElOptionsMobile(null)}
+                >
+                  <MenuItem onClick={() => handleEditClick(bedroom)}>
+                    <Edit color="warning" sx={{ mr: 1 }} />
+                    Editar
+                  </MenuItem>
+                  <MenuItem onClick={() => handleDeleteClick(bedroom.id)}>
+                    <Delete color="error" sx={{ mr: 1 }} />
+                    Deletar
+                  </MenuItem>
+                </Menu>
+              </Stack>
+
+              {/* opções para edição e exclusão para md*/}
+              <Stack direction="row" sx={styles.actionButtons}>
+                <IconButton
+                  color="warning"
+                  onClick={() => handleEditClick(bedroom)}
+                >
+                  <Edit />
+                </IconButton>
+                <IconButton
+                  color="error"
+                  onClick={() => handleDeleteClick(bedroom.id)}
+                >
+                  <Delete />
+                </IconButton>
+              </Stack>
             </Card>
           </Grid>
         ))}
       </Grid>
-
-      <Pagination count={totalPages} page={page} onChange={handleChange} />
+      <Paper sx={styles.paperPagination}>
+        <Typography variant="body2">
+          Total de Quartos: {bedroomsData.length}
+        </Typography>
+        <Pagination count={totalPages} page={page} onChange={handleChange} />
+      </Paper>
       <ModalBedRoom
         open={openModalBedRoom}
         handleClose={() => setOpenModalBedRoom(false)}
         bedRoom={selectBedRoom}
         eventId={eventId || ''}
       />
-
       <ConfirmModal
         open={openModalDeleteBedRoom}
         onClose={() => setOpenModalDeleteBedRoom(false)}

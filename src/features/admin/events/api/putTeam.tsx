@@ -17,7 +17,7 @@ const putTeam = ({ data, eventId, teamId }: PutTeamProps) =>
   apiClient
     .put<boolean>(`/events/${eventId}/teams/${teamId}`, data)
     .then((response) => {
-      handleResponseSuccess(response.data, 'Time editado com sucesso!')();
+      handleResponseSuccess(response.data, 'Equipe editada com sucesso!')();
     })
     .catch(handleResponseThrowError());
 

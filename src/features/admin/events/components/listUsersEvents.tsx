@@ -2,17 +2,14 @@ import {
   Avatar,
   Box,
   Card,
+  Chip,
   Divider,
   IconButton,
   ListItemIcon,
   ListItemText,
   Menu,
   MenuItem,
-  Paper,
-  Tab,
-  Tabs,
   Tooltip,
-  useTheme,
 } from '@mui/material';
 import { formatDate } from '../../../../utils';
 import {
@@ -26,6 +23,7 @@ import {
   gridFilteredSortedRowIdsSelector,
   selectedGridRowsSelector,
 } from '@mui/x-data-grid';
+import { useGetEvents } from '../api/getEvents';
 import { useParams } from 'react-router-dom';
 import {
   AssignmentInd,
@@ -42,7 +40,6 @@ import { useState } from 'react';
 import Swal from 'sweetalert2';
 import { useRemoveUserFromEvent } from '../api/deleteUser';
 import { ModalEditWork } from './modalEditWork';
-import { useGetUsers } from '../api/getUsers';
 const getSelectedRowsToExport = ({
   apiRef,
 }: GridGetRowsToExportParams): GridRowId[] => {
@@ -61,7 +58,7 @@ function ListUsers({
   apiRef: React.MutableRefObject<GridApi>;
 }) {
   const { id: eventId = '' } = useParams();
-  const { data: usersData, isLoading } = useGetUsers(
+  const { data: eventData, isLoading } = useGetEvents(
     {
       eventId: eventId,
     },
@@ -74,8 +71,6 @@ function ListUsers({
   const [rowSelected, setRowSelected] = useState<User | null>(null);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [openModalEditWork, setOpenModalEditWork] = useState(false);
-  const [panel, setPanel] = useState<string>('1');
-  const theme = useTheme();
   const handleClose = () => {
     setAnchorEl(null);
   };
@@ -97,13 +92,13 @@ function ListUsers({
     },
   });
 
-  if (!usersData || !Array.isArray(usersData)) {
+  if (!eventData || Array.isArray(eventData)) {
     return null;
   }
 
   // const { mutate: mutateDeleteEventUser } = useDeleteRelationEventUser({});
   async function handleDownloadPDF(data: User[]) {
-    if (!usersData || Array.isArray(usersData)) {
+    if (!eventData || Array.isArray(eventData)) {
       return null;
     }
     const blob = await pdf(<PdfBadge data={data || []} />).toBlob();
@@ -149,7 +144,29 @@ function ListUsers({
       width: 140,
       valueGetter: (params) => formatDate(params.row.birthday),
     },
-
+    {
+      field: 'worker',
+      headerName: 'Tipo',
+      width: 120,
+      renderCell: (params: GridCellParams) => {
+        return params.row.worker ? (
+          <Chip
+            label="Servindo"
+            color="success"
+            size="small"
+            sx={{ fontWeight: 'bold' }}
+          />
+        ) : (
+          <Chip
+            label="Participando"
+            color="primary"
+            size="small"
+            sx={{ fontWeight: 'bold' }}
+          />
+        );
+      },
+      // valueGetter: (params) => (params.row.worker ? 'Sim' : 'Não'),
+    },
     { field: 'neighborhood', headerName: 'Bairro', flex: 1, minWidth: 100 },
     { field: 'city', headerName: 'Cidade', flex: 1, minWidth: 120 },
     { field: 'leadershipPosition', headerName: 'Cargo na igreja', flex: 1 },
@@ -208,76 +225,10 @@ function ListUsers({
       valueGetter: (params) => formatDate(params.row.createdAt),
     },
     {
-      field: 'actions',
-      headerName: '',
-      sortable: false,
-      width: 80,
-      renderCell: (params: GridCellParams) => {
-        return (
-          <Box key={params.id}>
-            <Tooltip
-              title={'Opções'}
-              id="basic-button"
-              onClick={(event) => handleClickOptions(event, params)}
-            >
-              <IconButton size="small">
-                <MoreVert color="inherit" />
-              </IconButton>
-            </Tooltip>
-          </Box>
-        );
-      },
-    },
-  ];
-  const columnsByEvent: GridColDef[] = [
-    {
-      sortable: false,
-      field: 'foto',
-      headerName: '',
-      width: 60,
-      renderCell: (params) => {
-        return (
-          <Avatar
-            alt={params?.row?.fullName}
-            src={params?.row?.profilePhotoUrl || '/'}
-            sx={{
-              width: '30px',
-              height: '30px',
-            }}
-          />
-        );
-      },
-    },
-    { field: 'fullName', headerName: 'Nome', flex: 1, minWidth: 200 },
-    {
       field: 'paid',
       headerName: 'Pago',
-
-      width: 20,
-      renderCell: (params) => (params.row.paid ? 'Sim' : 'Não'),
-    },
-    {
-      field: 'worker',
-      headerName: 'Trabalhador',
-      width: 50,
-      renderCell: (params) => (params.row.worker ? 'Sim' : 'Não'),
-    },
-    {
-      field: 'bedrooms',
-      headerName: 'Quartos',
-      flex: 1,
-      minWidth: 100,
-      renderCell: (params) =>
-        params.row.bedrooms?.map((bedroom: any) => bedroom.name).join(', ') ||
-        'Nenhum',
-    },
-    {
-      field: 'teams',
-      headerName: 'Equipes',
-      flex: 1,
-      minWidth: 100,
-      renderCell: (params) =>
-        params.row.teams?.map((team: any) => team.name).join(', ') || 'Nenhuma',
+      width: 60,
+      valueGetter: (params) => (params.row.paid ? 'Sim' : 'Não'),
     },
     {
       field: 'actions',
@@ -349,118 +300,89 @@ function ListUsers({
     handleClose();
   };
   return (
-    <>
-      <Paper>
-        <Tabs
-          variant="fullWidth"
-          sx={{ textTransform: 'none' }}
-          value={panel}
-          onChange={(_, newValue) => setPanel(newValue)}
-        >
-          <Tab label="Por Usuário" value={'1'} />
-          <Tab label="Por Evento" value={'2'} />
-        </Tabs>
-      </Paper>
-
-      <Card>
-        <DataGrid
-          disableColumnFilter
-          disableDensitySelector
-          disableColumnSelector
-          apiRef={apiRef}
-          rows={filteredData(usersData || [])}
-          columns={panel === '1' ? columns : columnsByEvent}
-          loading={isLoading}
-          autoHeight={true}
-          slots={{
-            toolbar: GridToolbar,
-          }}
-          pageSizeOptions={[25, 50, 100]}
-          checkboxSelection
-          initialState={{
-            columns: {
-              columnVisibilityModel: {
-                profession: false,
-                religion: false,
-                indicatedBy: false,
-                emergencyContact: false,
-                email: false,
-                // cpf: false,
-                cellphone: false,
-                // badgeName: false,
-                diabetes: false,
-                hypertensive: false,
-                notes: false,
-                // leadershipPosition: false,
-                createdAt: false,
-              },
+    <Card>
+      <DataGrid
+        disableColumnFilter
+        disableDensitySelector
+        disableColumnSelector
+        apiRef={apiRef}
+        rows={filteredData(eventData.users || [])}
+        columns={columns}
+        loading={isLoading}
+        autoHeight={true}
+        slots={{
+          toolbar: GridToolbar,
+        }}
+        pageSizeOptions={[25, 50, 100]}
+        checkboxSelection
+        initialState={{
+          columns: {
+            columnVisibilityModel: {
+              profession: false,
+              religion: false,
+              indicatedBy: false,
+              emergencyContact: false,
+              email: false,
+              // cpf: false,
+              cellphone: false,
+              // badgeName: false,
+              diabetes: false,
+              hypertensive: false,
+              notes: false,
+              // leadershipPosition: false,
+              createdAt: false,
             },
-            pagination: { paginationModel: { pageSize: 25 } },
-          }}
-          slotProps={{
-            toolbar: {
-              printOptions: { getRowsToExport: getSelectedRowsToExport },
-            },
-          }}
-          columnHeaderHeight={40}
-          sx={{
-            p: 2,
-            '& .MuiDataGrid-row': {
-              borderTop: '1px solid ' + theme.palette.divider,
-              borderBottom: 'none',
-            },
-            '& .MuiDataGrid-footerContainer': {
-              backgroundColor: 'transparent', // Altera cor do rodapé
-              border: 0,
-              borderTop: `1px solid ${theme.palette.divider}`,
-              height: '40px !important', // Define a altura do rodapé
-              minHeight: '40px !important', // Define a altura do rodapé
-            },
-          }}
-        />
-        <ModalEditWork
-          open={openModalEditWork}
-          user={selectedUser}
-          eventId={eventId}
-          handleClose={() => setOpenModalEditWork(false)}
-        />
-        <Menu
-          id="basic-menu"
-          anchorEl={anchorEl}
-          open={openMenu}
-          onClose={handleClose}
-          MenuListProps={{
-            'aria-labelledby': 'options-button',
-          }}
-        >
-          <MenuItem onClick={handleClickEdit}>
-            <ListItemIcon>
-              <Edit fontSize="small" color="primary" />
-            </ListItemIcon>
-            <ListItemText>Editar Usuário</ListItemText>
-          </MenuItem>
-          <MenuItem onClick={handleClickEditWork}>
-            <ListItemIcon>
-              <AssignmentInd fontSize="small" color="primary" />
-            </ListItemIcon>
-            <ListItemText>Participação no evento</ListItemText>
-          </MenuItem>
-          <MenuItem onClick={handleClickDownloadBadge}>
-            <ListItemIcon>
-              <Badge fontSize="small" color="primary" />
-            </ListItemIcon>
-            <ListItemText>Baixar Crachá</ListItemText>
-          </MenuItem>
-          <Divider />
-          <MenuItem onClick={handleClickRemoveUser}>
-            <ListItemIcon>
-              <Delete fontSize="small" color="error" />
-            </ListItemIcon>
-            <ListItemText>Remover do evento</ListItemText>
-          </MenuItem>
-        </Menu>
-      </Card>
-    </>
+          },
+          pagination: { paginationModel: { pageSize: 25 } },
+        }}
+        slotProps={{
+          toolbar: {
+            printOptions: { getRowsToExport: getSelectedRowsToExport },
+          },
+        }}
+      />
+      <ModalEditWork
+        open={openModalEditWork}
+        user={selectedUser}
+        eventId={eventData.id || ''}
+        handleClose={() => setOpenModalEditWork(false)}
+      />
+      <Menu
+        id="basic-menu"
+        anchorEl={anchorEl}
+        open={openMenu}
+        onClose={handleClose}
+        MenuListProps={{
+          'aria-labelledby': 'options-button',
+        }}
+      >
+        <MenuItem onClick={handleClickEdit}>
+          <ListItemIcon>
+            <Edit fontSize="small" color="primary" />
+          </ListItemIcon>
+          <ListItemText>Editar Usuário</ListItemText>
+        </MenuItem>
+        <MenuItem onClick={handleClickEditWork}>
+          <ListItemIcon>
+            <AssignmentInd fontSize="small" color="primary" />
+          </ListItemIcon>
+          <ListItemText>Participação no evento</ListItemText>
+        </MenuItem>
+        <MenuItem onClick={handleClickDownloadBadge}>
+          <ListItemIcon>
+            <Badge fontSize="small" color="primary" />
+          </ListItemIcon>
+          <ListItemText>Baixar Crachá</ListItemText>
+        </MenuItem>
+        <Divider />
+        <MenuItem onClick={handleClickRemoveUser}>
+          <ListItemIcon>
+            <Delete fontSize="small" color="error" />
+          </ListItemIcon>
+          <ListItemText>Remover do evento</ListItemText>
+        </MenuItem>
+      </Menu>
+    </Card>
   );
 }
 

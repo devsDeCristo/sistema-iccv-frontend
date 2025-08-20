@@ -1,76 +1,91 @@
 import {
+  Autocomplete,
   Backdrop,
   Box,
   Button,
+  Checkbox,
   Fade,
   Grid,
+  IconButton,
   Modal,
+  Stack,
+  TextField,
   Typography,
+  useTheme,
 } from '@mui/material';
-import { Input } from '../../../../components/input';
-import Select from 'react-select';
+
 import { Controller, useForm } from 'react-hook-form';
 import { useGetEvents } from '../api/getEvents';
-import { useEffect } from 'react';
+import { useEffect} from 'react';
 import { usePostCreateTeam } from '../api/postTeam';
 import { usePutTeam } from '../api/putTeam';
+import { CheckBox, CheckBoxOutlineBlank, Close } from '@mui/icons-material';
+import { Team } from '../types';
+import { queryClient } from '../../../../config/lib/react-query/query-client';
+import { GET_TEAMS } from '../constants';
 
 interface ModalTeamProps {
   open: boolean;
   handleClose: () => void;
-  team?: any;
+  team?: Team | null;
   eventId: string;
 }
 
 function ModalTeam({ open, handleClose, team, eventId }: ModalTeamProps) {
-  const style = {
-    position: 'absolute' as 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: 400,
-    color: '#000',
-    bgcolor: 'background.paper',
-    boxShadow: 14,
-    p: 4,
+  const theme = useTheme();
+  const styles = {
+    title: {
+      fontWeight: 500,
+      fontSize: '1.25rem',
+      color: theme.palette.text.primary,
+    },
+    subTitle: {
+      fontWeight: 400,
+      fontSize: '1rem',
+      color: theme.palette.text.primary,
+    },
+    overflow: {
+      overflow: 'auto',
+      maxHeight: '75vh',
+      mb: 2,
+    },
+    container: {
+      position: 'absolute' as 'absolute',
+      top: '50%',
+      left: '50%',
+      transform: 'translate(-50%, -50%)',
+      width: { xs: '90%', sm: 600 },
+      color: '#000',
+      backgroundColor: theme.palette.background.paperSecondary,
+      boxShadow: 14,
+      p: { xs: 2, md: 3 },
+    },
   };
-
   const { control, reset, handleSubmit } = useForm();
   const { mutate: putTeam } = usePutTeam({
     onSuccess: () => {
       reset();
       handleClose();
+      queryClient.invalidateQueries(GET_TEAMS);
+
     },
   });
   const { mutate: postCreateTeam } = usePostCreateTeam({
     onSuccess: () => {
       reset();
       handleClose();
+      queryClient.invalidateQueries(GET_TEAMS);
     },
   });
-
   const { data: eventData } = useGetEvents(
-    { eventId: eventId || '' },
+    { eventId: eventId },
     {
       enabled: !!eventId,
     }
   );
-
-  useEffect(() => {
-    if (team) {
-      reset({
-        name: team.name,
-        usersId: team.users.map((user: any) => ({
-          value: user.id,
-          label: user.fullName,
-        })),
-      });
-    }
-  }, [team]);
-
   const options =
     !Array.isArray(eventData) &&
-    eventData?.users?.map((user:any) => ({
+    eventData?.users?.map((user: any) => ({
       value: user.id,
       label: user.fullName,
     }));
@@ -79,6 +94,8 @@ function ModalTeam({ open, handleClose, team, eventId }: ModalTeamProps) {
     const transoformData = {
       ...data,
       usersId: data.usersId.map((user: any) => user.value),
+      usersLeadersId: data.usersLeadersId.map((user: any) => user.value),
+      capacity: Number(data.capacity),
     };
 
     if (team) {
@@ -95,6 +112,33 @@ function ModalTeam({ open, handleClose, team, eventId }: ModalTeamProps) {
       data: transoformData,
     });
   };
+
+  const Title = ({ title }: { title: string }) => {
+    return (
+      <Typography id="transition-modal-title" sx={styles.subTitle}>
+        {title}
+      </Typography>
+    );
+  };
+
+  useEffect(() => {
+    if (team) {
+      reset({
+        capacity: team.capacity||0,
+        note: team.note,
+        name: team.name,
+        usersId: team.users.filter((user) => user.roleTeam === 'MEMBER').map((user) => ({
+          value: user.id,
+          label: user.fullName,
+        })),
+        usersLeadersId: team.users.filter((user) => user.roleTeam === 'LEADER').map((user) => ({
+          value: user.id,
+          label: user.fullName,
+        })),
+      });
+    }
+  }, [team]);
+
 
   return (
     <Modal
@@ -114,48 +158,200 @@ function ModalTeam({ open, handleClose, team, eventId }: ModalTeamProps) {
       }}
     >
       <Fade in={open}>
-        <Box sx={style}>
-          <Typography id="transition-modal-title" variant="h6" component="h2">
-            {team ? 'Editar ' : 'Adicionar '} time
-          </Typography>
+        <Box sx={styles.container}>
+          <Stack
+            direction="row"
+            alignItems="center"
+            justifyContent="space-between"
+          >
+            <Typography sx={styles.title}>
+              {team ? 'Editar ' : 'Adicionar '} Equipe
+            </Typography>
+            <IconButton onClick={handleClose}>
+              <Close />
+            </IconButton>
+          </Stack>
           <form onSubmit={handleSubmit(onSubimitTeam)}>
-            <Grid
-              id="transition-modal-description"
-              my={2}
-              container
-              spacing={2}
-            >
-              <Grid item xs={12}>
-                <Controller
-                  control={control}
-                  name="name"
-                  render={({ field: { onChange, value } }) => (
-                    <Input
-                      label="Nome do time"
-                      value={value}
-                      onChange={onChange}
-                    />
-                  )}
-                />
+            <Box  sx={styles.overflow}>
+              <Grid container spacing={1.5}>
+                <Grid item xs={12} md={7}>
+                  <Controller
+                    control={control}
+                    name="name"
+                    render={({ field: { onChange, value } }) => (
+                      <>
+                        <Title title="Nome" />
+                        <TextField
+                          fullWidth
+                          variant="outlined"
+                          required
+                          size="small"
+                          placeholder="Informe o nome da Equipe"
+                          value={value}
+                          onChange={onChange}
+                        />
+                      </>
+                    )}
+                  />
+                </Grid>
+                <Grid item xs={12} md={5}>
+                  <Controller
+                    control={control}
+                    name="capacity"
+                    render={({ field: { onChange, value } }) => (
+                      <>
+                        <Title title="Capacidade" />
+                        <TextField
+                          fullWidth
+                          type="number"
+                          variant="outlined"
+                          required
+                          size="small"
+                          placeholder="Informe a capacidade"
+                          value={value}
+                          onChange={onChange}
+                        />
+                      </>
+                    )}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <Controller
+                    control={control}
+                    name="note"
+                    render={({ field: { onChange, value } }) => (
+                      <>
+                        <Title title="Anotações" />
+                        <TextField
+                          multiline
+                          rows={2}
+                          fullWidth
+                          variant="outlined"
+                          size="small"
+                          placeholder="Adicione uma anotação"
+                          value={value}
+                          onChange={onChange}
+                        />
+                      </>
+                    )}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <Controller
+                    control={control}
+                    name="usersLeadersId"
+                    render={({ field: { onChange, value } }) => (
+                      <>
+                        <Title title="Lideres" />
+                        <Autocomplete
+                          multiple
+                          size="small"
+                          disableCloseOnSelect
+                          id="tags-outlined"
+                          options={options || []}
+                          isOptionEqualToValue={(option, value) =>
+                            option.label == value.label
+                          }
+                          getOptionLabel={(option) => option.label}
+                          ListboxProps={{
+                            style: {
+                              maxHeight: 200, // altura máxima
+                              overflowY: 'auto', // scroll vertical
+                            },
+                          }}
+                          renderOption={(props, option, { selected }) => {
+                            const { ...optionProps } = props;
+                            return (
+                              <li key={option.label} {...optionProps}>
+                                <Checkbox
+                                  icon={
+                                    <CheckBoxOutlineBlank fontSize="small" />
+                                  }
+                                  checkedIcon={<CheckBox fontSize="small" />}
+                                  style={{
+                                    marginLeft: '-10px',
+                                    marginRight: '5px',
+                                  }}
+                                  checked={selected}
+                                />
+                                {option.label}
+                              </li>
+                            );
+                          }}
+                          onChange={(_, newValue) => {
+                            onChange(newValue);
+                          }}
+                          value={value || []}
+                          renderInput={(params) => (
+                            <TextField
+                              {...params}
+                              placeholder="Participantes"
+                            />
+                          )}
+                        />
+                      </>
+                    )}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <Controller
+                    control={control}
+                    name="usersId"
+                    render={({ field: { onChange, value } }) => (
+                      <>
+                        <Title title="Participantes" />
+                        <Autocomplete
+                          multiple
+                          size="small"
+                          disableCloseOnSelect
+                          id="tags-outlined"
+                          options={options || []}
+                          isOptionEqualToValue={(option, value) =>
+                            option.label == value.label
+                          }
+                          getOptionLabel={(option) => option.label}
+                          ListboxProps={{
+                            style: {
+                              maxHeight: 200, // altura máxima
+                              overflowY: 'auto', // scroll vertical
+                            },
+                          }}
+                          renderOption={(props, option, { selected }) => {
+                            const { ...optionProps } = props;
+                            return (
+                              <li key={option.label} {...optionProps}>
+                                <Checkbox
+                                  icon={
+                                    <CheckBoxOutlineBlank fontSize="small" />
+                                  }
+                                  checkedIcon={<CheckBox fontSize="small" />}
+                                  style={{
+                                    marginLeft: '-10px',
+                                    marginRight: '5px',
+                                  }}
+                                  checked={selected}
+                                />
+                                {option.label}
+                              </li>
+                            );
+                          }}
+                          onChange={(_, newValue) => {
+                            onChange(newValue);
+                          }}
+                          value={value || []}
+                          renderInput={(params) => (
+                            <TextField
+                              {...params}
+                              placeholder="Participantes"
+                            />
+                          )}
+                        />
+                      </>
+                    )}
+                  />
+                </Grid>
               </Grid>
-              <Grid item xs={12}>
-                <Controller
-                  control={control}
-                  name="usersId"
-                  render={({ field: { onChange, value } }) => (
-                    <Select
-                      isMulti
-                      name="colors"
-                      options={options || []}
-                      value={value}
-                      onChange={onChange}
-                      className="basic-multi-select"
-                      classNamePrefix="select"
-                    />
-                  )}
-                />
-              </Grid>
-            </Grid>
+            </Box>
             <Button type="submit" variant="contained" fullWidth>
               Salvar
             </Button>

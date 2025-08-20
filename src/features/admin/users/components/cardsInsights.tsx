@@ -1,33 +1,33 @@
-import { ReactNode } from "react";
-import { useGetInsightsUsers } from "../api/getInsights";
-import { Box, CardContent, Typography, Card, Grid } from "@mui/material";
-import { EventAvailable, People, Person, WidthFull } from "@mui/icons-material";
+import { ReactNode } from 'react';
+import { useGetInsightsUsers } from '../api/getInsights';
+import { Box, CardContent, Typography, Card, Grid } from '@mui/material';
+import { EventAvailable, People, Person } from '@mui/icons-material';
 
 const styles = {
   gridContainer: {
-    mb: 2
+    mb: 2,
   },
   card: {
-    position: "relative",
-    height: "100%",
+    position: 'relative',
+    height: '100%',
   },
   title: {
-    fontSize: "17px",
+    fontSize: '17px',
     fontWeight: 500,
-    width: "90%"
+    width: '90%',
   },
   value: {
-    fontSize: "22px",
-    fontWeight: 700
+    fontSize: '22px',
+    fontWeight: 700,
   },
   subtitle: {
-    fontSize: "15px"
+    fontSize: '15px',
   },
   iconContainer: {
-    position: "absolute",
+    position: 'absolute',
     top: 10,
-    right: 10
-  }
+    right: 10,
+  },
 };
 
 export const CardsInsights = () => {
@@ -37,7 +37,7 @@ export const CardsInsights = () => {
     title,
     data,
     subtitle,
-    icon
+    icon,
   }: {
     title: string;
     data: any;
@@ -59,7 +59,12 @@ export const CardsInsights = () => {
   };
 
   return (
-    <Grid container justifyContent="space-between" sx={styles.gridContainer} spacing={2}>
+    <Grid
+      container
+      justifyContent="space-between"
+      sx={styles.gridContainer}
+      spacing={2}
+    >
       <Grid item xs={12} sm={6} md={4}>
         <CardTemplate
           title="Total de Usuários"
@@ -84,7 +89,6 @@ export const CardsInsights = () => {
           icon={<People />}
         />
       </Grid>
-      
     </Grid>
   );
 };

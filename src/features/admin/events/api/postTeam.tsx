@@ -16,7 +16,7 @@ const postCreateTeam = ({ data, eventId }: PostCreateTeamProps) =>
   apiClient
     .post<boolean>(`/events/${eventId}/teams`, data)
     .then((response) => {
-      handleResponseSuccess(response.data, 'Time criado com sucesso!')();
+      handleResponseSuccess(response.data, 'Equipe criada com sucesso!')();
     })
     .catch(handleResponseThrowError());
 
