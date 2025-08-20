@@ -63,7 +63,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
             {/* Período de Aniversário */}
             <Grid item xs={6}>
               <DatePicker
-                label="Data início (aniversário)"
+                label="Data início "
                 views={['month', 'day']}
                 format="DD/MMMM"
                 value={
@@ -82,7 +82,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
             </Grid>
             <Grid item xs={6}>
               <DatePicker
-                label="Data fim (aniversário)"
+                label="Data fim"
                 format="DD/MMMM"
                 views={['day', 'month']}
                 value={
@@ -123,7 +123,17 @@ const FilterModal: React.FC<FilterModalProps> = ({
         </LocalizationProvider>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>Limpar</Button>
+        <Button
+          onClick={() =>
+            setFilters({
+              birthday: { startDate: '', endDate: '' },
+              city: '',
+              neighborhood: '',
+            })
+          }
+        >
+          Limpar
+        </Button>
         <Button onClick={handleApply} variant="contained">
           Aplicar Filtros
         </Button>
