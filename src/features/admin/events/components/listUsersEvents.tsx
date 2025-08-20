@@ -21,6 +21,7 @@ import {
   GridRowId,
   GridToolbar,
   gridFilteredSortedRowIdsSelector,
+  ptBR,
   selectedGridRowsSelector,
 } from '@mui/x-data-grid';
 import { useGetEvents } from '../api/getEvents';
@@ -340,6 +341,7 @@ function ListUsers({
             printOptions: { getRowsToExport: getSelectedRowsToExport },
           },
         }}
+        localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
       />
       <ModalEditWork
         open={openModalEditWork}

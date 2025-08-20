@@ -24,6 +24,7 @@ import {
   GridRowId,
   GridToolbar,
   gridFilteredSortedRowIdsSelector,
+  ptBR,
   selectedGridRowsSelector,
 } from '@mui/x-data-grid';
 import { useParams } from 'react-router-dom';
@@ -417,6 +418,7 @@ function ListUsers({
               minHeight: '40px !important', // Define a altura do rodapé
             },
           }}
+          localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
         />
         <ModalEditWork
           open={openModalEditWork}

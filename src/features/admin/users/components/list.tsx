@@ -19,6 +19,7 @@ import {
   // GridGetRowsToExportParams,
   // selectedGridRowsSelector,
   GridCellParams,
+  ptBR,
 } from '@mui/x-data-grid';
 import { useGetUsers } from '../api/getUsers';
 import { formatCPF, formatDate, formatPhoneNumber } from '../../../../utils';
@@ -33,6 +34,7 @@ import {
 import { useState } from 'react';
 import { User } from '../../../../types/user';
 import { ModalEditRole } from './modalEditRole';
+import CustomChip from '../../../../components/customChip';
 // const getSelectedRowsToExport = ({
 //   apiRef,
 // }: GridGetRowsToExportParams): GridRowId[] => {
@@ -179,7 +181,26 @@ function List({ search }: { search: string }) {
     //   valueGetter: (params) => formatPhoneNumber(params.row.cellphone),
     // },
     { field: 'religion', headerName: 'Religião', minWidth: 180 },
-    { field: 'events', headerName: 'Eventos', minWidth: 180 },
+    {
+      field: 'events',
+      headerName: 'Eventos',
+      // minWidth: 500,
+      flex: 4,
+      renderCell: (params) => {
+        return (
+          <Box>
+            {(params.row.events || []).map((event: any) => (
+              <Chip
+                key={event.event.id}
+                label={event.event.name}
+                size="small"
+                sx={{ mr: 0.5, mb: 0.5 }}
+              />
+            ))}
+          </Box>
+        );
+      },
+    },
     { field: 'notes', headerName: 'Observações', flex: 1, minWidth: 80 },
     {
       field: 'role',
@@ -190,11 +211,14 @@ function List({ search }: { search: string }) {
         return (
           <Box>
             {params.row.role === 1 ? (
-              <Chip label="Super Admin" color="primary" variant="outlined" />
-            ) : params.row.role === 5 ? (
-              <Chip label="Usuário" color="success" variant="outlined" />
+              <CustomChip label="Super Admin" customColor="#1976d2" />
+            ) : // <Chip label="Super Admin" color="primary" variant="outlined" />
+            params.row.role === 5 ? (
+              <CustomChip label="Admin" customColor="#f57c00" />
             ) : (
-              <Chip label="Indefinido" variant="outlined" />
+              // <Chip label="Usuário" color="success" variant="outlined" />
+              <CustomChip label="Usuário" customColor="#4caf50" />
+              // <Chip label="Indefinido" variant="outlined" />
             )}
           </Box>
         );
@@ -204,8 +228,7 @@ function List({ search }: { search: string }) {
       field: 'actions',
       headerName: '',
       sortable: false,
-      flex: 1,
-      minWidth: 80,
+      width: 60,
       //flex: 1,
       renderCell: (params: GridCellParams) => {
         const user = JSON.parse(localStorage.getItem('user') || '{}') as User;
@@ -274,7 +297,7 @@ function List({ search }: { search: string }) {
         // }}
         columnHeaderHeight={40}
         initialState={{
-          pagination: { paginationModel: { pageSize: 5 } },
+          pagination: { paginationModel: { pageSize: 8 } },
           columns: {
             columnVisibilityModel: {
               birthday: false,
@@ -310,6 +333,7 @@ function List({ search }: { search: string }) {
             minHeight: '40px !important', // Define a altura do rodapé
           },
         }}
+        localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
       />
       <ModalEditRole
         open={openModalEditRole}
