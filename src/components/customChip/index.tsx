@@ -9,7 +9,7 @@ interface CustomChipProps extends ChipProps {
 const StyledChip = styled(Chip)<{ customColor: string }>(({ customColor }) => ({
   color: customColor,
   backgroundColor: alpha(customColor, 0.1),
-  fontWeight: 'bold',
+  fontWeight: 500,
 }));
 
 const CustomChip: React.FC<CustomChipProps> = ({ customColor, ...props }) => {

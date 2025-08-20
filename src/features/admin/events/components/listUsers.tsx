@@ -34,10 +34,13 @@ import { useParams } from 'react-router-dom';
 import {
   AssignmentInd,
   Badge,
+  Close,
   Delete,
+  Done,
   Edit,
   MoreVert,
 } from '@mui/icons-material';
+import VerifiedIcon from '@mui/icons-material/Verified';
 import FileSaver from 'file-saver';
 import { pdf } from '@react-pdf/renderer';
 import PdfBadge from '../../../../components/pdfBadge';
@@ -49,6 +52,7 @@ import { ModalEditWork } from './modalEditWork';
 import { useGetUsers } from '../api/getUsers';
 import { filterUsers } from '../types';
 import dayjs from 'dayjs';
+import CustomChip from '../../../../components/customChip';
 const getSelectedRowsToExport = ({
   apiRef,
 }: GridGetRowsToExportParams): GridRowId[] => {
@@ -266,10 +270,10 @@ function ListUsers({
       width: 30,
       renderCell: (params) => (
         <Typography
-          sx={{ color: params.row.paid ? 'green' : 'red' }}
+          sx={{ color: params.row.paid ? 'green' : 'red', display: 'flex', alignItems: 'center' }}
           variant="body2"
         >
-          {params.row.paid ? 'Sim' : 'Não'}
+           {params.row.paid ? <Done /> : <Close />} {params.row.paid ? 'Sim' : 'Não'}
         </Typography>
       ),
     },
@@ -281,10 +285,10 @@ function ListUsers({
       width: 100,
       renderCell: (params) => (
         <Typography
-          sx={{ color: params.row.worker ? 'green' : 'red' }}
+          sx={{ color: params.row.worker ? 'green' : 'red', display: 'flex', alignItems: 'center' }}
           variant="body2"
         >
-          {params.row.worker ? 'Sim' : 'Não'}
+          {params.row.worker ? <Done /> : <Close />} {params.row.worker ? 'Sim' : 'Não'}
         </Typography>
       ),
     },
@@ -296,7 +300,7 @@ function ListUsers({
       renderCell: (params) => (
         <Stack direction="row" spacing={1} flexWrap="wrap">
           {params.row.bedrooms?.map((bedroom: any) => (
-            <Chip key={bedroom.id} label={bedroom.name} />
+            <CustomChip key={bedroom.id} label={bedroom.name} customColor={theme.palette.chips.default} size="small" />
           )) || 'Nenhum'}
         </Stack>
       ),
@@ -309,7 +313,7 @@ function ListUsers({
       renderCell: (params) => (
         <Stack direction="row" spacing={1} flexWrap="wrap">
           {params.row.teams?.map((team: any) => (
-            <Chip key={team.id} label={team.name} />
+            <CustomChip key={team.id} label={team.name} customColor={theme.palette.chips.default} size="small" />
           )) || 'Nenhuma'}
         </Stack>
       ),

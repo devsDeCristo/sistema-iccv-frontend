@@ -22,6 +22,7 @@ import { useNavigate } from 'react-router-dom';
 import { useGetEvents } from '../api/getEvents';
 import { formatDate } from '../../../../utils';
 import { EditNoteOutlined, VisibilityOutlined } from '@mui/icons-material';
+import CustomChip from '../../../../components/customChip';
 
 const getSelectedRowsToExport = ({
   apiRef,
@@ -162,9 +163,10 @@ function List({ search }: { search: string }) {
       align: 'center',
       headerAlign: 'center',
       renderCell: (params) => (
-        <Chip
+        <CustomChip
           label={params.value ? 'Ativo' : 'Inativo'}
-          color={params.value ? 'success' : 'default'}
+          customColor={params.value ? theme.palette.chips.success : theme.palette.chips.canceled}
+          size="small"
         />
       ),
     },

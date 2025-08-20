@@ -21,20 +21,24 @@ declare module '@mui/material/styles' {
   interface Palette {
     border: string;
     chips: {
-      completed: string;
+      default: string;
       pending: string;
       canceled: string;
-      active: string;
+      success: string;
+      info: string;
+      alert: string;
     };
   }
 
   interface PaletteOptions {
     border?: string;
     chips?: {
-      completed: string;
+      default: string;
       pending: string;
       canceled: string;
-      active: string;
+      success: string;
+      info: string;
+      alert: string;
     };
   }
 }
@@ -64,10 +68,12 @@ export const myTheme = (colorMode: boolean) =>
       },
       border: colorMode ? '#495C67' : '#D0D0D0',
       chips: {
-        completed: colorMode ? '#1C0F4D' : '#362f4dff',
+        default: colorMode ? '#ffffffff' : '#1b263b',
         pending: colorMode ? '#28363F' : '#F0F1F4',
-        canceled: colorMode ? '#F44336' : '#FFCDD2',
-        active: colorMode ? '#6aad6cff' : '#62df66ff',
+        canceled: colorMode ? '#ff1100ff' : '#fc182eff',
+        success: colorMode ? '#51e956ff' : '#59945bff',
+        info: colorMode ? '#2491ffff' : '#0080ffff',
+        alert: colorMode ? '#f57c00' : '#ff8000ff',
       },
     },
     breakpoints: {
@@ -118,7 +124,7 @@ export const myTheme = (colorMode: boolean) =>
             elevation: 0,
             border: 'none',
             borderRadius: 8,
-            boxShadow: "0px 0px 6px  #0000000a",
+            boxShadow: '0px 0px 6px  #0000000a',
           },
         },
       },

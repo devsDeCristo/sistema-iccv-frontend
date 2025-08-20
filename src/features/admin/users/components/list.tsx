@@ -191,7 +191,7 @@ function List({ search }: { search: string }) {
           <Box>
             {(params.row.events || []).map((event: any) => (
               <CustomChip
-                customColor="#1b263b"
+                customColor={theme.palette.chips.default}
                 key={event.event.id}
                 label={event.event.name}
                 size="small"
@@ -213,15 +213,15 @@ function List({ search }: { search: string }) {
             {params.row.role === 1 ? (
               <CustomChip
                 label="Super Admin"
-                customColor="#1e90ff"
+                customColor={theme.palette.chips.info}
                 size="small"
               />
             ) : // <Chip label="Super Admin" color="primary" variant="outlined" />
             params.row.role === 5 ? (
-              <CustomChip label="Admin" customColor="#f57c00" size="small" />
+              <CustomChip label="Admin" customColor={theme.palette.chips.alert} size="small" />
             ) : (
               // <Chip label="Usuário" color="success" variant="outlined" />
-              <CustomChip label="Usuário" customColor="#4caf50" size="small" />
+              <CustomChip label="Usuário" customColor={theme.palette.chips.success} size="small" />
               // <Chip label="Indefinido" variant="outlined" />
             )}
           </Box>
