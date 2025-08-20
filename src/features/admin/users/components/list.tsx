@@ -190,11 +190,11 @@ function List({ search }: { search: string }) {
         return (
           <Box>
             {(params.row.events || []).map((event: any) => (
-              <Chip
+              <CustomChip
+                customColor="#1b263b"
                 key={event.event.id}
                 label={event.event.name}
                 size="small"
-                sx={{ mr: 0.5, mb: 0.5 }}
               />
             ))}
           </Box>
@@ -211,13 +211,17 @@ function List({ search }: { search: string }) {
         return (
           <Box>
             {params.row.role === 1 ? (
-              <CustomChip label="Super Admin" customColor="#1976d2" />
+              <CustomChip
+                label="Super Admin"
+                customColor="#1e90ff"
+                size="small"
+              />
             ) : // <Chip label="Super Admin" color="primary" variant="outlined" />
             params.row.role === 5 ? (
-              <CustomChip label="Admin" customColor="#f57c00" />
+              <CustomChip label="Admin" customColor="#f57c00" size="small" />
             ) : (
               // <Chip label="Usuário" color="success" variant="outlined" />
-              <CustomChip label="Usuário" customColor="#4caf50" />
+              <CustomChip label="Usuário" customColor="#4caf50" size="small" />
               // <Chip label="Indefinido" variant="outlined" />
             )}
           </Box>
@@ -297,7 +301,7 @@ function List({ search }: { search: string }) {
         // }}
         columnHeaderHeight={40}
         initialState={{
-          pagination: { paginationModel: { pageSize: 8 } },
+          pagination: { paginationModel: { pageSize: 5 } },
           columns: {
             columnVisibilityModel: {
               birthday: false,
