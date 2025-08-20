@@ -2,6 +2,7 @@ import {
   Avatar,
   Box,
   Card,
+  Chip,
   Divider,
   IconButton,
   ListItemIcon,
@@ -9,9 +10,11 @@ import {
   Menu,
   MenuItem,
   Paper,
+  Stack,
   Tab,
   Tabs,
   Tooltip,
+  Typography,
   useTheme,
 } from '@mui/material';
 import { formatDate } from '../../../../utils';
@@ -44,6 +47,8 @@ import Swal from 'sweetalert2';
 import { useRemoveUserFromEvent } from '../api/deleteUser';
 import { ModalEditWork } from './modalEditWork';
 import { useGetUsers } from '../api/getUsers';
+import { filterUsers } from '../types';
+import dayjs from 'dayjs';
 const getSelectedRowsToExport = ({
   apiRef,
 }: GridGetRowsToExportParams): GridRowId[] => {
@@ -57,8 +62,10 @@ const getSelectedRowsToExport = ({
 function ListUsers({
   search,
   apiRef,
+  filters
 }: {
   search: string;
+  filters:filterUsers;
   apiRef: React.MutableRefObject<GridApi>;
 }) {
   const { id: eventId = '' } = useParams();
@@ -253,32 +260,59 @@ function ListUsers({
     {
       field: 'paid',
       headerName: 'Pago',
+      align: 'center',
+      headerAlign: 'center',
 
-      width: 20,
-      renderCell: (params) => (params.row.paid ? 'Sim' : 'Não'),
+      width: 30,
+      renderCell: (params) => (
+        <Typography
+          sx={{ color: params.row.paid ? 'green' : 'red' }}
+          variant="body2"
+        >
+          {params.row.paid ? 'Sim' : 'Não'}
+        </Typography>
+      ),
     },
     {
       field: 'worker',
       headerName: 'Trabalhador',
-      width: 50,
-      renderCell: (params) => (params.row.worker ? 'Sim' : 'Não'),
+      align: 'center',
+      headerAlign: 'center',
+      width: 100,
+      renderCell: (params) => (
+        <Typography
+          sx={{ color: params.row.worker ? 'green' : 'red' }}
+          variant="body2"
+        >
+          {params.row.worker ? 'Sim' : 'Não'}
+        </Typography>
+      ),
     },
     {
       field: 'bedrooms',
       headerName: 'Quartos',
       flex: 1,
       minWidth: 100,
-      renderCell: (params) =>
-        params.row.bedrooms?.map((bedroom: any) => bedroom.name).join(', ') ||
-        'Nenhum',
+      renderCell: (params) => (
+        <Stack direction="row" spacing={1} flexWrap="wrap">
+          {params.row.bedrooms?.map((bedroom: any) => (
+            <Chip key={bedroom.id} label={bedroom.name} />
+          )) || 'Nenhum'}
+        </Stack>
+      ),
     },
     {
       field: 'teams',
       headerName: 'Equipes',
       flex: 1,
       minWidth: 100,
-      renderCell: (params) =>
-        params.row.teams?.map((team: any) => team.name).join(', ') || 'Nenhuma',
+      renderCell: (params) => (
+        <Stack direction="row" spacing={1} flexWrap="wrap">
+          {params.row.teams?.map((team: any) => (
+            <Chip key={team.id} label={team.name} />
+          )) || 'Nenhuma'}
+        </Stack>
+      ),
     },
     {
       field: 'actions',
@@ -336,12 +370,51 @@ function ListUsers({
     });
     handleClose();
   };
-  const filteredData = (usersData: User[]) =>
-    usersData.filter(
+  const filteredData = (usersData: User[]) =>{
+    let filtered =  usersData.filter(
       (user) =>
         user.fullName?.toLowerCase().includes(search.toLowerCase()) ||
         user.cpf?.includes(search)
+
     );
+    filtered = filterUsers(filtered, filters);
+    return filtered;
+  }
+   
+
+  const filterUsers = (users: User[], filters: filterUsers) => {
+
+  return users.filter((user) => {
+    const { birthday, city, neighborhood } = filters;
+
+    let isBirthdayMatch = true;
+    if (birthday.startDate && birthday.endDate) {
+      const userBD = dayjs(user.birthday);
+      const start = dayjs(birthday.startDate);
+      const end = dayjs(birthday.endDate);
+
+      // Transformar em número "MMDD" para comparar intervalos
+      const userNum = userBD.month() * 100 + userBD.date();
+      const startNum = start.month() * 100 + start.date();
+      const endNum = end.month() * 100 + end.date();
+
+      if (startNum <= endNum) {
+        // intervalo normal
+        isBirthdayMatch = userNum >= startNum && userNum <= endNum;
+      } else {
+        // intervalo cruzando o ano (ex.: 20/12 até 10/01)
+        isBirthdayMatch = userNum >= startNum || userNum <= endNum;
+      }
+    }
+
+    const isCityMatch = city ? user.city.toLowerCase() === city.toLowerCase() : true;
+    const isNeighborhoodMatch = neighborhood
+      ? user.neighborhood.toLowerCase() === neighborhood.toLowerCase()
+      : true;
+
+    return isBirthdayMatch && isCityMatch && isNeighborhoodMatch;
+  });
+};
 
   const handleClickEditWork = (event: React.MouseEvent) => {
     event.stopPropagation();
@@ -435,18 +508,24 @@ function ListUsers({
             'aria-labelledby': 'options-button',
           }}
         >
-          <MenuItem onClick={handleClickEdit}>
-            <ListItemIcon>
-              <Edit fontSize="small" color="primary" />
-            </ListItemIcon>
-            <ListItemText>Editar Usuário</ListItemText>
-          </MenuItem>
-          <MenuItem onClick={handleClickEditWork}>
-            <ListItemIcon>
-              <AssignmentInd fontSize="small" color="primary" />
-            </ListItemIcon>
-            <ListItemText>Participação no evento</ListItemText>
-          </MenuItem>
+          {panel == '1' && (
+            <MenuItem onClick={handleClickEdit}>
+              <ListItemIcon>
+                <Edit fontSize="small" color="primary" />
+              </ListItemIcon>
+              <ListItemText>Editar Usuário</ListItemText>
+            </MenuItem>
+          )}
+
+          {panel == '2' && (
+            <MenuItem onClick={handleClickEditWork}>
+              <ListItemIcon>
+                <AssignmentInd fontSize="small" color="primary" />
+              </ListItemIcon>
+              <ListItemText>Participação no evento</ListItemText>
+            </MenuItem>
+          )}
+
           <MenuItem onClick={handleClickDownloadBadge}>
             <ListItemIcon>
               <Badge fontSize="small" color="primary" />

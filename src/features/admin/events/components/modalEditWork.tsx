@@ -17,6 +17,8 @@ import { useForm } from 'react-hook-form';
 import { useEffect, useState } from 'react';
 import { User } from '../../../../types/user';
 import { usePutEditRelationEventToUser } from '../api/putRelationEventUser';
+import { queryClient } from '../../../../config/lib/react-query/query-client';
+import { GET_EVENT_USERS } from '../constants';
 
 interface ModalAddUserProps {
   open: boolean;
@@ -59,6 +61,7 @@ function ModalEditWork({
     onSuccess: () => {
       reset();
       handleClose();
+      queryClient.invalidateQueries(GET_EVENT_USERS);
     },
   });
 

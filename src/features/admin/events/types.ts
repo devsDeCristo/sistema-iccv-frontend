@@ -18,6 +18,11 @@ export interface Event {
   updateAt: Date;
   users?: User[];
 }
+export interface filterUsers {
+  birthday: { startDate: string|null; endDate: string|null };
+  city: string|null;
+  neighborhood: string|null;
+}
 
 export interface Insights {
    totalEvents:number;

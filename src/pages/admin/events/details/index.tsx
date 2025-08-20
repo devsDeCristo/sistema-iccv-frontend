@@ -21,7 +21,7 @@ import { ListUsers } from '../../../../features/admin/events/components/listUser
 import PdfEvent from '../../../../components/pdfEvent';
 import FileSaver from 'file-saver';
 import { pdf } from '@react-pdf/renderer';
-import { Event } from '../../../../features/admin/events/types';
+import { Event, filterUsers } from '../../../../features/admin/events/types';
 import { useGetTeams } from '../../../../features/admin/events/api/getTeams';
 import { useGetBedrooms } from '../../../../features/admin/events/api/getBedrooms';
 import PdfBedRooms from '../../../../components/pdfRooms';
@@ -40,6 +40,7 @@ import {
 } from '@mui/icons-material';
 import { GridApi, useGridApiRef } from '@mui/x-data-grid';
 import { useGetUsers } from '../../../../features/admin/events/api/getUsers';
+import FilterModal from '../../../../features/admin/events/components/filtersUserModal';
 
 function Details() {
   const { id, subPage } = useParams();
@@ -52,6 +53,12 @@ function Details() {
   const [searchUser, setSearchUser] = useState('');
   const [pageValue, setPageValue] = useState(subPage || 'usuarios');
   const [openModalAddUser, setOpenModalAddUser] = useState(false);
+  const [openModalFilter, setOpenModalFilter] = useState(false);
+  const [filtersUsers, setFiltersUsers] = useState<filterUsers>({
+    birthday: { startDate: '', endDate: '' },
+    city: '',
+    neighborhood: '',
+  });
   const { id: eventId = '' } = useParams();
 
   const { data: teamsData = [] } = useGetTeams({
@@ -263,7 +270,7 @@ function Details() {
             <Stack sx={styles.stackButtons}>
               <Button
                 variant="outlined"
-                onClick={() => handleDownloadPDF(2)}
+                onClick={() => setOpenModalFilter(true)}
                 startIcon={<FilterAltOutlined />}
               >
                 Filtros
@@ -298,7 +305,7 @@ function Details() {
             </Stack>
           </Paper>
 
-          <ListUsers apiRef={apiRefUsers} search={searchUser} />
+          <ListUsers apiRef={apiRefUsers} search={searchUser} filters={filtersUsers} />
         </Stack>
       )}
 
@@ -367,6 +374,15 @@ function Details() {
           <ListTeams search={searchTeam} />
         </Stack>
       )}
+
+      <FilterModal
+        open={openModalFilter}
+        onClose={() => setOpenModalFilter(false)}
+        onApply={(filters) => {
+          setFiltersUsers(filters);
+          setOpenModalFilter(false);
+        }}
+      />
 
       <ModalBedRoom
         open={openModalBedRoom}
