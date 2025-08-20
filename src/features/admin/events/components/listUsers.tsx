@@ -2,7 +2,6 @@ import {
   Avatar,
   Box,
   Card,
-  Chip,
   Divider,
   IconButton,
   ListItemIcon,
@@ -10,11 +9,10 @@ import {
   Menu,
   MenuItem,
   Paper,
-  Stack,
   Tab,
   Tabs,
   Tooltip,
-  Typography,
+  useTheme,
 } from '@mui/material';
 import { formatDate } from '../../../../utils';
 import {
@@ -45,7 +43,6 @@ import Swal from 'sweetalert2';
 import { useRemoveUserFromEvent } from '../api/deleteUser';
 import { ModalEditWork } from './modalEditWork';
 import { useGetUsers } from '../api/getUsers';
-import { ListTeams } from './listTeams';
 const getSelectedRowsToExport = ({
   apiRef,
 }: GridGetRowsToExportParams): GridRowId[] => {
@@ -78,6 +75,7 @@ function ListUsers({
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [openModalEditWork, setOpenModalEditWork] = useState(false);
   const [panel, setPanel] = useState<string>('1');
+  const theme = useTheme();
   const handleClose = () => {
     setAnchorEl(null);
   };
@@ -254,7 +252,7 @@ function ListUsers({
     {
       field: 'paid',
       headerName: 'Pago',
-      
+
       width: 20,
       renderCell: (params) => (params.row.paid ? 'Sim' : 'Não'),
     },
@@ -270,8 +268,8 @@ function ListUsers({
       flex: 1,
       minWidth: 100,
       renderCell: (params) =>
-        params.row.bedrooms?.map((bedroom: any) => bedroom.name).join(', ') || 'Nenhum',
-
+        params.row.bedrooms?.map((bedroom: any) => bedroom.name).join(', ') ||
+        'Nenhum',
     },
     {
       field: 'teams',
@@ -402,6 +400,21 @@ function ListUsers({
           slotProps={{
             toolbar: {
               printOptions: { getRowsToExport: getSelectedRowsToExport },
+            },
+          }}
+          columnHeaderHeight={40}
+          sx={{
+            p: 2,
+            '& .MuiDataGrid-row': {
+              borderTop: '1px solid ' + theme.palette.divider,
+              borderBottom: 'none',
+            },
+            '& .MuiDataGrid-footerContainer': {
+              backgroundColor: 'transparent', // Altera cor do rodapé
+              border: 0,
+              borderTop: `1px solid ${theme.palette.divider}`,
+              height: '40px !important', // Define a altura do rodapé
+              minHeight: '40px !important', // Define a altura do rodapé
             },
           }}
         />
