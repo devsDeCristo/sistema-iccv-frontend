@@ -384,7 +384,8 @@ function ListUsers({
     filtered = filterUsers(filtered, filters);
     return filtered;
   }
-   
+  const normalize = (str: string) =>
+  str?.trim().normalize("NFC").toLowerCase();
 
   const filterUsers = (users: User[], filters: filterUsers) => {
 
@@ -411,9 +412,9 @@ function ListUsers({
       }
     }
 
-    const isCityMatch = city ? user.city.toLowerCase() === city.toLowerCase() : true;
+    const isCityMatch = city ? normalize(user.city) === normalize(city) : true;
     const isNeighborhoodMatch = neighborhood
-      ? user.neighborhood.toLowerCase() === neighborhood.toLowerCase()
+      ? normalize(user.neighborhood) === normalize(neighborhood)
       : true;
 
     return isBirthdayMatch && isCityMatch && isNeighborhoodMatch;

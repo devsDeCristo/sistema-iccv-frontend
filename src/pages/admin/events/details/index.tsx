@@ -9,13 +9,14 @@ import {
   TextField,
   Paper,
   InputAdornment,
+  Chip,
 } from '@mui/material';
 
 import { useNavigate, useParams } from 'react-router-dom';
 import { ListTeams } from '../../../../features/admin/events/components/listTeams';
 import { ListBedRooms } from '../../../../features/admin/events/components/listBedRooms';
 import { ModalBedRoom } from '../../../../features/admin/events/components/modalBedRoom';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ModalTeam } from '../../../../features/admin/events/components/modalTeam';
 import { ListUsers } from '../../../../features/admin/events/components/listUsers';
 import PdfEvent from '../../../../components/pdfEvent';
@@ -59,6 +60,7 @@ function Details() {
     city: '',
     neighborhood: '',
   });
+  const [filtersUsersSelected, setFiltersUsersSelected] = useState<number>(0);
   const { id: eventId = '' } = useParams();
 
   const { data: teamsData = [] } = useGetTeams({
@@ -88,6 +90,7 @@ function Details() {
       enabled: !!eventId,
     }
   );
+  const event = eventData as Event;
 
   const styles = {
     boxFilterAndPdf: {
@@ -115,7 +118,15 @@ function Details() {
       width: { xs: '100%', sm: '350px' },
     },
   };
-  const event = eventData as Event;
+
+  useEffect(() => {
+    let cont=0;
+    if(filtersUsers.birthday.startDate || filtersUsers.birthday.endDate) cont++;
+    if(filtersUsers.city) cont++;
+    if(filtersUsers.neighborhood) cont++;
+    setFiltersUsersSelected(cont);
+
+  }, [filtersUsers]);
 
   async function handleDownloadPDF(type: number) {
     if (!eventData || Array.isArray(eventData)) {
@@ -268,13 +279,30 @@ function Details() {
             />
             {/* <Typography color="#000">Usuários</Typography> */}
             <Stack sx={styles.stackButtons}>
-              <Button
-                variant="outlined"
-                onClick={() => setOpenModalFilter(true)}
-                startIcon={<FilterAltOutlined />}
-              >
-                Filtros
-              </Button>
+              <Stack sx={{ position: 'relative' }}>
+                <Button
+                  variant="outlined"
+                  onClick={() => setOpenModalFilter(true)}
+                  startIcon={<FilterAltOutlined />}
+                >
+                  Filtros
+                </Button>
+                {filtersUsersSelected > 0 && (
+                  <Chip
+                    label={filtersUsersSelected}
+                    size="small"
+                    color="primary"
+                    sx={{
+                      p:0,
+                      position: 'absolute',
+                      top: -7,
+                      right: -7,
+                      
+                    }}
+                  />
+                )}
+                
+              </Stack>
               <Button
                 variant="outlined"
                 onClick={() => handleExport(apiRefUsers)}
@@ -305,7 +333,11 @@ function Details() {
             </Stack>
           </Paper>
 
-          <ListUsers apiRef={apiRefUsers} search={searchUser} filters={filtersUsers} />
+          <ListUsers
+            apiRef={apiRefUsers}
+            search={searchUser}
+            filters={filtersUsers}
+          />
         </Stack>
       )}
 

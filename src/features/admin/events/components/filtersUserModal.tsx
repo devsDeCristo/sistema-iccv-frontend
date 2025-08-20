@@ -59,9 +59,9 @@ const FilterModal: React.FC<FilterModalProps> = ({
           dateAdapter={AdapterDayjs}
           adapterLocale={'pt-br'}
         >
-          <Grid container spacing={2} sx={{ mt: 1 }}>
+          <Grid container spacing={2}>
             {/* Período de Aniversário */}
-            <Grid item xs={6}>
+            <Grid item xs={12} md={6}>
               <DatePicker
                 label="Data início "
                 views={['month', 'day']}
@@ -80,7 +80,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
                 slotProps={{ textField: { fullWidth: true } }}
               />
             </Grid>
-            <Grid item xs={6}>
+            <Grid item xs={12} md={6}>
               <DatePicker
                 label="Data fim"
                 format="DD/MMMM"
