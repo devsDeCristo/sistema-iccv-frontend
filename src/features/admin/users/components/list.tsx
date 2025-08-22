@@ -8,7 +8,6 @@ import {
   Menu,
   Tooltip,
   MenuItem,
-  Chip,
   useTheme,
 } from '@mui/material';
 import {

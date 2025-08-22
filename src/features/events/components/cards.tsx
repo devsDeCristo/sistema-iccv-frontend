@@ -53,7 +53,7 @@ function EventCard({ event }: { event: Event }) {
     chipTopRight: { position: 'absolute', top: 12, right: 12 },
     chipEvento: { background: '#e0f2ff', color: '#0077cc' },
     chipStatus: {
-      background: event.isActive ? (exhausted ? theme.palette.chips.canceled : theme.palette.chips.active) : theme.palette.text.primary,
+      background: event.isActive ? (exhausted ? theme.palette.chips.canceled : theme.palette.chips.success) : theme.palette.text.primary,
       color: theme.palette.text.primary,
     },
     cardContent: {

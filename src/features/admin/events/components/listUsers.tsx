@@ -2,7 +2,6 @@ import {
   Avatar,
   Box,
   Card,
-  Chip,
   Divider,
   IconButton,
   ListItemIcon,
@@ -40,7 +39,6 @@ import {
   Edit,
   MoreVert,
 } from '@mui/icons-material';
-import VerifiedIcon from '@mui/icons-material/Verified';
 import FileSaver from 'file-saver';
 import { pdf } from '@react-pdf/renderer';
 import PdfBadge from '../../../../components/pdfBadge';

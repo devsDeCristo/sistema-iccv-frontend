@@ -1,6 +1,6 @@
 import React from 'react';
 import { Chip, ChipProps, alpha } from '@mui/material';
-import { styled } from '@mui/system';
+import { styled } from '@mui/material/styles';
 
 interface CustomChipProps extends ChipProps {
   customColor: string;

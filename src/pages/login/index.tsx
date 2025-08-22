@@ -2,7 +2,6 @@ import {
   Box,
   Button,
   CircularProgress,
-  Icon,
   Paper,
   Stack,
   Typography,
