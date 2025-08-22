@@ -1,10 +1,11 @@
-import { Box, Button, Paper, Stack, TextField } from '@mui/material';
+import { Button, Paper, Stack, TextField } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { PageStyle } from '../../../components/pageStyle';
 import { Header } from '../../../components/header';
 import { List } from '../../../features/admin/events/components/list';
 import { CardsInsights } from '../../../features/admin/events/components/cardsInsights';
 import { useState } from 'react';
+import { Add } from '@mui/icons-material';
 
 function Events() {
   const navigate = useNavigate();
@@ -29,14 +30,7 @@ function Events() {
   return (
     <PageStyle>
       <Header title="Eventos">
-        <Box component="div" justifyContent="end" display="flex" mb={2}>
-          <Button
-            variant="contained"
-            onClick={() => navigate('/admin/eventos/cadastro')}
-          >
-            Cadastrar evento
-          </Button>
-        </Box>
+       
       </Header>
       <CardsInsights />
       <Stack gap={2}>
@@ -49,6 +43,15 @@ function Events() {
             sx={styles.textField}
             onChange={(e) => setSearch(e.target.value)}
           />
+           
+          <Button
+            variant="contained"
+            onClick={() => navigate('/admin/eventos/cadastro')}
+            startIcon={<Add/>}
+          >
+            Novo Evento
+          </Button>
+      
         </Paper>
         <List search={search} />
       </Stack>

@@ -50,7 +50,7 @@ function EditUser() {
     badgeName: userData?.badgeName || '',
     notes: userData?.notes || '',
     leadershipPosition: userData?.leadershipPosition || '',
-    role: 5,
+    role: userData?.role || 5,
   };
 
   const methods = useForm<RegisterUsersFormType>({
@@ -101,7 +101,7 @@ function EditUser() {
         data.leadershipPosition === ''
           ? undefined
           : data.leadershipPosition,
-      role: 5,
+     
     };
     mutatePutUser({
       userId: id,

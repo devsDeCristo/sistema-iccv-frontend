@@ -53,6 +53,8 @@ import { useGetUsers } from '../api/getUsers';
 import { filterUsers } from '../types';
 import dayjs from 'dayjs';
 import CustomChip from '../../../../components/customChip';
+import { GET_EVENT_USERS } from '../constants';
+import { queryClient } from '../../../../config/lib/react-query/query-client';
 const getSelectedRowsToExport = ({
   apiRef,
 }: GridGetRowsToExportParams): GridRowId[] => {
@@ -98,6 +100,8 @@ function ListUsers({
         text: 'Usuário desvinculado do evento com sucesso.',
         icon: 'success',
       });
+      queryClient.invalidateQueries(GET_EVENT_USERS);
+
     },
     onError: () => {
       Swal.fire({
@@ -115,9 +119,7 @@ function ListUsers({
 
   // const { mutate: mutateDeleteEventUser } = useDeleteRelationEventUser({});
   async function handleDownloadPDF(data: User[]) {
-    if (!usersData || Array.isArray(usersData)) {
-      return null;
-    }
+    if(!data) return;
     const blob = await pdf(<PdfBadge data={data || []} />).toBlob();
     FileSaver.saveAs(blob, 'crachas.pdf');
   }
