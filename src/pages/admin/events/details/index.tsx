@@ -426,6 +426,7 @@ function Details() {
         open={openModalAddUser}
         handleClose={() => setOpenModalAddUser(false)}
         eventId={id || ''}
+        usersAdded={usersData || []}
       />
 
       <ModalTeam

@@ -1,4 +1,5 @@
 import {
+  Autocomplete,
   Backdrop,
   Box,
   Button,
@@ -7,27 +8,28 @@ import {
   Grid,
   Modal,
   Switch,
+  TextField,
   Typography,
 } from '@mui/material';
-import Select from 'react-select';
 import { Controller, useForm } from 'react-hook-form';
 import { usePostCreRelationEventToUser } from '../../users/api/postRelationEventUser';
-
 import { queryClient } from '../../../../config/lib/react-query/query-client';
-import { GET_EVENTS } from '../constants';
+import { GET_EVENT_USERS, GET_EVENTS } from '../constants';
 import { useGetUsers } from '../../users/api/getUsers';
-
+import { User } from '../../../../types/user';
 
 interface ModalAddUserProps {
   open: boolean;
   handleClose: () => void;
   eventId: string;
+  usersAdded: User[];
 }
 
 function ModalAddUserOnEvent({
   open,
   handleClose,
   eventId = '',
+  usersAdded = []
 }: ModalAddUserProps) {
   const style = {
     position: 'absolute' as 'absolute',
@@ -42,25 +44,26 @@ function ModalAddUserOnEvent({
   };
   const { control, reset, handleSubmit } = useForm();
 
-  const { data: users} = useGetUsers(
-      {},
-      {
-        enabled: !!open,
-      }
-    );
+  const { data: users } = useGetUsers(
+    {},
+    {
+      enabled: !!open,
+    }
+  );
 
   const { mutate: postCreateRelationEventToUser } =
     usePostCreRelationEventToUser({
       onSuccess: () => {
         reset();
-        queryClient.invalidateQueries(GET_EVENTS);
+        queryClient.refetchQueries(GET_EVENTS);
+        queryClient.refetchQueries(GET_EVENT_USERS);
         handleClose();
       },
     });
 
   const options =
     Array.isArray(users) &&
-    users?.map((user) => ({
+    users?.filter((user) => !usersAdded.some((u) => u.id === user.id))?.map((user) => ({
       value: user.id,
       label: user.fullName,
     }));
@@ -105,14 +108,36 @@ function ModalAddUserOnEvent({
                   control={control}
                   name="user"
                   render={({ field: { onChange, value } }) => (
-                    <Select
-                      name="colors"
+                    // <Select
+                    //   name="colors"
+                    //   options={options || []}
+                    //   value={value}
+                    //   isClearable
+                    //   onChange={onChange}
+                    //   className="basic-multi-select"
+                    //   classNamePrefix="select"
+                    // />
+                    <Autocomplete
+                      size="small"
+                      id="tags-outlined"
                       options={options || []}
-                      value={value}
-                      isClearable
-                      onChange={onChange}
-                      className="basic-multi-select"
-                      classNamePrefix="select"
+                      isOptionEqualToValue={(option, value) =>
+                        option.label == value.label
+                      }
+                      getOptionLabel={(option) => option.label}
+                      ListboxProps={{
+                        style: {
+                          maxHeight: 200, // altura máxima
+                          overflowY: 'auto', // scroll vertical
+                        },
+                      }}
+                      onChange={(_, newValue) => {
+                        onChange(newValue);
+                      }}
+                      value={value || null}
+                      renderInput={(params) => (
+                        <TextField {...params} placeholder="Participantes" />
+                      )}
                     />
                   )}
                 />

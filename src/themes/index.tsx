@@ -137,5 +137,12 @@ export const myTheme = (colorMode: boolean) =>
           },
         },
       },
+      MuiTypography:{
+        styleOverrides: {
+          root: {
+            color: colorMode ? '#EBEBEB' : '#111B21',
+          },
+        },
+      },
     },
   });
