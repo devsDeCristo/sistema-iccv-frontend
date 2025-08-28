@@ -1,7 +1,15 @@
 import { Sidebar, Menu, MenuItem, sidebarClasses } from 'react-pro-sidebar';
 import { People, Event, Logout } from '@mui/icons-material';
 import { Link, NavLink } from 'react-router-dom';
-import { Box, CssBaseline, Drawer, useTheme } from '@mui/material';
+import {
+  Box,
+  CssBaseline,
+  Drawer,
+  Stack,
+  Typography,
+  useTheme,
+} from '@mui/material';
+import Logo from '../../assets/logo-ic.svg?react';
 
 type SideBarProps = {
   validRole?: Boolean | null;
@@ -172,15 +180,48 @@ const SideBar: React.FC<SideBarProps> = ({
         onClose={() => setOpenDrawer(false)}
         sx={styles.boxSidebarMobile}
       >
-        <Sidebar>
-          <Menu>
+        <Sidebar
+          rootStyles={{
+            borderRight: 'none',
+            [`& .${sidebarClasses.container}`]: {
+              backgroundColor: theme.palette.background.paper,
+              height: '100vh',
+            },
+          }}
+        >
+          <Menu
+            menuItemStyles={{
+              button: () => styles.buttonMenu,
+            }}
+       
+          >
             <MenuItem
               className="menu1"
               component={<Link to={'/admin/eventos'} />}
               onClick={() => setOpenDrawer(false)}
             >
-              <h2>ICCV</h2>
+              <Stack direction="row" alignItems="center">
+                <Logo
+                  style={{
+                    height: '40px',
+                    width: 'auto',
+                    fill: 'white',
+                    margin: '10px',
+                  }}
+                />
+                <Typography
+                  variant="h6"
+                  component="div"
+                  sx={{ flexGrow: 1, color: 'white' }}
+                >
+                  CIDADE VERDE
+                </Typography>
+              </Stack>
             </MenuItem>
+
+            <Box sx={styles.sessaoMenu}>
+              {isAdmin ? 'Administrador' : 'Inscrições'}
+            </Box>
             {optionsPages.map(({ link, itemId, icon, title }) => (
               <MenuItem
                 key={itemId}
@@ -192,6 +233,13 @@ const SideBar: React.FC<SideBarProps> = ({
                 {title}
               </MenuItem>
             ))}
+          </Menu>
+          <Menu
+            style={{ position: 'absolute', bottom: 10, width: '100%' }}
+            menuItemStyles={{
+              button: () => styles.buttonMenu,
+            }}
+          >
             <MenuItem
               icon={<Logout />}
               onClick={() => {
