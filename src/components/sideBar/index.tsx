@@ -205,14 +205,14 @@ const SideBar: React.FC<SideBarProps> = ({
                   style={{
                     height: '40px',
                     width: 'auto',
-                    fill: 'white',
                     margin: '10px',
+                    fill: theme.palette.text.primary
                   }}
                 />
                 <Typography
                   variant="h6"
                   component="div"
-                  sx={{ flexGrow: 1, color: 'white' }}
+                  sx={{ flexGrow: 1, color: theme.palette.text.primary }}
                 >
                   CIDADE VERDE
                 </Typography>
