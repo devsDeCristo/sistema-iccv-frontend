@@ -17,6 +17,7 @@ import CalendarMonthOutlinedIcon from '@mui/icons-material/CalendarMonthOutlined
 import RoomOutlinedIcon from '@mui/icons-material/RoomOutlined';
 import GroupOutlinedIcon from '@mui/icons-material/GroupOutlined';
 import { Event } from '../../admin/events/types';
+import CustomChip from '../../../components/customChip';
 // import { Work } from '@mui/icons-material';
 
 function EventCard({ event }: { event: Event }) {
@@ -52,10 +53,7 @@ function EventCard({ event }: { event: Event }) {
     },
     chipTopRight: { position: 'absolute', top: 12, right: 12 },
     chipEvento: { background: '#e0f2ff', color: '#0077cc' },
-    chipStatus: {
-      background: event.isActive ? (exhausted ? theme.palette.chips.canceled : theme.palette.chips.success) : theme.palette.text.primary,
-      color: theme.palette.text.primary,
-    },
+
     cardContent: {
       pt:6,
       mb: 4,
@@ -97,20 +95,22 @@ function EventCard({ event }: { event: Event }) {
           sx={styles.cardMedia}
         /> */}
         <Box sx={styles.chipTopLeft}>
-          <Chip
+          <CustomChip
             label="evento"
             color="primary"
             size="small"
-            sx={styles.chipEvento}
+  
+            customColor={theme.palette.chips.info}
           />
         </Box>
         <Box sx={styles.chipTopRight}>
-          <Chip
+          <CustomChip
             label={
               event.isActive ? exhausted ? 'Esgotado' :'Aberto' : 'Finalizado'
             }
             size="small"
-            sx={styles.chipStatus}
+            customColor={event.isActive ? (exhausted ? theme.palette.chips.canceled : theme.palette.chips.success) : theme.palette.text.primary}
+
           />
         </Box>
       </Box>
