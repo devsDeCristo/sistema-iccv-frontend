@@ -110,7 +110,7 @@ function ListBedRooms({ search }: { search: string }) {
       padding: 2,
       display: 'flex',
       flexDirection: 'column',
-      justifyContent: 'space-between',
+      justifyContent: 'flex-start',
       gap: 1,
       position: 'relative',
       height: '100%',
@@ -168,7 +168,7 @@ function ListBedRooms({ search }: { search: string }) {
         {paginatedData.map((bedroom) => (
           <Grid item xs={12} md={6} xl={4} key={bedroom.id}>
             <Card sx={styles.card}>
-              <Stack direction="row" alignItems="center" gap={1}>
+              <Stack direction="row" alignItems="center"  gap={1}>
                 <Box sx={styles.iconWrapper}>
                   <Bed sx={{ fontSize: '20px' }} />
                 </Box>
@@ -191,7 +191,7 @@ function ListBedRooms({ search }: { search: string }) {
                   Nenhum usuário atribuído
                 </Typography>
               ) : (
-                <Stack direction="column" gap={1}>
+                <Stack direction="column"  gap={1}>
                   <Stack
                     direction="row"
                     alignItems="center"

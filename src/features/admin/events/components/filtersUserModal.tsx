@@ -65,6 +65,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
               <DatePicker
                 label="Data início "
                 views={['month', 'day']}
+                sx={{mt:1}}
                 format="DD/MMMM"
                 value={
                   filters.birthday.startDate
@@ -85,6 +86,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
                 label="Data fim"
                 format="DD/MMMM"
                 views={['day', 'month']}
+                sx={{mt:1}}
                 value={
                   filters.birthday.endDate
                     ? dayjs(filters.birthday.endDate)
