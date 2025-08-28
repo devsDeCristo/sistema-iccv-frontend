@@ -66,10 +66,10 @@ const getSelectedRowsToExport = ({
 function ListUsers({
   search,
   apiRef,
-  filters
+  filters,
 }: {
   search: string;
-  filters:filterUsers;
+  filters: filterUsers;
   apiRef: React.MutableRefObject<GridApi>;
 }) {
   const { id: eventId = '' } = useParams();
@@ -99,7 +99,6 @@ function ListUsers({
         icon: 'success',
       });
       queryClient.invalidateQueries(GET_EVENT_USERS);
-
     },
     onError: () => {
       Swal.fire({
@@ -117,7 +116,7 @@ function ListUsers({
 
   // const { mutate: mutateDeleteEventUser } = useDeleteRelationEventUser({});
   async function handleDownloadPDF(data: User[]) {
-    if(!data) return;
+    if (!data) return;
     const blob = await pdf(<PdfBadge data={data || []} />).toBlob();
     FileSaver.saveAs(blob, 'crachas.pdf');
   }
@@ -270,10 +269,15 @@ function ListUsers({
       width: 30,
       renderCell: (params) => (
         <Typography
-          sx={{ color: params.row.paid ? 'green' : 'red', display: 'flex', alignItems: 'center' }}
+          sx={{
+            color: params.row.paid ? 'green' : 'red',
+            display: 'flex',
+            alignItems: 'center',
+          }}
           variant="body2"
         >
-           {params.row.paid ? <Done /> : <Close />} {params.row.paid ? 'Sim' : 'Não'}
+          {params.row.paid ? <Done /> : <Close />}{' '}
+          {params.row.paid ? 'Sim' : 'Não'}
         </Typography>
       ),
     },
@@ -285,22 +289,37 @@ function ListUsers({
       width: 100,
       renderCell: (params) => (
         <Typography
-          sx={{ color: params.row.worker ? 'green' : 'red', display: 'flex', alignItems: 'center' }}
+          sx={{
+            color: params.row.worker ? 'green' : 'red',
+            display: 'flex',
+            alignItems: 'center',
+          }}
           variant="body2"
         >
-          {params.row.worker ? <Done /> : <Close />} {params.row.worker ? 'Sim' : 'Não'}
+          {params.row.worker ? <Done /> : <Close />}{' '}
+          {params.row.worker ? 'Sim' : 'Não'}
         </Typography>
       ),
     },
     {
       field: 'bedrooms',
       headerName: 'Quartos',
-      flex: 1,
-      minWidth: 100,
+
+      width: 300,
       renderCell: (params) => (
-        <Stack direction="row" gap={1} flexWrap="wrap">
+        <Stack
+          direction="row"
+          gap={1}
+          flexWrap="wrap"
+          sx={{ pt: 1, pb: 1, overflow: 'hidden' }}
+        >
           {params.row.bedrooms?.map((bedroom: any) => (
-            <CustomChip key={bedroom.id} label={bedroom.name} customColor={theme.palette.chips.default} size="small" />
+            <CustomChip
+              key={bedroom.id}
+              label={bedroom.name}
+              customColor={theme.palette.chips.default}
+              size="small"
+            />
           )) || 'Nenhum'}
         </Stack>
       ),
@@ -308,12 +327,22 @@ function ListUsers({
     {
       field: 'teams',
       headerName: 'Equipes',
-      flex: 1,
-      minWidth: 100,
+
+      width: 300,
       renderCell: (params) => (
-        <Stack direction="row" gap={1} flexWrap="wrap">
+        <Stack
+          direction="row"
+          gap={1}
+          flexWrap="wrap"
+          sx={{ pt: 1, pb: 1, overflow: 'hidden' }}
+        >
           {params.row.teams?.map((team: any) => (
-            <CustomChip key={team.id} label={team.name} customColor={theme.palette.chips.default} size="small" />
+            <CustomChip
+              key={team.id}
+              label={team.name}
+              customColor={theme.palette.chips.default}
+              size="small"
+            />
           )) || 'Nenhuma'}
         </Stack>
       ),
@@ -374,52 +403,51 @@ function ListUsers({
     });
     handleClose();
   };
-  const filteredData = (usersData: User[]) =>{
-    let filtered =  usersData.filter(
+  const filteredData = (usersData: User[]) => {
+    let filtered = usersData.filter(
       (user) =>
         user.fullName?.toLowerCase().includes(search.toLowerCase()) ||
         user.cpf?.includes(search)
-
     );
     filtered = filterUsers(filtered, filters);
     return filtered;
-  }
-  const normalize = (str: string) =>
-  str?.trim().normalize("NFC").toLowerCase();
+  };
+  const normalize = (str: string) => str?.trim().normalize('NFC').toLowerCase();
 
   const filterUsers = (users: User[], filters: filterUsers) => {
+    return users.filter((user) => {
+      const { birthday, city, neighborhood } = filters;
 
-  return users.filter((user) => {
-    const { birthday, city, neighborhood } = filters;
+      let isBirthdayMatch = true;
+      if (birthday.startDate && birthday.endDate) {
+        const userBD = dayjs(user.birthday);
+        const start = dayjs(birthday.startDate);
+        const end = dayjs(birthday.endDate);
 
-    let isBirthdayMatch = true;
-    if (birthday.startDate && birthday.endDate) {
-      const userBD = dayjs(user.birthday);
-      const start = dayjs(birthday.startDate);
-      const end = dayjs(birthday.endDate);
+        // Transformar em número "MMDD" para comparar intervalos
+        const userNum = userBD.month() * 100 + userBD.date();
+        const startNum = start.month() * 100 + start.date();
+        const endNum = end.month() * 100 + end.date();
 
-      // Transformar em número "MMDD" para comparar intervalos
-      const userNum = userBD.month() * 100 + userBD.date();
-      const startNum = start.month() * 100 + start.date();
-      const endNum = end.month() * 100 + end.date();
-
-      if (startNum <= endNum) {
-        // intervalo normal
-        isBirthdayMatch = userNum >= startNum && userNum <= endNum;
-      } else {
-        // intervalo cruzando o ano (ex.: 20/12 até 10/01)
-        isBirthdayMatch = userNum >= startNum || userNum <= endNum;
+        if (startNum <= endNum) {
+          // intervalo normal
+          isBirthdayMatch = userNum >= startNum && userNum <= endNum;
+        } else {
+          // intervalo cruzando o ano (ex.: 20/12 até 10/01)
+          isBirthdayMatch = userNum >= startNum || userNum <= endNum;
+        }
       }
-    }
 
-    const isCityMatch = city ? normalize(user.city) === normalize(city) : true;
-    const isNeighborhoodMatch = neighborhood
-      ? normalize(user.neighborhood) === normalize(neighborhood)
-      : true;
+      const isCityMatch = city
+        ? normalize(user.city) === normalize(city)
+        : true;
+      const isNeighborhoodMatch = neighborhood
+        ? normalize(user.neighborhood) === normalize(neighborhood)
+        : true;
 
-    return isBirthdayMatch && isCityMatch && isNeighborhoodMatch;
-  });
-};
+      return isBirthdayMatch && isCityMatch && isNeighborhoodMatch;
+    });
+  };
 
   const handleClickEditWork = (event: React.MouseEvent) => {
     event.stopPropagation();
@@ -447,6 +475,7 @@ function ListUsers({
           disableDensitySelector
           disableColumnSelector
           apiRef={apiRef}
+          getRowHeight={() => 'auto'}
           rows={filteredData(usersData || [])}
           columns={panel === '1' ? columns : columnsByEvent}
           loading={isLoading}
