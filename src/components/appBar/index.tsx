@@ -80,7 +80,7 @@ export default function MenuAppBar({
               margin: '10px',
             }}
           />
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+          <Typography variant="h6" component="div" sx={{ flexGrow: 1, color:"white"}}>
             CIDADE VERDE
           </Typography>
 
