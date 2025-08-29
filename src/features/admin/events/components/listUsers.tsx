@@ -283,7 +283,7 @@ function ListUsers({
     },
     {
       field: 'worker',
-      headerName: 'Trabalhador',
+      headerName: 'Servindo',
       align: 'center',
       headerAlign: 'center',
       width: 100,

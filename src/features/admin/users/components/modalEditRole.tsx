@@ -67,7 +67,7 @@ function ModalEditRole({
     putUser({
       userId: userId,
       data: {
-        ...user,
+        // ...user,
         role: valueRole,
       },
     });
