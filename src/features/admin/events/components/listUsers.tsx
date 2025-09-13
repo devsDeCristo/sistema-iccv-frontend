@@ -16,7 +16,7 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
-import { formatDate } from '../../../../utils';
+import { formatCPF, formatDate } from '../../../../utils';
 import {
   DataGrid,
   GridApi,
@@ -53,6 +53,7 @@ import dayjs from 'dayjs';
 import CustomChip from '../../../../components/customChip';
 import { GET_EVENT_USERS } from '../constants';
 import { queryClient } from '../../../../config/lib/react-query/query-client';
+import { toast } from 'react-toastify';
 const getSelectedRowsToExport = ({
   apiRef,
 }: GridGetRowsToExportParams): GridRowId[] => {
@@ -63,6 +64,30 @@ const getSelectedRowsToExport = ({
 
   return gridFilteredSortedRowIdsSelector(apiRef);
 };
+
+const renderCellWithCopy = (value: string | number) => {
+  const handleCopy = () => {
+    navigator.clipboard.writeText(String(value));
+    //alert('Conteúdo copiado para a área de transferência!');
+    toast.success('Conteúdo copiado para a área de transferência!');
+  };
+  return (
+    <Tooltip title="Clique para copiar">
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1,
+          cursor: 'copy',
+        }}
+        onClick={handleCopy}
+      >
+        {value}
+      </Box>
+    </Tooltip>
+  );
+};
+
 function ListUsers({
   search,
   apiRef,
@@ -148,16 +173,26 @@ function ListUsers({
         );
       },
     },
-    { field: 'fullName', headerName: 'Nome', flex: 1, minWidth: 200 },
     {
-      field: 'cpf',
-      headerName: 'CPF',
-      width: 110,
+      field: 'fullName',
+      headerName: 'Nome',
+      flex: 2,
+      minWidth: 200,
+      // maxWidth: 300,
+      renderCell: (params) => renderCellWithCopy(params.row.fullName),
     },
-    {
+  {
+       field: 'cpf',
+       headerName: 'CPF',
+       flex: 1,
+       minWidth: 140,
+       renderCell: (params) => renderCellWithCopy(formatCPF(params.row.cpf)),
+     },
+   {
       field: 'birthday',
       headerName: 'Data de nascimento',
-      width: 140,
+      flex: 1,
+      minWidth: 120,
       valueGetter: (params) => formatDate(params.row.birthday),
     },
 
@@ -403,6 +438,7 @@ function ListUsers({
     });
     handleClose();
   };
+
   const filteredData = (usersData: User[]) => {
     let filtered = usersData.filter(
       (user) =>

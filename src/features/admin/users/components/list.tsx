@@ -34,6 +34,7 @@ import { useState } from 'react';
 import { User } from '../../../../types/user';
 import { ModalEditRole } from './modalEditRole';
 import CustomChip from '../../../../components/customChip';
+import { toast } from 'react-toastify';
 // const getSelectedRowsToExport = ({
 //   apiRef,
 // }: GridGetRowsToExportParams): GridRowId[] => {
@@ -47,8 +48,10 @@ import CustomChip from '../../../../components/customChip';
 const renderCellWithCopy = (value: string | number) => {
   const handleCopy = () => {
     navigator.clipboard.writeText(String(value));
-    alert('Conteúdo copiado para a área de transferência!');
+    //alert('Conteúdo copiado para a área de transferência!');
+    toast.success('Conteúdo copiado para a área de transferência!');
   };
+  
 
   return (
     <Tooltip title="Clique para copiar">
@@ -66,6 +69,7 @@ const renderCellWithCopy = (value: string | number) => {
     </Tooltip>
   );
 };
+
 function List({ search }: { search: string }) {
   const { data = [], isLoading } = useGetUsers({});
   // const navigate = useNavigate();
