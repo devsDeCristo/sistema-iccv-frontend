@@ -61,7 +61,7 @@ function ModalTeam({ open, handleClose, team, eventId }: ModalTeamProps) {
       p: { xs: 2, md: 3 },
     },
   };
-  const { control, reset, handleSubmit } = useForm();
+  const { control, reset, handleSubmit, watch } = useForm();
   const { mutate: putTeam } = usePutTeam({
     onSuccess: () => {
       reset();
@@ -198,11 +198,17 @@ function ModalTeam({ open, handleClose, team, eventId }: ModalTeamProps) {
                   <Controller
                     control={control}
                     name="capacity"
-                    render={({ field: { onChange, value } }) => (
+                    render={({ field: { onChange, value } }) => {
+                      const participantes = Number(
+                        (watch('usersId')?.length || 0) + (watch('usersLeadersId')?.length || 0)
+                      );
+                      
+                      return(
                       <>
                         <Title title="Capacidade" />
                         <TextField
                           fullWidth
+                           inputProps={{ min: participantes }}
                           type="number"
                           variant="outlined"
                           required
@@ -212,7 +218,7 @@ function ModalTeam({ open, handleClose, team, eventId }: ModalTeamProps) {
                           onChange={onChange}
                         />
                       </>
-                    )}
+                    )}}
                   />
                 </Grid>
                 <Grid item xs={12}>
@@ -240,7 +246,13 @@ function ModalTeam({ open, handleClose, team, eventId }: ModalTeamProps) {
                   <Controller
                     control={control}
                     name="usersLeadersId"
-                    render={({ field: { onChange, value } }) => (
+                    render={({ field: { onChange, value } }) => {
+                        const capacity = Number(watch('capacity') || 0);
+                        const participantes = Number(
+                          (watch('usersId')?.length || 0)
+                        );
+
+                      return(
                       <>
                         <Title title="Lideres" />
                         <Autocomplete
@@ -261,6 +273,8 @@ function ModalTeam({ open, handleClose, team, eventId }: ModalTeamProps) {
                           }}
                           renderOption={(props, option, { selected }) => {
                             const { ...optionProps } = props;
+                             const disabled =
+                                (value?.length + participantes) >= capacity && !selected;
                             return (
                               <li key={option.label} {...optionProps}>
                                 <Checkbox
@@ -272,15 +286,22 @@ function ModalTeam({ open, handleClose, team, eventId }: ModalTeamProps) {
                                     marginLeft: '-10px',
                                     marginRight: '5px',
                                   }}
+                                   disabled={disabled}
                                   checked={selected}
                                 />
                                 {option.label}
                               </li>
                             );
                           }}
-                          onChange={(_, newValue) => {
-                            onChange(newValue);
-                          }}
+                           onChange={(_, newValue) => {
+                              if ((newValue.length+participantes)<= (value?.length || 0)) {
+                                // Removendo alguém → sempre deixa
+                                onChange(newValue);
+                              } else if ((newValue.length+participantes) <= capacity) {
+                                // Adicionando → só deixa se não passar da capacidade
+                                onChange(newValue);
+                              }
+                            }}
                           value={value || []}
                           renderInput={(params) => (
                             <TextField
@@ -290,14 +311,19 @@ function ModalTeam({ open, handleClose, team, eventId }: ModalTeamProps) {
                           )}
                         />
                       </>
-                    )}
+                    )}}
                   />
                 </Grid>
                 <Grid item xs={12}>
                   <Controller
                     control={control}
                     name="usersId"
-                    render={({ field: { onChange, value } }) => (
+                    render={({ field: { onChange, value } }) => {
+                      const capacity = Number(watch('capacity') || 0);
+const liders = Number(
+                          (watch('usersLeadersId')?.length || 0)
+                        );
+                      return(
                       <>
                         <Title title="Participantes" />
                         <Autocomplete
@@ -318,9 +344,12 @@ function ModalTeam({ open, handleClose, team, eventId }: ModalTeamProps) {
                           }}
                           renderOption={(props, option, { selected }) => {
                             const { ...optionProps } = props;
+                            const disabled =
+                                (value?.length + liders) >= capacity && !selected;
                             return (
                               <li key={option.label} {...optionProps}>
                                 <Checkbox
+                                disabled={disabled}
                                   icon={
                                     <CheckBoxOutlineBlank fontSize="small" />
                                   }
@@ -335,9 +364,15 @@ function ModalTeam({ open, handleClose, team, eventId }: ModalTeamProps) {
                               </li>
                             );
                           }}
-                          onChange={(_, newValue) => {
-                            onChange(newValue);
-                          }}
+                             onChange={(_, newValue) => {
+                              if ((newValue.length+liders) <= (value?.length || 0)) {
+                                // Removendo alguém → sempre deixa
+                                onChange(newValue);
+                              } else if ((newValue.length+liders) <= capacity) {
+                                // Adicionando → só deixa se não passar da capacidade
+                                onChange(newValue);
+                              }
+                            }}
                           value={value || []}
                           renderInput={(params) => (
                             <TextField
@@ -347,7 +382,7 @@ function ModalTeam({ open, handleClose, team, eventId }: ModalTeamProps) {
                           )}
                         />
                       </>
-                    )}
+                    )}}
                   />
                 </Grid>
               </Grid>

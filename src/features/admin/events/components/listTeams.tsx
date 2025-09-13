@@ -181,7 +181,7 @@ function ListTeams({ search }: { search: string }) {
                 <Box sx={styles.iconWrapper}>
                   <Diversity3 sx={{ fontSize: '20px' }} />
                 </Box>
-                <Stack sx={{ width: '90%' }}>
+                <Stack sx={{ width: '90%' }} gap={0.5}>
                   <Tooltip title={team.name || ''} arrow>
                     <Typography sx={styles.roomName}>
                       {team.name || 'Quarto sem nome'}

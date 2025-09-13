@@ -64,7 +64,7 @@ function ModalBedRoom({
       p: { xs: 2, md: 3 },
     },
   };
-  const { control, reset, handleSubmit } = useForm();
+  const { control, reset, handleSubmit, watch } = useForm();
 
   const { mutate: putBedroom } = usePutBedroom({
     onSuccess: () => {
@@ -112,7 +112,6 @@ function ModalBedRoom({
     }));
 
   const onSubimitBedroom = (data: any) => {
-
     const { tags, capacity, ...rest } = data;
     const transoformData = {
       ...rest,
@@ -120,7 +119,7 @@ function ModalBedRoom({
       capacity: Number(capacity),
       usersId: data.usersId.map((user: any) => user.value),
     };
-    
+
     if (bedRoom) {
       putBedroom({
         eventId,
@@ -203,21 +202,27 @@ function ModalBedRoom({
                   <Controller
                     control={control}
                     name="capacity"
-                    render={({ field: { onChange, value } }) => (
-                      <>
-                        <Title title="Capacidade" />
-                        <TextField
-                          fullWidth
-                          type="number"
-                          variant="outlined"
-                          required
-                          size="small"
-                          placeholder="Informe a capacidade"
-                          value={value}
-                          onChange={onChange}
-                        />
-                      </>
-                    )}
+                    render={({ field: { onChange, value } }) => {
+                      const participantes = Number(
+                        watch('usersId')?.length || 0
+                      );
+                      return (
+                        <>
+                          <Title title="Capacidade" />
+                          <TextField
+                            fullWidth
+                            type="number"
+                            inputProps={{ min: participantes }}
+                            variant="outlined"
+                            required
+                            size="small"
+                            placeholder="Informe a capacidade"
+                            value={value}
+                            onChange={onChange}
+                          />
+                        </>
+                      );
+                    }}
                   />
                 </Grid>
 
@@ -305,57 +310,70 @@ function ModalBedRoom({
                   <Controller
                     control={control}
                     name="usersId"
-                    render={({ field: { onChange, value } }) => (
-                      <>
-                        <Title title="Participantes" />
-                        <Autocomplete
-                          multiple
-                          size='small'
-                          disableCloseOnSelect
-                          id="tags-outlined"
-                          options={options || []}
-                          isOptionEqualToValue={(option, value) =>
-                            option.label == value.label
-                          }
-                          getOptionLabel={(option) => option.label}
-                          ListboxProps={{
-                            style: {
-                              maxHeight: 200, // altura máxima
-                              overflowY: 'auto', // scroll vertical
-                            },
-                          }}
-                          renderOption={(props, option, { selected }) => {
-                            const { ...optionProps } = props;
-                            return (
-                              <li key={option.label} {...optionProps}>
-                                <Checkbox
-                                  icon={
-                                    <CheckBoxOutlineBlank fontSize="small" />
-                                  }
-                                  checkedIcon={<CheckBox fontSize="small" />}
-                                  style={{
-                                    marginLeft: '-10px',
-                                    marginRight: '5px',
-                                  }}
-                                  checked={selected}
-                                />
-                                {option.label}
-                              </li>
-                            );
-                          }}
-                          onChange={(_, newValue) => {
-                            onChange(newValue);
-                          }}
-                          value={value || []}
-                          renderInput={(params) => (
-                            <TextField
-                              {...params}
-                              placeholder="Participantes"
-                            />
-                          )}
-                        />
-                      </>
-                    )}
+                    render={({ field: { onChange, value } }) => {
+                      const capacity = Number(watch('capacity') || 0);
+
+                      return (
+                        <>
+                          <Title title="Participantes" />
+                          <Autocomplete
+                            multiple
+                            size="small"
+                            disableCloseOnSelect
+                            id="tags-outlined"
+                            options={options || []}
+                            isOptionEqualToValue={(option, value) =>
+                              option.label == value.label
+                            }
+                            getOptionLabel={(option) => option.label}
+                            ListboxProps={{
+                              style: {
+                                maxHeight: 200, // altura máxima
+                                overflowY: 'auto', // scroll vertical
+                              },
+                            }}
+                            renderOption={(props, option, { selected }) => {
+                              const { ...optionProps } = props;
+                              const disabled =
+                                value?.length >= capacity && !selected;
+                              return (
+                                <li key={option.label} {...optionProps}>
+                                  <Checkbox
+                                    icon={
+                                      <CheckBoxOutlineBlank fontSize="small" />
+                                    }
+                                    disabled={disabled}
+                                    checkedIcon={<CheckBox fontSize="small" />}
+                                    style={{
+                                      marginLeft: '-10px',
+                                      marginRight: '5px',
+                                    }}
+                                    checked={selected}
+                                  />
+                                  {option.label}
+                                </li>
+                              );
+                            }}
+                            onChange={(_, newValue) => {
+                              if (newValue.length <= (value?.length || 0)) {
+                                // Removendo alguém → sempre deixa
+                                onChange(newValue);
+                              } else if (newValue.length <= capacity) {
+                                // Adicionando → só deixa se não passar da capacidade
+                                onChange(newValue);
+                              }
+                            }}
+                            value={value || []}
+                            renderInput={(params) => (
+                              <TextField
+                                {...params}
+                                placeholder="Participantes"
+                              />
+                            )}
+                          />
+                        </>
+                      );
+                    }}
                   />
                 </Grid>
               </Grid>
