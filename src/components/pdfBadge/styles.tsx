@@ -26,7 +26,7 @@ const stylesPdfRooms = StyleSheet.create({
     width: '100%',
     height: '100%',
     objectFit: 'cover',
-    opacity: 0.1,
+    opacity: 0.5,
   },
   headerBadge: {
     width: '100%',
@@ -36,10 +36,10 @@ const stylesPdfRooms = StyleSheet.create({
     alignItems: 'center',
   },
   image: {
-    height: 50,
+    height: 40,
   },
   imageEvent: {
-    height: 120,
+    height: 160,
     objectFit: 'contain',
   },
   textName: {
