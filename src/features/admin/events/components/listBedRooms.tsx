@@ -159,6 +159,14 @@ function ListBedRooms({ search }: { search: string }) {
       width: 35,
       height: 35,
     },
+    twoLinesText: {
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      display: '-webkit-box',
+      WebkitLineClamp: 2,
+      WebkitBoxOrient: 'vertical',
+      width:"fit-content",
+    },
   };
 
   return (
@@ -168,7 +176,7 @@ function ListBedRooms({ search }: { search: string }) {
         {paginatedData.map((bedroom) => (
           <Grid item xs={12} md={6} xl={4} key={bedroom.id}>
             <Card sx={styles.card}>
-              <Stack direction="row" alignItems="center"  gap={1}>
+              <Stack direction="row" alignItems="center" gap={1}>
                 <Box sx={styles.iconWrapper}>
                   <Bed sx={{ fontSize: '20px' }} />
                 </Box>
@@ -176,9 +184,16 @@ function ListBedRooms({ search }: { search: string }) {
                   <Typography sx={styles.roomName}>
                     {bedroom.name || 'Quarto sem nome'}
                   </Typography>
-                  <Typography variant="caption" mt={-0.5}>
-                    {bedroom.note}
-                  </Typography>
+                  {/* duas linhas no máximo para a nota do quarto */}
+                  <Tooltip title={bedroom.note || ''} arrow>
+                    <Typography
+                      variant="caption"
+                      sx={styles.twoLinesText}
+                      mt={-0.5}
+                    >
+                      {bedroom.note}
+                    </Typography>
+                  </Tooltip>
                 </Stack>
               </Stack>
               <Stack direction="row" flexWrap="wrap" gap={1}>
@@ -191,7 +206,7 @@ function ListBedRooms({ search }: { search: string }) {
                   Nenhum usuário atribuído
                 </Typography>
               ) : (
-                <Stack direction="column"  gap={1}>
+                <Stack direction="column" gap={1}>
                   <Stack
                     direction="row"
                     alignItems="center"
@@ -203,10 +218,13 @@ function ListBedRooms({ search }: { search: string }) {
                     <Typography variant="body2">
                       {bedroom.users.length || 0}/{bedroom.capacity || 0} (
                       <b>
-                        {(
-                          (bedroom.users.length / bedroom.capacity) *
-                          100
-                        ).toFixed(0)}
+                        {isNaN(bedroom.users.length / bedroom.capacity) ||
+                        !isFinite(bedroom.users.length / bedroom.capacity)
+                          ? 0
+                          : (
+                              (bedroom.users.length / bedroom.capacity || 0) *
+                              100
+                            ).toFixed(0)}
                         %
                       </b>
                       )

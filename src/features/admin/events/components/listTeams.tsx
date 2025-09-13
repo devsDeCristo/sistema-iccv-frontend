@@ -159,6 +159,14 @@ function ListTeams({ search }: { search: string }) {
       width: 35,
       height: 35,
     },
+        twoLinesText: {
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      display: '-webkit-box',
+      WebkitLineClamp: 2,
+      WebkitBoxOrient: 'vertical',
+      width:"fit-content",
+    },
   };
 
   return (
@@ -176,9 +184,15 @@ function ListTeams({ search }: { search: string }) {
                   <Typography sx={styles.roomName}>
                     {team.name || 'Quarto sem nome'}
                   </Typography>
-                  <Typography variant="caption" mt={-0.5}>
-                    {team.note}
-                  </Typography>
+                  <Tooltip title={team.note || ''} arrow>
+                    <Typography
+                      variant="caption"
+                      sx={styles.twoLinesText}
+                      mt={-0.5}
+                    >
+                      {team.note}
+                    </Typography>
+                  </Tooltip>
                 </Stack>
               </Stack>
               <Box>
@@ -192,12 +206,16 @@ function ListTeams({ search }: { search: string }) {
                   </Typography>
                   <Typography variant="body2">
                     {team.users.length || 0}/{team.capacity || 0} (
-                    <b>
-                      {((team.users.length / team.capacity) * 100 || 0).toFixed(
-                        0
-                      )}
-                      %
-                    </b>
+                   <b>
+                        {isNaN(team.users.length / team.capacity) ||
+                        !isFinite(team.users.length / team.capacity)
+                          ? 0
+                          : (
+                              (team.users.length / team.capacity || 0) *
+                              100
+                            ).toFixed(0)}
+                        %
+                      </b>
                     )
                   </Typography>
                 </Stack>
