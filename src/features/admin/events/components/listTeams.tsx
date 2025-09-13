@@ -127,10 +127,11 @@ function ListTeams({ search }: { search: string }) {
     roomName: {
       fontSize: '1.3rem',
       fontWeight: 500,
-      maxWidth: '80%',
+      maxWidth: '85%',
       textOverflow: 'ellipsis',
       overflow: 'hidden',
       whiteSpace: 'nowrap',
+       width:"fit-content",
     },
     chip: {
       margin: '2px',
@@ -180,10 +181,12 @@ function ListTeams({ search }: { search: string }) {
                 <Box sx={styles.iconWrapper}>
                   <Diversity3 sx={{ fontSize: '20px' }} />
                 </Box>
-                <Stack sx={{ width: '100%' }}>
-                  <Typography sx={styles.roomName}>
-                    {team.name || 'Quarto sem nome'}
-                  </Typography>
+                <Stack sx={{ width: '90%' }}>
+                  <Tooltip title={team.name || ''} arrow>
+                    <Typography sx={styles.roomName}>
+                      {team.name || 'Quarto sem nome'}
+                    </Typography>
+                  </Tooltip>
                   <Tooltip title={team.note || ''} arrow>
                     <Typography
                       variant="caption"
@@ -195,7 +198,7 @@ function ListTeams({ search }: { search: string }) {
                   </Tooltip>
                 </Stack>
               </Stack>
-              <Box>
+               <Stack direction="column" gap={1}>
                 <Stack
                   direction="row"
                   alignItems="center"
@@ -224,7 +227,7 @@ function ListTeams({ search }: { search: string }) {
                   value={(team.users.length / team.capacity) * 100 || 0}
                   sx={styles.progressBar}
                 />
-              </Box>
+              </Stack>
               {team.users.length === 0 ? (
                 <Stack
                   justifyContent="center"

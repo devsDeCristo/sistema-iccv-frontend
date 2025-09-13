@@ -127,10 +127,11 @@ function ListBedRooms({ search }: { search: string }) {
     roomName: {
       fontSize: '1.3rem',
       fontWeight: 500,
-      maxWidth: '80%',
+      maxWidth: '85%',
       textOverflow: 'ellipsis',
       overflow: 'hidden',
       whiteSpace: 'nowrap',
+       width:"fit-content",
     },
     chip: {
       margin: '2px',
@@ -180,10 +181,12 @@ function ListBedRooms({ search }: { search: string }) {
                 <Box sx={styles.iconWrapper}>
                   <Bed sx={{ fontSize: '20px' }} />
                 </Box>
-                <Stack sx={{ width: '100%' }}>
-                  <Typography sx={styles.roomName}>
-                    {bedroom.name || 'Quarto sem nome'}
-                  </Typography>
+                <Stack sx={{ width: '90%' }}>
+                  <Tooltip title={bedroom.name || ''} arrow>
+                    <Typography sx={styles.roomName}>
+                      {bedroom.name || 'Quarto sem nome'}
+                    </Typography>
+                  </Tooltip>
                   {/* duas linhas no máximo para a nota do quarto */}
                   <Tooltip title={bedroom.note || ''} arrow>
                     <Typography
