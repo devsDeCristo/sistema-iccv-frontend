@@ -3,7 +3,7 @@ import { Page, Text, View, Document, Font, Image } from '@react-pdf/renderer';
 import { stylesPdfEnvelope } from './styles';
 import type { PdfProps } from './types';
 import logoIc from '../../assets/logo-ic-preta.png';
-import logoEvento from '../../assets/8-cur-mas.png';
+import logoEvento from '../../assets/6-curs-fem.png';
 import bgbadge from '../../assets/galo.png';
 Font.register({
   family: 'Helvetica',

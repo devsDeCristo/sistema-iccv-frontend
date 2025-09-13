@@ -69,7 +69,13 @@ function List({ search }: { search: string }) {
       width: 100,
       align: 'center',
       headerAlign: 'center',
-      renderCell: (params) => <CustomChip label={params.value || "Cursilho"}  size="small"  customColor={theme.palette.chips.default } />,
+      renderCell: (params) => (
+        <CustomChip
+          label={params.value || 'Cursilho'}
+          size="small"
+          customColor={theme.palette.chips.default}
+        />
+      ),
     },
     {
       field: 'capacity',
@@ -164,7 +170,11 @@ function List({ search }: { search: string }) {
       renderCell: (params) => (
         <CustomChip
           label={params.value ? 'Ativo' : 'Inativo'}
-          customColor={params.value ? theme.palette.chips.success : theme.palette.chips.canceled}
+          customColor={
+            params.value
+              ? theme.palette.chips.success
+              : theme.palette.chips.canceled
+          }
           size="small"
         />
       ),
@@ -191,7 +201,7 @@ function List({ search }: { search: string }) {
           </Tooltip>
           <Tooltip title="Editar">
             <IconButton
-            disabled={true}
+              // disabled={true}
               onClick={() => navigate(`/admin/eventos/${params.row.id}/editar`)}
               sx={{ color: theme.palette.text.primary }}
               size="medium"

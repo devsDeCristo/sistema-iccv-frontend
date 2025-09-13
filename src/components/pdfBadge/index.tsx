@@ -2,8 +2,8 @@ import { Page, Text, View, Document, Font, Image } from '@react-pdf/renderer';
 import { stylesPdfRooms } from './styles';
 import type { PdfProps } from './types';
 import logoIc from '../../assets/logo-ic-preta.png';
-import logoEvento from '../../assets/8-cur-mas.png';
-import bgbadge from '../../assets/galo.png';
+import logoEvento from '../../assets/6-curs-fem.png';
+import bgbadge from '../../assets/fundo-cracha.png';
 
 Font.register({
   family: 'Helvetica',
