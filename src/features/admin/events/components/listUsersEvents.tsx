@@ -10,6 +10,7 @@ import {
   Menu,
   MenuItem,
   Tooltip,
+  useTheme,
 } from '@mui/material';
 import { formatDate } from '../../../../utils';
 import {
@@ -69,6 +70,7 @@ function ListUsers({
   );
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const openMenu = Boolean(anchorEl);
+   const theme = useTheme();
   const [rowSelected, setRowSelected] = useState<User | null>(null);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [openModalEditWork, setOpenModalEditWork] = useState(false);
@@ -314,6 +316,27 @@ function ListUsers({
         slots={{
           toolbar: GridToolbar,
         }}
+        sx={{
+            p: 2,
+            '& .MuiDataGrid-row': {
+              borderTop: '1px solid ' + theme.palette.divider,
+              borderBottom: 'none',
+            },
+            '& .MuiDataGrid-footerContainer': {
+              backgroundColor: 'transparent', // Altera cor do rodapé
+              border: 0,
+              borderTop: `1px solid ${theme.palette.divider}`,
+              height: '40px !important', // Define a altura do rodapé
+              minHeight: '40px !important', // Define a altura do rodapé
+            },
+            '& .MuiDataGrid-cell:focus, & .MuiDataGrid-cell:focus-within': {
+              outline: 'none',
+            },
+            '& .MuiDataGrid-columnHeader:focus, & .MuiDataGrid-columnHeader:focus-within':
+              {
+                outline: 'none',
+              },
+          }}
         pageSizeOptions={[25, 50, 100]}
         checkboxSelection
         initialState={{

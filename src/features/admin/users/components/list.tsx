@@ -9,6 +9,7 @@ import {
   Tooltip,
   MenuItem,
   useTheme,
+  Button,
 } from '@mui/material';
 import {
   DataGrid,
@@ -35,6 +36,7 @@ import { User } from '../../../../types/user';
 import { ModalEditRole } from './modalEditRole';
 import CustomChip from '../../../../components/customChip';
 import { toast } from 'react-toastify';
+import { useNavigate } from 'react-router-dom';
 // const getSelectedRowsToExport = ({
 //   apiRef,
 // }: GridGetRowsToExportParams): GridRowId[] => {
@@ -51,7 +53,6 @@ const renderCellWithCopy = (value: string | number) => {
     //alert('Conteúdo copiado para a área de transferência!');
     toast.success('Conteúdo copiado para a área de transferência!');
   };
-  
 
   return (
     <Tooltip title="Clique para copiar">
@@ -79,6 +80,7 @@ function List({ search }: { search: string }) {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [rowSelected, setRowSelected] = useState<User | null>(null);
   const theme = useTheme();
+  const navigate = useNavigate();
   if (!Array.isArray(data)) {
     return null;
   }
@@ -92,6 +94,9 @@ function List({ search }: { search: string }) {
     setRowSelected(params.row);
     setSelectedUser(params.row as User);
     setAnchorEl(event.currentTarget);
+  };
+  const onClickEvent = (id: string) => {
+    navigate(`/admin/eventos/${id}/detalhes/usuarios`);
   };
 
   const columns: GridColDef[] = [
@@ -191,16 +196,21 @@ function List({ search }: { search: string }) {
       flex: 4,
       renderCell: (params) => {
         return (
-          <Box>
+          <>
             {(params.row.events || []).map((event: any) => (
-              <CustomChip
-                customColor={theme.palette.chips.default}
-                key={event.event.id}
-                label={event.event.name}
-                size="small"
-              />
+              <Button
+                onClick={() => onClickEvent(event.event.id)}
+                sx={{ borderRadius: 5 }}
+              >
+                <CustomChip
+                  customColor={theme.palette.chips.default}
+                  key={event.event.id}
+                  label={event.event.name}
+                  size="small"
+                />
+              </Button>
             ))}
-          </Box>
+          </>
         );
       },
     },
@@ -221,10 +231,18 @@ function List({ search }: { search: string }) {
               />
             ) : // <Chip label="Super Admin" color="primary" variant="outlined" />
             params.row.role === 5 ? (
-              <CustomChip label="Admin" customColor={theme.palette.chips.alert} size="small" />
+              <CustomChip
+                label="Admin"
+                customColor={theme.palette.chips.alert}
+                size="small"
+              />
             ) : (
               // <Chip label="Usuário" color="success" variant="outlined" />
-              <CustomChip label="Usuário" customColor={theme.palette.chips.success} size="small" />
+              <CustomChip
+                label="Usuário"
+                customColor={theme.palette.chips.success}
+                size="small"
+              />
               // <Chip label="Indefinido" variant="outlined" />
             )}
           </Box>
@@ -339,6 +357,13 @@ function List({ search }: { search: string }) {
             height: '40px !important', // Define a altura do rodapé
             minHeight: '40px !important', // Define a altura do rodapé
           },
+          '& .MuiDataGrid-cell:focus, & .MuiDataGrid-cell:focus-within': {
+            outline: 'none',
+          },
+          '& .MuiDataGrid-columnHeader:focus, & .MuiDataGrid-columnHeader:focus-within':
+            {
+              outline: 'none',
+            },
         }}
         localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
       />

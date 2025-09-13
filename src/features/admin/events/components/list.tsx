@@ -248,6 +248,13 @@ function List({ search }: { search: string }) {
             height: '40px !important', // Define a altura do rodapé
             minHeight: '40px !important', // Define a altura do rodapé
           },
+          '& .MuiDataGrid-cell:focus, & .MuiDataGrid-cell:focus-within': {
+            outline: 'none',
+          },
+          '& .MuiDataGrid-columnHeader:focus, & .MuiDataGrid-columnHeader:focus-within':
+            {
+              outline: 'none',
+            },
         }}
         localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
       />

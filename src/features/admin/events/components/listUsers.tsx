@@ -181,14 +181,14 @@ function ListUsers({
       // maxWidth: 300,
       renderCell: (params) => renderCellWithCopy(params.row.fullName),
     },
-  {
-       field: 'cpf',
-       headerName: 'CPF',
-       flex: 1,
-       minWidth: 140,
-       renderCell: (params) => renderCellWithCopy(formatCPF(params.row.cpf)),
-     },
-   {
+    {
+      field: 'cpf',
+      headerName: 'CPF',
+      flex: 1,
+      minWidth: 140,
+      renderCell: (params) => renderCellWithCopy(formatCPF(params.row.cpf)),
+    },
+    {
       field: 'birthday',
       headerName: 'Data de nascimento',
       flex: 1,
@@ -560,6 +560,13 @@ function ListUsers({
               height: '40px !important', // Define a altura do rodapé
               minHeight: '40px !important', // Define a altura do rodapé
             },
+            '& .MuiDataGrid-cell:focus, & .MuiDataGrid-cell:focus-within': {
+              outline: 'none',
+            },
+            '& .MuiDataGrid-columnHeader:focus, & .MuiDataGrid-columnHeader:focus-within':
+              {
+                outline: 'none',
+              },
           }}
           localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
         />
