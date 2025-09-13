@@ -4,6 +4,8 @@ import { InputDatePicker } from '../../../../components/inputDatePicker';
 import { Controller, useFormContext } from 'react-hook-form';
 import { RegisterEventFormType } from '../types';
 import { onlyNumber } from '../../../../utils';
+import { InputSelect } from '../../../../components/inputSelect';
+import { OPTIONS_STATUS } from '../constants';
 
 function Form() {
   const {
@@ -32,14 +34,13 @@ function Form() {
       <Grid item xs={12} md={6}>
         <Controller
           control={control}
-          name="groupLink"
+          name="isActive"
           render={({ field: { onChange, value } }) => (
-            <Input
+            <InputSelect
+              label="Status do evento"
+              menuOptions={OPTIONS_STATUS}
               value={value}
               onChange={onChange}
-              label="Link do grupo de whatsapp"
-              // error={!!errors.name}
-              // errorMessage={errors.groupLink?.message}
             />
           )}
         />
@@ -132,6 +133,21 @@ function Form() {
               value={value as unknown as Date}
               onChange={onChange}
               errorMessage={errors.endDate?.message}
+            />
+          )}
+        />
+      </Grid>{' '}
+      <Grid item xs={12} md={12}>
+        <Controller
+          control={control}
+          name="groupLink"
+          render={({ field: { onChange, value } }) => (
+            <Input
+              value={value}
+              onChange={onChange}
+              label="Link do grupo de whatsapp"
+              error={!!errors.groupLink}
+              errorMessage={errors.groupLink?.message}
             />
           )}
         />
