@@ -44,7 +44,9 @@ function PdfBedRooms({ data }: PdfRoomsProps) {
               >
                 {/* <View style={stylesPdfRooms.cell}> */}
                 <Text style={stylesPdfRooms.textName}>
-                  <Text style={stylesPdfRooms.textNameBold}>{idx + '. '}</Text>{' '}
+                  <Text style={stylesPdfRooms.textNameBold}>
+                    {(idx + 1).toString() + '. '}
+                  </Text>{' '}
                   {user.fullName}
                 </Text>
                 {/* </View> */}
