@@ -42,4 +42,5 @@ export const REGISTER_EVENT_SCHEMA = z.object({
     required_error: DEFAULT_MESSAGE,
   }),
   groupLink: z.string().optional(),
+  isActive: z.boolean().optional(),
 });

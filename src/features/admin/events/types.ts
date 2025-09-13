@@ -19,23 +19,23 @@ export interface Event {
   users?: User[];
 }
 export interface filterUsers {
-  birthday: { startDate: string|null; endDate: string|null };
-  city: string|null;
-  neighborhood: string|null;
+  birthday: { startDate: string | null; endDate: string | null };
+  city: string | null;
+  neighborhood: string | null;
 }
 
 export interface Insights {
-   totalEvents:number;
-   totalEventsActive:number;
-   timeToFillHours: number;
-   eventsInCurrentQuarter:number
+  totalEvents: number;
+  totalEventsActive: number;
+  timeToFillHours: number;
+  eventsInCurrentQuarter: number;
 }
 
 export interface Bedroom {
   id: string;
   name: string;
   capacity: number;
-  tag:String[];
+  tag: String[];
   note: string | null;
   event: Event;
   users: User[];
