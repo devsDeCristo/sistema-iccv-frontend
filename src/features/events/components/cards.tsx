@@ -2,7 +2,7 @@ import {
   Paper,
   CardContent,
   Typography,
-  Chip,
+  // Chip,
   Box,
   LinearProgress,
   Stack,
@@ -55,7 +55,7 @@ function EventCard({ event }: { event: Event }) {
     chipEvento: { background: '#e0f2ff', color: '#0077cc' },
 
     cardContent: {
-      pt:6,
+      pt: 6,
       mb: 4,
       display: 'flex',
       flexDirection: 'column',
@@ -99,18 +99,26 @@ function EventCard({ event }: { event: Event }) {
             label="evento"
             color="primary"
             size="small"
-  
             customColor={theme.palette.chips.info}
           />
         </Box>
         <Box sx={styles.chipTopRight}>
           <CustomChip
             label={
-              event.isActive ? exhausted ? 'Esgotado' :'Aberto' : 'Finalizado'
+              event.isActive
+                ? exhausted
+                  ? 'Esgotado'
+                  : 'Aberto'
+                : 'Finalizado'
             }
             size="small"
-            customColor={event.isActive ? (exhausted ? theme.palette.chips.canceled : theme.palette.chips.success) : theme.palette.text.primary}
-
+            customColor={
+              event.isActive
+                ? exhausted
+                  ? theme.palette.chips.canceled
+                  : theme.palette.chips.success
+                : theme.palette.text.primary
+            }
           />
         </Box>
       </Box>
