@@ -15,7 +15,7 @@ Font.register({
 function PdfBedRooms({ data }: PdfRoomsProps) {
   return (
     <Document>
-      {data.map(({ users, note, id }, index) => (
+      {data.map(({ users, note, id, name }, index) => (
         <Page
           key={id + index}
           orientation="portrait"
@@ -27,7 +27,7 @@ function PdfBedRooms({ data }: PdfRoomsProps) {
             <Image style={stylesPdfRooms.image} src={logoCursilho} />
           </View>
           <View fixed style={stylesPdfRooms.decuria}>
-            <Text style={stylesPdfRooms.title}>{note}</Text>
+            <Text style={stylesPdfRooms.title}>{name + ' - ' + note}</Text>
           </View>
           <View style={stylesPdfRooms.containerRow}>
             {users?.map((user, idx) => (
