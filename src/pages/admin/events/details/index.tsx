@@ -10,6 +10,7 @@ import {
   Paper,
   InputAdornment,
   Chip,
+  LinearProgress,
 } from '@mui/material';
 
 import { useNavigate, useParams } from 'react-router-dom';
@@ -55,6 +56,7 @@ function Details() {
   const [pageValue, setPageValue] = useState(subPage || 'usuarios');
   const [openModalAddUser, setOpenModalAddUser] = useState(false);
   const [openModalFilter, setOpenModalFilter] = useState(false);
+  const [loadingPdf, setLoadingPdf] = useState(false);
   const [filtersUsers, setFiltersUsers] = useState<filterUsers>({
     birthday: { startDate: '', endDate: '' },
     city: '',
@@ -120,40 +122,52 @@ function Details() {
   };
 
   useEffect(() => {
-    let cont=0;
-    if(filtersUsers.birthday.startDate || filtersUsers.birthday.endDate) cont++;
-    if(filtersUsers.city) cont++;
-    if(filtersUsers.neighborhood) cont++;
+    let cont = 0;
+    if (filtersUsers.birthday.startDate || filtersUsers.birthday.endDate)
+      cont++;
+    if (filtersUsers.city) cont++;
+    if (filtersUsers.neighborhood) cont++;
     setFiltersUsersSelected(cont);
-
   }, [filtersUsers]);
 
   async function handleDownloadPDF(type: number) {
+    setLoadingPdf(true);
+    await generatePDF(type);
+  }
+  async function generatePDF(type: number) {
     if (!eventData || Array.isArray(eventData)) {
       return null;
     }
-    let blob;
-    if (type === 0) {
-      blob = await pdf(
-        <PdfEvent
-          data={teamsData as unknown as Event[]}
-          textFooter={'05 à a 08 de setembro de 2024'}
-        />
-      ).toBlob();
-      FileSaver.saveAs(blob, 'quadrantes.pdf');
-    } else if (type === 1) {
-      blob = await pdf(<PdfBedRooms data={bedroomsData} />).toBlob();
-      FileSaver.saveAs(blob, 'quartos.pdf');
-    } else if (type === 2) {
-      blob = await pdf(
-        <PdfEnvelope data={usersData?.filter(({ worker }) => !worker) || []} />
-      ).toBlob();
-      FileSaver.saveAs(blob, 'envelopes.pdf');
-    } else {
-      blob = await pdf(<PdfBadge data={usersData || []} />).toBlob();
-      FileSaver.saveAs(blob, 'crachas.pdf');
-    }
+
+    setTimeout(async () => {
+      let blob;
+
+      if (type === 0) {
+        blob = await pdf(
+          <PdfEvent
+            data={teamsData as unknown as Event[]}
+            textFooter={'05 à a 08 de setembro de 2024'}
+          />
+        ).toBlob();
+        FileSaver.saveAs(blob, 'quadrantes.pdf');
+      } else if (type === 1) {
+        blob = await pdf(<PdfBedRooms data={bedroomsData} />).toBlob();
+        FileSaver.saveAs(blob, 'quartos.pdf');
+      } else if (type === 2) {
+        blob = await pdf(
+          <PdfEnvelope
+            data={usersData?.filter(({ worker }) => !worker) || []}
+          />
+        ).toBlob();
+        FileSaver.saveAs(blob, 'envelopes.pdf');
+      } else {
+        blob = await pdf(<PdfBadge data={usersData || []} />).toBlob();
+        FileSaver.saveAs(blob, 'crachas.pdf');
+      }
+      setLoadingPdf(false);
+    }, 50);
   }
+
   const handleChange = (_: unknown, newValue: string) => {
     setPageValue(newValue);
     navigate(`/admin/eventos/${id}/detalhes/${newValue}`);
@@ -293,15 +307,13 @@ function Details() {
                     size="small"
                     color="primary"
                     sx={{
-                      p:0,
+                      p: 0,
                       position: 'absolute',
                       top: -7,
                       right: -7,
-                      
                     }}
                   />
                 )}
-                
               </Stack>
               <Button
                 variant="outlined"
@@ -354,13 +366,18 @@ function Details() {
             />
             {/* <Typography color="#000">Quartos</Typography> */}
             <Stack sx={styles.stackButtons}>
-              <Button
-                variant="outlined"
-                onClick={() => handleDownloadPDF(1)}
-                startIcon={<BedOutlined />}
-              >
-                PDF quartos
-              </Button>
+              <Box>
+                <Button
+                  variant="outlined"
+                  onClick={() => handleDownloadPDF(1)}
+                  startIcon={<BedOutlined />}
+                  disabled={loadingPdf}
+                >
+                  PDF quartos
+                </Button>
+
+                {loadingPdf && <LinearProgress />}
+              </Box>
               <Button
                 variant="contained"
                 onClick={() => setOpenModalBedRoom(true)}
@@ -387,13 +404,17 @@ function Details() {
             />
             {/* <Typography color="#000">Times</Typography> */}
             <Stack sx={styles.stackButtons}>
-              <Button
-                variant="outlined"
-                onClick={() => handleDownloadPDF(0)}
-                startIcon={<ViewModuleOutlined />}
-              >
-                PDF Quadrantes
-              </Button>
+              <Box>
+                <Button
+                  variant="outlined"
+                  onClick={() => handleDownloadPDF(0)}
+                  startIcon={<ViewModuleOutlined />}
+                  disabled={loadingPdf}
+                >
+                  PDF Quadrantes
+                </Button>
+                {loadingPdf && <LinearProgress />}
+              </Box>
               <Button
                 variant="contained"
                 onClick={() => setOpenModalTeam(true)}
