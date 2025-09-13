@@ -2,7 +2,7 @@ import { StyleSheet } from '@react-pdf/renderer';
 const stylesPdfRooms = StyleSheet.create({
   body: {
     paddingTop: 25,
-    paddingHorizontal: 25,
+    paddingHorizontal: 40,
     paddingBottom: '80px',
   },
   page: {
@@ -20,7 +20,11 @@ const stylesPdfRooms = StyleSheet.create({
     height: '125px',
   },
   title: {
-    fontSize: 15,
+    fontSize: 20,
+    fontFamily: 'Helvetica-Bold',
+  },
+  subTitle: {
+    fontSize: 16,
     fontFamily: 'Helvetica',
   },
   text: {
@@ -30,7 +34,15 @@ const stylesPdfRooms = StyleSheet.create({
     width: '100%',
   },
   textName: {
-    fontSize: 11,
+    fontSize: 16,
+    padding: 3,
+    fontFamily: 'Helvetica',
+    maxWidth: '100%',
+    display: 'flex',
+    flexWrap: 'wrap',
+  },
+  textNameBold: {
+    fontSize: 16,
     padding: 3,
     fontFamily: 'Helvetica-Bold',
     maxWidth: '100%',
@@ -42,13 +54,14 @@ const stylesPdfRooms = StyleSheet.create({
     //flexWrap: 'wrap',
     width: 'auto',
     gap: -1,
+    marginTop: 10,
     marginBottom: '200px',
   },
   row: {
     width: '100%',
     display: 'flex',
     flexDirection: 'row',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     gap: -1,
   },
   cell: {
@@ -60,12 +73,13 @@ const stylesPdfRooms = StyleSheet.create({
     flexDirection: 'row',
   },
   decuria: {
-    margin: 6,
+    // margin: 6,
     marginTop: 10,
+    gap: 2,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'flex-start',
-    flexDirection: 'row',
+    flexDirection: 'column',
   },
   image: { height: 40 },
   imageEvent: {

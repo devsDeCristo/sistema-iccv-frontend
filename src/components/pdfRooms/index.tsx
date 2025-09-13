@@ -27,18 +27,27 @@ function PdfBedRooms({ data }: PdfRoomsProps) {
             <Image style={stylesPdfRooms.image} src={logoCursilho} />
           </View>
           <View fixed style={stylesPdfRooms.decuria}>
-            <Text style={stylesPdfRooms.title}>{name + ' - ' + note}</Text>
+            <Text style={stylesPdfRooms.title}>{name.toLocaleUpperCase()}</Text>
+            <Text style={stylesPdfRooms.subTitle}>{note}</Text>
           </View>
+
           <View style={stylesPdfRooms.containerRow}>
+            {' '}
+            <Text style={stylesPdfRooms.textNameBold}>
+              {`Lista de participantes:`}
+            </Text>
             {users?.map((user, idx) => (
               <View
                 key={'quartos-pdf' + idx}
                 style={stylesPdfRooms.row}
                 wrap={false}
               >
-                <View style={stylesPdfRooms.cell}>
-                  <Text style={stylesPdfRooms.textName}>{user.fullName}</Text>
-                </View>
+                {/* <View style={stylesPdfRooms.cell}> */}
+                <Text style={stylesPdfRooms.textName}>
+                  <Text style={stylesPdfRooms.textNameBold}>{idx + '. '}</Text>{' '}
+                  {user.fullName}
+                </Text>
+                {/* </View> */}
               </View>
             ))}
           </View>
