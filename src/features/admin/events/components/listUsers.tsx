@@ -507,8 +507,8 @@ function ListUsers({
 
       <Card>
         <DataGrid
-          disableColumnFilter
-          disableDensitySelector
+          // disableColumnFilter
+          // disableDensitySelector
           disableColumnSelector
           apiRef={apiRef}
           getRowHeight={() => 'auto'}
