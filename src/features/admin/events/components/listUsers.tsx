@@ -322,6 +322,7 @@ function ListUsers({
       align: 'center',
       headerAlign: 'center',
       width: 100,
+      valueGetter: (params) => params.row.worker,
       renderCell: (params) => (
         <Typography
           sx={{
@@ -480,8 +481,11 @@ function ListUsers({
       const isNeighborhoodMatch = neighborhood
         ? normalize(user.neighborhood) === normalize(neighborhood)
         : true;
-
-      return isBirthdayMatch && isCityMatch && isNeighborhoodMatch;
+      const isWorkerMatch =
+        filters.worker !== undefined ? user.worker === filters.worker : true;
+      return (
+        isBirthdayMatch && isCityMatch && isNeighborhoodMatch && isWorkerMatch
+      );
     });
   };
 
@@ -491,6 +495,7 @@ function ListUsers({
     setOpenModalEditWork(true);
     handleClose();
   };
+
   return (
     <>
       <Paper>

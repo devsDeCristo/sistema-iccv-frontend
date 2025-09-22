@@ -14,6 +14,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import 'dayjs/locale/pt-br';
 import dayjs from 'dayjs';
+import { InputSelect } from '../../../../components/inputSelect';
 
 interface FilterModalProps {
   open: boolean;
@@ -65,7 +66,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
               <DatePicker
                 label="Data início "
                 views={['month', 'day']}
-                sx={{mt:1}}
+                sx={{ mt: 1 }}
                 format="DD/MMMM"
                 value={
                   filters.birthday.startDate
@@ -86,7 +87,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
                 label="Data fim"
                 format="DD/MMMM"
                 views={['day', 'month']}
-                sx={{mt:1}}
+                sx={{ mt: 1 }}
                 value={
                   filters.birthday.endDate
                     ? dayjs(filters.birthday.endDate)
@@ -121,16 +122,32 @@ const FilterModal: React.FC<FilterModalProps> = ({
                 onChange={(e) => handleChange('neighborhood', e.target.value)}
               />
             </Grid>
+            <Grid item xs={12}>
+              <InputSelect
+                label="Servindo"
+                menuOptions={[
+                  { value: undefined, name: 'Todos' },
+                  { value: true, name: 'Sim' },
+                  { value: false, name: 'Não' },
+                ]}
+                value={filters.worker}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  handleChange('worker', value);
+                }}
+              />
+            </Grid>
           </Grid>
         </LocalizationProvider>
       </DialogContent>
-      <DialogActions>
+      <DialogActions sx={{ px: 3, py: 2, pt: 0 }}>
         <Button
           onClick={() =>
             setFilters({
               birthday: { startDate: '', endDate: '' },
               city: '',
               neighborhood: '',
+              worker: undefined,
             })
           }
         >

@@ -61,6 +61,7 @@ function Details() {
     birthday: { startDate: '', endDate: '' },
     city: '',
     neighborhood: '',
+    worker: undefined,
   });
   const [filtersUsersSelected, setFiltersUsersSelected] = useState<number>(0);
   const { id: eventId = '' } = useParams();

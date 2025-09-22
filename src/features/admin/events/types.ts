@@ -22,6 +22,7 @@ export interface filterUsers {
   birthday: { startDate: string | null; endDate: string | null };
   city: string | null;
   neighborhood: string | null;
+  worker?: boolean;
 }
 
 export interface Insights {
