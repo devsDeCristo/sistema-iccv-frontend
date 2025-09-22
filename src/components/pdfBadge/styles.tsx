@@ -2,7 +2,7 @@ import { StyleSheet } from '@react-pdf/renderer';
 
 const stylesPdfRooms = StyleSheet.create({
   body: {
-    padding: 20,
+    padding: 15,
   },
   container: {
     flexDirection: 'row',
@@ -26,7 +26,7 @@ const stylesPdfRooms = StyleSheet.create({
     width: '100%',
     height: '100%',
     objectFit: 'cover',
-    opacity: 0.5,
+    // opacity: 0.4,
   },
   headerBadge: {
     width: '100%',
@@ -36,10 +36,10 @@ const stylesPdfRooms = StyleSheet.create({
     alignItems: 'center',
   },
   image: {
-    height: 40,
+    height: 30,
   },
   imageEvent: {
-    height: 160,
+    height: 120,
     objectFit: 'contain',
   },
   textName: {
@@ -47,7 +47,19 @@ const stylesPdfRooms = StyleSheet.create({
     fontFamily: 'Helvetica-Bold',
     textAlign: 'center',
     textTransform: 'capitalize',
-    marginTop: 10,
+    // marginTop: 20,
+    top: 260,
+    position: 'absolute',
+  },
+  imagePaper: {
+    // position: 'absolute',
+    // top: -10,
+    // left: 0,
+    // bottom: 10,
+    width: '100%',
+    height: 160,
+    objectFit: 'cover',
+    opacity: 0.7,
   },
 });
 

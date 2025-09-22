@@ -4,7 +4,7 @@ import { stylesPdfEnvelope } from './styles';
 import type { PdfProps } from './types';
 import logoIc from '../../assets/logo-ic-preta.png';
 import logoEvento from '../../assets/6-curs-fem.png';
-import bgbadge from '../../assets/galo.png';
+import bgbadge from '../../assets/fundo-cracha.png';
 Font.register({
   family: 'Helvetica',
   src: 'https://fonts.gstatic.com/s/oswald/v13/Y_TKV6o8WovbUd3m_X9aAA.ttf',

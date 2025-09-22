@@ -4,6 +4,7 @@ import type { PdfProps } from './types';
 import logoIc from '../../assets/logo-ic-preta.png';
 import logoEvento from '../../assets/6-curs-fem.png';
 import bgbadge from '../../assets/fundo-cracha.png';
+import paper from '../../assets/papel-rasgado.png';
 
 Font.register({
   family: 'Helvetica',
@@ -37,6 +38,7 @@ function PdfBadge({ data }: PdfProps) {
                 <View style={stylesPdfRooms.headerBadge}>
                   <Image style={stylesPdfRooms.image} src={logoIc} />
                   <Image style={stylesPdfRooms.imageEvent} src={logoEvento} />
+                  <Image style={stylesPdfRooms.imagePaper} src={paper} />
                 </View>
                 <Text style={stylesPdfRooms.textName}>
                   {user.badgeName?.toLowerCase()}
