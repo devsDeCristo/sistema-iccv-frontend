@@ -10,8 +10,8 @@ const stylesPdfRooms = StyleSheet.create({
     justifyContent: 'space-between',
   },
   badge: {
-    width: '9.5cm', // 2 por linha
-    height: '13.5cm', // 2 por coluna
+    width: '9cm', // 2 por linha
+    height: '11cm', // 2 por coluna
     marginBottom: 10,
     display: 'flex',
     flexDirection: 'column',
@@ -39,7 +39,7 @@ const stylesPdfRooms = StyleSheet.create({
     height: 30,
   },
   imageEvent: {
-    height: 120,
+    height: 100,
     objectFit: 'contain',
   },
   textName: {
@@ -48,7 +48,7 @@ const stylesPdfRooms = StyleSheet.create({
     textAlign: 'center',
     textTransform: 'capitalize',
     // marginTop: 20,
-    top: 260,
+    top: 210,
     position: 'absolute',
   },
   imagePaper: {
@@ -57,7 +57,7 @@ const stylesPdfRooms = StyleSheet.create({
     // left: 0,
     // bottom: 10,
     width: '100%',
-    height: 160,
+    height: 140,
     objectFit: 'cover',
     opacity: 0.7,
   },
