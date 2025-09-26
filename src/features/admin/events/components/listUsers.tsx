@@ -514,7 +514,7 @@ function ListUsers({
         <DataGrid
           // disableColumnFilter
           // disableDensitySelector
-          disableColumnSelector
+          // disableColumnSelector
           apiRef={apiRef}
           getRowHeight={() => 'auto'}
           rows={filteredData(usersData || [])}
