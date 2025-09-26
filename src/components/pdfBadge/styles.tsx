@@ -10,7 +10,7 @@ const stylesPdfRooms = StyleSheet.create({
     justifyContent: 'space-between',
   },
   badge: {
-    width: '9cm', // 2 por linha
+    width: '8.7cm', // 2 por linha
     height: '11cm', // 2 por coluna
     marginBottom: 10,
     display: 'flex',
