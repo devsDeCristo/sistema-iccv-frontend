@@ -62,7 +62,7 @@ const stylesPdfEnvelope = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     gap: '80px',
-    marginTop: '40px',
+    // marginTop: '40px',
   },
   image: {
     height: 80,
