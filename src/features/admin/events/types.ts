@@ -2,6 +2,11 @@ import { User, UserTeam } from '../../../types/user';
 import { z } from 'zod';
 import { REGISTER_EVENT_SCHEMA } from './constants';
 
+//define type for user in event have a addd roleTeam
+export interface UserEvent extends User {
+  roleTeam?: 'LEADER' | 'MEMBER';
+}
+
 export interface Event {
   id: string;
   name: string;
@@ -16,7 +21,7 @@ export interface Event {
   capacity: number;
   capacityWorker: number;
   updateAt: Date;
-  users?: User[];
+  users?: UserEvent[];
 }
 export interface filterUsers {
   birthday: { startDate: string | null; endDate: string | null };
