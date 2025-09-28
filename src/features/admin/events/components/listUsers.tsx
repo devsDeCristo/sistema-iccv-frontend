@@ -444,7 +444,8 @@ function ListUsers({
     let filtered = usersData.filter(
       (user) =>
         user.fullName?.toLowerCase().includes(search.toLowerCase()) ||
-        user.cpf?.includes(search)
+        user.cpf?.includes(search) || 
+        user.badgeName?.toLowerCase().includes(search.toLowerCase())
     );
     filtered = filterUsers(filtered, filters);
     return filtered;

@@ -293,7 +293,8 @@ function ListUsers({
     usersData.filter(
       (user) =>
         user.fullName?.toLowerCase().includes(search.toLowerCase()) ||
-        user.cpf?.includes(search)
+        user.cpf?.includes(search) ||
+        user.badgeName?.toLowerCase().includes(search.toLowerCase())
     );
 
   const handleClickEditWork = (event: React.MouseEvent) => {
