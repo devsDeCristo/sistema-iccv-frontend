@@ -96,7 +96,7 @@ function ModalBedRoom({
           label: tag,
         })),
         note: bedRoom.note,
-        usersId: bedRoom.users.map((user: any) => ({
+        usersId: bedRoom?.users.map((user: any) => ({
           value: user.id,
           label: user.fullName,
         })),
@@ -113,11 +113,13 @@ function ModalBedRoom({
 
   const onSubimitBedroom = (data: any) => {
     const { tags, capacity, ...rest } = data;
+    console.log(data);
+    
     const transoformData = {
       ...rest,
-      tags: tags.map((tag: any) => tag.value),
+      tags: data.tags && data.tags.length > 0 ? data.tags.map((tag: any) => tag.value) : [],
       capacity: Number(capacity),
-      usersId: data.usersId.map((user: any) => user.value),
+      usersId:  data.usersId && data.usersId.length > 0 ? data.usersId.map((user: any) => user.value) : [],
     };
 
     if (bedRoom) {
