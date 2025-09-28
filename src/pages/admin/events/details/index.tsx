@@ -23,7 +23,11 @@ import { ListUsers } from '../../../../features/admin/events/components/listUser
 import PdfEvent from '../../../../components/pdfEvent';
 import FileSaver from 'file-saver';
 import { pdf } from '@react-pdf/renderer';
-import { Event, filterUsers } from '../../../../features/admin/events/types';
+import {
+  Event,
+  filterUsers,
+  Team,
+} from '../../../../features/admin/events/types';
 import { useGetTeams } from '../../../../features/admin/events/api/getTeams';
 import { useGetBedrooms } from '../../../../features/admin/events/api/getBedrooms';
 import PdfBedRooms from '../../../../components/pdfRooms';
@@ -37,12 +41,14 @@ import {
   Download,
   EmailOutlined,
   FilterAltOutlined,
+  People,
   Search,
   ViewModuleOutlined,
 } from '@mui/icons-material';
 import { GridApi, useGridApiRef } from '@mui/x-data-grid';
 import { useGetUsers } from '../../../../features/admin/events/api/getUsers';
 import FilterModal from '../../../../features/admin/events/components/filtersUserModal';
+import PdfTeams from '../../../../components/pdfTeams';
 
 function Details() {
   const { id, subPage } = useParams();
@@ -69,7 +75,7 @@ function Details() {
   const { data: teamsData = [] } = useGetTeams({
     eventId,
   });
-  const teams = teamsData as unknown as Event[];
+  const teams = teamsData as unknown as Team[];
   const { data: bedroomsData = [] } = useGetBedrooms(
     {
       eventId: eventId,
@@ -147,7 +153,7 @@ function Details() {
       if (type === 0) {
         blob = await pdf(
           <PdfEvent
-            data={teamsData as unknown as Event[]}
+            data={teamsData as unknown as Team[]}
             textFooter={'05 à a 08 de setembro de 2024'}
           />
         ).toBlob();
@@ -169,28 +175,54 @@ function Details() {
       setLoadingPdf(false);
     }, 50);
   }
-
-  async function generatePDFEvent() {
-    if (!eventData || Array.isArray(eventData)) {
-      return null;
-    }
-     setLoadingPdf(true);
-    const orderUsersByRoleTeam = teams?.map(team => ({
+  async function generatePDFTeams() {
+    setLoadingPdf(true);
+    const orderUsersByRoleTeam = teams?.map((team) => ({
       ...team,
-      users: team.users?.sort((a, b) => a.roleTeam === b.roleTeam ? a.fullName.localeCompare(b.fullName) : a.roleTeam === 'LEADER' ? -1 : 1)
-    }))
+      usersLeaders:
+        team.users?.filter((user) => user.roleTeam === 'LEADER') || [],
+      usersMembers:
+        team.users?.filter((user) => user.roleTeam === 'MEMBER') || [],
+      event: event, // Add the event property
+      note: team.note || '', // Add the note property, default to empty string if undefined
+    }));
 
     setTimeout(async () => {
       let blob;
 
-        blob = await pdf(
-          <PdfEvent
-            data={orderUsersByRoleTeam}
-            textFooter={'05 à a 08 de setembro de 2024'}
-          />
-        ).toBlob();
-        FileSaver.saveAs(blob, 'quadrantes.pdf');
-      
+      blob = await pdf(<PdfTeams data={orderUsersByRoleTeam} />).toBlob();
+      FileSaver.saveAs(blob, 'quadrantes.pdf');
+
+      setLoadingPdf(false);
+    }, 50);
+  }
+  async function generatePDFEvent() {
+    if (!eventData || Array.isArray(eventData)) {
+      return null;
+    }
+    setLoadingPdf(true);
+    const orderUsersByRoleTeam = teams?.map((team) => ({
+      ...team,
+      users: team.users?.sort((a, b) =>
+        a.roleTeam === b.roleTeam
+          ? a.fullName.localeCompare(b.fullName)
+          : a.roleTeam === 'LEADER'
+          ? -1
+          : 1
+      ),
+    }));
+
+    setTimeout(async () => {
+      let blob;
+
+      blob = await pdf(
+        <PdfEvent
+          data={orderUsersByRoleTeam}
+          textFooter={'05 à a 08 de setembro de 2024'}
+        />
+      ).toBlob();
+      FileSaver.saveAs(blob, 'quadrantes.pdf');
+
       setLoadingPdf(false);
     }, 50);
   }
@@ -431,6 +463,17 @@ function Details() {
             />
             {/* <Typography color="#000">Times</Typography> */}
             <Stack sx={styles.stackButtons}>
+              <Box>
+                <Button
+                  variant="outlined"
+                  onClick={() => generatePDFTeams()}
+                  startIcon={<People />}
+                  disabled={loadingPdf}
+                >
+                  PDF Equipes
+                </Button>
+                {loadingPdf && <LinearProgress />}{' '}
+              </Box>
               <Box>
                 <Button
                   variant="outlined"
