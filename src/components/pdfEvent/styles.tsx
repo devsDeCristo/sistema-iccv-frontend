@@ -101,7 +101,7 @@ const stylesPdf = StyleSheet.create({
     justifyContent: 'flex-start',
     flexDirection: 'row',
   },
-  imagePhoto: { height: 70, width: 50, objectFit: 'cover' },
+  imagePhoto: { height: 70, width: 50, objectFit: 'cover', marginRight: 5 },
   image: { height: 50 },
   imageCover: { height: '100%' },
   imageFooter: {

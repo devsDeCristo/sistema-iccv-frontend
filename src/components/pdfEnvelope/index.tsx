@@ -6,8 +6,8 @@ import logoIc from '../../assets/logo-ic-vermelha.png';
 import logoEvento from '../../assets/6-curs-fem.png';
 import bgbadge from '../../assets/fundo-cracha.png';
 Font.register({
-  family: 'Amethysta',
-  src: 'http://fonts.gstatic.com/s/amethysta/v4/uuO0VFu8kdKx34ju6adj-KCWcynf_cDxXwCLxiixG1c.ttf',
+  family: 'Playball',
+  src: 'http://fonts.gstatic.com/s/playball/v6/bTcyeVjOJ0HzO36ebPilS_esZW2xOQ-xsNqO47m55DA.ttf',
 });
 
 // Create Document Component
@@ -28,7 +28,13 @@ function PdfEnvelope({ data }: PdfProps) {
               <Image style={stylesPdfEnvelope.imageBackground} src={bgbadge} />
               <View style={stylesPdfEnvelope.headerBadge} wrap={false}>
                 <Image style={stylesPdfEnvelope.image} src={logoIc} />
-                <Image style={stylesPdfEnvelope.imageEvent} src={logoEvento} />
+                <Image
+                  style={{
+                    ...stylesPdfEnvelope.imageEvent,
+                    marginTop: '70px',
+                  }}
+                  src={logoEvento}
+                />
               </View>
               <Text wrap={false} style={stylesPdfEnvelope.textName}>
                 {fullName?.toLowerCase()}
