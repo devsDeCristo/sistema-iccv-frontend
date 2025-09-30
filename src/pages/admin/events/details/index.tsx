@@ -43,6 +43,7 @@ import {
   EmailOutlined,
   FilterAltOutlined,
   People,
+  QrCode2Outlined,
   Search,
   ViewModuleOutlined,
 } from '@mui/icons-material';
@@ -51,6 +52,7 @@ import { useGetUsers } from '../../../../features/admin/events/api/getUsers';
 import FilterModal from '../../../../features/admin/events/components/filtersUserModal';
 import PdfTeams from '../../../../components/pdfTeams';
 import { MenuItem } from 'react-pro-sidebar';
+import ModalQrCode from '../../../../features/admin/events/components/modalQrCode';
 
 function Details() {
   const { id, subPage } = useParams();
@@ -74,10 +76,12 @@ function Details() {
   const [filtersUsersSelected, setFiltersUsersSelected] = useState<number>(0);
   const { id: eventId = '' } = useParams();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [openModalQrCode, setOpenModalQrCode] = useState(false);
   const openMenu = Boolean(anchorEl);
   const handleClickOpenMenu = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
   };
+  const handleCloseModalQrCode = () => setOpenModalQrCode(false);
   const handleCloseMenu = () => {
     setAnchorEl(null);
   };
@@ -497,6 +501,14 @@ function Details() {
                 {loadingPdf && <LinearProgress />}
               </Box>
               <Button
+                variant="outlined"
+                onClick={() => setOpenModalQrCode(true)}
+                startIcon={<QrCode2Outlined />}
+                disabled={loadingPdf}
+              >
+                Gerar QR Code
+              </Button>
+              <Button
                 variant="contained"
                 onClick={() => setOpenModalTeam(true)}
               >
@@ -553,6 +565,11 @@ function Details() {
         </MenuItem>
         <MenuItem onClick={handleCloseMenu}>Fotos (Sem nome)</MenuItem>
       </Menu>
+
+      <ModalQrCode
+        open={openModalQrCode}
+        handleClose={handleCloseModalQrCode}
+      />
     </PageStyle>
   );
 }
