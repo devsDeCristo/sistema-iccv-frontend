@@ -11,6 +11,7 @@ import {
   InputAdornment,
   Chip,
   LinearProgress,
+  Menu,
 } from '@mui/material';
 
 import { useNavigate, useParams } from 'react-router-dom';
@@ -49,6 +50,7 @@ import { GridApi, useGridApiRef } from '@mui/x-data-grid';
 import { useGetUsers } from '../../../../features/admin/events/api/getUsers';
 import FilterModal from '../../../../features/admin/events/components/filtersUserModal';
 import PdfTeams from '../../../../components/pdfTeams';
+import { MenuItem } from 'react-pro-sidebar';
 
 function Details() {
   const { id, subPage } = useParams();
@@ -71,7 +73,14 @@ function Details() {
   });
   const [filtersUsersSelected, setFiltersUsersSelected] = useState<number>(0);
   const { id: eventId = '' } = useParams();
-
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const openMenu = Boolean(anchorEl);
+  const handleClickOpenMenu = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+  const handleCloseMenu = () => {
+    setAnchorEl(null);
+  };
   const { data: teamsData = [] } = useGetTeams({
     eventId,
   });
@@ -383,11 +392,13 @@ function Details() {
               </Button>
               <Button
                 variant="outlined"
-                onClick={() => handleDownloadPDF(2)}
+                onClick={handleClickOpenMenu}
+                // onClick={() => handleDownloadPDF(2)}
                 startIcon={<EmailOutlined />}
               >
                 PDF Envelopes
               </Button>
+
               <Button
                 variant="outlined"
                 onClick={() => handleDownloadPDF(3)}
@@ -525,6 +536,23 @@ function Details() {
         handleClose={() => setOpenModalTeam(false)}
         eventId={id || ''}
       />
+
+      <Menu
+        id="basic-menu"
+        anchorEl={anchorEl}
+        open={openMenu}
+        onClose={handleCloseMenu}
+        // slotProps={{
+        //   list: {
+        //     'aria-labelledby': 'basic-button',
+        //   },
+        // }}
+      >
+        <MenuItem onClick={() => handleDownloadPDF(2)}>
+          Cartas (Com nome)
+        </MenuItem>
+        <MenuItem onClick={handleCloseMenu}>Fotos (Sem nome)</MenuItem>
+      </Menu>
     </PageStyle>
   );
 }

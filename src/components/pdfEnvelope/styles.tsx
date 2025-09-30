@@ -24,11 +24,12 @@ const stylesPdfEnvelope = StyleSheet.create({
     fontSize: 35,
     padding: 3,
     paddingTop: -20,
-    fontFamily: 'Helvetica-Bold',
+    fontFamily: 'Amethysta',
     maxWidth: '80%',
     display: 'flex',
     flexWrap: 'nowrap',
     textAlign: 'center',
+    color: '#6D1D2A',
     textTransform: 'capitalize',
   },
   container: {
