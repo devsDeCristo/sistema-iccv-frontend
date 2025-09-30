@@ -230,7 +230,7 @@ function List({ search }: { search: string }) {
                 size="small"
               />
             ) : // <Chip label="Super Admin" color="primary" variant="outlined" />
-            params.row.role === 5 ? (
+            params.row.role === 2 ? (
               <CustomChip
                 label="Admin"
                 customColor={theme.palette.chips.alert}
