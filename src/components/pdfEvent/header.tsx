@@ -11,7 +11,7 @@ function HeaderPdf() {
   return (
     <View style={stylesPdf.header} fixed>
       <Image style={stylesPdf.imageBackground} src={fundo} />
-      <Image style={stylesPdf.image} src={logoIc} />
+      <Image style={{ ...stylesPdf.image, marginLeft: '18px' }} src={logoIc} />
       <Image style={stylesPdf.imageEvent} src={logoEvento} />
       <Image style={stylesPdf.image} src={logoCursilho} />
     </View>

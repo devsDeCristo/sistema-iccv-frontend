@@ -6,8 +6,14 @@ function UserRectangle({ user }: UserRectangleProps) {
   return (
     <View style={stylesPdf.cell} wrap={false}>
       {user.profilePhotoUrl ? (
-        <Image style={stylesPdf.image} src={user.profilePhotoUrl} source={''} />
-      ) : null}
+        <Image
+          style={stylesPdf.imagePhoto}
+          src={user.profilePhotoUrl}
+          source={''}
+        />
+      ) : (
+        <View style={stylesPdf.imagePhoto} />
+      )}
       <View style={stylesPdf.columnUser}>
         <Text style={stylesPdf.textName}>{user.fullName}</Text>
         <Text style={stylesPdf.text}>
