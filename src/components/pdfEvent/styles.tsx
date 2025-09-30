@@ -101,7 +101,14 @@ const stylesPdf = StyleSheet.create({
     justifyContent: 'flex-start',
     flexDirection: 'row',
   },
-  imagePhoto: { height: 60, width: 50, objectFit: 'cover', marginRight: 5 },
+  imagePhoto: {
+    height: 65,
+    width: 50,
+    objectFit: 'cover',
+    marginRight: 5,
+    backgroundColor: '#EDEDED',
+  },
+
   image: { height: 50 },
   imageCover: { height: '100%' },
   imageFooter: {
