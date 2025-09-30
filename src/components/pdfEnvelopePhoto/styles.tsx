@@ -77,7 +77,7 @@ const stylesPdfEnvelopePhoto = StyleSheet.create({
     opacity: 0.5,
   },
   imageEvent: {
-    height: 250,
+    height: 300,
     objectFit: 'fill',
   },
 });

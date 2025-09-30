@@ -68,7 +68,6 @@ function Details() {
   const [pageValue, setPageValue] = useState(subPage || 'usuarios');
   const [openModalAddUser, setOpenModalAddUser] = useState(false);
   const [openModalFilter, setOpenModalFilter] = useState(false);
-  const [loadingPdf, setLoadingPdf] = useState(false);
   const [loadingPdfTeams, setLoadingPdfTeams] = useState(false);
   const [loadingPdfEvent, setLoadingPdfEvent] = useState(false);
   const [loadingPdfBadge, setLoadingPdfBadge] = useState(false);
@@ -168,7 +167,7 @@ function Details() {
       blob = await pdf(<PdfBedRooms data={bedroomsData} />).toBlob();
       FileSaver.saveAs(blob, 'quartos.pdf');
 
-      setLoadingPdf(false);
+      setLoadingPdfRooms(false);
     }, 50);
   }
   async function generatePdfBadge() {
@@ -513,7 +512,7 @@ function Details() {
                 >
                   PDF Equipes
                 </Button>
-                {loadingPdf && <LinearProgress />}{' '}
+                {loadingPdfTeams && <LinearProgress />}{' '}
               </Box>
               <Box>
                 <Button
@@ -524,7 +523,7 @@ function Details() {
                 >
                   PDF Quadrantes
                 </Button>
-                {loadingPdf && <LinearProgress />}
+                {loadingPdfEvent && <LinearProgress />}
               </Box>
               <Button
                 variant="outlined"
