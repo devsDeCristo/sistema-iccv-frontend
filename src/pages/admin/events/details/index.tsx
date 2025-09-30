@@ -71,9 +71,11 @@ function Details() {
   const [loadingPdf, setLoadingPdf] = useState(false);
   const [loadingPdfTeams, setLoadingPdfTeams] = useState(false);
   const [loadingPdfEvent, setLoadingPdfEvent] = useState(false);
+  const [loadingPdfBadge, setLoadingPdfBadge] = useState(false);
   const [loadingPdfEnvelopePhoto, setLoadingPdfEnvelopePhoto] = useState(false);
   const [loadingPdfEnvelopeLetter, setLoadingPdfEnvelopeLetter] =
     useState(false);
+  const [loadingPdfRooms, setLoadingPdfRooms] = useState(false);
   const [filtersUsers, setFiltersUsers] = useState<filterUsers>({
     birthday: { startDate: '', endDate: '' },
     city: '',
@@ -158,41 +160,26 @@ function Details() {
     setFiltersUsersSelected(cont);
   }, [filtersUsers]);
 
-  async function handleDownloadPDF(type: number) {
-    setLoadingPdf(true);
-    await generatePDF(type);
-  }
-  async function generatePDF(type: number) {
-    if (!eventData || Array.isArray(eventData)) {
-      return null;
-    }
-
+  async function generatePdfRooms() {
+    setLoadingPdfRooms(true);
     setTimeout(async () => {
       let blob;
 
-      if (type === 0) {
-        blob = await pdf(
-          <PdfEvent
-            data={teamsData as unknown as Team[]}
-            textFooter={'05 à a 08 de setembro de 2024'}
-          />
-        ).toBlob();
-        FileSaver.saveAs(blob, 'quadrantes.pdf');
-      } else if (type === 1) {
-        blob = await pdf(<PdfBedRooms data={bedroomsData} />).toBlob();
-        FileSaver.saveAs(blob, 'quartos.pdf');
-      } else if (type === 2) {
-        blob = await pdf(
-          <PdfEnvelope
-            data={usersData?.filter(({ worker }) => !worker) || []}
-          />
-        ).toBlob();
-        FileSaver.saveAs(blob, 'envelopes.pdf');
-      } else {
-        blob = await pdf(<PdfBadge data={usersData || []} />).toBlob();
-        FileSaver.saveAs(blob, 'crachas.pdf');
-      }
+      blob = await pdf(<PdfBedRooms data={bedroomsData} />).toBlob();
+      FileSaver.saveAs(blob, 'quartos.pdf');
+
       setLoadingPdf(false);
+    }, 50);
+  }
+  async function generatePdfBadge() {
+    setLoadingPdfBadge(true);
+    setTimeout(async () => {
+      let blob;
+
+      blob = await pdf(<PdfBadge data={usersData || []} />).toBlob();
+      FileSaver.saveAs(blob, 'crachas.pdf');
+
+      setLoadingPdfBadge(false);
     }, 50);
   }
   async function generatePdfEnvelopePhoto() {
@@ -425,23 +412,30 @@ function Details() {
               >
                 Exportar
               </Button>
-              <Button
-                variant="outlined"
-                onClick={handleClickOpenMenu}
-                // onClick={() => handleDownloadPDF(2)}
-                startIcon={<EmailOutlined />}
-                disabled={loadingPdfEnvelopeLetter || loadingPdfEnvelopePhoto}
-              >
-                PDF Envelopes
-              </Button>
-
-              <Button
-                variant="outlined"
-                onClick={() => handleDownloadPDF(3)}
-                startIcon={<BadgeOutlined />}
-              >
-                PDF Crachás
-              </Button>
+              <Box>
+                <Button
+                  variant="outlined"
+                  onClick={handleClickOpenMenu}
+                  // onClick={() => handleDownloadPDF(2)}
+                  startIcon={<EmailOutlined />}
+                  disabled={loadingPdfEnvelopeLetter || loadingPdfEnvelopePhoto}
+                >
+                  PDF Envelopes
+                </Button>
+                {(loadingPdfEnvelopeLetter || loadingPdfEnvelopePhoto) && (
+                  <LinearProgress />
+                )}
+              </Box>
+              <Box>
+                <Button
+                  variant="outlined"
+                  onClick={() => generatePdfBadge()}
+                  startIcon={<BadgeOutlined />}
+                >
+                  PDF Crachás
+                </Button>
+                {loadingPdfBadge && <LinearProgress />}
+              </Box>
               <Button
                 variant="contained"
                 onClick={() => setOpenModalAddUser(true)}
@@ -475,14 +469,14 @@ function Details() {
               <Box>
                 <Button
                   variant="outlined"
-                  onClick={() => handleDownloadPDF(1)}
+                  onClick={() => generatePdfRooms()}
                   startIcon={<BedOutlined />}
-                  disabled={loadingPdf}
+                  disabled={loadingPdfRooms}
                 >
                   PDF quartos
                 </Button>
 
-                {loadingPdf && <LinearProgress />}
+                {loadingPdfRooms && <LinearProgress />}
               </Box>
               <Button
                 variant="contained"
