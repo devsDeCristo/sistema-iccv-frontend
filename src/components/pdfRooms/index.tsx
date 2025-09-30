@@ -2,9 +2,9 @@ import { Page, Text, View, Document, Font, Image } from '@react-pdf/renderer';
 
 import { stylesPdfRooms } from './styles';
 import type { PdfRoomsProps } from './types';
-import logoIc from '../../assets/logo-ic-preta.png';
+import logoIc from '../../assets/logo-ic-vermelha.png';
 import logoEvento from '../../assets/6-curs-fem.png';
-import logoCursilho from '../../assets/logo-cursilho-preta.png';
+import logoCursilho from '../../assets/logo-cursilho-verm.png';
 
 Font.register({
   family: 'Helvetica',

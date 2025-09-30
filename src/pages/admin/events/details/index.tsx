@@ -12,6 +12,7 @@ import {
   Chip,
   LinearProgress,
   Menu,
+  MenuItem,
 } from '@mui/material';
 
 import { useNavigate, useParams } from 'react-router-dom';
@@ -51,8 +52,9 @@ import { GridApi, useGridApiRef } from '@mui/x-data-grid';
 import { useGetUsers } from '../../../../features/admin/events/api/getUsers';
 import FilterModal from '../../../../features/admin/events/components/filtersUserModal';
 import PdfTeams from '../../../../components/pdfTeams';
-import { MenuItem } from 'react-pro-sidebar';
+
 import ModalQrCode from '../../../../features/admin/events/components/modalQrCode';
+import PdfEnvelopePhoto from '../../../../components/pdfEnvelopePhoto';
 
 function Details() {
   const { id, subPage } = useParams();
@@ -67,6 +69,11 @@ function Details() {
   const [openModalAddUser, setOpenModalAddUser] = useState(false);
   const [openModalFilter, setOpenModalFilter] = useState(false);
   const [loadingPdf, setLoadingPdf] = useState(false);
+  const [loadingPdfTeams, setLoadingPdfTeams] = useState(false);
+  const [loadingPdfEvent, setLoadingPdfEvent] = useState(false);
+  const [loadingPdfEnvelopePhoto, setLoadingPdfEnvelopePhoto] = useState(false);
+  const [loadingPdfEnvelopeLetter, setLoadingPdfEnvelopeLetter] =
+    useState(false);
   const [filtersUsers, setFiltersUsers] = useState<filterUsers>({
     birthday: { startDate: '', endDate: '' },
     city: '',
@@ -188,8 +195,32 @@ function Details() {
       setLoadingPdf(false);
     }, 50);
   }
+  async function generatePdfEnvelopePhoto() {
+    setLoadingPdfEnvelopePhoto(true);
+    setTimeout(async () => {
+      let blob;
+
+      blob = await pdf(<PdfEnvelopePhoto />).toBlob();
+      FileSaver.saveAs(blob, 'envelopes-fotos.pdf');
+
+      setLoadingPdfEnvelopePhoto(false);
+    }, 50);
+  }
+  async function generatePdfEnvelopeLetter() {
+    setLoadingPdfEnvelopeLetter(true);
+    setTimeout(async () => {
+      let blob;
+
+      blob = await pdf(
+        <PdfEnvelope data={usersData?.filter(({ worker }) => !worker) || []} />
+      ).toBlob();
+      FileSaver.saveAs(blob, 'envelopes-cartas.pdf');
+
+      setLoadingPdfEnvelopeLetter(false);
+    }, 50);
+  }
   async function generatePDFTeams() {
-    setLoadingPdf(true);
+    setLoadingPdfTeams(true);
     const orderUsersByRoleTeam = teams?.map((team) => ({
       ...team,
       usersLeaders:
@@ -206,14 +237,14 @@ function Details() {
       blob = await pdf(<PdfTeams data={orderUsersByRoleTeam} />).toBlob();
       FileSaver.saveAs(blob, 'quadrantes.pdf');
 
-      setLoadingPdf(false);
+      setLoadingPdfTeams(false);
     }, 50);
   }
   async function generatePDFEvent() {
     if (!eventData || Array.isArray(eventData)) {
       return null;
     }
-    setLoadingPdf(true);
+    setLoadingPdfEvent(true);
     const orderUsersByRoleTeam = teams?.map((team) => ({
       ...team,
       users: team.users?.sort((a, b) =>
@@ -236,7 +267,7 @@ function Details() {
       ).toBlob();
       FileSaver.saveAs(blob, 'quadrantes.pdf');
 
-      setLoadingPdf(false);
+      setLoadingPdfEvent(false);
     }, 50);
   }
 
@@ -399,6 +430,7 @@ function Details() {
                 onClick={handleClickOpenMenu}
                 // onClick={() => handleDownloadPDF(2)}
                 startIcon={<EmailOutlined />}
+                disabled={loadingPdfEnvelopeLetter || loadingPdfEnvelopePhoto}
               >
                 PDF Envelopes
               </Button>
@@ -483,7 +515,7 @@ function Details() {
                   variant="outlined"
                   onClick={() => generatePDFTeams()}
                   startIcon={<People />}
-                  disabled={loadingPdf}
+                  disabled={loadingPdfTeams}
                 >
                   PDF Equipes
                 </Button>
@@ -494,7 +526,7 @@ function Details() {
                   variant="outlined"
                   onClick={() => generatePDFEvent()}
                   startIcon={<ViewModuleOutlined />}
-                  disabled={loadingPdf}
+                  disabled={loadingPdfEvent}
                 >
                   PDF Quadrantes
                 </Button>
@@ -504,7 +536,7 @@ function Details() {
                 variant="outlined"
                 onClick={() => setOpenModalQrCode(true)}
                 startIcon={<QrCode2Outlined />}
-                disabled={loadingPdf}
+                // disabled={loadingPdf}
               >
                 Gerar QR Code
               </Button>
@@ -554,16 +586,23 @@ function Details() {
         anchorEl={anchorEl}
         open={openMenu}
         onClose={handleCloseMenu}
-        // slotProps={{
-        //   list: {
-        //     'aria-labelledby': 'basic-button',
-        //   },
-        // }}
       >
-        <MenuItem onClick={() => handleDownloadPDF(2)}>
+        <MenuItem
+          onClick={() => {
+            generatePdfEnvelopeLetter();
+            handleCloseMenu();
+          }}
+        >
           Cartas (Com nome)
         </MenuItem>
-        <MenuItem onClick={handleCloseMenu}>Fotos (Sem nome)</MenuItem>
+        <MenuItem
+          onClick={() => {
+            generatePdfEnvelopePhoto();
+            handleCloseMenu();
+          }}
+        >
+          Fotos (Sem nome)
+        </MenuItem>
       </Menu>
 
       <ModalQrCode

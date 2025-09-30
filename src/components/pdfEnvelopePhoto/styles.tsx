@@ -1,5 +1,5 @@
 import { StyleSheet } from '@react-pdf/renderer';
-const stylesPdfEnvelope = StyleSheet.create({
+const stylesPdfEnvelopePhoto = StyleSheet.create({
   body: {
     paddingVertical: 0,
     paddingHorizontal: 0,
@@ -81,4 +81,4 @@ const stylesPdfEnvelope = StyleSheet.create({
     objectFit: 'fill',
   },
 });
-export { stylesPdfEnvelope };
+export { stylesPdfEnvelopePhoto };

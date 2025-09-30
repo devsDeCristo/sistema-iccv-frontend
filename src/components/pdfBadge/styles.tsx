@@ -1,6 +1,6 @@
 import { StyleSheet } from '@react-pdf/renderer';
 
-const stylesPdfRooms = StyleSheet.create({
+const stylesPdfBadge = StyleSheet.create({
   body: {
     padding: 15,
   },
@@ -63,4 +63,4 @@ const stylesPdfRooms = StyleSheet.create({
   },
 });
 
-export { stylesPdfRooms };
+export { stylesPdfBadge };

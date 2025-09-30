@@ -2,9 +2,9 @@ import { Page, Text, View, Document, Font, Image } from '@react-pdf/renderer';
 
 import { stylesPdfRooms } from './styles';
 import type { PdfTeamsProps } from './types';
-import logoIc from '../../assets/logo-ic-preta.png';
+import logoIc from '../../assets/logo-ic-vermelha.png';
 import logoEvento from '../../assets/6-curs-fem.png';
-import logoCursilho from '../../assets/logo-cursilho-preta.png';
+import logoCursilho from '../../assets/logo-cursilho-verm.png';
 
 Font.register({
   family: 'Helvetica',
@@ -15,7 +15,7 @@ Font.register({
 function PdfTeams({ data }: PdfTeamsProps) {
   return (
     <Document>
-      {data.map(({ usersLeaders,usersMembers, note, id, name }, index) => (
+      {data.map(({ usersLeaders, usersMembers, note, id, name }, index) => (
         <Page
           key={id + index}
           orientation="portrait"
@@ -33,9 +33,7 @@ function PdfTeams({ data }: PdfTeamsProps) {
 
           <View style={stylesPdfRooms.containerRow}>
             {' '}
-            <Text style={stylesPdfRooms.textNameBold}>
-              {`Líderes:`}
-            </Text>
+            <Text style={stylesPdfRooms.textNameBold}>{`Líderes:`}</Text>
             {usersLeaders?.map((user, idx) => (
               <View
                 key={'quartos-pdf' + idx}
@@ -55,7 +53,7 @@ function PdfTeams({ data }: PdfTeamsProps) {
             <Text style={{ ...stylesPdfRooms.textNameBold, marginTop: 10 }}>
               {`Membros:`}
             </Text>
-              {usersMembers?.map((user, idx) => (
+            {usersMembers?.map((user, idx) => (
               <View
                 key={'quartos-pdf' + idx}
                 style={stylesPdfRooms.row}

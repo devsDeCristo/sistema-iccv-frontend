@@ -1,5 +1,5 @@
 import { Page, Text, View, Document, Font, Image } from '@react-pdf/renderer';
-import { stylesPdfRooms } from './styles';
+import { stylesPdfBadge } from './styles';
 import type { PdfProps } from './types';
 import logoIc from '../../assets/logo-ic-preta.png';
 import logoEvento from '../../assets/6-curs-fem.png';
@@ -26,21 +26,21 @@ function PdfBadge({ data }: PdfProps) {
   return (
     <Document>
       {pages.map((group, pageIndex) => (
-        <Page key={`page-${pageIndex}`} size="A4" style={stylesPdfRooms.body}>
-          <View style={stylesPdfRooms.container}>
+        <Page key={`page-${pageIndex}`} size="A4" style={stylesPdfBadge.body}>
+          <View style={stylesPdfBadge.container}>
             {group.map((user, index) => (
               <View
-                style={stylesPdfRooms.badge}
+                style={stylesPdfBadge.badge}
                 key={`cracha-${pageIndex}-${index}`}
                 wrap={false}
               >
-                <Image style={stylesPdfRooms.imageBackground} src={bgbadge} />
-                <View style={stylesPdfRooms.headerBadge}>
-                  <Image style={stylesPdfRooms.image} src={logoIc} />
-                  <Image style={stylesPdfRooms.imageEvent} src={logoEvento} />
-                  <Image style={stylesPdfRooms.imagePaper} src={paper} />
+                <Image style={stylesPdfBadge.imageBackground} src={bgbadge} />
+                <View style={stylesPdfBadge.headerBadge}>
+                  <Image style={stylesPdfBadge.image} src={logoIc} />
+                  <Image style={stylesPdfBadge.imageEvent} src={logoEvento} />
+                  <Image style={stylesPdfBadge.imagePaper} src={paper} />
                 </View>
-                <Text style={stylesPdfRooms.textName}>
+                <Text style={stylesPdfBadge.textName}>
                   {user.badgeName?.toLowerCase()}
                 </Text>
               </View>
@@ -49,7 +49,7 @@ function PdfBadge({ data }: PdfProps) {
               Array.from({ length: 4 - group.length }).map((_, i) => (
                 <View
                   key={`empty-${pageIndex}-${i}`}
-                  style={[stylesPdfRooms.badge, { border: 'none' }]}
+                  style={[stylesPdfBadge.badge, { border: 'none' }]}
                   wrap={false}
                 />
               ))}

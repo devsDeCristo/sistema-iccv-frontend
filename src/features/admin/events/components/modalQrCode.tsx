@@ -35,7 +35,10 @@ function ModalQrCode({ open, handleClose }: ModalQrCodeProps) {
   return (
     <Dialog
       open={open}
-      onClose={handleClose}
+      onClose={() => {
+        setUrl('');
+        handleClose();
+      }}
       maxWidth="sm"
       sx={{
         minWidth: '340px',
@@ -51,22 +54,30 @@ function ModalQrCode({ open, handleClose }: ModalQrCodeProps) {
           value={url}
           onChange={(e) => setUrl(e.target.value)}
         />
-        <div style={{ textAlign: 'center', padding: 20 }}>
-          {url ? (
-            <QRCodeCanvas
-              value={url}
-              size={200}
-              bgColor={colorMode === 'dark' ? '#ffffff' : '#EDEDED'}
-              fgColor={'#000000'}
-              level={'H'}
-              ref={qrRef}
-            />
-          ) : null}
-        </div>
+        {url ? (
+          <div style={{ textAlign: 'center', padding: 20 }}>
+            <div>
+              <QRCodeCanvas
+                value={url}
+                size={200}
+                bgColor={colorMode === 'dark' ? '#ffffff' : '#EDEDED'}
+                fgColor={'#000000'}
+                level={'H'}
+                ref={qrRef}
+              />
+            </div>
+          </div>
+        ) : null}
       </DialogContent>
       <DialogActions sx={{ px: 3, py: 2, pt: 0 }}>
-        <Button onClick={handleClose}>Cancelar</Button>
-        {/* {url ? ( */}
+        <Button
+          onClick={() => {
+            setUrl('');
+            handleClose();
+          }}
+        >
+          Cancelar
+        </Button>
         <Button
           variant="contained"
           disabled={!url}
@@ -75,7 +86,6 @@ function ModalQrCode({ open, handleClose }: ModalQrCodeProps) {
         >
           Baixar QR Code
         </Button>
-        {/* ) : null} */}
       </DialogActions>
     </Dialog>
   );
