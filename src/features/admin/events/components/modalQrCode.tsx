@@ -25,7 +25,21 @@ function ModalQrCode({ open, handleClose }: ModalQrCodeProps) {
     const canvas = qrRef.current;
     if (!canvas) return;
 
-    const url = canvas.toDataURL('image/png'); // gera base64
+    // Criar um canvas temporário com maior resolução para download
+    const tempCanvas = document.createElement('canvas');
+    const tempCtx = tempCanvas.getContext('2d');
+    if (!tempCtx) return;
+
+    // Definir tamanho maior para melhor qualidade (800x800)
+    const downloadSize = 800;
+    tempCanvas.width = downloadSize;
+    tempCanvas.height = downloadSize;
+
+    // Desenhar o QR code no canvas temporário com maior resolução
+    tempCtx.imageSmoothingEnabled = false; // Manter pixels nítidos
+    tempCtx.drawImage(canvas, 0, 0, downloadSize, downloadSize);
+
+    const url = tempCanvas.toDataURL('image/png', 1.0); // qualidade máxima
     const a = document.createElement('a');
     a.href = url;
     a.download = 'qrcode.png';
@@ -59,11 +73,17 @@ function ModalQrCode({ open, handleClose }: ModalQrCodeProps) {
             <div>
               <QRCodeCanvas
                 value={url}
-                size={200}
+                size={400}
                 bgColor={colorMode === 'dark' ? '#ffffff' : '#EDEDED'}
                 fgColor={'#000000'}
                 level={'H'}
                 ref={qrRef}
+                style={{
+                  maxWidth: '200px',
+                  maxHeight: '200px',
+                  width: '100%',
+                  height: 'auto'
+                }}
               />
             </div>
           </div>

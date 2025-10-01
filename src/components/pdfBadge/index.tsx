@@ -41,7 +41,7 @@ function PdfBadge({ data }: PdfProps) {
                   <Image style={stylesPdfBadge.imagePaper} src={paper} />
                 </View>
                 <Text style={stylesPdfBadge.textName}>
-                  {user.badgeName?.toLowerCase()}
+                  {user?.badgeName ? user?.badgeName?.toLowerCase() : ''}
                 </Text>
               </View>
             ))}
