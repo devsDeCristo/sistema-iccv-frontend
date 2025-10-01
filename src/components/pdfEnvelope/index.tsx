@@ -6,8 +6,8 @@ import logoIc from '../../assets/logo-ic-vermelha.png';
 import logoEvento from '../../assets/6-curs-fem.png';
 import bgbadge from '../../assets/fundo-cracha.png';
 Font.register({
-  family: 'Playball',
-  src: 'http://fonts.gstatic.com/s/playball/v6/bTcyeVjOJ0HzO36ebPilS_esZW2xOQ-xsNqO47m55DA.ttf',
+  family: 'Helvetica',
+  src: 'http://fonts.gstatic.com/s/amethysta/v4/uuO0VFu8kdKx34ju6adj-KCWcynf_cDxXwCLxiixG1c.ttf',
 });
 
 // Create Document Component

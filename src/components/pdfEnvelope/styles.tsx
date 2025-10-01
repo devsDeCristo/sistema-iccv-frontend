@@ -14,7 +14,7 @@ const stylesPdfEnvelope = StyleSheet.create({
     justifyContent: 'center',
   },
   text: {
-    fontFamily: 'Playball',
+    fontFamily: 'Helvetica',
     fontSize: 8,
     padding: 3,
     width: '100%',
@@ -24,7 +24,7 @@ const stylesPdfEnvelope = StyleSheet.create({
     fontSize: 35,
     padding: 3,
     paddingTop: -20,
-    fontFamily: 'Playball',
+    fontFamily: 'Helvetica-Bold',
     maxWidth: '80%',
     display: 'flex',
     flexWrap: 'nowrap',
