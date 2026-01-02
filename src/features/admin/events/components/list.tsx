@@ -84,16 +84,16 @@ function List({ search }: { search: string }) {
       align: 'center',
       headerAlign: 'center',
       renderCell: (params) => {
-        const participantsCount = params.row.users.filter(
+        const participantsCount = params?.row?.users?.filter(
           (user: any) => !user.worker
-        ).length;
+        )?.length || 0;
         return (
           <Stack direction="row" alignItems="center">
             <Typography>
-              {participantsCount}/{params.row.capacity}
+              {participantsCount}/{params?.row?.capacity}
               <LinearProgress
                 variant="determinate"
-                value={(participantsCount / params.row.capacity) * 100}
+                value={(participantsCount / (params?.row?.capacity || 0)) * 100}
               />
             </Typography>
           </Stack>
@@ -107,16 +107,16 @@ function List({ search }: { search: string }) {
       align: 'center',
       headerAlign: 'center',
       renderCell: (params) => {
-        const participantsCount = params.row.users.filter(
+        const participantsCount = params?.row?.users?.filter(
           (user: any) => user.worker
-        ).length;
+        )?.length || 0;
         return (
           <Stack direction="row" alignItems="center">
             <Typography>
-              {participantsCount}/{params.row.capacityWorker}
+              {participantsCount}/{params?.row?.capacityWorker}
               <LinearProgress
                 variant="determinate"
-                value={(participantsCount / params.row.capacityWorker) * 100}
+                value={(participantsCount / (params?.row?.capacityWorker || 0)) * 100}
               />
             </Typography>
           </Stack>
