@@ -55,6 +55,7 @@ import PdfTeams from '../../../../components/pdfTeams';
 
 import ModalQrCode from '../../../../features/admin/events/components/modalQrCode';
 import PdfEnvelopePhoto from '../../../../components/pdfEnvelopePhoto';
+import { User } from '../../../../types/user';
 
 function Details() {
   const { id, subPage } = useParams();
@@ -121,6 +122,7 @@ function Details() {
       enabled: !!eventId,
     }
   );
+  const users = usersData as User[];
   const event = eventData as Event;
 
   const styles = {
@@ -175,7 +177,7 @@ function Details() {
     setTimeout(async () => {
       let blob;
 
-      blob = await pdf(<PdfBadge data={usersData || []} />).toBlob();
+      blob = await pdf(<PdfBadge data={users || []} />).toBlob();
       FileSaver.saveAs(blob, 'crachas.pdf');
 
       setLoadingPdfBadge(false);
@@ -198,7 +200,7 @@ function Details() {
       let blob;
 
       blob = await pdf(
-        <PdfEnvelope data={usersData?.filter(({ worker }) => !worker) || []} />
+        <PdfEnvelope data={users?.filter(({ worker }) => !worker) || []} />
       ).toBlob();
       FileSaver.saveAs(blob, 'envelopes-cartas.pdf');
 
@@ -565,7 +567,7 @@ function Details() {
         open={openModalAddUser}
         handleClose={() => setOpenModalAddUser(false)}
         eventId={id || ''}
-        usersAdded={usersData || []}
+        usersAdded={users || []}
       />
 
       <ModalTeam
