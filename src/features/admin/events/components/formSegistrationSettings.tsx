@@ -2,16 +2,16 @@ import { Grid } from '@mui/material';
 import { Input } from '../../../../components/input';
 import { InputDatePicker } from '../../../../components/inputDatePicker';
 import { Controller, useFormContext } from 'react-hook-form';
-import { RegisterEventFormType } from '../types';
+import { RegisterEventFormType, RegistrationSettingsFormType } from '../types';
 import { onlyNumber } from '../../../../utils';
 import { InputSelect } from '../../../../components/inputSelect';
 import { OPTIONS_STATUS } from '../constants';
 
-function Form() {
+function FormRegistrationSettings() {
   const {
     control,
     formState: { errors },
-  } = useFormContext<RegisterEventFormType>();
+  } = useFormContext<RegistrationSettingsFormType>();
 
   return (
     <Grid container spacing={2}>
@@ -156,4 +156,4 @@ function Form() {
   );
 }
 
-export { Form };
+export { FormRegistrationSettings };

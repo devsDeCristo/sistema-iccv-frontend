@@ -1,6 +1,5 @@
-import { Build, PlumbingOutlined } from '@mui/icons-material';
+import { Assignment, Build, Event, Settings } from '@mui/icons-material';
 import { z } from 'zod';
-import { Layout } from '../../../pages/layout';
 
 export const GET_EVENTS = 'GET_EVENTS';
 export const GET_BEDROOMS = 'GET_BEDROOMS';
@@ -14,6 +13,9 @@ export const REGISTER_EVENT_SCHEMA = z.object({
   name: z.string({
     required_error: DEFAULT_MESSAGE,
   }),
+  shortDescription: z.string().optional(),
+  description: z.string().optional(),
+  eventType: z.string().optional(),
   startDate: z
     .date({
       required_error: DEFAULT_MESSAGE,
@@ -54,16 +56,16 @@ export const STEPS = [
   {
     id: 1,
     label: 'Informações gerais',
-    icon: Build,
+    icon: Assignment,
   },
   {
     id: 2,
     label: 'Data e Horário',
-    icon: Build,
+    icon: Event,
   },
   {
     id: 3,
     label: 'Configurações de inscrição',
-    icon: Build,
+    icon: Settings,
   },
 ];

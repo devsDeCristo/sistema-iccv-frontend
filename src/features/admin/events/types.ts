@@ -56,3 +56,23 @@ export interface Team {
 }
 
 export type RegisterEventFormType = z.infer<typeof REGISTER_EVENT_SCHEMA>;
+export type GeneralInfoFormType = Pick<
+  RegisterEventFormType,
+  | 'name'
+  | 'price'
+  | 'workerPrice'
+  | 'capacity'
+  | 'capacityWorker'
+  | 'groupLink'
+  | 'isActive'
+>;
+
+export type DateAndTimeFormType = Pick<
+  RegisterEventFormType,
+  'startDate' | 'endDate'
+>;
+
+export type RegistrationSettingsFormType = Pick<
+  RegisterEventFormType,
+  'capacity' | 'capacityWorker' | 'groupLink'
+>;
