@@ -1,8 +1,8 @@
-import { Grid } from '@mui/material';
+import { Grid, Typography } from '@mui/material';
 import { Input } from '../../../../components/input';
 import { Controller, useFormContext } from 'react-hook-form';
 import { InputSelect } from '../../../../components/inputSelect';
-import { OPTIONS_EVENT_TYPE, OPTIONS_STATUS } from '../constants';
+import { OPTIONS_STATUS } from '../constants';
 import { GeneralInfoFormType } from '../types';
 
 function FormGeneralInfo() {
@@ -13,6 +13,9 @@ function FormGeneralInfo() {
 
   return (
     <Grid container spacing={2}>
+      <Grid item xs={12} md={12}>
+        <Typography variant="h6">Informações Gerais do Evento</Typography>
+      </Grid>
       <Grid item xs={12} md={6}>
         <Controller
           control={control}

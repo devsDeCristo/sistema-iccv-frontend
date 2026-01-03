@@ -1,6 +1,11 @@
 import { User, UserTeam } from '../../../types/user';
 import { z } from 'zod';
-import { DATE_AND_TIME_SCHEMA, GENERAL_INFO_SCHEMA, REGISTER_EVENT_SCHEMA, REGISTRATION_SETTINGS_SCHEMA } from './constants';
+import {
+  DATE_AND_LOCAL_SCHEMA,
+  GENERAL_INFO_SCHEMA,
+  REGISTER_EVENT_SCHEMA,
+  REGISTRATION_SETTINGS_SCHEMA,
+} from './constants';
 
 export interface Event {
   id: string;
@@ -65,8 +70,10 @@ export type RegisterEventFormType = z.infer<typeof REGISTER_EVENT_SCHEMA>;
 // >;
 export type GeneralInfoFormType = z.infer<typeof GENERAL_INFO_SCHEMA>;
 
-export type DateAndTimeFormType = z.infer<typeof DATE_AND_TIME_SCHEMA>;
-export type RegistrationSettingsFormType = z.infer<typeof REGISTRATION_SETTINGS_SCHEMA>;
+export type DateAndLocalFormType = z.infer<typeof DATE_AND_LOCAL_SCHEMA>;
+export type RegistrationSettingsFormType = z.infer<
+  typeof REGISTRATION_SETTINGS_SCHEMA
+>;
 // export type DateAndTimeFormType = Pick<
 //   RegisterEventFormType,
 //   'startDate' | 'endDate'

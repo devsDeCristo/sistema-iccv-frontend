@@ -2,18 +2,17 @@ import { Header } from '../../../../components/header';
 import { useForm, FormProvider } from 'react-hook-form';
 import { PageStyle } from '../../../../components/pageStyle';
 import { FormGeneralInfo } from '../../../../features/admin/events/components/formGeneralInfo';
-import { Box, Button, Paper, Typography } from '@mui/material';
+import { Box, Button, Paper } from '@mui/material';
 import {
-  DateAndTimeFormType,
+  DateAndLocalFormType,
   GeneralInfoFormType,
   RegisterEventFormType,
   RegistrationSettingsFormType,
 } from '../../../../features/admin/events/types';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
-  DATE_AND_TIME_SCHEMA,
+  DATE_AND_LOCAL_SCHEMA,
   GENERAL_INFO_SCHEMA,
-  REGISTER_EVENT_SCHEMA,
   REGISTRATION_SETTINGS_SCHEMA,
   STEPS,
 } from '../../../../features/admin/events/constants';
@@ -23,7 +22,7 @@ import { StepProgress } from '../../../../components/step';
 import React, { useState } from 'react';
 import { ArrowForward, Check } from '@mui/icons-material';
 import { FormRegistrationSettings } from '../../../../features/admin/events/components/formRegistrationSettings';
-import { FormDateAndTime } from '../../../../features/admin/events/components/formDateAndTime';
+import { FormDateAndLocal } from '../../../../features/admin/events/components/formDateAndLocal';
 
 function Register() {
   const navigate = useNavigate();
@@ -31,8 +30,8 @@ function Register() {
   const methodsGeneralInfo = useForm<GeneralInfoFormType>({
     resolver: zodResolver(GENERAL_INFO_SCHEMA),
   });
-  const methodsDateAndTime = useForm<DateAndTimeFormType>({
-    resolver: zodResolver(DATE_AND_TIME_SCHEMA),
+  const methodsDateAndTime = useForm<DateAndLocalFormType>({
+    resolver: zodResolver(DATE_AND_LOCAL_SCHEMA),
   });
   const methodsRegistrationSettings = useForm<RegistrationSettingsFormType>({
     resolver: zodResolver(REGISTRATION_SETTINGS_SCHEMA),
@@ -98,24 +97,7 @@ function Register() {
   const handleClose = () => {
     navigate(-1);
   };
-  // const canProceed = () => {
-  //   switch (currentStep) {
-  //     case 1:
-  //       // return true;
-  //       return selectedCompany && selectedAccount && selectedType;
-  //     case 2:
-  //       // return true;
-  //       return selectedIntegration;
-  //     case 3:
-  //       return configData?.covenantCode?.length >= 7;
-  //     // case 4:
-  //     // case 5:
-  //     //   return configData?.covenantCode;
-  //     //   return true;
-  //     default:
-  //       return false;
-  //   }
-  // };
+
   const stepMethods = [
     {
       step: 1,
@@ -125,12 +107,18 @@ function Register() {
     },
     {
       step: 2,
-      formMethods: methodsDateAndTime,
-      onSubmit: dateAndTimeSubmit,
-      component: FormDateAndTime,
+      formMethods: methodsGeneralInfo,
+      onSubmit: generalInfoSubmit,
+      component: FormGeneralInfo,
     },
     {
       step: 3,
+      formMethods: methodsDateAndTime,
+      onSubmit: dateAndTimeSubmit,
+      component: FormDateAndLocal,
+    },
+    {
+      step: 4,
       formMethods: methodsRegistrationSettings,
       onSubmit: registrationSettingsSubmit,
       component: FormRegistrationSettings,
@@ -170,7 +158,7 @@ function Register() {
               <Button
                 variant="outlined"
                 sx={{ marginTop: 2, width: '120px' }}
-                onClick={handleBack}
+                onClick={currentStep === 1 ? handleClose : handleBack}
               >
                 cancelar
               </Button>
