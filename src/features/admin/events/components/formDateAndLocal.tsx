@@ -7,15 +7,17 @@ import {
 } from '@mui/material';
 import { InputDatePicker } from '../../../../components/inputDatePicker';
 import { Input } from '../../../../components/input';
-import { Controller, useFormContext } from 'react-hook-form';
+import { Controller, useFormContext, useWatch } from 'react-hook-form';
 import { DateAndLocalFormType } from '../types';
 import { CancelOutlined, Launch } from '@mui/icons-material';
+import GoogleMap from '../../../../components/mapWord';
 
 function FormDateAndLocal() {
   const {
     control,
     formState: { errors },
   } = useFormContext<DateAndLocalFormType>();
+  const linkMaps = useWatch({ control, name: 'linkMaps' });
 
   return (
     <Grid container spacing={2}>
@@ -151,6 +153,7 @@ function FormDateAndLocal() {
                     },
                   }
                 : null)}
+
               //  ...(value? {InputProps: {
               //     endAdornment: (
               //       <InputAdornment position="end">
@@ -164,6 +167,7 @@ function FormDateAndLocal() {
           )}
         />
       </Grid>
+      {linkMaps && <GoogleMap linkMap={linkMaps} />}
     </Grid>
   );
 }

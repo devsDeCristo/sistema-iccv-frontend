@@ -80,7 +80,11 @@ export default function MenuAppBar({
               margin: '10px',
             }}
           />
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1, color:"white"}}>
+          <Typography
+            variant="h6"
+            component="div"
+            sx={{ flexGrow: 1, color: 'white' }}
+          >
             CIDADE VERDE
           </Typography>
 
@@ -153,6 +157,7 @@ export default function MenuAppBar({
                 <MenuItem
                   onClick={() => {
                     navigate('/admin/eventos');
+                    handleClose();
                   }}
                 >
                   <ListItemIcon>
@@ -165,6 +170,7 @@ export default function MenuAppBar({
                 <MenuItem
                   onClick={() => {
                     navigate('/eventos');
+                    handleClose();
                   }}
                 >
                   <ListItemIcon>

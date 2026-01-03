@@ -4,6 +4,7 @@ import { PageStyle } from '../../../../components/pageStyle';
 import { FormGeneralInfo } from '../../../../features/admin/events/components/formGeneralInfo';
 import { Box, Button, Paper } from '@mui/material';
 import {
+  CategoryEventFormType,
   DateAndLocalFormType,
   GeneralInfoFormType,
   RegisterEventFormType,
@@ -11,6 +12,7 @@ import {
 } from '../../../../features/admin/events/types';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
+  CATEGORY_EVENT_SCHEMA,
   DATE_AND_LOCAL_SCHEMA,
   GENERAL_INFO_SCHEMA,
   REGISTRATION_SETTINGS_SCHEMA,
@@ -23,10 +25,14 @@ import React, { useState } from 'react';
 import { ArrowForward, Check } from '@mui/icons-material';
 import { FormRegistrationSettings } from '../../../../features/admin/events/components/formRegistrationSettings';
 import { FormDateAndLocal } from '../../../../features/admin/events/components/formDateAndLocal';
+import { SelectCategoryEvent } from '../../../../features/admin/events/components/selectCategoryEvent';
 
 function Register() {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
+  const methodsCategoryEvent = useForm<CategoryEventFormType>({
+    resolver: zodResolver(CATEGORY_EVENT_SCHEMA),
+  });
   const methodsGeneralInfo = useForm<GeneralInfoFormType>({
     resolver: zodResolver(GENERAL_INFO_SCHEMA),
   });
@@ -46,6 +52,13 @@ function Register() {
   function onSubmitForm(data: RegisterEventFormType) {
     mutatePostCreateEvent({
       data,
+    });
+  }
+  function categoryEventSubmit() {
+    methodsCategoryEvent.trigger().then((isValid) => {
+      if (isValid) {
+        handleNext();
+      }
     });
   }
   function generalInfoSubmit() {
@@ -101,9 +114,9 @@ function Register() {
   const stepMethods = [
     {
       step: 1,
-      formMethods: methodsGeneralInfo,
-      onSubmit: generalInfoSubmit,
-      component: FormGeneralInfo,
+      formMethods: methodsCategoryEvent,
+      onSubmit: categoryEventSubmit,
+      component: SelectCategoryEvent,
     },
     {
       step: 2,

@@ -20,6 +20,9 @@ export const GENERAL_INFO_SCHEMA = z.object({
   groupLink: z.string().optional(),
   isActive: z.boolean().optional(),
 });
+export const CATEGORY_EVENT_SCHEMA = z.object({
+  eventType: EVENT_TYPE_SCHEMA,
+});
 export const DATE_AND_LOCAL_SCHEMA = z.object({
   startDate: z
     .date({
