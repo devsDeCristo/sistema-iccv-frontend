@@ -2,7 +2,7 @@ import { Grid } from '@mui/material';
 import { Input } from '../../../../components/input';
 import { Controller, useFormContext } from 'react-hook-form';
 import { InputSelect } from '../../../../components/inputSelect';
-import { OPTIONS_STATUS } from '../constants';
+import { OPTIONS_EVENT_TYPE, OPTIONS_STATUS } from '../constants';
 import { GeneralInfoFormType } from '../types';
 
 function FormGeneralInfo() {
@@ -28,7 +28,7 @@ function FormGeneralInfo() {
             />
           )}
         />
-      </Grid>
+      </Grid>{' '}
       <Grid item xs={12} md={6}>
         <Controller
           control={control}
@@ -43,6 +43,54 @@ function FormGeneralInfo() {
           )}
         />
       </Grid>
+      <Grid item xs={12} md={12}>
+        <Controller
+          control={control}
+          name="name"
+          render={({ field: { onChange, value } }) => (
+            <Input
+              value={value}
+              onChange={onChange}
+              // required
+              label="Descrição curta"
+              error={!!errors.name}
+              errorMessage={errors.name?.message}
+            />
+          )}
+        />
+      </Grid>{' '}
+      <Grid item xs={12} md={12}>
+        <Controller
+          control={control}
+          name="name"
+          render={({ field: { onChange, value } }) => (
+            <Input
+              value={value}
+              onChange={onChange}
+              // required
+              multiline
+              rows={4}
+              label="Descrição Detalhada"
+              error={!!errors.name}
+              errorMessage={errors.name?.message}
+            />
+          )}
+        />
+      </Grid>
+      {/* <Grid item xs={12} md={6}>
+        <Controller
+          control={control}
+          name="eventType"
+          render={({ field: { onChange, value } }) => (
+            <InputSelect
+              label="Categoria do evento"
+              menuOptions={OPTIONS_EVENT_TYPE}
+              value={value}
+              onChange={onChange}
+            />
+          )}
+        />
+      </Grid> */}
       <Grid item xs={12} md={12}>
         <Controller
           control={control}

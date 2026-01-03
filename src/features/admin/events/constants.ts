@@ -1,4 +1,4 @@
-import { Assignment, Build, Event, Settings } from '@mui/icons-material';
+import { Assignment, Event, Settings } from '@mui/icons-material';
 import { z } from 'zod';
 
 export const GET_EVENTS = 'GET_EVENTS';
@@ -9,14 +9,14 @@ export const GET_EVENT_USERS = 'GET_EVENT_USERS';
 
 const DEFAULT_MESSAGE = 'Campo obrigatório';
 
-
+export const EVENT_TYPE_SCHEMA = z.enum(['RETIRO', 'CURSILHO']);
 export const GENERAL_INFO_SCHEMA = z.object({
   name: z.string({
     required_error: DEFAULT_MESSAGE,
   }),
   shortDescription: z.string().optional(),
   description: z.string().optional(),
-  eventType: z.string().optional(),
+  // eventType: z.string().optional(),
   groupLink: z.string().optional(),
   isActive: z.boolean().optional(),
 });
@@ -62,6 +62,10 @@ export const REGISTER_EVENT_SCHEMA =
 export const OPTIONS_STATUS = [
   { value: true, name: 'Ativo' },
   { value: false, name: 'Inativo' },
+];
+export const OPTIONS_EVENT_TYPE = [ 
+  { value: 'RETIRO', name: 'Retiro' },
+  { value: 'CURSILHO', name: 'Cursilho' },
 ];
 export const STEPS = [
   {
