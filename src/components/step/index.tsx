@@ -1,5 +1,5 @@
 import { Check } from '@mui/icons-material';
-import { Box } from '@mui/material';
+import { alpha, Box, useTheme } from '@mui/material';
 import React from 'react';
 
 interface Step {
@@ -24,7 +24,7 @@ export const StepProgress: React.FC<StepProgressProps> = ({
   const onStepClick = (index: number) => {
     setCurrentStep(steps[index].id);
   };
-
+  const theme = useTheme();
   return (
     <Box
       sx={{
@@ -71,17 +71,19 @@ export const StepProgress: React.FC<StepProgressProps> = ({
                     borderRadius: '50%',
                     border: '2px solid',
                     borderColor:
-                      isActive || isCompleted ? '#28166F' : '#E0E0E0',
+                      isActive || isCompleted
+                        ? theme.palette.primary.main
+                        : theme.palette.border,
                     backgroundColor: isActive
-                      ? '#28166F'
+                      ? theme.palette.primary.main
                       : isCompleted
-                      ? 'rgba(40, 22, 111, 0.1)'
+                      ? alpha(theme.palette.primary.main, 0.2)
                       : 'transparent',
                     color: isActive
                       ? '#FFFFFF'
                       : isCompleted
-                      ? '#28166F'
-                      : '#727272',
+                      ? theme.palette.primary.main
+                      : theme.palette.text.primary,
                     transition: 'all 0.3s',
                   }}
                 >
@@ -99,10 +101,10 @@ export const StepProgress: React.FC<StepProgressProps> = ({
                     whiteSpace: 'nowrap',
                     textOverflow: 'ellipsis',
                     color: isActive
-                      ? '#28166F'
+                      ? theme.palette.primary.main
                       : isCompleted
-                      ? 'rgba(40, 22, 111, 0.8)'
-                      : '#727272',
+                      ? theme.palette.primary.main
+                      : theme.palette.text.primary,
                   }}
                 >
                   {step.label}
@@ -116,7 +118,9 @@ export const StepProgress: React.FC<StepProgressProps> = ({
                     margin: '0 8px',
                     marginBottom: '16px',
                     backgroundColor:
-                      currentStep > step.id ? '#28166F' : '#E0E0E0',
+                      currentStep > step.id
+                        ? theme.palette.primary.main
+                        : theme.palette.border,
                   }}
                 />
               )}

@@ -1,7 +1,7 @@
 import { Header } from '../../../../components/header';
 import { useForm, FormProvider } from 'react-hook-form';
 import { PageStyle } from '../../../../components/pageStyle';
-import { Form } from '../../../../features/admin/events/components/formGeneralInfo';
+// import { Form } from '../../../../features/admin/events/components/formGeneralInfo';
 import { Button } from '@mui/material';
 import {
   Event,
@@ -64,7 +64,7 @@ function Edit() {
       <Header title="Editar evento" buttonBack />
       <FormProvider {...methods}>
         <form onSubmit={methods.handleSubmit(onSubmitForm)}>
-          <Form />
+          {/* <Form /> */}
           <Button
             variant="contained"
             fullWidth

@@ -1,8 +1,6 @@
 import { Grid } from '@mui/material';
 import { Input } from '../../../../components/input';
-import { InputDatePicker } from '../../../../components/inputDatePicker';
 import { Controller, useFormContext } from 'react-hook-form';
-import { onlyNumber } from '../../../../utils';
 import { InputSelect } from '../../../../components/inputSelect';
 import { OPTIONS_STATUS } from '../constants';
 import { GeneralInfoFormType } from '../types';
@@ -23,7 +21,7 @@ function FormGeneralInfo() {
             <Input
               value={value}
               onChange={onChange}
-              required
+              // required
               label="Nome do evento"
               error={!!errors.name}
               errorMessage={errors.name?.message}

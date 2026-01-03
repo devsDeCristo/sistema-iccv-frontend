@@ -18,6 +18,7 @@ const InputDatePicker = ({
       format="dd/MM/yyyy"
       slotProps={{
         textField: {
+          error: !!errorMessage,
           helperText: errorMessage,
         },
       }}

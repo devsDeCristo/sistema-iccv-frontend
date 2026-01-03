@@ -11,27 +11,31 @@ import {
 } from '../../../../features/admin/events/types';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
+  DATE_AND_TIME_SCHEMA,
+  GENERAL_INFO_SCHEMA,
   REGISTER_EVENT_SCHEMA,
+  REGISTRATION_SETTINGS_SCHEMA,
   STEPS,
 } from '../../../../features/admin/events/constants';
 import { usePostCreateEvent } from '../../../../features/admin/events/api/postEvent';
 import { useNavigate } from 'react-router-dom';
 import { StepProgress } from '../../../../components/step';
-import { useState } from 'react';
-import { ArrowForward } from '@mui/icons-material';
-import { FormRegistrationSettings } from '../../../../features/admin/events/components/formSegistrationSettings';
+import React, { useState } from 'react';
+import { ArrowForward, Check } from '@mui/icons-material';
+import { FormRegistrationSettings } from '../../../../features/admin/events/components/formRegistrationSettings';
+import { FormDateAndTime } from '../../../../features/admin/events/components/formDateAndTime';
 
 function Register() {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
   const methodsGeneralInfo = useForm<GeneralInfoFormType>({
-    resolver: zodResolver(REGISTER_EVENT_SCHEMA),
+    resolver: zodResolver(GENERAL_INFO_SCHEMA),
   });
   const methodsDateAndTime = useForm<DateAndTimeFormType>({
-    resolver: zodResolver(REGISTER_EVENT_SCHEMA),
+    resolver: zodResolver(DATE_AND_TIME_SCHEMA),
   });
   const methodsRegistrationSettings = useForm<RegistrationSettingsFormType>({
-    resolver: zodResolver(REGISTER_EVENT_SCHEMA),
+    resolver: zodResolver(REGISTRATION_SETTINGS_SCHEMA),
   });
 
   const { mutate: mutatePostCreateEvent } = usePostCreateEvent({
@@ -71,7 +75,7 @@ function Register() {
           ...dateAndTimeData,
           ...registrationSettingsData,
         };
-        onSubmitForm(finalData);
+        // onSubmitForm(finalData);
       }
     });
   }
@@ -112,6 +116,27 @@ function Register() {
   //       return false;
   //   }
   // };
+  const stepMethods = [
+    {
+      step: 1,
+      formMethods: methodsGeneralInfo,
+      onSubmit: generalInfoSubmit,
+      component: FormGeneralInfo,
+    },
+    {
+      step: 2,
+      formMethods: methodsDateAndTime,
+      onSubmit: dateAndTimeSubmit,
+      component: FormDateAndTime,
+    },
+    {
+      step: 3,
+      formMethods: methodsRegistrationSettings,
+      onSubmit: registrationSettingsSubmit,
+      component: FormRegistrationSettings,
+    },
+  ];
+
   return (
     <PageStyle>
       <Header title="Cadastrar evento" buttonBack />
@@ -125,54 +150,43 @@ function Register() {
           // onStepClick={(index) => setStep(index)}
           className="sm:pl-10 sm:pr-15"
         />
-        {currentStep === 1 && (
-          <FormProvider {...methodsGeneralInfo}>
-            <form onSubmit={methodsGeneralInfo.handleSubmit(generalInfoSubmit)}>
-              <FormGeneralInfo />
-              <Box
-                sx={{
-                  display: 'flex',
-                  justifyContent: 'flex-end',
-                }}
-              >
-                <Button
-                  variant="contained"
-                  sx={{ marginTop: 2, width: '120px' }}
-                  type="submit"
-                  endIcon={<ArrowForward />}
-                >
-                  Próximo
-                </Button>
-              </Box>
-            </form>
-          </FormProvider>
-        )}
-        {currentStep === 3 && (
-          <FormProvider {...methodsRegistrationSettings}>
-            <form
-              onSubmit={methodsRegistrationSettings.handleSubmit(
-                registrationSettingsSubmit
-              )}
+
+        <FormProvider
+          {...(stepMethods[currentStep - 1].formMethods as any)}
+          key={currentStep - 1}
+        >
+          <form
+            onSubmit={(
+              stepMethods[currentStep - 1].formMethods as any
+            ).handleSubmit(stepMethods[currentStep - 1].onSubmit)}
+          >
+            {React.createElement(stepMethods[currentStep - 1].component)}
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+              }}
             >
-              <FormRegistrationSettings />
-              <Box
-                sx={{
-                  display: 'flex',
-                  justifyContent: 'flex-end',
-                }}
+              <Button
+                variant="outlined"
+                sx={{ marginTop: 2, width: '120px' }}
+                onClick={handleBack}
               >
-                <Button
-                  variant="contained"
-                  sx={{ marginTop: 2, width: '120px' }}
-                  type="submit"
-                  endIcon={<ArrowForward />}
-                >
-                  Próximo
-                </Button>
-              </Box>
-            </form>
-          </FormProvider>
-        )}
+                cancelar
+              </Button>
+              <Button
+                variant="contained"
+                sx={{ marginTop: 2, width: '120px' }}
+                type="submit"
+                endIcon={
+                  currentStep === STEPS.length ? <Check /> : <ArrowForward />
+                }
+              >
+                {currentStep === STEPS.length ? 'Finalizar' : 'Próximo'}
+              </Button>
+            </Box>
+          </form>
+        </FormProvider>
       </Paper>
     </PageStyle>
   );
