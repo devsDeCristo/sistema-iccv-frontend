@@ -23,6 +23,7 @@ function FormDateAndLocal() {
     formState: { errors },
   } = useFormContext<DateAndLocalFormType>();
   const linkMaps = useWatch({ control, name: 'linkMaps' });
+  const startDate = useWatch({ control, name: 'startDate' });
   const fetchAddressByCep = async (cep: string) => {
     try {
       const cleanCep = cep.replace(/\D/g, '');
@@ -88,6 +89,7 @@ function FormDateAndLocal() {
           render={({ field: { onChange, value } }) => (
             <InputDatePicker
               label="Data Inicial"
+              disablePast
               value={value as unknown as Date}
               onChange={onChange}
               errorMessage={errors.startDate?.message}
@@ -103,6 +105,8 @@ function FormDateAndLocal() {
           render={({ field: { onChange, value } }) => (
             <InputDatePicker
               label="Data Final"
+              disablePast
+              minDate={startDate as unknown as Date}
               value={value as unknown as Date}
               onChange={onChange}
               errorMessage={errors.endDate?.message}
