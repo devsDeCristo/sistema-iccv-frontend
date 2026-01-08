@@ -3,6 +3,7 @@ import { z } from 'zod';
 import {
   CATEGORY_EVENT_SCHEMA,
   DATE_AND_LOCAL_SCHEMA,
+  EVENT_LOGO_SCHEMA,
   GENERAL_INFO_SCHEMA,
   REGISTER_EVENT_SCHEMA,
   REGISTRATION_SETTINGS_SCHEMA,
@@ -66,6 +67,8 @@ export type RegisterEventFormType = z.infer<typeof REGISTER_EVENT_SCHEMA>;
 export type GeneralInfoFormType = z.infer<typeof GENERAL_INFO_SCHEMA>;
 
 export type DateAndLocalFormType = z.infer<typeof DATE_AND_LOCAL_SCHEMA>;
+
+export type EventLogoFormType = z.infer<typeof EVENT_LOGO_SCHEMA>;
 
 export type RegistrationSettingsFormType = z.infer<
   typeof REGISTRATION_SETTINGS_SCHEMA

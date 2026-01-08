@@ -1,4 +1,10 @@
-import { Assignment, Category, Event, Settings } from '@mui/icons-material';
+import {
+  Assignment,
+  Category,
+  Event,
+  Photo,
+  Settings,
+} from '@mui/icons-material';
 import { z } from 'zod';
 
 export const GET_EVENTS = 'GET_EVENTS';
@@ -71,10 +77,57 @@ export const REGISTRATION_SETTINGS_SCHEMA = z.object({
     required_error: DEFAULT_MESSAGE,
   }),
 });
+export const EVENT_LOGO_SCHEMA = z.object({
+  eventLogo: z
+    .any()
+    .optional()
+    .refine(
+      (files) => {
+        if (!files || files.length === 0) return true;
+        return files[0]?.size <= 5 * 1024 * 1024; // 5MB
+      },
+      {
+        message: 'O tamanho do arquivo deve ser menor que 5MB',
+      }
+    )
+    .refine(
+      (files) => {
+        if (!files || files.length === 0) return true;
+        return ['image/svg+xml'].includes(files[0]?.type);
+      },
+      {
+        message: 'Formato de arquivo inválido. Use SVG.',
+      }
+    ),
+  eventCover: z
+    .any()
+    .optional()
+    .refine(
+      (files) => {
+        if (!files || files.length === 0) return true;
+        return files[0]?.size <= 5 * 1024 * 1024; // 5MB
+      },
+      {
+        message: 'O tamanho do arquivo deve ser menor que 5MB',
+      }
+    )
+    .refine(
+      (files) => {
+        if (!files || files.length === 0) return true;
+        return ['image/svg+xml'].includes(files[0]?.type);
+      },
+      {
+        message: 'Formato de arquivo inválido. Use SVG.',
+      }
+    ),
+});
 
 export const REGISTER_EVENT_SCHEMA = GENERAL_INFO_SCHEMA.merge(
   DATE_AND_LOCAL_SCHEMA
-).merge(REGISTRATION_SETTINGS_SCHEMA);
+)
+  .merge(EVENT_LOGO_SCHEMA)
+  .merge(REGISTRATION_SETTINGS_SCHEMA);
+
 export const OPTIONS_STATUS = [
   { value: true, name: 'Ativo' },
   { value: false, name: 'Inativo' },
@@ -101,6 +154,11 @@ export const STEPS = [
   },
   {
     id: 4,
+    label: 'Logo e capa',
+    icon: Photo,
+  },
+  {
+    id: 5,
     label: 'Configurações de inscrição',
     icon: Settings,
   },

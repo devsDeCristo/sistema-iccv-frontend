@@ -6,6 +6,7 @@ import { Box, Button, Paper } from '@mui/material';
 import {
   CategoryEventFormType,
   DateAndLocalFormType,
+  EventLogoFormType,
   GeneralInfoFormType,
   RegisterEventFormType,
   RegistrationSettingsFormType,
@@ -14,6 +15,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import {
   CATEGORY_EVENT_SCHEMA,
   DATE_AND_LOCAL_SCHEMA,
+  EVENT_LOGO_SCHEMA,
   GENERAL_INFO_SCHEMA,
   REGISTRATION_SETTINGS_SCHEMA,
   STEPS,
@@ -26,6 +28,7 @@ import { ArrowForward, Check } from '@mui/icons-material';
 import { FormRegistrationSettings } from '../../../../features/admin/events/components/formRegistrationSettings';
 import { FormDateAndLocal } from '../../../../features/admin/events/components/formDateAndLocal';
 import { SelectCategoryEvent } from '../../../../features/admin/events/components/selectCategoryEvent';
+import { FormLogoAndCover } from '../../../../features/admin/events/components/formLogoAndCover';
 
 function Register() {
   const navigate = useNavigate();
@@ -35,12 +38,18 @@ function Register() {
   });
   const methodsGeneralInfo = useForm<GeneralInfoFormType>({
     resolver: zodResolver(GENERAL_INFO_SCHEMA),
+    defaultValues: {
+      isActive: true,
+    },
   });
   const methodsDateAndTime = useForm<DateAndLocalFormType>({
     resolver: zodResolver(DATE_AND_LOCAL_SCHEMA),
   });
   const methodsRegistrationSettings = useForm<RegistrationSettingsFormType>({
     resolver: zodResolver(REGISTRATION_SETTINGS_SCHEMA),
+  });
+  const methodsEventLogo = useForm<EventLogoFormType>({
+    resolver: zodResolver(EVENT_LOGO_SCHEMA),
   });
   const [eventTypeSelected, setEventTypeSelected] = useState<
     'CURSILHO' | 'RETIRO' | undefined
@@ -73,6 +82,13 @@ function Register() {
   }
   function dateAndTimeSubmit() {
     methodsDateAndTime.trigger().then((isValid) => {
+      if (isValid) {
+        handleNext();
+      }
+    });
+  }
+  function eventLogoSubmit() {
+    methodsEventLogo.trigger().then((isValid) => {
       if (isValid) {
         handleNext();
       }
@@ -138,6 +154,13 @@ function Register() {
     },
     {
       step: 4,
+      formMethods: methodsEventLogo,
+      onSubmit: eventLogoSubmit,
+      component: FormLogoAndCover,
+      props: { eventTypeSelected },
+    },
+    {
+      step: 5,
       formMethods: methodsRegistrationSettings,
       onSubmit: registrationSettingsSubmit,
       component: FormRegistrationSettings,
