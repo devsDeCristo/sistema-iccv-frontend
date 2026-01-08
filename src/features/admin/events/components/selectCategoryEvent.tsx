@@ -1,18 +1,26 @@
 import { alpha, Box, Grid, Radio, Typography, useTheme } from '@mui/material';
 import { useFormContext, useWatch } from 'react-hook-form';
-import { CategoryEventFormType, GeneralInfoFormType } from '../types';
-import { Backpack, Class, ClassOutlined } from '@mui/icons-material';
-import { useMemo } from 'react';
-
-function SelectCategoryEvent() {
+import { CategoryEventFormType } from '../types';
+import { Backpack, Class } from '@mui/icons-material';
+import { useEffect } from 'react';
+interface SelectCategoryEventProps {
+  selectEventType: (eventType: 'CURSILHO' | 'RETIRO') => void;
+}
+function SelectCategoryEvent({ selectEventType }: SelectCategoryEventProps) {
   const {
     control,
-    getValues,
     setValue,
     formState: { errors },
   } = useFormContext<CategoryEventFormType>();
+  const eventSelected = useWatch({ control, name: 'eventType' });
+
+  useEffect(() => {
+    if (eventSelected) {
+      selectEventType(eventSelected);
+    }
+  }, [eventSelected]);
+
   const theme = useTheme();
-  const eventSelected = useWatch({ control, name: 'eventType' }); // observa o valor atual
   return (
     <Grid container spacing={2}>
       <Grid item xs={12} md={12}>

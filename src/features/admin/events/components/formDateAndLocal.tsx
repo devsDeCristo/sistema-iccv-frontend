@@ -11,18 +11,54 @@ import { Controller, useFormContext, useWatch } from 'react-hook-form';
 import { DateAndLocalFormType } from '../types';
 import { CancelOutlined, Launch } from '@mui/icons-material';
 import GoogleMap from '../../../../components/mapWord';
+import { formatZipCode, removeMask } from '../../../../utils';
 
 function FormDateAndLocal() {
   const {
     control,
+    setError,
+    setValue,
     formState: { errors },
   } = useFormContext<DateAndLocalFormType>();
   const linkMaps = useWatch({ control, name: 'linkMaps' });
+  const fetchAddressByCep = async (cep: string) => {
+    try {
+      const cleanCep = cep.replace(/\D/g, '');
 
+      if (cleanCep.length !== 8) return;
+
+      const response = await fetch(
+        `https://viacep.com.br/ws/${cleanCep}/json/`
+      );
+
+      const data = await response.json();
+
+      if (data.erro) {
+        setError('zipCode', {
+          type: 'manual',
+          message: 'CEP não encontrado.',
+        });
+        return;
+      }
+
+      setValue('address', data.logradouro || '');
+      setValue('neighborhood', data.bairro || '');
+      setValue('city', data.localidade || '');
+      setValue('state', data.uf || '');
+    } catch (error) {
+      setError('zipCode', {
+        type: 'manual',
+        message: 'Falha ao buscar o CEP.',
+      });
+      // Toast('error', 'Erro', 'Falha ao buscar o CEP.');
+    }
+  };
   return (
     <Grid container spacing={2}>
       <Grid item xs={12} md={12}>
-        <Typography variant="h6">Data</Typography>
+        <Typography variant="h6" fontSize={18}>
+          Data
+        </Typography>
       </Grid>
       <Grid item xs={12} md={6}>
         <Controller
@@ -34,6 +70,7 @@ function FormDateAndLocal() {
               value={value as unknown as Date}
               onChange={onChange}
               errorMessage={errors.startDate?.message}
+              slotProps={{ textField: { size: 'small', required: true } }}
             />
           )}
         />
@@ -48,19 +85,23 @@ function FormDateAndLocal() {
               value={value as unknown as Date}
               onChange={onChange}
               errorMessage={errors.endDate?.message}
+              slotProps={{ textField: { size: 'small', required: true } }}
             />
           )}
         />
-      </Grid>{' '}
-      <Grid item xs={12} md={12}>
-        <Typography variant="h6">Local</Typography>
       </Grid>
-      <Grid item xs={12} md={6}>
+      <Grid item xs={12} md={12}>
+        <Typography variant="h6" fontSize={18}>
+          Local
+        </Typography>
+      </Grid>
+      <Grid item xs={12} md={12}>
         <Controller
           name="localName"
           control={control}
           render={({ field: { onChange, value } }) => (
             <Input
+              size="small"
               label="Nome do Local"
               value={value}
               onChange={onChange}
@@ -69,13 +110,56 @@ function FormDateAndLocal() {
             />
           )}
         />
+      </Grid>{' '}
+      <Grid item xs={12} md={12}>
+        <Typography variant="subtitle1">
+          Informações de endereço(opcional)
+        </Typography>
+      </Grid>{' '}
+      <Grid item xs={12} md={4}>
+        <Controller
+          name="zipCode"
+          control={control}
+          render={({ field: { onChange, value } }) => (
+            <Input
+              size="small"
+              label="CEP"
+              placeholder="00000-000"
+              value={formatZipCode(value)}
+              onChange={(e) => {
+                const cep = removeMask(e.target.value);
+                onChange(cep);
+                fetchAddressByCep(cep);
+              }}
+              error={!!errors.zipCode}
+              errorMessage={errors.zipCode?.message}
+            />
+          )}
+        />
       </Grid>
-      <Grid item xs={12} md={6}>
+      <Grid item xs={12} md={8}>
+        <Controller
+          name="address"
+          control={control}
+          render={({ field: { onChange, value } }) => (
+            <Input
+              size="small"
+              label="Endereço"
+              value={value}
+              onChange={onChange}
+              error={!!errors.address}
+              errorMessage={errors.address?.message}
+            />
+          )}
+        />
+      </Grid>
+      <Grid item xs={12} md={4}>
         <Controller
           name="city"
           control={control}
           render={({ field: { onChange, value } }) => (
             <Input
+              size="small"
               label="Cidade"
               value={value}
               onChange={onChange}
@@ -85,12 +169,13 @@ function FormDateAndLocal() {
           )}
         />
       </Grid>
-      <Grid item xs={12} md={6}>
+      <Grid item xs={12} md={4}>
         <Controller
           name="neighborhood"
           control={control}
           render={({ field: { onChange, value } }) => (
             <Input
+              size="small"
               label="Bairro"
               value={value}
               onChange={onChange}
@@ -100,12 +185,13 @@ function FormDateAndLocal() {
           )}
         />
       </Grid>
-      <Grid item xs={12} md={6}>
+      <Grid item xs={12} md={4}>
         <Controller
           name="number"
           control={control}
           render={({ field: { onChange, value } }) => (
             <Input
+              size="small"
               label="Número"
               value={value}
               onChange={onChange}
@@ -121,6 +207,7 @@ function FormDateAndLocal() {
           control={control}
           render={({ field: { onChange, value } }) => (
             <Input
+              size="small"
               label="Link do Maps"
               value={value}
               onChange={onChange}

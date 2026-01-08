@@ -3,8 +3,12 @@ import { Input } from '../../../../components/input';
 import { Controller, useFormContext } from 'react-hook-form';
 import { RegistrationSettingsFormType } from '../types';
 import { onlyNumber } from '../../../../utils';
-
-function FormRegistrationSettings() {
+interface FormRegistrationSettingsProps {
+  eventTypeSelected?: 'CURSILHO' | 'RETIRO' | undefined;
+}
+function FormRegistrationSettings({
+  eventTypeSelected,
+}: FormRegistrationSettingsProps) {
   const {
     control,
     formState: { errors },

@@ -38,6 +38,8 @@ export const DATE_AND_LOCAL_SCHEMA = z.object({
     })
     .nullable(),
   localName: z.string().optional(),
+  zipCode: z.string().optional(),
+  state: z.string().optional(),
   city: z.string().optional(),
   neighborhood: z.string().optional(),
   address: z.string().optional(),
@@ -94,7 +96,7 @@ export const STEPS = [
   },
   {
     id: 3,
-    label: 'Data e Horário',
+    label: 'Data e Local',
     icon: Event,
   },
   {

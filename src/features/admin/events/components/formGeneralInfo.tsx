@@ -22,6 +22,7 @@ function FormGeneralInfo() {
           name="name"
           render={({ field: { onChange, value } }) => (
             <Input
+              size="small"
               value={value}
               onChange={onChange}
               // required
@@ -38,6 +39,7 @@ function FormGeneralInfo() {
           name="isActive"
           render={({ field: { onChange, value } }) => (
             <InputSelect
+              size="small"
               label="Status do evento"
               menuOptions={OPTIONS_STATUS}
               value={value}
@@ -49,15 +51,16 @@ function FormGeneralInfo() {
       <Grid item xs={12} md={12}>
         <Controller
           control={control}
-          name="name"
+          name="shortDescription"
           render={({ field: { onChange, value } }) => (
             <Input
+              size="small"
               value={value}
               onChange={onChange}
               // required
               label="Descrição curta"
-              error={!!errors.name}
-              errorMessage={errors.name?.message}
+              error={!!errors.shortDescription}
+              errorMessage={errors.shortDescription?.message}
             />
           )}
         />
@@ -65,17 +68,18 @@ function FormGeneralInfo() {
       <Grid item xs={12} md={12}>
         <Controller
           control={control}
-          name="name"
+          name="description"
           render={({ field: { onChange, value } }) => (
             <Input
+              size="small"
               value={value}
               onChange={onChange}
               // required
               multiline
               rows={4}
               label="Descrição Detalhada"
-              error={!!errors.name}
-              errorMessage={errors.name?.message}
+              error={!!errors.description}
+              errorMessage={errors.description?.message}
             />
           )}
         />
@@ -100,6 +104,7 @@ function FormGeneralInfo() {
           name="groupLink"
           render={({ field: { onChange, value } }) => (
             <Input
+              size="small"
               value={value}
               onChange={onChange}
               label="Link do grupo de whatsapp"

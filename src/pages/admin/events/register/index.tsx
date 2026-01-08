@@ -42,6 +42,9 @@ function Register() {
   const methodsRegistrationSettings = useForm<RegistrationSettingsFormType>({
     resolver: zodResolver(REGISTRATION_SETTINGS_SCHEMA),
   });
+  const [eventTypeSelected, setEventTypeSelected] = useState<
+    'CURSILHO' | 'RETIRO' | undefined
+  >(undefined);
 
   const { mutate: mutatePostCreateEvent } = usePostCreateEvent({
     onSuccess: () => {
@@ -117,24 +120,28 @@ function Register() {
       formMethods: methodsCategoryEvent,
       onSubmit: categoryEventSubmit,
       component: SelectCategoryEvent,
+      props: { selectEventType: setEventTypeSelected },
     },
     {
       step: 2,
       formMethods: methodsGeneralInfo,
       onSubmit: generalInfoSubmit,
       component: FormGeneralInfo,
+      props: {},
     },
     {
       step: 3,
       formMethods: methodsDateAndTime,
       onSubmit: dateAndTimeSubmit,
       component: FormDateAndLocal,
+      props: {},
     },
     {
       step: 4,
       formMethods: methodsRegistrationSettings,
       onSubmit: registrationSettingsSubmit,
       component: FormRegistrationSettings,
+      props: { eventTypeSelected },
     },
   ];
 
@@ -161,7 +168,10 @@ function Register() {
               stepMethods[currentStep - 1].formMethods as any
             ).handleSubmit(stepMethods[currentStep - 1].onSubmit)}
           >
-            {React.createElement(stepMethods[currentStep - 1].component)}
+            {React.createElement(
+              stepMethods[currentStep - 1].component as any,
+              stepMethods[currentStep - 1].props as any
+            )}
             <Box
               sx={{
                 display: 'flex',
