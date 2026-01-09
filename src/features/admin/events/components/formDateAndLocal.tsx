@@ -1,4 +1,5 @@
 import {
+  alpha,
   Box,
   Grid,
   IconButton,
@@ -289,9 +290,10 @@ function FormDateAndLocal() {
           ) : (
             <Box
               sx={{
-                border: '1px dashed',
-                borderColor: theme.palette.text.secondary,
-                borderRadius: 1,
+                border: '1px solid',
+                borderColor: alpha(theme.palette.text.secondary, 0.2),
+                backgroundColor: alpha(theme.palette.text.secondary, 0.05),
+                borderRadius: 1.5,
                 height: 200,
                 display: 'flex',
                 alignItems: 'center',
@@ -303,7 +305,7 @@ function FormDateAndLocal() {
               }}
             >
               <Place
-                sx={{ fontSize: 50, color: theme.palette.text.secondary }}
+                sx={{ fontSize: 50, color: theme.palette.text.disabled }}
               />
               <Typography variant="body1" color="textPrimary">
                 Insira o link do Google Maps para visualizar o mapa aqui.
