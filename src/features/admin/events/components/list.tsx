@@ -78,22 +78,22 @@ function List({ search }: { search: string }) {
       ),
     },
     {
-      field: 'capacity',
-      headerName: 'Cursilhistas',
+      field: 'users',
+      headerName: 'Inscritos',
       width: 100,
       align: 'center',
       headerAlign: 'center',
       renderCell: (params) => {
-        const participantsCount = params?.row?.users?.filter(
-          (user: any) => !user.worker
-        )?.length || 0;
+        const users = params?.row?.users;
+        const capacity = params?.row?.capacity;
+
         return (
           <Stack direction="row" alignItems="center">
             <Typography>
-              {participantsCount}/{params?.row?.capacity}
+              {users}/{capacity}
               <LinearProgress
                 variant="determinate"
-                value={(participantsCount / (params?.row?.capacity || 0)) * 100}
+                value={(users / (capacity || 0)) * 100}
               />
             </Typography>
           </Stack>
@@ -101,23 +101,19 @@ function List({ search }: { search: string }) {
       },
     },
     {
-      field: 'capacityWorker',
-      headerName: 'Cursilheiros',
+      field: 'waitlist',
+      headerName: 'Em espera',
       width: 100,
       align: 'center',
       headerAlign: 'center',
-      renderCell: (params) => {
-        const participantsCount = params?.row?.users?.filter(
-          (user: any) => user.worker
-        )?.length || 0;
+       renderCell: (params) => {
         return (
-          <Stack direction="row" alignItems="center">
-            <Typography>
-              {participantsCount}/{params?.row?.capacityWorker}
-              <LinearProgress
-                variant="determinate"
-                value={(participantsCount / (params?.row?.capacityWorker || 0)) * 100}
-              />
+          <Stack direction="column" alignItems="center">
+            <Typography color={theme.palette.text.primary} variant="body2">
+              {params.value || 0}
+            </Typography>
+            <Typography color={theme.palette.text.secondary} variant="caption">
+              {'Aguardando'}
             </Typography>
           </Stack>
         );
