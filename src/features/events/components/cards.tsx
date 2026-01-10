@@ -2,13 +2,10 @@ import {
   Paper,
   CardContent,
   Typography,
-  // Chip,
   Box,
-
   Stack,
   useTheme,
   Button,
-  Alert,
   LinearProgress,
   CardMedia,
 } from '@mui/material';
@@ -17,22 +14,17 @@ import { useGetEvents } from '../../admin/events/api/getEvents';
 import dayjs from 'dayjs';
 import CalendarMonthOutlinedIcon from '@mui/icons-material/CalendarMonthOutlined';
 import RoomOutlinedIcon from '@mui/icons-material/RoomOutlined';
-
 import { Event } from '../../admin/events/types';
-import CustomChip from '../../../components/customChip';
-import { Height, Work } from '@mui/icons-material';
-// import { Work } from '@mui/icons-material';
+import { Work } from '@mui/icons-material';
 
 function EventCard({ event }: { event: Event }) {
   const navigate = useNavigate();
   const theme = useTheme();
   const capacity = event.capacity ?? 0;
   const users = event.users ?? 0;
-  const status = event.isActive ? 'Aberto' : 'Finalizado';
   const percentOcupped =
     ((users ?? 0) / capacity) * 100;
   const type= event.type
-  
   
   const styles = {
     card: {
@@ -155,7 +147,7 @@ function EventCard({ event }: { event: Event }) {
             disabled={!event.isActive}
             size="small"
             sx={styles.button}
-            onClick={() => navigate(`/cadastrar-cursilho/${event.id}`)}
+            onClick={() => navigate(`/eventos/${event.id}`)}
           >
             Ver mais
           </Button>
