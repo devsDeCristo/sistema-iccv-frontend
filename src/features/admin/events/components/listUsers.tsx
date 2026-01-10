@@ -8,7 +8,6 @@ import {
   ListItemText,
   Menu,
   MenuItem,
-  Paper,
   Stack,
   Tab,
   Tabs,
@@ -30,15 +29,7 @@ import {
   selectedGridRowsSelector,
 } from '@mui/x-data-grid';
 import { useParams } from 'react-router-dom';
-import {
-  AssignmentInd,
-  Badge,
-  Close,
-  Delete,
-  Done,
-  Edit,
-  MoreVert,
-} from '@mui/icons-material';
+import { Badge, Delete, Edit, MoreVert } from '@mui/icons-material';
 import FileSaver from 'file-saver';
 import { pdf } from '@react-pdf/renderer';
 import PdfBadge from '../../../../components/pdfBadge';
@@ -54,7 +45,6 @@ import CustomChip from '../../../../components/customChip';
 import { GET_EVENT_USERS } from '../constants';
 import { queryClient } from '../../../../config/lib/react-query/query-client';
 import { toast } from 'react-toastify';
-import { transformer } from 'zod';
 const getSelectedRowsToExport = ({
   apiRef,
 }: GridGetRowsToExportParams): GridRowId[] => {
@@ -121,7 +111,7 @@ function ListUsers({
   const styles = {
     card: {
       borderRadius: '5px',
-     backgroundColor: theme.palette.background.paper,
+      backgroundColor: theme.palette.background.paper,
       boxShadow: '0px 0px 3px  #0000001a',
       border: 'none',
       '&::before': {
@@ -129,9 +119,7 @@ function ListUsers({
       },
     },
     tabs: {
-     
       '& button': {
-
         color: theme.palette.text.disabled,
         textTransform: 'capitalize',
         minHeight: '20px',
@@ -486,8 +474,7 @@ function ListUsers({
 
   return (
     <>
-    {Array.isArray(groupsRules) && groupsRules.length > 0 && (
-     
+      {Array.isArray(groupsRules) && groupsRules.length > 0 && (
         <Stack sx={[styles.card, { p: 0.5, height: '50px' }]}>
           <Tabs
             variant="fullWidth"
@@ -502,7 +489,6 @@ function ListUsers({
           </Tabs>
         </Stack>
       )}
-      
 
       <Card>
         <DataGrid
@@ -586,14 +572,13 @@ function ListUsers({
             'aria-labelledby': 'options-button',
           }}
         >
-          
-            <MenuItem onClick={handleClickEdit}>
-              <ListItemIcon>
-                <Edit fontSize="small" color="primary" />
-              </ListItemIcon>
-              <ListItemText>Editar Usuário</ListItemText>
-            </MenuItem>
-        
+          <MenuItem onClick={handleClickEdit}>
+            <ListItemIcon>
+              <Edit fontSize="small" color="primary" />
+            </ListItemIcon>
+            <ListItemText>Editar Usuário</ListItemText>
+          </MenuItem>
+
           <MenuItem onClick={handleClickDownloadBadge}>
             <ListItemIcon>
               <Badge fontSize="small" color="primary" />

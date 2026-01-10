@@ -15,8 +15,10 @@ import { DateAndLocalFormType } from '../types';
 import { CancelOutlined, Clear, Place } from '@mui/icons-material';
 import GoogleMap from '../../../../components/mapWord';
 import { formatZipCode, removeMask } from '../../../../utils';
-
-function FormDateAndLocal() {
+interface FormDateAndLocalProps {
+  isActive?: boolean;
+}
+function FormDateAndLocal({ isActive = true }: FormDateAndLocalProps) {
   const {
     control,
     setError,
@@ -90,7 +92,7 @@ function FormDateAndLocal() {
           render={({ field: { onChange, value } }) => (
             <InputDatePicker
               label="Data Inicial"
-              disablePast
+              disablePast={!isActive}
               value={value as unknown as Date}
               onChange={onChange}
               errorMessage={errors.startDate?.message}
@@ -106,7 +108,7 @@ function FormDateAndLocal() {
           render={({ field: { onChange, value } }) => (
             <InputDatePicker
               label="Data Final"
-              disablePast
+              disablePast={!isActive}
               minDate={startDate as unknown as Date}
               value={value as unknown as Date}
               onChange={onChange}

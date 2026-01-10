@@ -35,7 +35,10 @@ import { useGetEvents } from '../../../../features/admin/events/api/getEvents';
 import { usePutUpdateEvent } from '../../../../features/admin/events/api/putEvent';
 import React, { useEffect, useMemo, useState } from 'react';
 import { FormGeneralInfo } from '../../../../features/admin/events/components/formGeneralInfo';
-import { svgFileToText } from '../../../../features/admin/events/utils/fileConverters';
+import {
+  svgFileToText,
+  svgTextToFile,
+} from '../../../../features/admin/events/utils/fileConverters';
 import { toast } from 'react-toastify';
 import { Check } from '@mui/icons-material';
 
@@ -52,17 +55,7 @@ function Edit() {
     }
   );
   const event = eventData as EventDetails;
-  // const DEFAULT_VALUES: RegisterEventFormType = {
-  //   name: event?.name || '',
-  //   groupLink: event?.groupLink || '',
-  //   isActive: event?.isActive || false,
-  //   price: event?.price || 0,
-  //   workerPrice: event?.workerPrice || 0,
-  //   capacity: event?.capacity || 0,
-  //   capacityWorker: event?.capacityWorker || 0,
-  //   endDate: event?.endDate ? new Date(event.endDate) : new Date(),
-  //   startDate: new Date(),
-  // };
+
   const getDefaultGeneralInfoValues = (
     event?: EventDetails
   ): GeneralInfoFormType => ({
@@ -86,6 +79,29 @@ function Edit() {
     number: event?.data?.number || '',
     linkMaps: event?.data?.linkMaps || '',
   });
+  const getDefaultRegistrationSettingsValues = (
+    event?: EventDetails
+  ): RegistrationSettingsFormType => ({
+    groupRoles:
+      event?.groupRoles.map((groupRole) => ({
+        name: groupRole.name,
+        capacity: groupRole.capacity,
+        roles: groupRole.roles.map((role) => ({
+          price: role.price,
+          description: role.description,
+        })),
+      })) || [],
+  });
+  const getDefaultEventLogoValues = (
+    event?: EventDetails
+  ): EventLogoFormType => ({
+    eventLogo: event?.data?.logoFile
+      ? [svgTextToFile(event.data.logoFile, 'logo.svg')]
+      : undefined,
+    eventCover: event?.data?.coverFile
+      ? [svgTextToFile(event.data.coverFile, 'cover.svg')]
+      : undefined,
+  });
 
   const [currentStep, setCurrentStep] = useState(1);
   // const methodsCategoryEvent = useForm<CategoryEventFormType>({
@@ -104,14 +120,21 @@ function Edit() {
   });
   const methodsRegistrationSettings = useForm<RegistrationSettingsFormType>({
     resolver: zodResolver(REGISTRATION_SETTINGS_SCHEMA),
+    defaultValues: getDefaultRegistrationSettingsValues(event),
   });
   const methodsEventLogo = useForm<EventLogoFormType>({
     resolver: zodResolver(EVENT_LOGO_SCHEMA),
+    defaultValues: getDefaultEventLogoValues(event),
   });
   const eventTypeSelected = useMemo(() => event?.type, [event]);
   useEffect(() => {
     if (event) {
       methodsGeneralInfo.reset(getDefaultGeneralInfoValues(event));
+      methodsDateAndTime.reset(getDefaultDateAndLocalValues(event));
+      methodsRegistrationSettings.reset(
+        getDefaultRegistrationSettingsValues(event)
+      );
+      methodsEventLogo.reset(getDefaultEventLogoValues(event));
     }
   }, [event]);
   const styles = {
@@ -174,8 +197,6 @@ function Edit() {
   }
   function eventLogoSubmit() {
     methodsEventLogo.trigger().then((isValid) => {
-      console.log(isValid, 'sds');
-
       if (isValid) {
         handleNext();
       }
@@ -238,7 +259,7 @@ function Edit() {
     navigate(-1);
   };
 
-  const stepMethods = [
+  const panelsMethods = [
     {
       step: 1,
       formMethods: methodsGeneralInfo,
@@ -304,17 +325,17 @@ function Edit() {
           </Tabs>
         </Stack>
         <FormProvider
-          {...(stepMethods[currentStep - 1].formMethods as any)}
+          {...(panelsMethods[currentStep - 1].formMethods as any)}
           key={currentStep - 1}
         >
           <form
             onSubmit={(
-              stepMethods[currentStep - 1].formMethods as any
-            ).handleSubmit(stepMethods[currentStep - 1].onSubmit)}
+              panelsMethods[currentStep - 1].formMethods as any
+            ).handleSubmit(panelsMethods[currentStep - 1].onSubmit)}
           >
             {React.createElement(
-              stepMethods[currentStep - 1].component as any,
-              stepMethods[currentStep - 1].props as any
+              panelsMethods[currentStep - 1].component as any,
+              panelsMethods[currentStep - 1].props as any
             )}
             <Box
               sx={{

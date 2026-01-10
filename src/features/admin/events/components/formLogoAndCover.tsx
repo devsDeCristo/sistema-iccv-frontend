@@ -1,5 +1,12 @@
-import { Box, Button, Grid, Typography, useTheme } from '@mui/material';
-import { Input } from '../../../../components/input';
+import {
+  alpha,
+  Box,
+  Grid,
+  IconButton,
+  Tooltip,
+  Typography,
+  useTheme,
+} from '@mui/material';
 import {
   Controller,
   FieldPath,
@@ -7,8 +14,8 @@ import {
   useWatch,
 } from 'react-hook-form';
 import { EventLogoFormType } from '../types';
-import { Upload } from '@mui/icons-material';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { Close, Upload } from '@mui/icons-material';
+import { useCallback, useRef, useState } from 'react';
 import Resizer from 'react-image-file-resizer';
 import { toast } from 'react-toastify';
 
@@ -198,35 +205,78 @@ function FormLogoAndCover() {
       {logo && logo[0] ? (
         <Box
           sx={{
-            position: 'relative',
+            // position: 'relative',
             width: '100%',
-            maxWidth: 200,
+            // maxWidth: 200,
+            border: `1px solid ${theme.palette.divider}`,
             mt: 2,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 2,
+            justifyContent: 'space-between',
+            borderRadius: 2,
+            p: 2,
           }}
         >
           <Box
-            component="img"
-            src={URL.createObjectURL(logo[0])}
-            alt="Preview da logo"
             sx={{
-              width: '100%',
-              height: 'auto',
-              maxHeight: 200,
-              objectFit: 'contain',
-              borderRadius: 2,
-              border: `1px solid ${theme.palette.divider}`,
-              p: 2,
-              bgcolor: theme.palette.background.paper,
+              display: 'flex',
+              gap: 2,
             }}
-          />
-          <Button
+          >
+            <Box
+              component="img"
+              src={URL.createObjectURL(logo[0])}
+              alt="Preview da logo"
+              sx={{
+                // width: '100%',
+                width: 150,
+                height: 'auto',
+                maxHeight: 200,
+                objectFit: 'contain',
+                borderRadius: 2,
+                p: 2,
+                bgcolor: theme.palette.background.default,
+              }}
+            />
+
+            <Box
+              className="flex-1"
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'start',
+                justifyContent: 'center',
+              }}
+            >
+              <Typography fontWeight={500} fontSize={'16px'}>
+                {logo[0]?.name ? logo[0].name : 'Logo atual'}
+              </Typography>
+              <Typography
+                fontSize={'14px'}
+                sx={{ color: alpha(theme.palette.text.primary, 0.7) }}
+              >
+                {logo[0]?.size && `${(logo[0]?.size / 1024).toFixed(1)} KB`}
+              </Typography>
+            </Box>
+          </Box>
+          <Tooltip title="Remover imagem">
+            <IconButton
+              onClick={() => {
+                setValue('eventLogo', null);
+              }}
+            >
+              <Close />
+            </IconButton>
+          </Tooltip>
+          {/* <Button
             variant="outlined"
             size="small"
             sx={{ mt: 1 }}
             onClick={() => handleButtonClick(fileInputRefLogo)}
           >
             Alterar Logo
-          </Button>
+          </Button> */}
         </Box>
       ) : (
         <Box
@@ -276,34 +326,82 @@ function FormLogoAndCover() {
       {cover && cover[0] ? (
         <Box
           sx={{
-            position: 'relative',
+            // position: 'relative',
             width: '100%',
-            maxWidth: 400,
+            // maxWidth: 200,
+            border: `1px solid ${theme.palette.divider}`,
             mt: 2,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 2,
+            justifyContent: 'space-between',
+            borderRadius: 2,
+            p: 2,
           }}
         >
           <Box
-            component="img"
-            src={URL.createObjectURL(cover[0])}
-            alt="Preview da capa"
             sx={{
-              width: '100%',
-              height: 'auto',
-              maxHeight: 300,
-              objectFit: 'cover',
-              borderRadius: 2,
-              border: `1px solid ${theme.palette.divider}`,
-              bgcolor: theme.palette.background.paper,
+              display: 'flex',
+              gap: 2,
             }}
-          />
-          <Button
+          >
+            <Box
+              component="img"
+              src={URL.createObjectURL(cover[0])}
+              alt="Preview da capa"
+              sx={{
+                // width: '100%',
+                width: 150,
+                height: 'auto',
+                maxHeight: 200,
+                objectFit: 'contain',
+                borderRadius: 2,
+                // height: '100%',
+                alignItems: 'center',
+                justifyContent: 'center',
+                textAlign: 'center',
+                p: 2,
+                bgcolor: theme.palette.background.default,
+              }}
+            />
+
+            <Box
+              className="flex-1"
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'start',
+                justifyContent: 'center',
+              }}
+            >
+              <Typography fontWeight={500} fontSize={'16px'}>
+                {cover[0]?.name ? cover[0].name : 'Capa atual'}
+              </Typography>
+              <Typography
+                fontSize={'14px'}
+                sx={{ color: alpha(theme.palette.text.primary, 0.7) }}
+              >
+                {cover[0]?.size && `${(cover[0]?.size / 1024).toFixed(1)} KB`}
+              </Typography>
+            </Box>
+          </Box>
+          <Tooltip title="Remover imagem">
+            <IconButton
+              onClick={() => {
+                setValue('eventCover', null);
+              }}
+            >
+              <Close />
+            </IconButton>
+          </Tooltip>
+          {/* <Button
             variant="outlined"
             size="small"
             sx={{ mt: 1 }}
-            onClick={() => handleButtonClick(fileInputRefCover)}
+            onClick={() => handleButtonClick(fileInputRefLogo)}
           >
-            Alterar Capa
-          </Button>
+            Alterar Logo
+          </Button> */}
         </Box>
       ) : (
         <Box

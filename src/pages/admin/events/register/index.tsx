@@ -95,8 +95,6 @@ function Register() {
   }
   function eventLogoSubmit() {
     methodsEventLogo.trigger().then((isValid) => {
-      console.log(isValid, 'sds');
-
       if (isValid) {
         handleNext();
       }

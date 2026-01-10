@@ -83,3 +83,49 @@ export const createFormDataWithFiles = (
 
   return formData;
 };
+
+/**
+ * Converte uma string SVG de volta para um objeto File
+ */
+export const svgTextToFile = (
+  svgText: string,
+  fileName: string = 'image.svg'
+): File => {
+  // Cria um Blob a partir da string SVG
+  const blob = new Blob([svgText], { type: 'image/svg+xml' });
+
+  // Converte o Blob para File
+  const file = new File([blob], fileName, { type: 'image/svg+xml' });
+
+  return file;
+};
+
+/**
+ * Converte Base64 para File
+ */
+export const base64ToFile = (
+  base64String: string,
+  fileName: string = 'image.svg'
+): File => {
+  // Remove o prefixo "data:image/svg+xml;base64," se existir
+  const base64Data = base64String.includes('base64,')
+    ? base64String.split('base64,')[1]
+    : base64String;
+
+  // Decodifica Base64
+  const byteString = atob(base64Data);
+
+  // Cria array de bytes
+  const arrayBuffer = new ArrayBuffer(byteString.length);
+  const uint8Array = new Uint8Array(arrayBuffer);
+
+  for (let i = 0; i < byteString.length; i++) {
+    uint8Array[i] = byteString.charCodeAt(i);
+  }
+
+  // Cria Blob e depois File
+  const blob = new Blob([uint8Array], { type: 'image/svg+xml' });
+  const file = new File([blob], fileName, { type: 'image/svg+xml' });
+
+  return file;
+};

@@ -156,28 +156,23 @@ export const STEPS = [
 ];
 
 export const PANELS = [
-  // {
-  //   id: 1,
-  //   label: 'Categoria do evento',
-  //   icon: Category,
-  // },
   {
     id: 1,
     label: 'Informações gerais',
     icon: Assignment,
   },
   {
-    id: 3,
+    id: 2,
     label: 'Data e Local',
     icon: Event,
   },
   {
-    id: 4,
+    id: 3,
     label: 'Logo e capa',
     icon: Photo,
   },
   {
-    id: 5,
+    id: 4,
     label: 'Configurações de inscrição',
     icon: Settings,
   },
