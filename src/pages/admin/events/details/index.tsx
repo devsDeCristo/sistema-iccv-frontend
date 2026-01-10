@@ -28,6 +28,7 @@ import FileSaver from 'file-saver';
 import { pdf } from '@react-pdf/renderer';
 import {
   Event,
+  EventDetails,
   filterUsers,
   Team,
 } from '../../../../features/admin/events/types';
@@ -128,7 +129,7 @@ function Details() {
     }
   );
   const users = usersData as User[];
-  const event = eventData as Event;
+  const event = eventData as EventDetails;
 
   const styles = {
     card: {
@@ -399,8 +400,6 @@ function Details() {
           <Tab label="Pagamentos" value={'pagamentos'} />
           <Tab label="Quartos" value={'quartos'} />
           <Tab label="Equipes" value={'equipes'} />
-          {/* <Tab label="Lista de Espera" value={'lista-espera'} />
-          <Tab label="Alerta de Inscrições" value={'alerta-inscricoes'} /> */}
         </Tabs>
        </Stack>
      

@@ -62,7 +62,7 @@ export interface Bedroom {
 export interface Team {
   id: string;
   name: string;
-  event: Event;
+  event: EventDetails;
   users: UserTeam[];
   note: string | null;
   capacity: number;
