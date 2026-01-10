@@ -12,6 +12,7 @@ export const GET_BEDROOMS = 'GET_BEDROOMS';
 export const GET_TEAMS = 'GET_TEAMS';
 export const GET_INSIGHTS = 'GET_INSIGHTS';
 export const GET_EVENT_USERS = 'GET_EVENT_USERS';
+export const GET_EVENT_USERS_WAITLIST = 'GET_EVENT_USERS_WAITLIST';
 
 const DEFAULT_MESSAGE = 'Campo obrigatório';
 

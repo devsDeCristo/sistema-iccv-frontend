@@ -14,6 +14,7 @@ import { formatCPF, formatDate } from '../../../../utils';
 import {
   DataGrid,
   GridApi,
+  GridCellParams,
   GridColDef,
   GridGetRowsToExportParams,
   GridRowId,
@@ -28,6 +29,10 @@ import { useEffect, useMemo, useState } from 'react';
 
 import { toast } from 'react-toastify';
 import { useGetUsersWaitlist } from '../api/getUsersWaitlist';
+import { usePutMoveUserFromEvent } from '../api/putMoveUserFromEvent';
+import Swal from 'sweetalert2';
+import { queryClient } from '../../../../config/lib/react-query/query-client';
+import { GET_EVENT_USERS_WAITLIST } from '../constants';
 
 const getSelectedRowsToExport = ({
   apiRef,
@@ -115,7 +120,6 @@ function ListUsersWaitList({
     },
   };
 
- 
   const groupsRules = useMemo(
     () => event?.groupRoles?.map((g: any) => g.name) ?? [],
     [event]
@@ -198,38 +202,93 @@ function ListUsersWaitList({
       headerName: 'Telefone',
       width: 128,
     },
-  {field: 'groupsRegistration',
-    headerName:"Ingresso", width: 150, renderCell: (params) => (
-      <Stack direction="column" gap={1} sx={{ p: 0.5 }}>
-        {Array.isArray(params.value) &&
-          params.value.map((group: any) => (
-            <Typography
-              key={group.id}
-              sx={{ mt: -1.5, fontWeight: 300, fontSize: '0.85rem' }}
-            >
-              {group.name}
-            </Typography>
-          ))}
-      </Stack>
-    ),},
+    {
+      field: 'groupsRegistration',
+      headerName: 'Ingresso',
+      width: 150,
+      renderCell: (params) => (
+        <Stack direction="column" gap={1} sx={{ p: 0.5 }}>
+          {Array.isArray(params.value) &&
+            params.value.map((group: any) => (
+              group.roles.map((role: any) => (
+                <Typography
+                  key={role.id}
+                  sx={{ fontWeight: 500, fontSize: '0.9rem' }}
+                >
+                  {group.name} - {role.description}
+                </Typography>
+              ))
+            ))}
+           
+        </Stack>
+      ),
+    },
 
     {
       field: 'actions',
       headerName: '',
       sortable: false,
       width: 150,
-      renderCell: () => {
-        return <Stack sx={{p:1}}><Button variant="contained" >Inscrever</Button></Stack>;
+      renderCell: (params: GridCellParams) => {
+        return (
+          <Stack sx={{ p: 1 }}>
+            <Button
+              onClick={(event) => handleClickButton(event, params)}
+              variant="contained"
+            >
+              Inscrever
+            </Button>
+          </Stack>
+        );
       },
     },
   ];
+  const handleClickButton = (
+    event: React.MouseEvent,
+    params: GridCellParams
+  ) => {
+    event.stopPropagation();
+    const rowSelected = params.row;
+    Swal.fire({
+      title: 'Inscrição de usuário!',
+      text: 'Deseja inscrever o usuário no evento? Essa ação irá tentar inscrevê-lo automaticamente conforme as regras de ingresso e não poderá ser desfeita.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Sim, inscrever no evento!',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        mutateMoveUserFromEvent({
+          idEvent: eventId,
+          idUser: rowSelected?.id.toString(),
+          rule: rowSelected.groupsRegistration[0].roles[0]?.id,
+        });
+      }
+    });
+  };
 
-
-  
-  
+  const { mutate: mutateMoveUserFromEvent } = usePutMoveUserFromEvent({
+    onSuccess: () => {
+      Swal.fire({
+        title: 'Inscrito!',
+        text: 'Usuário movido para o evento com sucesso.',
+        icon: 'success',
+      });
+      queryClient.invalidateQueries(GET_EVENT_USERS_WAITLIST);
+    },
+    onError: (err: any) => {
+      Swal.fire({
+        title: 'Erro!',
+        text: 'Ocorreu um erro ao mover o usuário para o evento, tente novamente.',
+        icon: 'error',
+        confirmButtonText: 'OK',
+      });
+    },
+  });
 
   const filteredByGroup = (usersData: User[]) => {
-    if (!panel) return usersData;
+    if (!panel || groupsRules.length === 0) return usersData;
     return usersData.filter((user) => {
       return user.groupsRegistration?.some(
         (group: any) => group.name === panel
@@ -250,19 +309,21 @@ function ListUsersWaitList({
 
   return (
     <>
-      <Stack sx={[styles.card, { p: 0.5, height: '50px' }]}>
-        <Tabs
-          variant="fullWidth"
-          value={panel}
-          sx={styles.tabs}
-          onChange={(_, newValue) => setPanel(newValue)}
-        >
-          {Array.isArray(groupsRules) &&
-            groupsRules.map((groupName) => (
-              <Tab key={groupName} label={groupName} value={groupName} />
-            ))}
-        </Tabs>
-      </Stack>
+      {Array.isArray(groupsRules) && groupsRules.length > 0 && (
+        <Stack sx={[styles.card, { p: 0.5, height: '50px' }]}>
+          <Tabs
+            variant="fullWidth"
+            value={panel}
+            sx={styles.tabs}
+            onChange={(_, newValue) => setPanel(newValue)}
+          >
+            {Array.isArray(groupsRules) &&
+              groupsRules.map((groupName) => (
+                <Tab key={groupName} label={groupName} value={groupName} />
+              ))}
+          </Tabs>
+        </Stack>
+      )}
 
       <Card>
         <DataGrid

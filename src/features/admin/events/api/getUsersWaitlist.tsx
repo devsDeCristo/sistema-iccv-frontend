@@ -1,8 +1,9 @@
 import { UseQueryOptions, useQuery } from 'react-query';
 import { apiClient } from '../../../../config/lib/axios/api-client';
-import { GET_EVENT_USERS} from '../constants';
+
 import { handleResponseThrowError } from '../../../../utils/service';
 import { User } from '../../../../types/user';
+import { GET_EVENT_USERS_WAITLIST } from '../constants';
 
 interface GetUsersParams {
   eventId: string;
@@ -25,5 +26,5 @@ export const useGetUsersWaitlist = (
     'queryKey' | 'queryFn'
   > = {}
 ) => {
-  return useQuery([GET_EVENT_USERS, params], () => getUsersWaitlist(params), options);
+  return useQuery([GET_EVENT_USERS_WAITLIST, params], () => getUsersWaitlist(params), options);
 };

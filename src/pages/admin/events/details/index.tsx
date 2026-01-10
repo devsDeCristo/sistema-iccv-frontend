@@ -13,6 +13,7 @@ import {
   LinearProgress,
   Menu,
   MenuItem,
+  useTheme
 } from '@mui/material';
 
 import { useNavigate, useParams } from 'react-router-dom';
@@ -57,7 +58,7 @@ import ModalQrCode from '../../../../features/admin/events/components/modalQrCod
 import PdfEnvelopePhoto from '../../../../components/pdfEnvelopePhoto';
 import { User } from '../../../../types/user';
 import { ListUsersWaitList } from '../../../../features/admin/events/components/listUsersWaitList';
-import { useTheme } from '@emotion/react';
+
 
 function Details() {
   const { id, subPage } = useParams();
@@ -89,7 +90,7 @@ function Details() {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [openModalQrCode, setOpenModalQrCode] = useState(false);
   const openMenu = Boolean(anchorEl);
-  const theme= useTheme()
+  
   const handleClickOpenMenu = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
   };
@@ -97,6 +98,7 @@ function Details() {
   const handleCloseMenu = () => {
     setAnchorEl(null);
   };
+  const theme= useTheme()
   const { data: teamsData = [] } = useGetTeams({
     eventId,
   });

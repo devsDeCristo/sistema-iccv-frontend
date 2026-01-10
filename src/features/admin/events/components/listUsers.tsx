@@ -418,7 +418,7 @@ function ListUsers({
   };
 
   const filteredByGroup = (usersData: User[]) => {
-    if (!panel) return usersData;
+    if (!panel || groupsRules.length === 0) return usersData;
     return usersData.filter((user) => {
       return user.groupsRegistration?.some(
         (group: any) => group.name === panel
@@ -486,6 +486,7 @@ function ListUsers({
 
   return (
     <>
+    {Array.isArray(groupsRules) && groupsRules.length > 0 && (
      
         <Stack sx={[styles.card, { p: 0.5, height: '50px' }]}>
           <Tabs
@@ -500,6 +501,7 @@ function ListUsers({
               ))}
           </Tabs>
         </Stack>
+      )}
       
 
       <Card>
@@ -584,24 +586,14 @@ function ListUsers({
             'aria-labelledby': 'options-button',
           }}
         >
-          {panel == '1' && (
+          
             <MenuItem onClick={handleClickEdit}>
               <ListItemIcon>
                 <Edit fontSize="small" color="primary" />
               </ListItemIcon>
               <ListItemText>Editar Usuário</ListItemText>
             </MenuItem>
-          )}
-
-          {panel == '2' && (
-            <MenuItem onClick={handleClickEditWork}>
-              <ListItemIcon>
-                <AssignmentInd fontSize="small" color="primary" />
-              </ListItemIcon>
-              <ListItemText>Participação no evento</ListItemText>
-            </MenuItem>
-          )}
-
+        
           <MenuItem onClick={handleClickDownloadBadge}>
             <ListItemIcon>
               <Badge fontSize="small" color="primary" />
