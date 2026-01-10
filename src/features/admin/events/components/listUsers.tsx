@@ -142,7 +142,7 @@ function ListUsers({
       '& .MuiTab-icon': { marginRight: '2px' },
 
       '& button.Mui-selected': {
-        backgroundColor: theme.palette.background.paperSecondary,
+        backgroundColor: theme.palette.background.hover,
       },
       '& .MuiTabs-indicator': {
         backgroundColor: 'transparent',

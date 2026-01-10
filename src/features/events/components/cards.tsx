@@ -23,14 +23,15 @@ import CustomChip from '../../../components/customChip';
 function EventCard({ event }: { event: Event }) {
   const navigate = useNavigate();
   const theme = useTheme();
-  const usersParticipant = event.users?.filter((user) => !user.worker);
+  console.log('event', event);
+  const usersParticipant = event.users;
   const percentOcupped =
     ((usersParticipant?.length ?? 0) / event.capacity) * 100;
   const exhausted = (usersParticipant?.length ?? 0) >= event.capacity;
   // const percentOcupped = 44; // (event.users.length / event.capacity) * 100;
   const user = localStorage.getItem('user');
   const userId = user ? JSON.parse(user).id : null;
-  const isUserRegistered = event.users?.some((u) => u.id === userId);
+  const isUserRegistered = false//event.users?.some((u) => u.id === userId);
   // const usersWorker = event.users?.filter((user) => user.worker);
 
   const styles = {

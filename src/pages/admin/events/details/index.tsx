@@ -133,7 +133,7 @@ function Details() {
   const styles = {
     card: {
       borderRadius: '5px',
-     
+      backgroundColor: theme.palette.background.paper,
       boxShadow: '0px 0px 3px  #0000001a',
       border: 'none',
       '&::before': {
@@ -154,7 +154,7 @@ function Details() {
       '& .MuiTab-icon': { marginRight: '2px' },
 
       '& button.Mui-selected': {
-        backgroundColor: theme.palette.background.paperSecondary,
+        backgroundColor: theme.palette.background.hover,
       },
       '& .MuiTabs-indicator': {
         backgroundColor: 'transparent',
@@ -386,8 +386,8 @@ function Details() {
         buttonBack
         pageBack="/admin/eventos"
       />
-      <Paper sx={{width:"fit-content"}}>
-        <Stack sx={[styles.card, { p: 0.5, height: '50px' }]}>
+   
+        <Stack sx={[styles.card, { p: 0.5, height: '50px', width:"fit-content" }]}>
         <Tabs
           value={pageValue}
           sx={styles.tabs}
@@ -403,7 +403,7 @@ function Details() {
           <Tab label="Alerta de Inscrições" value={'alerta-inscricoes'} /> */}
         </Tabs>
        </Stack>
-      </Paper>
+     
       {pageValue === 'usuarios' && (
         <Stack gap={2}>
           <Paper component="div" sx={styles.boxFilterAndPdf}>

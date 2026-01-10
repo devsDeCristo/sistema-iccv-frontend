@@ -111,7 +111,7 @@ function ListUsersWaitList({
       '& .MuiTab-icon': { marginRight: '2px' },
 
       '& button.Mui-selected': {
-        backgroundColor: theme.palette.background.paperSecondary,
+        backgroundColor: theme.palette.background.hover,
       },
       '& .MuiTabs-indicator': {
         backgroundColor: 'transparent',
@@ -119,6 +119,24 @@ function ListUsersWaitList({
       },
     },
   };
+   const { mutate: mutateMoveUserFromEvent } = usePutMoveUserFromEvent({
+    onSuccess: () => {
+      Swal.fire({
+        title: 'Inscrito!',
+        text: 'Usuário movido para o evento com sucesso.',
+        icon: 'success',
+      });
+      queryClient.invalidateQueries(GET_EVENT_USERS_WAITLIST);
+    },
+    onError: () => {
+      Swal.fire({
+        title: 'Erro!',
+        text: 'Ocorreu um erro ao mover o usuário para o evento, tente novamente.',
+        icon: 'error',
+        confirmButtonText: 'OK',
+      });
+    },
+  });
 
   const groupsRules = useMemo(
     () => event?.groupRoles?.map((g: any) => g.name) ?? [],
@@ -233,7 +251,7 @@ function ListUsersWaitList({
         return (
           <Stack sx={{ p: 1 }}>
             <Button
-              onClick={(event) => handleClickButton(event, params)}
+              onClick={(event) => handleMoveUserToEvent(event, params)}
               variant="contained"
             >
               Inscrever
@@ -243,7 +261,7 @@ function ListUsersWaitList({
       },
     },
   ];
-  const handleClickButton = (
+  const handleMoveUserToEvent = (
     event: React.MouseEvent,
     params: GridCellParams
   ) => {
@@ -268,24 +286,7 @@ function ListUsersWaitList({
     });
   };
 
-  const { mutate: mutateMoveUserFromEvent } = usePutMoveUserFromEvent({
-    onSuccess: () => {
-      Swal.fire({
-        title: 'Inscrito!',
-        text: 'Usuário movido para o evento com sucesso.',
-        icon: 'success',
-      });
-      queryClient.invalidateQueries(GET_EVENT_USERS_WAITLIST);
-    },
-    onError: (err: any) => {
-      Swal.fire({
-        title: 'Erro!',
-        text: 'Ocorreu um erro ao mover o usuário para o evento, tente novamente.',
-        icon: 'error',
-        confirmButtonText: 'OK',
-      });
-    },
-  });
+ 
 
   const filteredByGroup = (usersData: User[]) => {
     if (!panel || groupsRules.length === 0) return usersData;
