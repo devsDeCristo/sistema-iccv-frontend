@@ -56,6 +56,7 @@ import PdfTeams from '../../../../components/pdfTeams';
 import ModalQrCode from '../../../../features/admin/events/components/modalQrCode';
 import PdfEnvelopePhoto from '../../../../components/pdfEnvelopePhoto';
 import { User } from '../../../../types/user';
+import { ListUsersWaitList } from '../../../../features/admin/events/components/listUsersWaitList';
 
 function Details() {
   const { id, subPage } = useParams();
@@ -357,7 +358,9 @@ function Details() {
           onChange={handleChange}
           aria-label="basic tabs example"
         >
-          <Tab label="Usuários" value={'usuarios'} />
+          <Tab label="Inscritos" value={'usuarios'} />
+          <Tab label="Lista de Espera" value={'lista-espera'} />
+          <Tab label="Pagamentos" value={'pagamentos'} />
           <Tab label="Quartos" value={'quartos'} />
           <Tab label="Equipes" value={'equipes'} />
           {/* <Tab label="Lista de Espera" value={'lista-espera'} />
@@ -450,6 +453,35 @@ function Details() {
             apiRef={apiRefUsers}
             search={searchUser}
             filters={filtersUsers}
+            event={event}
+          />
+        </Stack>
+      )}
+      {pageValue === 'lista-espera' && (
+        <Stack gap={2}>
+          <Paper component="div" sx={styles.boxFilterAndPdf}>
+            <TextField
+              placeholder="Pesquisar usuário por nome ou CPF"
+              variant="outlined"
+              size="small"
+              value={searchUser}
+              sx={styles.textField}
+              onChange={(e) => setSearchUser(e.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Search />
+                  </InputAdornment>
+                ),
+              }}
+            />
+          
+          </Paper>
+
+          <ListUsersWaitList
+            apiRef={apiRefUsers}
+            search={searchUser}
+            event={event}
           />
         </Stack>
       )}

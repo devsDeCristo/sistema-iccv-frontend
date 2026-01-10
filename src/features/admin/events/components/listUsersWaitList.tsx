@@ -33,9 +33,7 @@ import { useParams } from 'react-router-dom';
 import {
   AssignmentInd,
   Badge,
-  Close,
   Delete,
-  Done,
   Edit,
   MoreVert,
 } from '@mui/icons-material';
@@ -47,14 +45,12 @@ import { useEffect, useMemo, useState } from 'react';
 import Swal from 'sweetalert2';
 import { useRemoveUserFromEvent } from '../api/deleteUser';
 import { ModalEditWork } from './modalEditWork';
-import { useGetUsers } from '../api/getUsers';
-import { filterUsers } from '../types';
-import dayjs from 'dayjs';
 import CustomChip from '../../../../components/customChip';
 import { GET_EVENT_USERS } from '../constants';
 import { queryClient } from '../../../../config/lib/react-query/query-client';
 import { toast } from 'react-toastify';
-import { transformer } from 'zod';
+import { useGetUsersWaitlist } from '../api/getUsersWaitlist';
+
 const getSelectedRowsToExport = ({
   apiRef,
 }: GridGetRowsToExportParams): GridRowId[] => {
@@ -89,19 +85,17 @@ const renderCellWithCopy = (value: string | number) => {
   );
 };
 
-function ListUsers({
+function ListUsersWaitList({
   search,
   apiRef,
-  filters,
   event,
 }: {
   search: string;
-  filters: filterUsers;
   apiRef: React.MutableRefObject<GridApi>;
   event: any;
 }) {
   const { id: eventId = '' } = useParams();
-  const { data: usersData, isLoading } = useGetUsers(
+  const { data: usersData, isLoading } = useGetUsersWaitlist(
     {
       eventId: eventId,
     },
@@ -433,49 +427,10 @@ function ListUsers({
         user.cpf?.includes(search) ||
         user.badgeName?.toLowerCase().includes(search.toLowerCase())
     );
-    filtered = filterUsers(filtered, filters);
     filtered = filteredByGroup(filtered);
     return filtered;
   };
-  const normalize = (str: string) => str?.trim().normalize('NFC').toLowerCase();
 
-  const filterUsers = (users: User[], filters: filterUsers) => {
-    return users.filter((user) => {
-      const { birthday, city, neighborhood } = filters;
-
-      let isBirthdayMatch = true;
-      if (birthday.startDate && birthday.endDate) {
-        const userBD = dayjs(user.birthday);
-        const start = dayjs(birthday.startDate);
-        const end = dayjs(birthday.endDate);
-
-        // Transformar em número "MMDD" para comparar intervalos
-        const userNum = userBD.month() * 100 + userBD.date();
-        const startNum = start.month() * 100 + start.date();
-        const endNum = end.month() * 100 + end.date();
-
-        if (startNum <= endNum) {
-          // intervalo normal
-          isBirthdayMatch = userNum >= startNum && userNum <= endNum;
-        } else {
-          // intervalo cruzando o ano (ex.: 20/12 até 10/01)
-          isBirthdayMatch = userNum >= startNum || userNum <= endNum;
-        }
-      }
-
-      const isCityMatch = city
-        ? normalize(user.city) === normalize(city)
-        : true;
-      const isNeighborhoodMatch = neighborhood
-        ? normalize(user.neighborhood) === normalize(neighborhood)
-        : true;
-      const isWorkerMatch =
-        filters.worker !== undefined ? user.worker === filters.worker : true;
-      return (
-        isBirthdayMatch && isCityMatch && isNeighborhoodMatch && isWorkerMatch
-      );
-    });
-  };
 
   const handleClickEditWork = (event: React.MouseEvent) => {
     event.stopPropagation();
@@ -621,4 +576,4 @@ function ListUsers({
   );
 }
 
-export { ListUsers };
+export { ListUsersWaitList };
