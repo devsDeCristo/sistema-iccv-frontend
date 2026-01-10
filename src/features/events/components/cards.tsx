@@ -4,35 +4,36 @@ import {
   Typography,
   // Chip,
   Box,
-  LinearProgress,
+
   Stack,
   useTheme,
   Button,
   Alert,
+  LinearProgress,
+  CardMedia,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useGetEvents } from '../../admin/events/api/getEvents';
 import dayjs from 'dayjs';
 import CalendarMonthOutlinedIcon from '@mui/icons-material/CalendarMonthOutlined';
 import RoomOutlinedIcon from '@mui/icons-material/RoomOutlined';
-import GroupOutlinedIcon from '@mui/icons-material/GroupOutlined';
+
 import { Event } from '../../admin/events/types';
 import CustomChip from '../../../components/customChip';
+import { Height, Work } from '@mui/icons-material';
 // import { Work } from '@mui/icons-material';
 
 function EventCard({ event }: { event: Event }) {
   const navigate = useNavigate();
   const theme = useTheme();
-  // const usersParticipant = event.users?.filter((user) => !user.worker);
-  // const percentOcupped =
-  //   ((usersParticipant?.length ?? 0) / event.capacity) * 100;
-  // const exhausted = (usersParticipant?.length ?? 0) >= event.capacity;
-  // const percentOcupped = 44; // (event.users.length / event.capacity) * 100;
-  const user = localStorage.getItem('user');
-  const userId = user ? JSON.parse(user).id : null;
-  // const isUserRegistered = event.users?.some((u) => u.id === userId);
-  // const usersWorker = event.users?.filter((user) => user.worker);
-
+  const capacity = event.capacity ?? 0;
+  const users = event.users ?? 0;
+  const status = event.isActive ? 'Aberto' : 'Finalizado';
+  const percentOcupped =
+    ((users ?? 0) / capacity) * 100;
+  const type= event.type
+  
+  
   const styles = {
     card: {
       borderRadius: 3,
@@ -45,9 +46,15 @@ function EventCard({ event }: { event: Event }) {
     imageBox: { position: 'relative' },
     cardMedia: { objectFit: 'cover' },
     chipTopLeft: {
+      background: theme.palette.background.paper,
+      fontSize: '0.8rem',
+      borderBottomLeftRadius: 5,
+      borderBottomRightRadius: 5,
+      padding: '4px 8px',
+      color: theme.palette.text.primary,
       position: 'absolute',
-      top: 12,
-      left: 12,
+      top: 0,
+      left: 20,
       display: 'flex',
       gap: 1,
     },
@@ -55,14 +62,14 @@ function EventCard({ event }: { event: Event }) {
     chipEvento: { background: '#e0f2ff', color: '#0077cc' },
 
     cardContent: {
-      pt: 6,
+      pt: 2,
       mb: 4,
       display: 'flex',
       flexDirection: 'column',
       gap: 2,
     },
     title: { fontSize: '1.1rem', fontWeight: 500 },
-    description: { fontSize: '0.875rem', color: 'text.secondary' },
+    description: { fontSize: '0.875rem', color: 'text.secondary', maxHeight: '100px', overflow: 'hidden', textOverflow: 'ellipsis' },
     icon: { color: theme.palette.text.secondary, fontSize: '20px' },
     infoText: { fontSize: '0.875rem' },
     progressBox: { flexGrow: 1 },
@@ -85,42 +92,20 @@ function EventCard({ event }: { event: Event }) {
   return (
     <Paper sx={styles.card}>
       <Box sx={styles.imageBox}>
-        {/* <CardMedia
+        <CardMedia
           component="img"
-          height="180"
+          height="120"
           image={
             'https://www.guiaviagensbrasil.com/imagens/Imagem%20do%20mar%20calma%20e%20belo%20da%20Praia%20da%20Engenhoca-Itacar%C3%A9-Bahia-BA.jpg'
           }
           alt={event.name}
           sx={styles.cardMedia}
-        /> */}
+        />
         <Box sx={styles.chipTopLeft}>
-          <CustomChip
-            label="evento"
-            color="primary"
-            size="small"
-            customColor={theme.palette.chips.info}
-          />
+          {type}
+        
         </Box>
-        {/* <Box sx={styles.chipTopRight}>
-          <CustomChip
-            label={
-              event.isActive
-                ? exhausted
-                  ? 'Esgotado'
-                  : 'Aberto'
-                : 'Finalizado'
-            }
-            size="small"
-            customColor={
-              event.isActive
-                ? exhausted
-                  ? theme.palette.chips.canceled
-                  : theme.palette.chips.success
-                : theme.palette.text.primary
-            }
-          />
-        </Box> */}
+        
       </Box>
 
       <CardContent sx={styles.cardContent}>
@@ -147,46 +132,34 @@ function EventCard({ event }: { event: Event }) {
             </Typography>
           </Stack>
 
-          {/* <Stack direction="row" alignItems="center" gap={1}>
+          <Stack direction="row" alignItems="center" gap={1}>
             <Work sx={styles.icon} />
             <Typography sx={styles.infoText} color="text.secondary">
-              {usersWorker?.length} / {event.capacityWorker} Inscritos para
-              trabalhar
+              {users} / {capacity} Inscritos 
             </Typography>
-          </Stack> */}
+          </Stack> 
 
-          {/* <Stack direction="row" alignItems="center" gap={1}>
-            <GroupOutlinedIcon sx={styles.icon} />
-            <Typography sx={styles.infoText} color="text.secondary">
-              {usersParticipant?.length} / {event.capacity} Inscritos para
-              participar
-            </Typography>
-          </Stack> */}
         </Stack>
 
         <Box sx={styles.progressBox}>
-          {/* <LinearProgress
+          <LinearProgress
             valueBuffer={100}
             value={percentOcupped}
             variant="determinate"
             sx={styles.progressBar}
-          /> */}
+          />
         </Box>
-        {/* {isUserRegistered ? (
-          <Alert severity="success" sx={{ width: '100%' }} icon={false}>
-            Você já está inscrito neste evento!
-          </Alert>
-        ) : (
+       
           <Button
             variant="contained"
-            disabled={!event.isActive || isUserRegistered}
+            disabled={!event.isActive}
             size="small"
             sx={styles.button}
             onClick={() => navigate(`/cadastrar-cursilho/${event.id}`)}
           >
-            Inscrever-se
+            Ver mais
           </Button>
-        )} */}
+        
       </CardContent>
     </Paper>
   );
@@ -194,11 +167,12 @@ function EventCard({ event }: { event: Event }) {
 
 function Cards() {
   const { data = [] } = useGetEvents({});
+  const events = data as Event[];
 
   return (
     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
-      {Array.isArray(data)
-        ? data
+      {Array.isArray(events)
+        ? events
             .filter((event) => event.isActive)
             .map((event: Event) => <EventCard key={event.id} event={event} />)
         : null}
