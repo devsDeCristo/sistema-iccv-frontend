@@ -72,48 +72,44 @@ export const REGISTRATION_SETTINGS_SCHEMA = z.object({
   ),
 });
 export const EVENT_LOGO_SCHEMA = z.object({
-  eventLogo: z
-    .any()
-    .optional()
-    .refine(
-      (files) => {
-        if (!files || files.length === 0) return true;
-        return files[0]?.size <= 5 * 1024 * 1024; // 5MB
-      },
-      {
-        message: 'O tamanho do arquivo deve ser menor que 5MB',
-      }
-    )
-    .refine(
-      (files) => {
-        if (!files || files.length === 0) return true;
-        return ['image/svg+xml'].includes(files[0]?.type);
-      },
-      {
-        message: 'Formato de arquivo inválido. Use SVG.',
-      }
-    ),
-  eventCover: z
-    .any()
-    .optional()
-    .refine(
-      (files) => {
-        if (!files || files.length === 0) return true;
-        return files[0]?.size <= 5 * 1024 * 1024; // 5MB
-      },
-      {
-        message: 'O tamanho do arquivo deve ser menor que 5MB',
-      }
-    )
-    .refine(
-      (files) => {
-        if (!files || files.length === 0) return true;
-        return ['image/svg+xml'].includes(files[0]?.type);
-      },
-      {
-        message: 'Formato de arquivo inválido. Use SVG.',
-      }
-    ),
+  eventLogo: z.any().optional(),
+  // .refine(
+  //   (files) => {
+  //     if (!files || files.length === 0) return true;
+  //     return files[0]?.size <= 5 * 1024 * 1024; // 5MB
+  //   },
+  //   {
+  //     message: 'O tamanho do arquivo deve ser menor que 5MB',
+  //   }
+  // )
+  // .refine(
+  //   (files) => {
+  //     if (!files || files.length === 0) return true;
+  //     return ['image/svg+xml'].includes(files[0]?.type);
+  //   },
+  //   {
+  //     message: 'Formato de arquivo inválido. Use SVG.',
+  //   }
+  // ),
+  eventCover: z.any().optional(),
+  // .refine(
+  //   (files) => {
+  //     if (!files || files.length === 0) return true;
+  //     return files[0]?.size <= 5 * 1024 * 1024; // 5MB
+  //   },
+  //   {
+  //     message: 'O tamanho do arquivo deve ser menor que 5MB',
+  //   }
+  // )
+  // .refine(
+  //   (files) => {
+  //     if (!files || files.length === 0) return true;
+  //     return ['image/svg+xml'].includes(files[0]?.type);
+  //   },
+  //   {
+  //     message: 'Formato de arquivo inválido. Use SVG.',
+  //   }
+  // ),
 });
 
 export const REGISTER_EVENT_SCHEMA = GENERAL_INFO_SCHEMA.merge(

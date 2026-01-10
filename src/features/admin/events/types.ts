@@ -88,8 +88,8 @@ export interface CreateEventPayload {
     address?: string;
     number?: string;
     linkMaps?: string;
-    logoFile?: File;
-    coverFile?: File;
+    logoFile?: string;
+    coverFile?: string;
   };
   type: EventType;
 }

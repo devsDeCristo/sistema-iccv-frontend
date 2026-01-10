@@ -31,6 +31,11 @@ import { SelectCategoryEvent } from '../../../../features/admin/events/component
 import { FormLogoAndCover } from '../../../../features/admin/events/components/formLogoAndCover';
 import { toast } from 'react-toastify';
 import { queryClient } from '../../../../config/lib/react-query/query-client';
+import {
+  fileToBase64,
+  svgFileToText,
+  createFormDataWithFiles,
+} from '../../../../features/admin/events/utils/fileConverters';
 
 function Register() {
   const navigate = useNavigate();
@@ -90,47 +95,66 @@ function Register() {
   }
   function eventLogoSubmit() {
     methodsEventLogo.trigger().then((isValid) => {
+      console.log(isValid, 'sds');
+
       if (isValid) {
         handleNext();
       }
     });
   }
   function registrationSettingsSubmit() {
-    methodsRegistrationSettings.trigger().then((isValid) => {
+    methodsRegistrationSettings.trigger().then(async (isValid) => {
       if (isValid) {
         const generalInfoData = methodsGeneralInfo.getValues();
         const dateAndTimeData = methodsDateAndTime.getValues();
         const registrationSettingsData =
           methodsRegistrationSettings.getValues();
         const eventLogoData = methodsEventLogo.getValues();
-        const finalData = {
-          name: generalInfoData.name,
-          groupLink: generalInfoData.groupLink || '',
-          isActive: generalInfoData.isActive,
-          startDate: new Date(dateAndTimeData.startDate),
-          endDate: new Date(dateAndTimeData.endDate),
-          type: eventTypeSelected!,
-          groupRoles: registrationSettingsData.groupRoles,
-          data: {
-            description: generalInfoData.description,
-            shortDescription: generalInfoData.shortDescription,
-            localName: dateAndTimeData.localName,
-            zipCode: dateAndTimeData.zipCode,
-            state: dateAndTimeData.state,
-            city: dateAndTimeData.city,
-            neighborhood: dateAndTimeData.neighborhood,
-            address: dateAndTimeData.address,
-            number: dateAndTimeData.number,
-            linkMaps: dateAndTimeData.linkMaps,
-            logoFile: eventLogoData.eventLogo?.[0] || undefined,
-            coverFile: eventLogoData.eventCover?.[0] || undefined,
-          },
-        };
-        console.log(finalData);
 
-        mutatePostCreateEvent({
-          data: finalData,
-        });
+        try {
+          // OPÇÃO 2: Converter para Base64 e enviar como JSON
+          // const logoBase64 = eventLogoData.eventLogo?.[0]
+          //   ? await fileToBase64(eventLogoData.eventLogo[0])
+          //   : undefined;
+          // const coverBase64 = eventLogoData.eventCover?.[0]
+          //   ? await fileToBase64(eventLogoData.eventCover[0])
+          //   : undefined;
+          // OPÇÃO 3: Para SVG, pode enviar como texto XML direto
+          const logoSvgText = eventLogoData.eventLogo?.[0]
+            ? await svgFileToText(eventLogoData.eventLogo[0])
+            : undefined;
+          const coverSvgText = eventLogoData.eventCover?.[0]
+            ? await svgFileToText(eventLogoData.eventCover[0])
+            : undefined;
+          const finalDataBase64 = {
+            name: generalInfoData.name,
+            groupLink: generalInfoData.groupLink || '',
+            isActive: generalInfoData.isActive,
+            startDate: new Date(dateAndTimeData.startDate),
+            endDate: new Date(dateAndTimeData.endDate),
+            type: eventTypeSelected!,
+            groupRoles: registrationSettingsData.groupRoles,
+            data: {
+              description: generalInfoData.description,
+              shortDescription: generalInfoData.shortDescription,
+              localName: dateAndTimeData.localName,
+              zipCode: dateAndTimeData.zipCode,
+              state: dateAndTimeData.state,
+              city: dateAndTimeData.city,
+              neighborhood: dateAndTimeData.neighborhood,
+              address: dateAndTimeData.address,
+              number: dateAndTimeData.number,
+              linkMaps: dateAndTimeData.linkMaps,
+              logoFile: logoSvgText, // Base64 string
+              coverFile: coverSvgText, // Base64 string
+            },
+          };
+          console.log(finalDataBase64);
+          mutatePostCreateEvent({ data: finalDataBase64 });
+        } catch (error) {
+          console.error('Erro ao converter arquivos:', error);
+          toast.error('Erro ao processar as imagens');
+        }
       }
     });
   }
