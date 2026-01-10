@@ -8,36 +8,35 @@ import {
   useTheme,
 } from '@mui/material';
 import { Input } from '../../../../components/input';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
-  Add, Delete, KeyboardArrowDown,
-  KeyboardArrowUp
+  Add,
+  Delete,
+  KeyboardArrowDown,
+  KeyboardArrowUp,
 } from '@mui/icons-material';
+import { EventType, GroupRole, RegistrationSettingsFormType } from '../types';
+import { Controller, useFormContext } from 'react-hook-form';
 interface FormRegistrationSettingsProps {
-  eventTypeSelected?: 'CURSILHO' | 'RETIRO' | undefined;
+  eventTypeSelected?: EventType | undefined;
 }
-interface GroupRole {
-  name: string;
-  capacity: number;
+interface GroupRoleExtended extends GroupRole {
   expanded: boolean;
-  roles: {
-    price: number;
-    description: string;
-  }[];
 }
+
 function FormRegistrationSettings({
   eventTypeSelected,
 }: FormRegistrationSettingsProps) {
-  // const {
-  //   control,
-  //   formState: { errors },
-  // } = useFormContext<RegistrationSettingsFormType>();
+  const {
+    control,
+    reset,
+    // formState: { errors },
+  } = useFormContext<RegistrationSettingsFormType>();
 
   const groupRolesCursilho: GroupRole[] = [
     {
       name: 'Ingresso',
       capacity: 100,
-      expanded: true,
       roles: [
         { price: 20, description: 'Cursilhisto(a)' },
         { price: 20, description: 'Cursilheiro(a)' },
@@ -48,7 +47,6 @@ function FormRegistrationSettings({
     {
       name: 'Completo',
       capacity: 100,
-      expanded: true,
       roles: [
         { price: 0, description: '0 a 7 anos' },
         { price: 115, description: '8 a 12 anos' },
@@ -58,7 +56,6 @@ function FormRegistrationSettings({
     {
       name: 'Dária: 1º dia',
       capacity: 30,
-      expanded: true,
       roles: [
         { price: 0, description: '0 a 7 anos' },
         { price: 45, description: '8 a 12 anos' },
@@ -68,7 +65,6 @@ function FormRegistrationSettings({
     {
       name: 'Dária: 2º dia',
       capacity: 30,
-      expanded: true,
       roles: [
         { price: 0, description: '0 a 7 anos' },
         { price: 45, description: '8 a 12 anos' },
@@ -78,7 +74,6 @@ function FormRegistrationSettings({
     {
       name: 'Dária: 3º dia',
       capacity: 30,
-      expanded: true,
       roles: [
         { price: 0, description: '0 a 7 anos' },
         { price: 45, description: '8 a 12 anos' },
@@ -88,7 +83,6 @@ function FormRegistrationSettings({
     {
       name: 'Dária: 4º dia',
       capacity: 30,
-      expanded: true,
       roles: [
         { price: 0, description: '0 a 7 anos' },
         { price: 45, description: '8 a 12 anos' },
@@ -97,18 +91,26 @@ function FormRegistrationSettings({
     },
   ];
 
-  // const selectGroupRoles = useMemo(() => {
-  //   switch (eventTypeSelected) {
-  //     case 'CURSILHO':
-  //       return groupRolesCursilho;
-  //     case 'RETIRO':
-  //       return groupRolesRetiro;
-  //     default:
-  //       return [];
-  //   }
-  // }, [eventTypeSelected]);
-  const [selectGroupRoles, setSelectGroupRoles] = useState<GroupRole[]>(
-    eventTypeSelected === 'CURSILHO' ? groupRolesCursilho : groupRolesRetiro
+  useEffect(() => {
+    reset(
+      eventTypeSelected === 'CURSILHO'
+        ? {
+            groupRoles: groupRolesCursilho,
+          }
+        : {
+            groupRoles: groupRolesRetiro,
+          }
+    );
+  }, [eventTypeSelected]);
+
+  const [selectGroupRoles, setSelectGroupRoles] = useState<GroupRoleExtended[]>(
+    (eventTypeSelected === 'CURSILHO'
+      ? groupRolesCursilho
+      : groupRolesRetiro
+    ).map((groupRole) => ({
+      ...groupRole,
+      expanded: true,
+    }))
   );
 
   const theme = useTheme();
@@ -116,10 +118,25 @@ function FormRegistrationSettings({
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
       <Box>
         <Typography variant="h6" gutterBottom fontSize={'18px'}>
-          Grupos de inscrição e preços
+          Grupos de pessoas e regras de inscrição
+        </Typography>
+        <Typography variant="body2" color="textSecondary">
+          {
+            'Defina os grupos e suas regras de inscrição para definir como os participantes poderão se inscrever no evento.\n'
+          }
+        </Typography>
+        <Typography variant="body2" color="textSecondary">
+          {
+            'Os grupos servem para separar os participantes em diferentes categorias, como "Cursilhistas" e "Cursilheiros" em um Cursilho, ou "Completo" e "Dárias" em um Retiro.'
+          }
+        </Typography>
+        <Typography variant="body2" color="textSecondary">
+          {
+            'As regras servem para definir diferentes valores de ingresso dentro de um grupo.'
+          }
         </Typography>
       </Box>
-      {selectGroupRoles.map(({ capacity, name, roles, expanded }, index) => (
+      {selectGroupRoles.map(({ roles, expanded }, index) => (
         <Box
           key={index}
           sx={{
@@ -150,22 +167,36 @@ function FormRegistrationSettings({
               flexDirection: { xs: 'column', sm: 'row' },
             }}
           >
-            <Input
-              size="small"
-              value={name}
-              sx={{ flex: 20, minWidth: '200px' }}
-              // onChange={(event) => onChange(onlyNumber(event.target.value))}
-              required
-              label="Nome"
+            <Controller
+              control={control}
+              name={`groupRoles.${index}.name`}
+              render={({ field: { onChange, value } }) => (
+                <Input
+                  size="small"
+                  value={value}
+                  onChange={onChange}
+                  sx={{ flex: 20, minWidth: '200px' }}
+                  // onChange={(event) => onChange(onlyNumber(event.target.value))}
+                  required
+                  label="Nome"
+                />
+              )}
             />
-
-            <Input
-              size="small"
-              value={capacity}
-              sx={{ flex: 8, minWidth: '200px' }}
-              // onChange={(event) => onChange(onlyNumber(event.target.value))}
-              required
-              label="Capacidade máxima de inscrições"
+            <Controller
+              control={control}
+              name={`groupRoles.${index}.capacity`}
+              render={({ field: { onChange, value } }) => (
+                <Input
+                  type="number"
+                  size="small"
+                  value={value}
+                  onChange={onChange}
+                  sx={{ flex: 8, minWidth: '200px' }}
+                  // onChange={(event) => onChange(onlyNumber(event.target.value))}
+                  required
+                  label="Capacidade máxima de inscrições"
+                />
+              )}
             />
           </Box>
           {expanded ? (
@@ -182,14 +213,6 @@ function FormRegistrationSettings({
               />
             </Divider>
           ) : (
-            // <Divider
-            //   sx={{ marginY: 2, cursor: 'pointer' }}
-            //   onClick={() => {
-            //     const updatedGroupRoles = [...selectGroupRoles];
-            //     updatedGroupRoles[index].expanded = true;
-            //     setSelectGroupRoles(updatedGroupRoles);
-            //   }}
-            // >
             <Divider
               sx={{
                 width: '100%',
@@ -215,7 +238,7 @@ function FormRegistrationSettings({
           )}
           <Box sx={{ gap: 2, display: 'flex', flexDirection: 'column' }}>
             {expanded &&
-              roles.map(({ price, description }, roleIndex) => (
+              roles.map(({ description }, roleIndex) => (
                 <Box
                   key={roleIndex}
                   sx={{
@@ -225,29 +248,35 @@ function FormRegistrationSettings({
                     flexDirection: { xs: 'column', md: 'row' },
                   }}
                 >
-                  {/* <Grid item xs={12} md={6}>
-                  <Typography>Subgrupo: {description}</Typography>
-                </Grid> */}
-                  <Input
-                    size="small"
-                    sx={{ flex: 24, minWidth: '200px' }}
-                    value={description}
-                    // onChange={(event) => onChange(onlyNumber(event.target.value))}
-                    required
-                    label="Descrição"
+                  <Controller
+                    control={control}
+                    name={`groupRoles.${index}.roles.${roleIndex}.description`}
+                    render={({ field: { onChange, value } }) => (
+                      <Input
+                        size="small"
+                        required
+                        placeholder={`Ex: ${description}`}
+                        sx={{ flex: 24, minWidth: '200px' }}
+                        value={value}
+                        onChange={onChange}
+                        label="Descrição"
+                      />
+                    )}
                   />
-
-                  <Input
-                    sx={{ flex: 3, minWidth: '100px' }}
-                    size="small"
-                    value={price}
-                    // onChange={(event) => onChange(onlyNumber(event.target.value))}
-                    required
-                    label="Preço (R$)"
+                  <Controller
+                    control={control}
+                    name={`groupRoles.${index}.roles.${roleIndex}.price`}
+                    render={({ field: { onChange, value } }) => (
+                      <Input
+                        sx={{ flex: 3, minWidth: '100px' }}
+                        size="small"
+                        required
+                        value={value}
+                        onChange={onChange}
+                        label="Preço (R$)"
+                      />
+                    )}
                   />
-                  {/* </Box> */}
-                  {/* <Grid item xs={12} md={1}> */}
-                  {/* {roleIndex + 1 < roles.length ? ( */}
                   <Box
                     sx={{
                       flex: 1,
@@ -265,22 +294,7 @@ function FormRegistrationSettings({
                     >
                       <Delete />
                     </IconButton>
-                    {/* ) : ( */}
-                    {/* <IconButton
-                    onClick={() => {
-                      const updatedGroupRoles = [...selectGroupRoles];
-                      updatedGroupRoles[index].roles.push({
-                        price: 0,
-                        description: '',
-                      });
-                      setSelectGroupRoles(updatedGroupRoles);
-                    }}
-                  >
-                    <Add />
-                  </IconButton> */}
                   </Box>
-
-                  {/* </Grid> */}
                 </Box>
               ))}
           </Box>
@@ -346,26 +360,6 @@ function FormRegistrationSettings({
           )}
         </Box>
       ))}
-
-      {/*   <Grid item xs={12} md={6}>
-        <Typography variant="h6" gutterBottom>
-          Grupo 1: Cursilhistas
-        </Typography>
-        <Controller
-          control={control}
-          name="capacity"
-          render={({ field: { onChange, value } }) => (
-            <Input
-              value={value}
-              onChange={(event) => onChange(onlyNumber(event.target.value))}
-              required
-              error={!!errors.capacity}
-              errorMessage={errors.capacity?.message}
-              label="Capacidade máxima de inscrições para fazer"
-            />
-          )}
-        /> 
-      </Grid>*/}
     </Box>
   );
 }

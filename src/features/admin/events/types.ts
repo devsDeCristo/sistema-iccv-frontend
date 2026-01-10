@@ -8,7 +8,7 @@ import {
   REGISTER_EVENT_SCHEMA,
   REGISTRATION_SETTINGS_SCHEMA,
 } from './constants';
-
+export type EventType = 'CURSILHO' | 'RETIRO';
 export interface Event {
   id: string;
   name: string;
@@ -60,6 +60,38 @@ export interface Team {
   price: number;
   workerPrice: number;
   groupLink?: string;
+}
+export interface GroupRole {
+  name: string;
+  capacity: number;
+  // expanded: boolean;
+  roles: {
+    price: number;
+    description: string;
+  }[];
+}
+export interface CreateEventPayload {
+  name: string;
+  groupLink?: string;
+  isActive: boolean;
+  startDate: Date;
+  endDate: Date;
+  groupRoles: GroupRole[];
+  data: {
+    description?: string;
+    shortDescription?: string;
+    localName?: string;
+    zipCode?: string;
+    state?: string;
+    city?: string;
+    neighborhood?: string;
+    address?: string;
+    number?: string;
+    linkMaps?: string;
+    logoFile?: File;
+    coverFile?: File;
+  };
+  type: EventType;
 }
 
 export type RegisterEventFormType = z.infer<typeof REGISTER_EVENT_SCHEMA>;

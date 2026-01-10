@@ -6,9 +6,10 @@ import {
 } from '../../../../utils/service';
 import { queryClient } from '../../../../config/lib/react-query/query-client';
 import { GET_EVENTS } from '../constants';
+import { CreateEventPayload } from '../types';
 
 type PostCreateEventProps = {
-  data: any;
+  data: CreateEventPayload;
 };
 
 const postCreateEvent = ({ data }: PostCreateEventProps) =>

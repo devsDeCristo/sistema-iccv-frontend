@@ -7,8 +7,8 @@ import {
   CategoryEventFormType,
   DateAndLocalFormType,
   EventLogoFormType,
+  EventType,
   GeneralInfoFormType,
-  RegisterEventFormType,
   RegistrationSettingsFormType,
 } from '../../../../features/admin/events/types';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -29,6 +29,8 @@ import { FormRegistrationSettings } from '../../../../features/admin/events/comp
 import { FormDateAndLocal } from '../../../../features/admin/events/components/formDateAndLocal';
 import { SelectCategoryEvent } from '../../../../features/admin/events/components/selectCategoryEvent';
 import { FormLogoAndCover } from '../../../../features/admin/events/components/formLogoAndCover';
+import { toast } from 'react-toastify';
+import { queryClient } from '../../../../config/lib/react-query/query-client';
 
 function Register() {
   const navigate = useNavigate();
@@ -52,20 +54,19 @@ function Register() {
     resolver: zodResolver(EVENT_LOGO_SCHEMA),
   });
   const [eventTypeSelected, setEventTypeSelected] = useState<
-    'CURSILHO' | 'RETIRO' | undefined
+    EventType | undefined
   >(undefined);
 
   const { mutate: mutatePostCreateEvent } = usePostCreateEvent({
     onSuccess: () => {
+      queryClient.invalidateQueries('GET_EVENTS');
       navigate('/admin/eventos');
+    },
+    onError: (error) => {
+      toast.error(`Erro ao criar evento: ${error}`);
     },
   });
 
-  function onSubmitForm(data: RegisterEventFormType) {
-    mutatePostCreateEvent({
-      data,
-    });
-  }
   function categoryEventSubmit() {
     methodsCategoryEvent.trigger().then((isValid) => {
       if (isValid) {
@@ -101,12 +102,35 @@ function Register() {
         const dateAndTimeData = methodsDateAndTime.getValues();
         const registrationSettingsData =
           methodsRegistrationSettings.getValues();
+        const eventLogoData = methodsEventLogo.getValues();
         const finalData = {
-          ...generalInfoData,
-          ...dateAndTimeData,
-          ...registrationSettingsData,
+          name: generalInfoData.name,
+          groupLink: generalInfoData.groupLink || '',
+          isActive: generalInfoData.isActive,
+          startDate: new Date(dateAndTimeData.startDate),
+          endDate: new Date(dateAndTimeData.endDate),
+          type: eventTypeSelected!,
+          groupRoles: registrationSettingsData.groupRoles,
+          data: {
+            description: generalInfoData.description,
+            shortDescription: generalInfoData.shortDescription,
+            localName: dateAndTimeData.localName,
+            zipCode: dateAndTimeData.zipCode,
+            state: dateAndTimeData.state,
+            city: dateAndTimeData.city,
+            neighborhood: dateAndTimeData.neighborhood,
+            address: dateAndTimeData.address,
+            number: dateAndTimeData.number,
+            linkMaps: dateAndTimeData.linkMaps,
+            logoFile: eventLogoData.eventLogo?.[0] || undefined,
+            coverFile: eventLogoData.eventCover?.[0] || undefined,
+          },
         };
-        // onSubmitForm(finalData);
+        console.log(finalData);
+
+        mutatePostCreateEvent({
+          data: finalData,
+        });
       }
     });
   }
@@ -168,6 +192,23 @@ function Register() {
     },
   ];
 
+  const canProceedToNextStep = () => {
+    switch (currentStep) {
+      case 1:
+        return methodsCategoryEvent.formState.isValid;
+      case 2:
+        return methodsGeneralInfo.formState.isValid;
+      case 3:
+        return methodsDateAndTime.formState.isValid;
+      case 4:
+        return methodsEventLogo.formState.isValid;
+      case 5:
+        return methodsRegistrationSettings.formState.isValid;
+      default:
+        return false;
+    }
+  };
+
   return (
     <PageStyle>
       <Header title="Cadastrar evento" buttonBack />
@@ -212,6 +253,7 @@ function Register() {
                 variant="contained"
                 sx={{ marginTop: 2, width: '120px' }}
                 type="submit"
+                disabled={!canProceedToNextStep()}
                 endIcon={
                   currentStep === STEPS.length ? <Check /> : <ArrowForward />
                 }

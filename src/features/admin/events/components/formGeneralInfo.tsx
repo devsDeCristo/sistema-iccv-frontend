@@ -14,7 +14,9 @@ function FormGeneralInfo() {
   return (
     <Grid container spacing={2}>
       <Grid item xs={12} md={12}>
-        <Typography variant="h6">Informações Gerais do Evento</Typography>
+        <Typography variant="h6" fontSize={'18px'}>
+          Informações Gerais do Evento
+        </Typography>
       </Grid>
       <Grid item xs={12} md={6}>
         <Controller

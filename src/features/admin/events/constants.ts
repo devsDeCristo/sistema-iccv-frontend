@@ -24,25 +24,18 @@ export const GENERAL_INFO_SCHEMA = z.object({
   description: z.string().optional(),
   // eventType: z.string().optional(),
   groupLink: z.string().optional(),
-  isActive: z.boolean().optional(),
+  isActive: z.boolean(),
 });
 export const CATEGORY_EVENT_SCHEMA = z.object({
   eventType: EVENT_TYPE_SCHEMA,
 });
 export const DATE_AND_LOCAL_SCHEMA = z.object({
-  startDate: z
-    .date({
-      required_error: DEFAULT_MESSAGE,
-    })
-    .nullable(),
-  // .refine((value) => value !== null, {
-  //   message: DEFAULT_MESSAGE,
-  // }),
-  endDate: z
-    .date({
-      required_error: DEFAULT_MESSAGE,
-    })
-    .nullable(),
+  startDate: z.date({
+    required_error: DEFAULT_MESSAGE,
+  }),
+  endDate: z.date({
+    required_error: DEFAULT_MESSAGE,
+  }),
   localName: z.string().optional(),
   zipCode: z.string().optional(),
   state: z.string().optional(),
@@ -64,18 +57,19 @@ export const DATE_AND_LOCAL_SCHEMA = z.object({
     ),
 });
 export const REGISTRATION_SETTINGS_SCHEMA = z.object({
-  workerPrice: z.coerce.number({
-    required_error: DEFAULT_MESSAGE,
-  }),
-  price: z.coerce.number({
-    required_error: DEFAULT_MESSAGE,
-  }),
-  capacity: z.coerce.number({
-    required_error: DEFAULT_MESSAGE,
-  }),
-  capacityWorker: z.coerce.number({
-    required_error: DEFAULT_MESSAGE,
-  }),
+  groupRoles: z.array(
+    z.object({
+      // id: z.string(),
+      name: z.string({ required_error: DEFAULT_MESSAGE }),
+      capacity: z.number({ required_error: DEFAULT_MESSAGE }),
+      roles: z.array(
+        z.object({
+          price: z.number({ required_error: DEFAULT_MESSAGE }),
+          description: z.string({ required_error: DEFAULT_MESSAGE }),
+        })
+      ),
+    })
+  ),
 });
 export const EVENT_LOGO_SCHEMA = z.object({
   eventLogo: z
