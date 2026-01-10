@@ -1,6 +1,6 @@
 import { UseQueryOptions, useQuery } from 'react-query';
 import { apiClient } from '../../../../config/lib/axios/api-client';
-import { Event } from '../types';
+import { Event, EventDetails } from '../types';
 import { GET_EVENTS } from '../constants';
 import { handleResponseThrowError } from '../../../../utils/service';
 
@@ -12,7 +12,7 @@ const getEvents = ({ eventId }: GetEventsParams) => {
   const urlWithId = eventId ? `/${eventId}` : '';
 
   return apiClient
-    .get<Event[] | Event>(`/events${urlWithId}`)
+    .get<Event[] | EventDetails>(`/events${urlWithId}`)
     .then((response) => response.data)
     .catch(handleResponseThrowError());
 };

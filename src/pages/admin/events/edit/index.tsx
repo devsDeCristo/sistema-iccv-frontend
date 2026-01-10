@@ -5,6 +5,7 @@ import { PageStyle } from '../../../../components/pageStyle';
 import { Box, Button, Paper, Stack, Tab, Tabs, useTheme } from '@mui/material';
 import {
   Event,
+  EventDetails,
   RegisterEventFormType,
 } from '../../../../features/admin/events/types';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -21,17 +22,18 @@ import {
   DATE_AND_LOCAL_SCHEMA,
   EVENT_LOGO_SCHEMA,
   GENERAL_INFO_SCHEMA,
+  PANELS,
   REGISTRATION_SETTINGS_SCHEMA,
   STEPS,
 } from '../../../../features/admin/events/constants';
 import { FormRegistrationSettings } from '../../../../features/admin/events/components/formRegistrationSettings';
 import { FormDateAndLocal } from '../../../../features/admin/events/components/formDateAndLocal';
-import { SelectCategoryEvent } from '../../../../features/admin/events/components/selectCategoryEvent';
+
 import { FormLogoAndCover } from '../../../../features/admin/events/components/formLogoAndCover';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useGetEvents } from '../../../../features/admin/events/api/getEvents';
 import { usePutUpdateEvent } from '../../../../features/admin/events/api/putEvent';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { FormGeneralInfo } from '../../../../features/admin/events/components/formGeneralInfo';
 import { svgFileToText } from '../../../../features/admin/events/utils/fileConverters';
 import { toast } from 'react-toastify';
@@ -49,7 +51,7 @@ function Edit() {
       enabled: !!id,
     }
   );
-  const event = eventData as Event;
+  const event = eventData as EventDetails;
   // const DEFAULT_VALUES: RegisterEventFormType = {
   //   name: event?.name || '',
   //   groupLink: event?.groupLink || '',
@@ -61,18 +63,44 @@ function Edit() {
   //   endDate: event?.endDate ? new Date(event.endDate) : new Date(),
   //   startDate: new Date(),
   // };
-  const [currentStep, setCurrentStep] = useState(1);
-  const methodsCategoryEvent = useForm<CategoryEventFormType>({
-    resolver: zodResolver(CATEGORY_EVENT_SCHEMA),
+  const getDefaultGeneralInfoValues = (
+    event?: EventDetails
+  ): GeneralInfoFormType => ({
+    name: event?.name || '',
+    description: event?.data?.description || '',
+    shortDescription: event?.data?.shortDescription || '',
+    groupLink: event?.groupLink || '',
+    isActive: event?.isActive ?? true,
   });
+  const getDefaultDateAndLocalValues = (
+    event?: EventDetails
+  ): DateAndLocalFormType => ({
+    startDate: event?.startDate ? new Date(event.startDate) : new Date(),
+    endDate: event?.endDate ? new Date(event.endDate) : new Date(),
+    localName: event?.data?.localName || '',
+    zipCode: event?.data?.zipCode || '',
+    state: event?.data?.state || '',
+    city: event?.data?.city || '',
+    neighborhood: event?.data?.neighborhood || '',
+    address: event?.data?.address || '',
+    number: event?.data?.number || '',
+    linkMaps: event?.data?.linkMaps || '',
+  });
+
+  const [currentStep, setCurrentStep] = useState(1);
+  // const methodsCategoryEvent = useForm<CategoryEventFormType>({
+  //   resolver: zodResolver(CATEGORY_EVENT_SCHEMA),
+  //   defaultValues: {
+  //     eventType: event?.type,
+  //   },
+  // });
   const methodsGeneralInfo = useForm<GeneralInfoFormType>({
     resolver: zodResolver(GENERAL_INFO_SCHEMA),
-    defaultValues: {
-      isActive: true,
-    },
+    defaultValues: getDefaultGeneralInfoValues(event),
   });
   const methodsDateAndTime = useForm<DateAndLocalFormType>({
     resolver: zodResolver(DATE_AND_LOCAL_SCHEMA),
+    defaultValues: getDefaultDateAndLocalValues(event),
   });
   const methodsRegistrationSettings = useForm<RegistrationSettingsFormType>({
     resolver: zodResolver(REGISTRATION_SETTINGS_SCHEMA),
@@ -80,13 +108,12 @@ function Edit() {
   const methodsEventLogo = useForm<EventLogoFormType>({
     resolver: zodResolver(EVENT_LOGO_SCHEMA),
   });
-  const [eventTypeSelected, setEventTypeSelected] = useState<
-    EventType | undefined
-  >(undefined);
-
-  // useEffect(() => {
-  //   methods.reset(DEFAULT_VALUES);
-  // }, [eventData]);
+  const eventTypeSelected = useMemo(() => event?.type, [event]);
+  useEffect(() => {
+    if (event) {
+      methodsGeneralInfo.reset(getDefaultGeneralInfoValues(event));
+    }
+  }, [event]);
   const styles = {
     tabs: {
       '& button': {
@@ -130,13 +157,7 @@ function Edit() {
       id,
     });
   }
-  function categoryEventSubmit() {
-    methodsCategoryEvent.trigger().then((isValid) => {
-      if (isValid) {
-        handleNext();
-      }
-    });
-  }
+
   function generalInfoSubmit() {
     methodsGeneralInfo.trigger().then((isValid) => {
       if (isValid) {
@@ -170,14 +191,6 @@ function Edit() {
         const eventLogoData = methodsEventLogo.getValues();
 
         try {
-          // OPÇÃO 2: Converter para Base64 e enviar como JSON
-          // const logoBase64 = eventLogoData.eventLogo?.[0]
-          //   ? await fileToBase64(eventLogoData.eventLogo[0])
-          //   : undefined;
-          // const coverBase64 = eventLogoData.eventCover?.[0]
-          //   ? await fileToBase64(eventLogoData.eventCover[0])
-          //   : undefined;
-          // OPÇÃO 3: Para SVG, pode enviar como texto XML direto
           const logoSvgText = eventLogoData.eventLogo?.[0]
             ? await svgFileToText(eventLogoData.eventLogo[0])
             : undefined;
@@ -228,34 +241,27 @@ function Edit() {
   const stepMethods = [
     {
       step: 1,
-      formMethods: methodsCategoryEvent,
-      onSubmit: categoryEventSubmit,
-      component: SelectCategoryEvent,
-      props: { selectEventType: setEventTypeSelected },
-    },
-    {
-      step: 2,
       formMethods: methodsGeneralInfo,
       onSubmit: generalInfoSubmit,
       component: FormGeneralInfo,
       props: {},
     },
     {
-      step: 3,
+      step: 2,
       formMethods: methodsDateAndTime,
       onSubmit: dateAndTimeSubmit,
       component: FormDateAndLocal,
       props: {},
     },
     {
-      step: 4,
+      step: 3,
       formMethods: methodsEventLogo,
       onSubmit: eventLogoSubmit,
       component: FormLogoAndCover,
       props: { eventTypeSelected },
     },
     {
-      step: 5,
+      step: 4,
       formMethods: methodsRegistrationSettings,
       onSubmit: registrationSettingsSubmit,
       component: FormRegistrationSettings,
@@ -266,14 +272,12 @@ function Edit() {
   const canProceedToNextStep = () => {
     switch (currentStep) {
       case 1:
-        return methodsCategoryEvent.formState.isValid;
-      case 2:
         return methodsGeneralInfo.formState.isValid;
-      case 3:
+      case 2:
         return methodsDateAndTime.formState.isValid;
-      case 4:
+      case 3:
         return methodsEventLogo.formState.isValid;
-      case 5:
+      case 4:
         return methodsRegistrationSettings.formState.isValid;
       default:
         return false;
@@ -294,7 +298,7 @@ function Edit() {
               setCurrentStep(newValue);
             }}
           >
-            {STEPS.map(({ label, id }) => (
+            {PANELS.map(({ label, id }) => (
               <Tab key={id} label={label} value={id} />
             ))}
           </Tabs>

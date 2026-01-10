@@ -154,3 +154,31 @@ export const STEPS = [
     icon: Settings,
   },
 ];
+
+export const PANELS = [
+  // {
+  //   id: 1,
+  //   label: 'Categoria do evento',
+  //   icon: Category,
+  // },
+  {
+    id: 1,
+    label: 'Informações gerais',
+    icon: Assignment,
+  },
+  {
+    id: 3,
+    label: 'Data e Local',
+    icon: Event,
+  },
+  {
+    id: 4,
+    label: 'Logo e capa',
+    icon: Photo,
+  },
+  {
+    id: 5,
+    label: 'Configurações de inscrição',
+    icon: Settings,
+  },
+];

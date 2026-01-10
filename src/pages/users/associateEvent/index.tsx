@@ -21,7 +21,7 @@ import {
 import { useState } from 'react';
 import { Loading } from '../../../components/loading';
 import { useParams } from 'react-router-dom';
-import { Event } from '../../../features/admin/events/types';
+import { Event, EventDetails } from '../../../features/admin/events/types';
 
 // import { setBearerToken } from '../../../config/lib/axios/api-client';
 
@@ -42,18 +42,18 @@ function AssociateEvent() {
       enabled: !!eventId,
     }
   );
-  const event = eventData as Event;
-  const usersParticipant = event?.users?.filter((user) => !user?.worker);
+  const event = eventData as EventDetails;
+  // const usersParticipant = event?.users?.filter((user) => !user?.worker);
 
-  const usersWorker = event?.users?.filter((user) => user?.worker);
+  // const usersWorker = event?.users?.filter((user) => user?.worker);
 
-  const exhaustedParticipant =
-    (usersParticipant?.length ?? 0) >= event?.capacity;
-  const exhaustedWorker = (usersWorker?.length ?? 0) >= event?.capacityWorker;
-  const userIsRegister =
-    !Array.isArray(eventData) &&
-    eventData &&
-    eventData.users?.find((event) => event.id === user?.id);
+  // const exhaustedParticipant =
+  //   (usersParticipant?.length ?? 0) >= event?.capacity;
+  // const exhaustedWorker = (usersWorker?.length ?? 0) >= event?.capacityWorker;
+  // const userIsRegister =
+  //   !Array.isArray(eventData) &&
+  //   eventData &&
+  //   eventData.users?.find((event) => event.id === user?.id);
 
   const nameEvent =
     (!Array.isArray(eventData) && eventData && eventData.name) ||
@@ -138,7 +138,7 @@ function AssociateEvent() {
     <PageStyle>
       {!isLoading ? (
         <Box sx={styles.boxContainer}>
-          {!userIsRegister && (
+          {/* {!userIsRegister && (
             <>
               <Header title={nameEvent} />
               <Typography sx={styles.typography}>
@@ -231,7 +231,7 @@ function AssociateEvent() {
                 nameEvent +
                 ' !'}
             </Typography>
-          )}
+          )} */}
           {/* <Button
             variant="contained"
             sx={styles.button}

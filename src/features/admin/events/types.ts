@@ -9,21 +9,31 @@ import {
   REGISTRATION_SETTINGS_SCHEMA,
 } from './constants';
 export type EventType = 'CURSILHO' | 'RETIRO';
-export interface Event {
+export interface EventDetails {
   id: string;
   name: string;
   startDate: Date;
   endDate: Date;
-  img: string;
-  groupLink: string;
+  groupLink?: string;
   isActive: boolean;
-  price: number;
-  workerPrice: number;
+  data: EventDataJson;
+  type: EventType;
+  groupRoles: GroupRole[];
   createdAt: Date;
-  capacity: number;
-  capacityWorker: number;
   updateAt: Date;
-  users?: User[];
+}
+export interface Event {
+  id: string;
+  type: EventType;
+  name: string;
+  startDate: Date;
+  endDate: Date;
+  isActive: boolean;
+  bedroom: number;
+  team: number;
+  waitlist: number;
+  users: number;
+  capacity: number;
 }
 export interface filterUsers {
   birthday: { startDate: string | null; endDate: string | null };
@@ -70,6 +80,20 @@ export interface GroupRole {
     description: string;
   }[];
 }
+export interface EventDataJson {
+  description?: string;
+  shortDescription?: string;
+  localName?: string;
+  zipCode?: string;
+  state?: string;
+  city?: string;
+  neighborhood?: string;
+  address?: string;
+  number?: string;
+  linkMaps?: string;
+  logoFile?: string;
+  coverFile?: string;
+}
 export interface CreateEventPayload {
   name: string;
   groupLink?: string;
@@ -77,20 +101,7 @@ export interface CreateEventPayload {
   startDate: Date;
   endDate: Date;
   groupRoles: GroupRole[];
-  data: {
-    description?: string;
-    shortDescription?: string;
-    localName?: string;
-    zipCode?: string;
-    state?: string;
-    city?: string;
-    neighborhood?: string;
-    address?: string;
-    number?: string;
-    linkMaps?: string;
-    logoFile?: string;
-    coverFile?: string;
-  };
+  data: EventDataJson;
   type: EventType;
 }
 

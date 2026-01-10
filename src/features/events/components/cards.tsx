@@ -23,15 +23,14 @@ import CustomChip from '../../../components/customChip';
 function EventCard({ event }: { event: Event }) {
   const navigate = useNavigate();
   const theme = useTheme();
-  console.log('event', event);
-  const usersParticipant = event.users;
-  const percentOcupped =
-    ((usersParticipant?.length ?? 0) / event.capacity) * 100;
-  const exhausted = (usersParticipant?.length ?? 0) >= event.capacity;
+  // const usersParticipant = event.users?.filter((user) => !user.worker);
+  // const percentOcupped =
+  //   ((usersParticipant?.length ?? 0) / event.capacity) * 100;
+  // const exhausted = (usersParticipant?.length ?? 0) >= event.capacity;
   // const percentOcupped = 44; // (event.users.length / event.capacity) * 100;
   const user = localStorage.getItem('user');
   const userId = user ? JSON.parse(user).id : null;
-  const isUserRegistered = false//event.users?.some((u) => u.id === userId);
+  // const isUserRegistered = event.users?.some((u) => u.id === userId);
   // const usersWorker = event.users?.filter((user) => user.worker);
 
   const styles = {
@@ -103,7 +102,7 @@ function EventCard({ event }: { event: Event }) {
             customColor={theme.palette.chips.info}
           />
         </Box>
-        <Box sx={styles.chipTopRight}>
+        {/* <Box sx={styles.chipTopRight}>
           <CustomChip
             label={
               event.isActive
@@ -121,7 +120,7 @@ function EventCard({ event }: { event: Event }) {
                 : theme.palette.text.primary
             }
           />
-        </Box>
+        </Box> */}
       </Box>
 
       <CardContent sx={styles.cardContent}>
@@ -156,24 +155,24 @@ function EventCard({ event }: { event: Event }) {
             </Typography>
           </Stack> */}
 
-          <Stack direction="row" alignItems="center" gap={1}>
+          {/* <Stack direction="row" alignItems="center" gap={1}>
             <GroupOutlinedIcon sx={styles.icon} />
             <Typography sx={styles.infoText} color="text.secondary">
               {usersParticipant?.length} / {event.capacity} Inscritos para
               participar
             </Typography>
-          </Stack>
+          </Stack> */}
         </Stack>
 
         <Box sx={styles.progressBox}>
-          <LinearProgress
+          {/* <LinearProgress
             valueBuffer={100}
             value={percentOcupped}
             variant="determinate"
             sx={styles.progressBar}
-          />
+          /> */}
         </Box>
-        {isUserRegistered ? (
+        {/* {isUserRegistered ? (
           <Alert severity="success" sx={{ width: '100%' }} icon={false}>
             Você já está inscrito neste evento!
           </Alert>
@@ -187,7 +186,7 @@ function EventCard({ event }: { event: Event }) {
           >
             Inscrever-se
           </Button>
-        )}
+        )} */}
       </CardContent>
     </Paper>
   );
