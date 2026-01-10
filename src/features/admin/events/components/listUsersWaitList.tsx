@@ -1,14 +1,8 @@
 import {
   Avatar,
   Box,
+  Button,
   Card,
-  Divider,
-  IconButton,
-  ListItemIcon,
-  ListItemText,
-  Menu,
-  MenuItem,
-  Paper,
   Stack,
   Tab,
   Tabs,
@@ -20,7 +14,6 @@ import { formatCPF, formatDate } from '../../../../utils';
 import {
   DataGrid,
   GridApi,
-  GridCellParams,
   GridColDef,
   GridGetRowsToExportParams,
   GridRowId,
@@ -30,24 +23,9 @@ import {
   selectedGridRowsSelector,
 } from '@mui/x-data-grid';
 import { useParams } from 'react-router-dom';
-import {
-  AssignmentInd,
-  Badge,
-  Delete,
-  Edit,
-  MoreVert,
-} from '@mui/icons-material';
-import FileSaver from 'file-saver';
-import { pdf } from '@react-pdf/renderer';
-import PdfBadge from '../../../../components/pdfBadge';
 import { User } from '../../../../types/user';
 import { useEffect, useMemo, useState } from 'react';
-import Swal from 'sweetalert2';
-import { useRemoveUserFromEvent } from '../api/deleteUser';
-import { ModalEditWork } from './modalEditWork';
-import CustomChip from '../../../../components/customChip';
-import { GET_EVENT_USERS } from '../constants';
-import { queryClient } from '../../../../config/lib/react-query/query-client';
+
 import { toast } from 'react-toastify';
 import { useGetUsersWaitlist } from '../api/getUsersWaitlist';
 
@@ -103,19 +81,13 @@ function ListUsersWaitList({
       enabled: !!eventId,
     }
   );
-
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const openMenu = Boolean(anchorEl);
-  const [rowSelected, setRowSelected] = useState<User | null>(null);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [openModalEditWork, setOpenModalEditWork] = useState(false);
   const [panel, setPanel] = useState<string>('1');
   const theme = useTheme();
 
   const styles = {
     card: {
       borderRadius: '5px',
-     
+      backgroundColor: theme.palette.background.paper,
       boxShadow: '0px 0px 3px  #0000001a',
       border: 'none',
       '&::before': {
@@ -123,9 +95,7 @@ function ListUsersWaitList({
       },
     },
     tabs: {
-     
       '& button': {
-
         color: theme.palette.text.disabled,
         textTransform: 'capitalize',
         minHeight: '20px',
@@ -144,27 +114,8 @@ function ListUsersWaitList({
       },
     },
   };
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
-  const { mutate: mutateRemoveUserFromEvent } = useRemoveUserFromEvent({
-    onSuccess: () => {
-      Swal.fire({
-        title: 'Desvinculado!',
-        text: 'Usuário desvinculado do evento com sucesso.',
-        icon: 'success',
-      });
-      queryClient.invalidateQueries(GET_EVENT_USERS);
-    },
-    onError: () => {
-      Swal.fire({
-        title: 'Erro ao remover usuário do evento',
-        text: 'Ocorreu um erro ao tentar desvincular o usuário do evento. Por favor, tente novamente mais tarde.',
-        icon: 'error',
-        confirmButtonText: 'OK',
-      });
-    },
-  });
+
+ 
   const groupsRules = useMemo(
     () => event?.groupRoles?.map((g: any) => g.name) ?? [],
     [event]
@@ -179,21 +130,6 @@ function ListUsersWaitList({
   if (!usersData || !Array.isArray(usersData)) {
     return null;
   }
-
-  // const { mutate: mutateDeleteEventUser } = useDeleteRelationEventUser({});
-  async function handleDownloadPDF(data: User[]) {
-    if (!data) return;
-    const blob = await pdf(<PdfBadge data={data || []} />).toBlob();
-    FileSaver.saveAs(blob, 'crachas.pdf');
-  }
-  const handleClickOptions = (
-    event: React.MouseEvent<HTMLElement>,
-    params: GridCellParams
-  ) => {
-    setRowSelected(params.row);
-    setSelectedUser(params.row as User);
-    setAnchorEl(event.currentTarget);
-  };
 
   const columns: GridColDef[] = [
     {
@@ -257,159 +193,40 @@ function ListUsersWaitList({
         </Stack>
       ),
     },
-    { field: 'leadershipPosition', headerName: 'Cargo na igreja', flex: 1 },
-    {
-      field: 'hypertensive',
-      headerName: 'Hipertenso',
-      flex: 1,
-      valueGetter: (params) => (params.row.hypertensive ? 'Sim' : 'Não'),
-    },
-    {
-      field: 'diabetes',
-      headerName: 'Diabético',
-      flex: 1,
-      valueGetter: (params) => (params.row.diabetes ? 'Sim' : 'Não'),
-    },
-    { field: 'notes', headerName: 'Observações', flex: 1, minWidth: 80 },
-
     {
       field: 'cellphone',
       headerName: 'Telefone',
       width: 128,
     },
-    {
-      field: 'email',
-      headerName: 'E-mail',
-      flex: 1,
-    },
-    {
-      field: 'emergencyContact',
-      headerName: 'Contato de emergência',
-      flex: 1,
-    },
-    {
-      field: 'indicatedBy',
-      headerName: 'Indicado por',
-      flex: 1,
-    },
-    {
-      field: 'religion',
-      headerName: 'Religião',
-      flex: 1,
-    },
-    {
-      field: 'profession',
-      headerName: 'Profissão',
-      flex: 1,
-    },
-    {
-      field: 'createdAt',
-      headerName: 'Data da inscrição',
-      flex: 1,
-      valueGetter: (params) => formatDate(params.row.createdAt),
-    },
-    {
-      field: 'bedrooms',
-      headerName: 'Quartos',
+  {field: 'groupsRegistration',
+    headerName:"Ingresso", width: 150, renderCell: (params) => (
+      <Stack direction="column" gap={1} sx={{ p: 0.5 }}>
+        {Array.isArray(params.value) &&
+          params.value.map((group: any) => (
+            <Typography
+              key={group.id}
+              sx={{ mt: -1.5, fontWeight: 300, fontSize: '0.85rem' }}
+            >
+              {group.name}
+            </Typography>
+          ))}
+      </Stack>
+    ),},
 
-      width: 200,
-      renderCell: (params) => (
-        <Stack
-          direction="row"
-          gap={1}
-          flexWrap="wrap"
-          sx={{ pt: 1, pb: 1, overflow: 'hidden' }}
-        >
-          {params.row.bedrooms?.map((bedroom: any) => (
-            <CustomChip
-              key={bedroom.id}
-              label={bedroom.name}
-              customColor={theme.palette.chips.default}
-              size="small"
-            />
-          )) || 'Nenhum'}
-        </Stack>
-      ),
-    },
-    {
-      field: 'teams',
-      headerName: 'Equipes',
-
-      width: 200,
-      renderCell: (params) => (
-        <Stack
-          direction="row"
-          gap={1}
-          flexWrap="wrap"
-          sx={{ pt: 1, pb: 1, overflow: 'hidden' }}
-        >
-          {params.row.teams?.map((team: any) => (
-            <CustomChip
-              key={team.id}
-              label={team.name}
-              customColor={theme.palette.chips.default}
-              size="small"
-            />
-          )) || 'Nenhuma'}
-        </Stack>
-      ),
-    },
     {
       field: 'actions',
       headerName: '',
       sortable: false,
-      width: 80,
-      renderCell: (params: GridCellParams) => {
-        return (
-          <Box key={params.id}>
-            <Tooltip
-              title={'Opções'}
-              id="basic-button"
-              onClick={(event) => handleClickOptions(event, params)}
-            >
-              <IconButton size="small">
-                <MoreVert color="inherit" />
-              </IconButton>
-            </Tooltip>
-          </Box>
-        );
+      width: 150,
+      renderCell: () => {
+        return <Stack sx={{p:1}}><Button variant="contained" >Inscrever</Button></Stack>;
       },
     },
   ];
 
-  const handleClickEdit = (event: React.MouseEvent) => {
-    event.stopPropagation();
-    const link = `${window.location.origin}/admin/usuario/${rowSelected?.id}/editar`;
-    window.open(link, '_blank');
-    handleClose();
-  };
-  const handleClickDownloadBadge = (event: React.MouseEvent) => {
-    event.stopPropagation();
-    if (!rowSelected) return;
-    handleDownloadPDF([rowSelected]);
-    handleClose();
-  };
 
-  const handleClickRemoveUser = () => {
-    if (!rowSelected) return;
-    Swal.fire({
-      title: 'Tem certeza que deseja desvincular o usuário do evento?',
-      text: 'Esta ação não poderá ser desfeita!',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Sim, desvincular do evento!',
-    }).then((result) => {
-      if (result.isConfirmed) {
-        mutateRemoveUserFromEvent({
-          idEvent: eventId,
-          idUser: rowSelected?.id.toString(),
-        });
-      }
-    });
-    handleClose();
-  };
+  
+  
 
   const filteredByGroup = (usersData: User[]) => {
     if (!panel) return usersData;
@@ -431,31 +248,21 @@ function ListUsersWaitList({
     return filtered;
   };
 
-
-  const handleClickEditWork = (event: React.MouseEvent) => {
-    event.stopPropagation();
-    if (!rowSelected) return;
-    setOpenModalEditWork(true);
-    handleClose();
-  };
-
   return (
     <>
-      <Paper>
-        <Stack sx={[styles.card, { p: 0.5, height: '50px' }]}>
-          <Tabs
-            variant="fullWidth"
-            value={panel}
-            sx={styles.tabs}
-            onChange={(_, newValue) => setPanel(newValue)}
-          >
-            {Array.isArray(groupsRules) &&
-              groupsRules.map((groupName) => (
-                <Tab key={groupName} label={groupName} value={groupName} />
-              ))}
-          </Tabs>
-        </Stack>
-      </Paper>
+      <Stack sx={[styles.card, { p: 0.5, height: '50px' }]}>
+        <Tabs
+          variant="fullWidth"
+          value={panel}
+          sx={styles.tabs}
+          onChange={(_, newValue) => setPanel(newValue)}
+        >
+          {Array.isArray(groupsRules) &&
+            groupsRules.map((groupName) => (
+              <Tab key={groupName} label={groupName} value={groupName} />
+            ))}
+        </Tabs>
+      </Stack>
 
       <Card>
         <DataGrid
@@ -484,7 +291,7 @@ function ListUsersWaitList({
                 leadershipPosition: false,
 
                 // cpf: false,
-                cellphone: false,
+
                 // badgeName: false,
                 diabetes: false,
                 hypertensive: false,
@@ -524,53 +331,6 @@ function ListUsersWaitList({
           }}
           localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
         />
-        <ModalEditWork
-          open={openModalEditWork}
-          user={selectedUser}
-          eventId={eventId}
-          handleClose={() => setOpenModalEditWork(false)}
-        />
-        <Menu
-          id="basic-menu"
-          anchorEl={anchorEl}
-          open={openMenu}
-          onClose={handleClose}
-          MenuListProps={{
-            'aria-labelledby': 'options-button',
-          }}
-        >
-          {panel == '1' && (
-            <MenuItem onClick={handleClickEdit}>
-              <ListItemIcon>
-                <Edit fontSize="small" color="primary" />
-              </ListItemIcon>
-              <ListItemText>Editar Usuário</ListItemText>
-            </MenuItem>
-          )}
-
-          {panel == '2' && (
-            <MenuItem onClick={handleClickEditWork}>
-              <ListItemIcon>
-                <AssignmentInd fontSize="small" color="primary" />
-              </ListItemIcon>
-              <ListItemText>Participação no evento</ListItemText>
-            </MenuItem>
-          )}
-
-          <MenuItem onClick={handleClickDownloadBadge}>
-            <ListItemIcon>
-              <Badge fontSize="small" color="primary" />
-            </ListItemIcon>
-            <ListItemText>Baixar Crachá</ListItemText>
-          </MenuItem>
-          <Divider />
-          <MenuItem onClick={handleClickRemoveUser}>
-            <ListItemIcon>
-              <Delete fontSize="small" color="error" />
-            </ListItemIcon>
-            <ListItemText>Remover do evento</ListItemText>
-          </MenuItem>
-        </Menu>
       </Card>
     </>
   );

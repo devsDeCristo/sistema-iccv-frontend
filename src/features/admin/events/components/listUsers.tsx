@@ -121,7 +121,7 @@ function ListUsers({
   const styles = {
     card: {
       borderRadius: '5px',
-     
+     backgroundColor: theme.palette.background.paper,
       boxShadow: '0px 0px 3px  #0000001a',
       border: 'none',
       '&::before': {
@@ -486,7 +486,7 @@ function ListUsers({
 
   return (
     <>
-      <Paper>
+     
         <Stack sx={[styles.card, { p: 0.5, height: '50px' }]}>
           <Tabs
             variant="fullWidth"
@@ -500,7 +500,7 @@ function ListUsers({
               ))}
           </Tabs>
         </Stack>
-      </Paper>
+      
 
       <Card>
         <DataGrid

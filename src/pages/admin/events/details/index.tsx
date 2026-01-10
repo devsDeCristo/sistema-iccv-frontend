@@ -57,6 +57,7 @@ import ModalQrCode from '../../../../features/admin/events/components/modalQrCod
 import PdfEnvelopePhoto from '../../../../components/pdfEnvelopePhoto';
 import { User } from '../../../../types/user';
 import { ListUsersWaitList } from '../../../../features/admin/events/components/listUsersWaitList';
+import { useTheme } from '@emotion/react';
 
 function Details() {
   const { id, subPage } = useParams();
@@ -88,6 +89,7 @@ function Details() {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [openModalQrCode, setOpenModalQrCode] = useState(false);
   const openMenu = Boolean(anchorEl);
+  const theme= useTheme()
   const handleClickOpenMenu = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
   };
@@ -127,6 +129,36 @@ function Details() {
   const event = eventData as Event;
 
   const styles = {
+    card: {
+      borderRadius: '5px',
+     
+      boxShadow: '0px 0px 3px  #0000001a',
+      border: 'none',
+      '&::before': {
+        display: 'none',
+      },
+    },
+    tabs: {
+     
+      '& button': {
+
+        color: theme.palette.text.disabled,
+        textTransform: 'capitalize',
+        minHeight: '20px',
+        Height: '100%',
+        borderRadius: '5px',
+        paddingX: '10px',
+      },
+      '& .MuiTab-icon': { marginRight: '2px' },
+
+      '& button.Mui-selected': {
+        backgroundColor: theme.palette.background.paperSecondary,
+      },
+      '& .MuiTabs-indicator': {
+        backgroundColor: 'transparent',
+        border: 'none',
+      },
+    },
     boxFilterAndPdf: {
       display: 'flex',
       // flexDirection: { xs: 'column', sm: 'row' },
@@ -352,9 +384,11 @@ function Details() {
         buttonBack
         pageBack="/admin/eventos"
       />
-      <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+      <Paper sx={{width:"fit-content"}}>
+        <Stack sx={[styles.card, { p: 0.5, height: '50px' }]}>
         <Tabs
           value={pageValue}
+          sx={styles.tabs}
           onChange={handleChange}
           aria-label="basic tabs example"
         >
@@ -366,7 +400,8 @@ function Details() {
           {/* <Tab label="Lista de Espera" value={'lista-espera'} />
           <Tab label="Alerta de Inscrições" value={'alerta-inscricoes'} /> */}
         </Tabs>
-      </Box>
+       </Stack>
+      </Paper>
       {pageValue === 'usuarios' && (
         <Stack gap={2}>
           <Paper component="div" sx={styles.boxFilterAndPdf}>
