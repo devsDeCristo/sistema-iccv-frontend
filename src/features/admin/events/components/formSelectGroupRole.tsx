@@ -22,7 +22,15 @@ function FormSelectGroupRole({ event }: FormSelectGroupRoleProps) {
   return (
     <Grid container spacing={2}>
       <Grid item xs={12} md={12}>
-        <Typography variant="h5" sx={{mt:-1, mb:2, fontSize:'18px', color: theme.palette.text.secondary}}>
+        <Typography
+          variant="h5"
+          sx={{
+            mt: -1,
+            mb: 2,
+            fontSize: '18px',
+            color: theme.palette.text.secondary,
+          }}
+        >
           Selecione qual(is) ingresso(s) deseja comprar:
         </Typography>
       </Grid>
@@ -49,9 +57,8 @@ function FormSelectGroupRole({ event }: FormSelectGroupRoleProps) {
               return (
                 <Box
                   key={group.id}
-                  
                   onClick={() => {
-                    if(subscribedCount >= capacity) return;
+                    if (subscribedCount >= capacity) return;
                     if (isSelected) {
                       field.onChange(
                         field.value.filter((id) => id !== group.id)
@@ -65,8 +72,8 @@ function FormSelectGroupRole({ event }: FormSelectGroupRoleProps) {
                     }
                   }}
                   sx={{
-                    position:"relative",
-               
+                    position: 'relative',
+
                     mt: 2,
                     p: 2,
                     borderRadius: 2,
@@ -93,7 +100,10 @@ function FormSelectGroupRole({ event }: FormSelectGroupRoleProps) {
                 >
                   {' '}
                   <Checkbox
-                    sx={{ p: 0.5,     opacity: subscribedCount >= capacity ? 0.6 : 1, }}
+                    sx={{
+                      p: 0.5,
+                      opacity: subscribedCount >= capacity ? 0.6 : 1,
+                    }}
                     value={group.id}
                     disabled={subscribedCount >= capacity}
                     checked={isSelected}
@@ -105,19 +115,34 @@ function FormSelectGroupRole({ event }: FormSelectGroupRoleProps) {
                       {errors.groupRoleId.message}
                     </Typography>
                   )}{' '}
-                  <Box sx={{ ml: 2 ,     opacity: subscribedCount >= capacity ? 0.6 : 1,}}>
+                  <Box
+                    sx={{
+                      ml: 2,
+                      opacity: subscribedCount >= capacity ? 0.6 : 1,
+                    }}
+                  >
                     <Typography variant="h6">{group.name}</Typography>
                     <Typography variant="body2">
-                      Vagas Disponíveis: {capacity - subscribedCount} de {capacity}
+                      Vagas Disponíveis: {capacity - subscribedCount} de{' '}
+                      {capacity}
                     </Typography>
                   </Box>
                   {subscribedCount >= capacity ? (
-                    <Box sx={{fontSize:"17px", flexGrow: 1, position: "absolute", right: 0, top: 0, color: "red", fontWeight: "bold", padding: 1 }}>
+                    <Box
+                      sx={{
+                        fontSize: '17px',
+                        flexGrow: 1,
+                        position: 'absolute',
+                        right: 10,
+                        top: 10,
+                        color: theme.palette.error.main,
+                        fontWeight: 500,
+                      }}
+                    >
                       Esgotado!
                     </Box>
                   ) : null}
                 </Box>
-          
               );
             })}
           </Grid>
