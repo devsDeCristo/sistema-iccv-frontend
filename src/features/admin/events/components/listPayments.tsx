@@ -229,7 +229,7 @@ function ListPayments({
       field: 'method',
       headerName: 'Método de Pagamento',
       width: 180,
-      renderCell: (params) => <CustomChip label={PAYMENT_METHODS(params.value)}  customColor={theme.palette.primary.main}/>,
+      renderCell: (params) => <CustomChip label={PAYMENT_METHODS(params.value)}  customColor={theme.palette.chips.info}/>,
       
     },
      {

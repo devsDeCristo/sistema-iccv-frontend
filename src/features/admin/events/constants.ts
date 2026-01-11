@@ -283,12 +283,12 @@ export const PAYMENT_STATUS_COLOR = (
   theme: any
 ): string => {
   const map: Record<PaymentStatus, string> = {
-    PAID: theme.palette.success.main,
-    IN_ANALYSIS: theme.palette.warning.main,
-    DECLINED: theme.palette.error.main,
-    CANCELED: theme.palette.error.dark,
-    WAITING: theme.palette.info.main,
-    REFUNDED: theme.palette.grey[500],
+    PAID: theme.palette.chips.success,
+    IN_ANALYSIS: theme.palette.chips.info,
+    DECLINED: theme.palette.chips.canceled,
+    CANCELED: theme.palette.chips.canceled,
+    WAITING: theme.palette.chips.alert,
+    REFUNDED: theme.palette.chips.pending,
   };
 
   return map[status];
