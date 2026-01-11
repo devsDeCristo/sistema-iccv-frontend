@@ -78,6 +78,7 @@ export interface GroupRole {
   roles: {
     price: number;
     description: string;
+    registered: number;
   }[];
 }
 export interface EventDataJson {
