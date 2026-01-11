@@ -27,6 +27,16 @@ function EventCard({ event }: { event: Event }) {
   const type= event.type
   
   const styles = {
+      bannerLogo: {
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        height: 60,
+        background: 'white',
+        p: '6px',
+        borderRadius: 2,
+      },
     card: {
       borderRadius: 3,
       overflow: 'hidden',
@@ -88,14 +98,18 @@ function EventCard({ event }: { event: Event }) {
           component="img"
           height="120"
           image={
-            'https://www.guiaviagensbrasil.com/imagens/Imagem%20do%20mar%20calma%20e%20belo%20da%20Praia%20da%20Engenhoca-Itacar%C3%A9-Bahia-BA.jpg'
+            event?.data?.coverUrl
           }
           alt={event.name}
           sx={styles.cardMedia}
         />
+        <img
+          src={event?.data?.logoUrl}
+          alt="Logo do Evento"
+          style={styles.bannerLogo as any}
+        />
         <Box sx={styles.chipTopLeft}>
-          {type}
-        
+          {type} 
         </Box>
         
       </Box>

@@ -34,6 +34,7 @@ export interface Event {
   waitlist: number;
   users: number;
   capacity: number;
+  data:EventDataJson
 }
 export interface filterUsers {
   birthday: { startDate: string | null; endDate: string | null };
