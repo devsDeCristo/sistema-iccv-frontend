@@ -165,7 +165,7 @@ function Register() {
               // coverFile: coverSvgText, // Base64 string
             },
           };
-          console.log(finalDataBase64);
+          // console.log(finalDataBase64);
           mutatePostCreateEvent({
             data: finalDataBase64,
             files: {

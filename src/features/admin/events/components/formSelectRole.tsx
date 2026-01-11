@@ -3,8 +3,6 @@ import {
   Box,
   Checkbox,
   Grid,
-  Paper,
-  Radio,
   Typography,
   useTheme,
 } from '@mui/material';

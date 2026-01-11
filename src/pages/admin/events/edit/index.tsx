@@ -207,7 +207,7 @@ function Edit() {
               //   : {}),
             },
           };
-          console.log(finalData);
+          // console.log(finalData);
           mutatePutUpdateEvent({
             data: finalData,
             id: id!,

@@ -13,7 +13,7 @@ import {
   LinearProgress,
   Menu,
   MenuItem,
-  useTheme
+  useTheme,
 } from '@mui/material';
 
 import { useNavigate, useParams } from 'react-router-dom';
@@ -27,7 +27,6 @@ import PdfEvent from '../../../../components/pdfEvent';
 import FileSaver from 'file-saver';
 import { pdf } from '@react-pdf/renderer';
 import {
-  Event,
   EventDetails,
   filterUsers,
   Team,
@@ -60,7 +59,6 @@ import PdfEnvelopePhoto from '../../../../components/pdfEnvelopePhoto';
 import { User } from '../../../../types/user';
 import { ListUsersWaitList } from '../../../../features/admin/events/components/listUsersWaitList';
 
-
 function Details() {
   const { id, subPage } = useParams();
   const navigate = useNavigate();
@@ -91,7 +89,7 @@ function Details() {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [openModalQrCode, setOpenModalQrCode] = useState(false);
   const openMenu = Boolean(anchorEl);
-  
+
   const handleClickOpenMenu = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
   };
@@ -99,7 +97,7 @@ function Details() {
   const handleCloseMenu = () => {
     setAnchorEl(null);
   };
-  const theme= useTheme()
+  const theme = useTheme();
   const { data: teamsData = [] } = useGetTeams({
     eventId,
   });
@@ -142,9 +140,7 @@ function Details() {
       },
     },
     tabs: {
-     
       '& button': {
-
         color: theme.palette.text.disabled,
         textTransform: 'capitalize',
         minHeight: '20px',
@@ -387,8 +383,10 @@ function Details() {
         buttonBack
         pageBack="/admin/eventos"
       />
-   
-        <Stack sx={[styles.card, { p: 0.5, height: '50px', width:"fit-content" }]}>
+
+      <Stack
+        sx={[styles.card, { p: 0.5, height: '50px', width: 'fit-content' }]}
+      >
         <Tabs
           value={pageValue}
           sx={styles.tabs}
@@ -401,8 +399,8 @@ function Details() {
           <Tab label="Quartos" value={'quartos'} />
           <Tab label="Equipes" value={'equipes'} />
         </Tabs>
-       </Stack>
-     
+      </Stack>
+
       {pageValue === 'usuarios' && (
         <Stack gap={2}>
           <Paper component="div" sx={styles.boxFilterAndPdf}>
@@ -511,7 +509,6 @@ function Details() {
                 ),
               }}
             />
-          
           </Paper>
 
           <ListUsersWaitList
