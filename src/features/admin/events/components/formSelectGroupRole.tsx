@@ -9,11 +9,12 @@ import {
   useTheme,
 } from '@mui/material';
 import { Controller, useFormContext } from 'react-hook-form';
-import { EventDetails, SelectGroupRoleFormType } from '../types';
+import { EventDetails, Group, SelectGroupRoleFormType } from '../types';
 interface FormSelectGroupRoleProps {
   event: EventDetails;
+  groups: Group[];
 }
-function FormSelectGroupRole({ event }: FormSelectGroupRoleProps) {
+function FormSelectGroupRole({ event, groups }: FormSelectGroupRoleProps) {
   const {
     control,
     formState: { errors },
@@ -44,6 +45,7 @@ function FormSelectGroupRole({ event }: FormSelectGroupRoleProps) {
         render={({ field }) => (
           <Grid item xs={12} md={12}>
             {event?.groupRoles?.map((group) => {
+             
               if (group.id === undefined) return null;
               const capacity = group.capacity;
               const subscribedCount =
@@ -51,6 +53,8 @@ function FormSelectGroupRole({ event }: FormSelectGroupRoleProps) {
                   (total, role) => total + (role.registered ?? 0),
                   0
                 ) ?? 0;
+              const registeredInGroup = groups?.some(g => g.id === group.id);
+              const disabled = subscribedCount >= capacity || registeredInGroup;
               const isSelected = field?.value
                 ? field.value.includes(group.id)
                 : false;
@@ -58,7 +62,7 @@ function FormSelectGroupRole({ event }: FormSelectGroupRoleProps) {
                 <Box
                   key={group.id}
                   onClick={() => {
-                    if (subscribedCount >= capacity) return;
+                    if (disabled) return;
                     if (isSelected) {
                       field.onChange(
                         field.value.filter((id) => id !== group.id)
@@ -102,10 +106,10 @@ function FormSelectGroupRole({ event }: FormSelectGroupRoleProps) {
                   <Checkbox
                     sx={{
                       p: 0.5,
-                      opacity: subscribedCount >= capacity ? 0.6 : 1,
+                      opacity: disabled ? 0.6 : 1,
                     }}
                     value={group.id}
-                    disabled={subscribedCount >= capacity}
+                    disabled={disabled}
                     checked={isSelected}
                     onChange={() => field.onChange(group.id)}
                     inputProps={{ 'aria-label': group.name }}
@@ -118,7 +122,7 @@ function FormSelectGroupRole({ event }: FormSelectGroupRoleProps) {
                   <Box
                     sx={{
                       ml: 2,
-                      opacity: subscribedCount >= capacity ? 0.6 : 1,
+                      opacity: disabled ? 0.6 : 1,
                     }}
                   >
                     <Typography variant="h6">{group.name}</Typography>
@@ -127,21 +131,22 @@ function FormSelectGroupRole({ event }: FormSelectGroupRoleProps) {
                       {capacity}
                     </Typography>
                   </Box>
-                  {subscribedCount >= capacity ? (
+                  {subscribedCount >= capacity || registeredInGroup ? (
                     <Box
                       sx={{
-                        fontSize: '17px',
+                        fontSize: '18px',
                         flexGrow: 1,
                         position: 'absolute',
                         right: 10,
                         top: 10,
-                        color: theme.palette.error.main,
+                        color: registeredInGroup ? theme.palette.success.main : theme.palette.error.main,
                         fontWeight: 500,
                       }}
                     >
-                      Esgotado!
+                      {registeredInGroup ? "Inscrição Realizada!" : 'Esgotado!'}
                     </Box>
                   ) : null}
+ 
                 </Box>
               );
             })}

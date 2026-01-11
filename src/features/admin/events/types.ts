@@ -24,6 +24,13 @@ export interface EventDetails {
   createdAt: Date;
   updateAt: Date;
 }
+
+export interface Group {
+  id: string;
+  name: string;
+  capacity: number;
+  eventId: string;
+}
 export interface Event {
   id: string;
   type: EventType;

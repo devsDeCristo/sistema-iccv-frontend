@@ -4,6 +4,7 @@ import { PageStyle } from '../../../components/pageStyle';
 import { useGetEvents } from '../../../features/admin/events/api/getEvents';
 import {
   EventDetails,
+  Group,
   GroupRole,
   SelectGroupRoleFormType,
   SelectRoleFormType,
@@ -22,15 +23,25 @@ import React, { useState } from 'react';
 import { ArrowForward, Check } from '@mui/icons-material';
 import { usePostRegisterUserInEvent } from '../../../features/admin/events/api/postRegisterUserInEvent';
 import Swal from 'sweetalert2';
+import { useGetGroupsByUser } from '../../../features/admin/events/api/getGroupsByUser';
 
 function Subscribe() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const userId = JSON.parse(localStorage.getItem('user') || '{}')?.id || '';
+
   const { data: eventData, isLoading } = useGetEvents(
     { eventId: id },
     { enabled: !!id }
   );
+  const { data: groupsData } = useGetGroupsByUser(
+    { userId },
+    { enabled: !!userId }
+  );
+
   const event = eventData as EventDetails;
+  const groups = groupsData as Group[];
+
   const [currentStep, setCurrentStep] = useState(1);
   const [groupRolesSelected, setGroupRolesSelected] = useState<
     GroupRole[] | null
@@ -88,7 +99,6 @@ function Subscribe() {
 
   const selectRoleSubmit = (data: SelectRoleFormType) => {
     console.log('Select Role Submit:', data);
-    const userId = JSON.parse(localStorage.getItem('user') || '{}')?.id || ''; 
     if (event && event.id && data.roleId) {
       mutateRegisterUserInEvent({ eventId: event.id, userId, data });
     }
@@ -99,7 +109,7 @@ function Subscribe() {
       formMethods: methodsSelectGroupRole,
       onSubmit: selectGroupRoleSubmit,
       component: FormSelectGroupRole,
-      props: { event },
+      props: { event, groups },
     },
     {
       step: 2,

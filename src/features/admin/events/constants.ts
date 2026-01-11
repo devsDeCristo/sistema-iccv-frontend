@@ -15,6 +15,7 @@ export const GET_TEAMS = 'GET_TEAMS';
 export const GET_INSIGHTS = 'GET_INSIGHTS';
 export const GET_EVENT_USERS = 'GET_EVENT_USERS';
 export const GET_EVENT_USERS_WAITLIST = 'GET_EVENT_USERS_WAITLIST';
+export const GET_GROUPS_BY_USER = 'GET_GROUPS_BY_USER';
 
 const DEFAULT_MESSAGE = 'Campo obrigatório';
 
