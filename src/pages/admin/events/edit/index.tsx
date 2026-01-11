@@ -210,7 +210,7 @@ function Edit() {
             },
           };
           console.log(finalDataBase64);
-          // mutatePutUpdateEvent({ data: finalDataBase64, id: id! });
+          mutatePutUpdateEvent({ data: finalDataBase64, id: id! });
         } catch (error) {
           console.error('Erro ao converter arquivos:', error);
           toast.error('Erro ao processar as imagens');
