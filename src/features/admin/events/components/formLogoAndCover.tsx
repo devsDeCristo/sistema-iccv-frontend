@@ -223,14 +223,14 @@ function FormLogoAndCover() {
               }}
             >
               <Typography fontWeight={500} fontSize={'16px'}>
-                {logoFile[0]?.name ? logoFile[0].name : 'Logo atual'}
+                {logoPreview ? logoFile[0]?.name : 'Logo atual'}
               </Typography>
               <Typography
                 fontSize={'14px'}
                 sx={{ color: alpha(theme.palette.text.primary, 0.7) }}
               >
-                {logoFile[0]?.size &&
-                  `${(logoFile[0]?.size / 1024).toFixed(1)} KB`}
+                {logoFile?.[0]?.size &&
+                  `${(logoFile?.[0]?.size / 1024).toFixed(1)} KB`}
               </Typography>
             </Box>
           </Box>
@@ -349,14 +349,14 @@ function FormLogoAndCover() {
               }}
             >
               <Typography fontWeight={500} fontSize={'16px'}>
-                {coverFile[0]?.name ? coverFile[0].name : 'Capa atual'}
+                {coverFile?.[0]?.name ? coverFile?.[0].name : 'Capa atual'}
               </Typography>
               <Typography
                 fontSize={'14px'}
                 sx={{ color: alpha(theme.palette.text.primary, 0.7) }}
               >
-                {coverFile[0]?.size &&
-                  `${(coverFile[0]?.size / 1024).toFixed(1)} KB`}
+                {coverFile?.[0]?.size &&
+                  `${(coverFile?.[0]?.size / 1024).toFixed(1)} KB`}
               </Typography>
             </Box>
           </Box>
