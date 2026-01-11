@@ -83,7 +83,7 @@ function EventsDetails() {
         top: '50%',
         left: '50%',
         transform: 'translate(-50%, -50%)',
-        height: 60,
+        height: 90,
         background: 'white',
         p: '6px',
         borderRadius: 2,
@@ -131,13 +131,13 @@ function EventsDetails() {
       {/* Banner */}
       <Stack sx={styles.bannerContainer}>
         <img
-          src="https://img.freepik.com/fotos-gratis/montanhas-vestrahorn-ao-por-do-sol-em-stokksnes-islandia_335224-574.jpg"
+          src={event?.data?.coverUrl}
           alt="Banner do Evento"
           style={styles.bannerImage as any}
         />
 
         <img
-          src="https://upload.wikimedia.org/wikipedia/commons/a/ab/Logo_TV_2015.png"
+          src={event?.data?.logoUrl}
           alt="Logo do Evento"
           style={styles.bannerLogo as any}
         />
