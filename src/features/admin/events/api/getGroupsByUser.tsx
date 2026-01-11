@@ -1,6 +1,6 @@
 import { UseQueryOptions, useQuery } from 'react-query';
 import { apiClient } from '../../../../config/lib/axios/api-client';
-import {  Group } from '../types';
+import { PayLoadGroup } from '../types';
 import {GET_GROUPS_BY_USER } from '../constants';
 import { handleResponseThrowError } from '../../../../utils/service';
 
@@ -11,7 +11,7 @@ interface GetGroupsByUserParams {
 const getGroupsByUser  = ({ userId }: GetGroupsByUserParams) => {
  
   return apiClient
-    .get<Group[]>(`/users/${userId}/groups`)
+    .get<PayLoadGroup>(`/users/${userId}/groups`)
     .then((response) => response.data)
     .catch(handleResponseThrowError());
 };

@@ -4,8 +4,8 @@ import { PageStyle } from '../../../components/pageStyle';
 import { useGetEvents } from '../../../features/admin/events/api/getEvents';
 import {
   EventDetails,
-  Group,
   GroupRole,
+  PayLoadGroup,
   SelectGroupRoleFormType,
   SelectRoleFormType,
 } from '../../../features/admin/events/types';
@@ -40,7 +40,7 @@ function Subscribe() {
   );
 
   const event = eventData as EventDetails;
-  const groups = groupsData as Group[];
+  const groups = groupsData as PayLoadGroup;
 
   const [currentStep, setCurrentStep] = useState(1);
   const [groupRolesSelected, setGroupRolesSelected] = useState<
@@ -98,7 +98,7 @@ function Subscribe() {
     });
 
   const selectRoleSubmit = (data: SelectRoleFormType) => {
-    console.log('Select Role Submit:', data);
+ 
     if (event && event.id && data.roleId) {
       mutateRegisterUserInEvent({ eventId: event.id, userId, data });
     }

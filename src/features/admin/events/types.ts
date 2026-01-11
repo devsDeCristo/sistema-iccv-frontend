@@ -25,6 +25,10 @@ export interface EventDetails {
   updateAt: Date;
 }
 
+export interface PayLoadGroup {
+  present:Group[];
+  waitlist:Group[];
+}
 export interface Group {
   id: string;
   name: string;

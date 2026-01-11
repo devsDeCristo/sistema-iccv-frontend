@@ -9,10 +9,10 @@ import {
   useTheme,
 } from '@mui/material';
 import { Controller, useFormContext } from 'react-hook-form';
-import { EventDetails, Group, SelectGroupRoleFormType } from '../types';
+import { EventDetails, PayLoadGroup, SelectGroupRoleFormType } from '../types';
 interface FormSelectGroupRoleProps {
   event: EventDetails;
-  groups: Group[];
+  groups: PayLoadGroup;
 }
 function FormSelectGroupRole({ event, groups }: FormSelectGroupRoleProps) {
   const {
@@ -53,8 +53,9 @@ function FormSelectGroupRole({ event, groups }: FormSelectGroupRoleProps) {
                   (total, role) => total + (role.registered ?? 0),
                   0
                 ) ?? 0;
-              const registeredInGroup = groups?.some(g => g.id === group.id);
-              const disabled = subscribedCount >= capacity || registeredInGroup;
+              const registeredInGroup = groups?.present?.some(g => g.id === group.id) || false;
+              const registeredInGroupWaitList = groups?.waitlist?.some(g => g.id === group.id) || false;
+              const disabled =  registeredInGroup || registeredInGroupWaitList;
               const isSelected = field?.value
                 ? field.value.includes(group.id)
                 : false;
@@ -131,7 +132,7 @@ function FormSelectGroupRole({ event, groups }: FormSelectGroupRoleProps) {
                       {capacity}
                     </Typography>
                   </Box>
-                  {subscribedCount >= capacity || registeredInGroup ? (
+                  {(registeredInGroup || registeredInGroupWaitList) && (
                     <Box
                       sx={{
                         fontSize: '17px',
@@ -139,13 +140,29 @@ function FormSelectGroupRole({ event, groups }: FormSelectGroupRoleProps) {
                         position: 'absolute',
                         right: 10,
                         top: 10,
-                        color: registeredInGroup ? theme.palette.success.main : theme.palette.error.main,
+                        color: registeredInGroup ? theme.palette.success.main : theme.palette.warning.main,
                         fontWeight: 500,
                       }}
                     >
-                      {registeredInGroup ? "Inscrição Realizada!" : 'Esgotado!'}
+                      {`Inscrição Realizada! ${registeredInGroupWaitList ? '(Lista de Espera)' : ''}`}
                     </Box>
-                  ) : null}
+                  )}
+                  {(!registeredInGroup && !registeredInGroupWaitList) && (subscribedCount>=capacity) && (
+                    <Box
+                      sx={{
+                        fontSize: '17px',
+                        flexGrow: 1,
+                        position: 'absolute',
+                        right: 10,
+                        top: 10,
+                        color:  theme.palette.warning.main,
+                        fontWeight: 500,
+                      }}
+                    >
+                      {"Somente Lista de Espera!"}
+                    </Box>
+                  
+                  )}
  
                 </Box>
               );

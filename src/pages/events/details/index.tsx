@@ -45,7 +45,7 @@ function EventsDetails() {
         p: 3,
       },
       error: {
-        color: theme.palette.error.main,
+        color: theme.palette.warning.main,
         fontWeight: 500,
       },
 
@@ -197,7 +197,7 @@ function EventsDetails() {
                         {vagas > 0 ? (
                           <Typography>{vagas} vaga(s) restante(s)</Typography>
                         ) : (
-                          <Typography sx={styles.error}>Esgotadas!</Typography>
+                          <Typography sx={styles.error}>Lista de Espera!</Typography>
                         )}
                       </Grid>
                     </Grid>
