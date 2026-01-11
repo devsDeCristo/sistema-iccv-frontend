@@ -58,6 +58,7 @@ import ModalQrCode from '../../../../features/admin/events/components/modalQrCod
 import PdfEnvelopePhoto from '../../../../components/pdfEnvelopePhoto';
 import { User } from '../../../../types/user';
 import { ListUsersWaitList } from '../../../../features/admin/events/components/listUsersWaitList';
+import { ListPayments } from '../../../../features/admin/events/components/listPayments';
 
 function Details() {
   const { id, subPage } = useParams();
@@ -512,6 +513,43 @@ function Details() {
           </Paper>
 
           <ListUsersWaitList
+            apiRef={apiRefUsers}
+            search={searchUser}
+            event={event}
+          />
+        </Stack>
+      )}
+      {pageValue === 'pagamentos' && (
+        <Stack gap={2}>
+          <Paper component="div" sx={styles.boxFilterAndPdf}>
+            <TextField
+              placeholder="Pesquisar usuário por nome ou CPF"
+              variant="outlined"
+              size="small"
+              value={searchUser}
+              sx={styles.textField}
+              onChange={(e) => setSearchUser(e.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Search />
+                  </InputAdornment>
+                ),
+              }}
+            />
+            {/* <Typography color="#000">Usuários</Typography> */}
+            <Stack sx={styles.stackButtons}>
+              <Button
+                variant="outlined"
+                onClick={() => handleExport(apiRefUsers)}
+                startIcon={<Download />}
+              >
+                Exportar
+              </Button>
+            </Stack>
+          </Paper>
+
+          <ListPayments
             apiRef={apiRefUsers}
             search={searchUser}
             event={event}

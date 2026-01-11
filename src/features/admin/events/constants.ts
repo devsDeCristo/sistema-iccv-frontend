@@ -8,6 +8,7 @@ import {
 } from '@mui/icons-material';
 import { z } from 'zod';
 import { GroupRole } from './types';
+import { PaymentMethod, PaymentStatus } from '../../../types/user';
 
 export const GET_EVENTS = 'GET_EVENTS';
 export const GET_BEDROOMS = 'GET_BEDROOMS';
@@ -16,6 +17,7 @@ export const GET_INSIGHTS = 'GET_INSIGHTS';
 export const GET_EVENT_USERS = 'GET_EVENT_USERS';
 export const GET_EVENT_USERS_WAITLIST = 'GET_EVENT_USERS_WAITLIST';
 export const GET_GROUPS_BY_USER = 'GET_GROUPS_BY_USER';
+export const GET_PAYMENTS_EVENT = 'GET_PAYMENTS_EVENT';
 
 const DEFAULT_MESSAGE = 'Campo obrigatório';
 
@@ -249,3 +251,55 @@ export const GROUP_ROLE_RETIRO: GroupRole[] = [
     ],
   },
 ];
+
+export const PAYMENT_METHODS = (payment: PaymentMethod): string => {
+  const map: Record<PaymentMethod, string> = {
+    PIX: 'Pix',
+    CREDIT_CARD: 'Cartão de Crédito',
+    DEBIT_CARD: 'Cartão de Débito',
+    CASH: 'Dinheiro',
+    BOLETO: 'Boleto',
+    OTHER: 'Outro',
+  };
+
+  return map[payment];
+};
+
+export const PAYMENT_STATUS= (status: PaymentStatus): string => {
+  const map: Record<PaymentStatus, string> = {
+    PAID: 'Pago',
+    IN_ANALYSIS: 'Em análise',
+    DECLINED: 'Recusado',
+    CANCELED: 'Cancelado',
+    WAITING: 'Aguardando',
+    REFUNDED: 'Reembolsado',
+  };
+
+  return map[status];
+}
+
+export const PAYMENT_STATUS_COLOR = (
+  status: PaymentStatus,
+  theme: any
+): string => {
+  const map: Record<PaymentStatus, string> = {
+    PAID: theme.palette.success.main,
+    IN_ANALYSIS: theme.palette.warning.main,
+    DECLINED: theme.palette.error.main,
+    CANCELED: theme.palette.error.dark,
+    WAITING: theme.palette.info.main,
+    REFUNDED: theme.palette.grey[500],
+  };
+
+  return map[status];
+};
+
+export const ACTION_FROM= (status: string): string => {
+  const map: Record<string, string> = {
+    SYSTEM: 'Sistema',
+    EXTERNAL: 'Externo',
+  };
+
+  return map[status];
+}
+

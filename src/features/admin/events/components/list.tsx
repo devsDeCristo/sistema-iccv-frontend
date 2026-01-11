@@ -44,7 +44,7 @@ function List({ search }: { search: string }) {
     return event.name.toLowerCase().includes(searchLower);
   });
   const columns: GridColDef[] = [
-    { field: 'name', headerName: 'Nome', flex: 1 },
+    { field: 'name', headerName: 'Nome', flex: 2,   minWidth: 180, },
     {
       field: 'startDate',
       headerName: 'Data inicial',

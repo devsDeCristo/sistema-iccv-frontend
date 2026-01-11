@@ -1,6 +1,48 @@
 import { z } from 'zod';
 import { REGISTER_USERS_SCHEMA } from '../features/admin/users/constants';
 
+export type PaymentStatus =
+  | 'PAID'
+  | 'IN_ANALYSIS'
+  | 'DECLINED'
+  | 'CANCELED'
+  | 'WAITING'
+  | 'REFUNDED';
+
+export type PaymentReceived = 'SYSTEM' | 'EXTERNAL';
+
+export type PaymentMethod =
+  | 'PIX'
+  | 'CREDIT_CARD'
+  | 'DEBIT_CARD'
+  | 'CASH'
+  | 'BOLETO'
+  | 'OTHER';
+
+export interface PaymentResponse {
+  // dados do usuário
+  id: string;
+  fullName: string;
+  email: string;
+  cpf: string;
+
+  // dados do pagamento
+  method: PaymentMethod;
+  status: PaymentStatus;
+  receivedFrom: PaymentReceived;
+  amount: number;
+
+  createdAt: string; // ISO date string
+  updatedAt: string;
+
+  eventId: string;
+  roleRegistrationId: string;
+  userId: string;
+  groupId: string;
+  groupName: string;
+
+  payload: Record<string, any> | null;
+}
 export interface User {
   id: string;
   email: string;
