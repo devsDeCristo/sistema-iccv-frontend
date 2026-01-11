@@ -384,7 +384,7 @@ function ListPayments({
             toolbar: GridToolbar,
           }}
           pageSizeOptions={[25, 50, 100]}
-          checkboxSelection
+          
           initialState={{
             
             pagination: { paginationModel: { pageSize: 25 } },
