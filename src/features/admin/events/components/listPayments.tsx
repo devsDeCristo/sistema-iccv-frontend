@@ -207,7 +207,7 @@ function ListPayments({
     },
     {
       field: 'fullName',
-      headerName: 'Nome/Crachá',
+      headerName: 'Nome/CPF',
       flex: 2,
       minWidth: 180,
       // maxWidth: 300,
@@ -297,33 +297,7 @@ function ListPayments({
     window.open(link, '_blank');
     handleClose();
   };
-  const handleClickDownloadBadge = (event: React.MouseEvent) => {
-    event.stopPropagation();
-    if (!rowSelected) return;
-    handleDownloadPDF([rowSelected]);
-    handleClose();
-  };
-
-  const handleClickRemoveUser = () => {
-    if (!rowSelected) return;
-    Swal.fire({
-      title: 'Tem certeza que deseja desvincular o usuário do evento?',
-      text: 'Esta ação não poderá ser desfeita!',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Sim, desvincular do evento!',
-    }).then((result) => {
-      if (result.isConfirmed) {
-        mutateRemoveUserFromEvent({
-          idEvent: eventId,
-          idUser: rowSelected?.id.toString(),
-        });
-      }
-    });
-    handleClose();
-  };
+ 
 
   const filteredByGroup = (payments: PaymentResponse[]) => {
     if (!panel || groupsRules.length === 0) return payments;
@@ -343,13 +317,6 @@ function ListPayments({
     return filtered;
   };
  
-
-  const handleClickEditWork = (event: React.MouseEvent) => {
-    event.stopPropagation();
-    if (!rowSelected) return;
-    setOpenModalEditWork(true);
-    handleClose();
-  };
 
   return (
     <>
