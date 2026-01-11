@@ -16,6 +16,7 @@ const postRegisterUserInEvent = ({ data, eventId, userId }: PostRegisterUserInEv
     .post<boolean>(`/events/${eventId}/users/${userId}`, {roleRegistrationId: data.roleId})
     .then((response) => {
       handleResponseSuccess(response.data, 'Inscrição realizada com sucesso!')();
+      return response.data;
     })
     .catch(handleResponseThrowError());
 

@@ -1,4 +1,4 @@
-import { useNavigate, useParams } from 'react-router-dom';
+import { redirect, useNavigate, useParams } from 'react-router-dom';
 import { Header } from '../../../components/header';
 import { PageStyle } from '../../../components/pageStyle';
 import { useGetEvents } from '../../../features/admin/events/api/getEvents';
@@ -9,7 +9,15 @@ import {
   SelectGroupRoleFormType,
   SelectRoleFormType,
 } from '../../../features/admin/events/types';
-import { Box, Button, Paper, Skeleton, Typography } from '@mui/material';
+import {
+  alpha,
+  Box,
+  Button,
+  Paper,
+  Skeleton,
+  Typography,
+  useTheme,
+} from '@mui/material';
 import { FormSelectGroupRole } from '../../../features/admin/events/components/formSelectGroupRole';
 import { FormSelectRole } from '../../../features/admin/events/components/formSelectRole';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -24,10 +32,14 @@ import { ArrowForward, Check } from '@mui/icons-material';
 import { usePostRegisterUserInEvent } from '../../../features/admin/events/api/postRegisterUserInEvent';
 import Swal from 'sweetalert2';
 import { useGetGroupsByUser } from '../../../features/admin/events/api/getGroupsByUser';
+import { usePostCreateCheckoutEvent } from '../../../features/admin/events/api/postCreateCheckoutEvent';
+import { set } from 'date-fns';
 
 function Subscribe() {
   const { id } = useParams();
+  const theme = useTheme();
   const navigate = useNavigate();
+  const [loadingPayment, setLoadingPayment] = useState(false);
   const userId = JSON.parse(localStorage.getItem('user') || '{}')?.id || '';
 
   const { data: eventData, isLoading } = useGetEvents(
@@ -78,27 +90,72 @@ function Subscribe() {
     });
   };
 
-   const { mutate: mutateRegisterUserInEvent } = usePostRegisterUserInEvent({
-      onSuccess: () => {
-        Swal.fire({
-          title: 'Inscrito!',
-          text: 'Inscrição realizada com sucesso!',
-          icon: 'success',
-        });
-        
-      },
-      onError: () => {
-        Swal.fire({
-          title: 'Erro!',
-          text: 'Ocorreu um erro ao realizar a inscrição, tente novamente.',
-          icon: 'error',
-          confirmButtonText: 'OK',
-        });
-      },
+  const { mutate: mutateCreateCheckoutEvent } = usePostCreateCheckoutEvent({
+    onSuccess: (data:any) => {
+      console.log(data)
+      const link = data.link
+      window.location.href = link;
+    },
+    onError: () => {
+      navigate('/eventos/' + id);
+    },
+  });
+
+const { mutate: mutateRegisterUserInEvent } = usePostRegisterUserInEvent({
+  onSuccess: (data: any) => {
+    const payload = data as any[];
+    const roleId = payload.map(i => i.roleId );
+    const allRegistered = payload.every(i => i.type === 'REGISTERED');
+    const allWaitlist = payload.every(i => i.type === 'WAITLIST');
+
+    // Caso 3: tudo ficou em lista de espera
+    if (allWaitlist) {
+      Swal.fire({
+        title: 'Inscrição(ões) realizada(s) com sucesso!',
+        text: 'No momento suas inscrições ficaram na lista de espera. Você será notificado caso surja vaga.',
+        icon: 'success',
+        confirmButtonText: 'OK',
+      }).then(() => {
+        navigate('/eventos/' + id);
+      });
+      return;
+    }
+
+    // Caso 1 e 2: existe pelo menos uma registrada
+    Swal.fire({
+      title: 'Inscrição(ões) realizada(s) com sucesso!',
+      text:
+        allRegistered
+          ? 'Deseja realizar o pagamento agora?'
+          : 'Algumas inscrições ficaram na lista de espera. Deseja realizar o pagamento apenas das confirmadas?',
+      icon: 'success',
+      showCancelButton: true,
+      cancelButtonText: 'Não',
+      confirmButtonText: 'Sim',
+      confirmButtonColor: theme.palette.success.main,
+      cancelButtonColor: theme.palette.error.main,
+    }).then((result) => {
+      if (result.isConfirmed) {
+        setLoadingPayment(true);
+         mutateCreateCheckoutEvent({ eventId: event!.id, userId, data: {roleId} });
+      } else {
+        navigate('/eventos/' + id);
+      }
     });
+  },
+
+  onError: () => {
+    Swal.fire({
+      title: 'Erro!',
+      text: 'Ocorreu um erro ao realizar a inscrição, tente novamente.',
+      icon: 'error',
+      confirmButtonText: 'OK',
+    });
+  },
+});
+
 
   const selectRoleSubmit = (data: SelectRoleFormType) => {
- 
     if (event && event.id && data.roleId) {
       mutateRegisterUserInEvent({ eventId: event.id, userId, data });
     }
@@ -131,8 +188,37 @@ function Subscribe() {
     }
   };
 
+  const Loading = () => (
+    <Box
+      sx={{
+        zIndex: 1300,
+        position: 'absolute',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: '100%',
+        mt: 'auto',
+        ml: 'auto',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: alpha(theme.palette.background.default, 0.7),
+      }}
+    >
+      <Typography variant="h6" gutterBottom>
+        Carregando Pagemento...
+      </Typography>
+      <Skeleton variant="rectangular" width={200} height={20} sx={{ mb: 2 }} />
+      <Skeleton variant="rectangular" width={150} height={20} />
+    </Box>
+  );
+
   return (
     <PageStyle>
+      {' '}
+      {loadingPayment && <Loading />}
       <Header title="Inscrever-se" buttonBack />
       {isLoading ? (
         <Skeleton variant="rectangular" width="100%" height={200} />
