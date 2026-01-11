@@ -2,6 +2,7 @@ import {
   alpha,
   Box,
   Checkbox,
+  Divider,
   Grid,
   Typography,
   useTheme,
@@ -22,31 +23,40 @@ function FormSelectRole({ groupRoles }: FormSelectRoleProps) {
   return (
     <Grid container spacing={2}>
       <Grid item xs={12} md={12}>
-        <Typography variant="h6" fontSize={'18px'}>
+        <Typography variant="h5" sx={{mt:-1, mb:2, fontSize:'18px', color: theme.palette.text.secondary}}>
           Seleciona as regras que você se encaixa em cada grupo
         </Typography>
       </Grid>
       <Grid item xs={12} md={12}>
         <Grid container spacing={2}>
           {groupRoles.map((groupRole) => {
-            return (
-              <Grid item xs={12} md={12}>
-                <Typography variant="h6" fontSize={'18px'}>
-                  Grupo: {groupRole.name}
+            return (<>
+              <Grid item xs={12} md={12} mb={2}>
+                <Typography variant="h6" fontSize={'19px'}>
+                 Grupo: <span style={{fontWeight: 'bold', color: theme.palette.text.secondary}}>{groupRole.name}</span>
                 </Typography>
+                <Divider sx={{  mb: 1 }} />
                 <Controller
                   name="roleId"
                   control={control}
-                  rules={{ required: 'Selecione o tipo de evento' }}
+                  rules={{ required: 'Selecione ao menos uma opção' }}
                   render={({ field }) => (
                     <Grid item xs={12} md={12}>
                       {groupRole?.roles?.map((role) => {
                         if (role.id === undefined) return null;
-                        const isSelected = field.value === role.id;
+                        const isSelected = field.value?.includes(role.id);
+                        const handleToggle = () => {
+                          const currentValues = field.value || [];
+                          if (isSelected) {
+                            field.onChange(currentValues.filter((id: string) => id !== role.id));
+                          } else {
+                            field.onChange([...currentValues, role.id]);
+                          }
+                        };
                         return (
                           <Box
                             key={role.id}
-                            onClick={() => field.onChange(role.id)}
+                            onClick={handleToggle}
                             sx={{
                               mt: 2,
                               p: 2,
@@ -76,8 +86,8 @@ function FormSelectRole({ groupRoles }: FormSelectRoleProps) {
                             <Checkbox
                               sx={{ p: 0.5 }}
                               value={role.id}
-                              checked={isSelected}
-                              onChange={() => field.onChange(role.id)}
+                              checked={isSelected || false}
+                              onChange={handleToggle}
                               inputProps={{ 'aria-label': role.description }}
                             />
                             {errors.roleId && (
@@ -104,6 +114,8 @@ function FormSelectRole({ groupRoles }: FormSelectRoleProps) {
                   )}
                 />
               </Grid>
+              <Divider sx={{ mt: 3, mb: 3 }} />
+              </>
             );
           })}{' '}
         </Grid>

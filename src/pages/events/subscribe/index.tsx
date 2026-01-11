@@ -20,6 +20,8 @@ import {
 import { zodResolver } from '@hookform/resolvers/zod';
 import React, { useState } from 'react';
 import { ArrowForward, Check } from '@mui/icons-material';
+import { usePostRegisterUserInEvent } from '../../../features/admin/events/api/postRegisterUserInEvent';
+import Swal from 'sweetalert2';
 
 function Subscribe() {
   const { id } = useParams();
@@ -64,8 +66,32 @@ function Subscribe() {
       }
     });
   };
+
+   const { mutate: mutateRegisterUserInEvent } = usePostRegisterUserInEvent({
+      onSuccess: () => {
+        Swal.fire({
+          title: 'Inscrito!',
+          text: 'Inscrição realizada com sucesso!',
+          icon: 'success',
+        });
+        
+      },
+      onError: () => {
+        Swal.fire({
+          title: 'Erro!',
+          text: 'Ocorreu um erro ao realizar a inscrição, tente novamente.',
+          icon: 'error',
+          confirmButtonText: 'OK',
+        });
+      },
+    });
+
   const selectRoleSubmit = (data: SelectRoleFormType) => {
     console.log('Select Role Submit:', data);
+    const userId = JSON.parse(localStorage.getItem('user') || '{}')?.id || ''; 
+    if (event && event.id && data.roleId) {
+      mutateRegisterUserInEvent({ eventId: event.id, userId, data });
+    }
   };
   const stepMethods = [
     {

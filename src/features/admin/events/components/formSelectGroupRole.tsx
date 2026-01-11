@@ -22,7 +22,7 @@ function FormSelectGroupRole({ event }: FormSelectGroupRoleProps) {
   return (
     <Grid container spacing={2}>
       <Grid item xs={12} md={12}>
-        <Typography variant="h6" fontSize={'18px'}>
+        <Typography variant="h5" sx={{mt:-1, mb:2, fontSize:'18px', color: theme.palette.text.secondary}}>
           Selecione qual(is) ingresso(s) deseja comprar:
         </Typography>
       </Grid>
@@ -35,28 +35,38 @@ function FormSelectGroupRole({ event }: FormSelectGroupRoleProps) {
         rules={{ required: 'Selecione o tipo de evento' }}
         render={({ field }) => (
           <Grid item xs={12} md={12}>
-            {event?.groupRoles?.map((role) => {
-              if (role.id === undefined) return null;
+            {event?.groupRoles?.map((group) => {
+              if (group.id === undefined) return null;
+              const capacity = group.capacity;
+              const subscribedCount =
+                group.roles?.reduce(
+                  (total, role) => total + (role.registered ?? 0),
+                  0
+                ) ?? 0;
               const isSelected = field?.value
-                ? field.value.includes(role.id)
+                ? field.value.includes(group.id)
                 : false;
               return (
                 <Box
-                  key={role.id}
+                  key={group.id}
+                  
                   onClick={() => {
+                    if(subscribedCount >= capacity) return;
                     if (isSelected) {
                       field.onChange(
-                        field.value.filter((id) => id !== role.id)
+                        field.value.filter((id) => id !== group.id)
                       );
                     } else {
                       if (field.value) {
-                        field.onChange([...field.value, role.id]);
+                        field.onChange([...field.value, group.id]);
                       } else {
-                        field.onChange([role.id]);
+                        field.onChange([group.id]);
                       }
                     }
                   }}
                   sx={{
+                    position:"relative",
+               
                     mt: 2,
                     p: 2,
                     borderRadius: 2,
@@ -83,24 +93,31 @@ function FormSelectGroupRole({ event }: FormSelectGroupRoleProps) {
                 >
                   {' '}
                   <Checkbox
-                    sx={{ p: 0.5 }}
-                    value={role.id}
+                    sx={{ p: 0.5,     opacity: subscribedCount >= capacity ? 0.6 : 1, }}
+                    value={group.id}
+                    disabled={subscribedCount >= capacity}
                     checked={isSelected}
-                    onChange={() => field.onChange(role.id)}
-                    inputProps={{ 'aria-label': role.name }}
+                    onChange={() => field.onChange(group.id)}
+                    inputProps={{ 'aria-label': group.name }}
                   />
                   {errors.groupRoleId && (
                     <Typography color="error" variant="body2" sx={{ ml: 2 }}>
                       {errors.groupRoleId.message}
                     </Typography>
                   )}{' '}
-                  <Box sx={{ ml: 2 }}>
-                    <Typography variant="h6">{role.name}</Typography>
+                  <Box sx={{ ml: 2 ,     opacity: subscribedCount >= capacity ? 0.6 : 1,}}>
+                    <Typography variant="h6">{group.name}</Typography>
                     <Typography variant="body2">
-                      Capacidade: {role.capacity}
+                      Vagas Disponíveis: {capacity - subscribedCount} de {capacity}
                     </Typography>
                   </Box>
+                  {subscribedCount >= capacity ? (
+                    <Box sx={{fontSize:"17px", flexGrow: 1, position: "absolute", right: 0, top: 0, color: "red", fontWeight: "bold", padding: 1 }}>
+                      Esgotado!
+                    </Box>
+                  ) : null}
                 </Box>
+          
               );
             })}
           </Grid>
