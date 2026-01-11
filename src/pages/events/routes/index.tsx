@@ -7,6 +7,7 @@ function RoutesEvents() {
     <>
       <Route path="/eventos" element={<Events />} />
       <Route path="/eventos/:id" element={<EventsDetails />} />
+      <Route path="/eventos/:id/inscricao" element={<EventsDetails />} />
     </>
   );
 }
