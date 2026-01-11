@@ -72,6 +72,7 @@ export interface Team {
   groupLink?: string;
 }
 export interface GroupRole {
+  id?: string;
   name: string;
   capacity: number;
   // expanded: boolean;

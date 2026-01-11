@@ -37,7 +37,7 @@ import { usePutUpdateEvent } from '../../../../features/admin/events/api/putEven
 import React, { useEffect, useMemo, useState } from 'react';
 import { FormGeneralInfo } from '../../../../features/admin/events/components/formGeneralInfo';
 import {
-  svgFileToText,
+  // svgFileToText,
   svgTextToFile,
 } from '../../../../features/admin/events/utils/fileConverters';
 import { toast } from 'react-toastify';
@@ -85,6 +85,7 @@ function Edit() {
   ): RegistrationSettingsFormType => ({
     groupRoles:
       event?.groupRoles.map((groupRole) => ({
+        id: groupRole.id,
         name: groupRole.name,
         capacity: groupRole.capacity,
         roles: groupRole.roles.map((role) => ({
@@ -165,37 +166,6 @@ function Edit() {
     },
   });
 
-  // const handleNext = () => {
-  //   if (currentStep < STEPS.length) {
-  //     // Se só tem uma integração disponível, seleciona automaticamente
-  //     // if (currentStep === 1 && filteredIntegrations.length === 1) {
-  //     //   setSelectedIntegration(filteredIntegrations[0].id);
-  //     // }
-  //     setCurrentStep(currentStep + 1);
-  //   }
-  // };
-
-  // function generalInfoSubmit() {
-  //   methodsGeneralInfo.trigger().then((isValid) => {
-  //     if (isValid) {
-  //       handleNext();
-  //     }
-  //   });
-  // }
-  // function dateAndTimeSubmit() {
-  //   methodsDateAndTime.trigger().then((isValid) => {
-  //     if (isValid) {
-  //       handleNext();
-  //     }
-  //   });
-  // }
-  // function eventLogoSubmit() {
-  //   methodsEventLogo.trigger().then((isValid) => {
-  //     if (isValid) {
-  //       handleNext();
-  //     }
-  //   });
-  // }
   function registrationSettingsSubmit() {
     if (!id) {
       toast.error('Erro ao editar o evento');
@@ -207,15 +177,15 @@ function Edit() {
         const dateAndTimeData = methodsDateAndTime.getValues();
         const registrationSettingsData =
           methodsRegistrationSettings.getValues();
-        const eventLogoData = methodsEventLogo.getValues();
+        // const eventLogoData = methodsEventLogo.getValues();
 
         try {
-          const logoSvgText = eventLogoData.eventLogo?.[0]
-            ? await svgFileToText(eventLogoData.eventLogo[0])
-            : undefined;
-          const coverSvgText = eventLogoData.eventCover?.[0]
-            ? await svgFileToText(eventLogoData.eventCover[0])
-            : undefined;
+          // const logoSvgText = eventLogoData.eventLogo?.[0]
+          //   ? await svgFileToText(eventLogoData.eventLogo[0])
+          //   : undefined;
+          // const coverSvgText = eventLogoData.eventCover?.[0]
+          //   ? await svgFileToText(eventLogoData.eventCover[0])
+          //   : undefined;
           const finalDataBase64 = {
             name: generalInfoData.name,
             groupLink: generalInfoData.groupLink || '',
@@ -235,12 +205,12 @@ function Edit() {
               address: dateAndTimeData.address,
               number: dateAndTimeData.number,
               linkMaps: dateAndTimeData.linkMaps,
-              logoFile: logoSvgText, // Base64 string
-              coverFile: coverSvgText, // Base64 string
+              // logoFile: logoSvgText, // Base64 string
+              // coverFile: coverSvgText, // Base64 string
             },
           };
           console.log(finalDataBase64);
-          mutatePutUpdateEvent({ data: finalDataBase64, id: id! });
+          // mutatePutUpdateEvent({ data: finalDataBase64, id: id! });
         } catch (error) {
           console.error('Erro ao converter arquivos:', error);
           toast.error('Erro ao processar as imagens');
