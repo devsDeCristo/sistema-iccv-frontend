@@ -16,7 +16,6 @@ import {
 import { EventLogoFormType } from '../types';
 import { Close, Upload } from '@mui/icons-material';
 import { useCallback, useMemo, useRef, useState } from 'react';
-import Resizer from 'react-image-file-resizer';
 import { toast } from 'react-toastify';
 
 function FormLogoAndCover() {
@@ -34,17 +33,19 @@ function FormLogoAndCover() {
 
   // const [logoPreview, setLogoPreview] = useState<string | null>(null);
   // const [coverPreview, setCoverPreview] = useState<string | null>(null);
-  const logo = useWatch({ control, name: 'eventLogo' });
-  const cover = useWatch({ control, name: 'eventCover' });
+  const logoFile = useWatch({ control, name: 'eventLogo' });
+  const coverFile = useWatch({ control, name: 'eventCover' });
+  const logoUrl = useWatch({ control, name: 'logoUrl' });
+  const coverUrl = useWatch({ control, name: 'coverUrl' });
   const logoPreview = useMemo(() => {
-    if (!logo || !logo[0]) return null;
-    return URL.createObjectURL(logo[0]);
-  }, [logo]);
+    if (!logoFile || !logoFile[0]) return null;
+    return URL.createObjectURL(logoFile[0]);
+  }, [logoFile]);
 
   const coverPreview = useMemo(() => {
-    if (!cover || !cover[0]) return null;
-    return URL.createObjectURL(cover[0]);
-  }, [cover]);
+    if (!coverFile || !coverFile[0]) return null;
+    return URL.createObjectURL(coverFile[0]);
+  }, [coverFile]);
 
   const handleDragOver = useCallback(
     (e: React.DragEvent, field: FieldPath<EventLogoFormType>) => {
@@ -93,60 +94,23 @@ function FormLogoAndCover() {
       ref.current.click();
     }
   };
+
   const handleImageChange = (
     file: File | null,
     field: FieldPath<EventLogoFormType>
   ) => {
     if (!file) return;
-    if (file.type.startsWith('image/')) {
-      Resizer.imageFileResizer(
-        file,
-        500,
-        500,
-        'SVG',
-        80,
-        0,
-        (value: string | File | Blob | ProgressEvent<FileReader>) => {
-          if (typeof value === 'string') {
-            // setLogoPreview(value);
-            setValue(field, value);
-            return value;
-          } else {
-            setError(field, {
-              type: 'manual',
-              message: 'Erro ao redimensionar a imagem.',
-            });
-            console.error('Unexpected value type:', value);
-            toast.error('Erro ao redimensionar a imagem.');
-          }
-        },
-        'base64',
-        500,
-        500
-      );
-
-      const fileReader = new FileReader();
-      fileReader.readAsDataURL(file);
-      fileReader.onload = () => {
-        // Você pode adicionar lógica adicional aqui, se necessário
-      };
-      fileReader.onerror = (error) => {
-        console.error('Error:', error);
-        setError(field, {
-          type: 'manual',
-          message: 'Erro ao ler o arquivo.',
-        });
-        toast.error('Falha ao ler o arquivo.');
-        // notify("Error: " + error, "error");
-      };
-    } else {
+    if (!file.type.startsWith('image/')) {
       setError(field, {
         type: 'manual',
-        message: 'Por favor, selecione um arquivo de imagem válido.',
+        message: 'Arquivo de imagem inválido.',
       });
-
       toast.error('Por favor, selecione um arquivo de imagem válido.');
+      return;
     }
+
+    // Apenas salva o arquivo original, sem redimensionar
+    setValue(field, [file]);
   };
   const theme = useTheme();
   const styles = {
@@ -211,7 +175,7 @@ function FormLogoAndCover() {
           />
         )}
       />
-      {logo && logo[0] && logoPreview ? (
+      {logoPreview || logoUrl ? (
         <Box
           sx={{
             // position: 'relative',
@@ -235,7 +199,7 @@ function FormLogoAndCover() {
           >
             <Box
               component="img"
-              src={logoPreview}
+              src={logoUrl || logoPreview || ''}
               alt="Preview da logo"
               sx={{
                 // width: '100%',
@@ -259,13 +223,14 @@ function FormLogoAndCover() {
               }}
             >
               <Typography fontWeight={500} fontSize={'16px'}>
-                {logo[0]?.name ? logo[0].name : 'Logo atual'}
+                {logoFile[0]?.name ? logoFile[0].name : 'Logo atual'}
               </Typography>
               <Typography
                 fontSize={'14px'}
                 sx={{ color: alpha(theme.palette.text.primary, 0.7) }}
               >
-                {logo[0]?.size && `${(logo[0]?.size / 1024).toFixed(1)} KB`}
+                {logoFile[0]?.size &&
+                  `${(logoFile[0]?.size / 1024).toFixed(1)} KB`}
               </Typography>
             </Box>
           </Box>
@@ -322,7 +287,7 @@ function FormLogoAndCover() {
             hidden
             ref={fileInputRefCover}
             type="file"
-            accept="image/svg+xml"
+            accept="image/*"
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
               const file = e.target.files?.[0] || null;
               // handleLogoChange(file);
@@ -332,7 +297,7 @@ function FormLogoAndCover() {
         )}
       />
 
-      {cover && cover[0] && coverPreview ? (
+      {coverUrl || coverPreview ? (
         <Box
           sx={{
             // position: 'relative',
@@ -356,7 +321,7 @@ function FormLogoAndCover() {
           >
             <Box
               component="img"
-              src={coverPreview}
+              src={coverUrl || coverPreview || ''}
               alt="Preview da capa"
               sx={{
                 // width: '100%',
@@ -384,13 +349,14 @@ function FormLogoAndCover() {
               }}
             >
               <Typography fontWeight={500} fontSize={'16px'}>
-                {cover[0]?.name ? cover[0].name : 'Capa atual'}
+                {coverFile[0]?.name ? coverFile[0].name : 'Capa atual'}
               </Typography>
               <Typography
                 fontSize={'14px'}
                 sx={{ color: alpha(theme.palette.text.primary, 0.7) }}
               >
-                {cover[0]?.size && `${(cover[0]?.size / 1024).toFixed(1)} KB`}
+                {coverFile[0]?.size &&
+                  `${(coverFile[0]?.size / 1024).toFixed(1)} KB`}
               </Typography>
             </Box>
           </Box>

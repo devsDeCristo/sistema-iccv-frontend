@@ -34,7 +34,6 @@ import { SelectCategoryEvent } from '../../../../features/admin/events/component
 import { FormLogoAndCover } from '../../../../features/admin/events/components/formLogoAndCover';
 import { toast } from 'react-toastify';
 import { queryClient } from '../../../../config/lib/react-query/query-client';
-import { svgFileToText } from '../../../../features/admin/events/utils/fileConverters';
 
 function Register() {
   const navigate = useNavigate();
@@ -135,12 +134,12 @@ function Register() {
           //   ? await fileToBase64(eventLogoData.eventCover[0])
           //   : undefined;
           // OPÇÃO 3: Para SVG, pode enviar como texto XML direto
-          const logoSvgText = eventLogoData.eventLogo?.[0]
-            ? await svgFileToText(eventLogoData.eventLogo[0])
-            : undefined;
-          const coverSvgText = eventLogoData.eventCover?.[0]
-            ? await svgFileToText(eventLogoData.eventCover[0])
-            : undefined;
+          // const logoSvgText = eventLogoData.eventLogo?.[0]
+          //   ? await svgFileToText(eventLogoData.eventLogo[0])
+          //   : undefined;
+          // const coverSvgText = eventLogoData.eventCover?.[0]
+          //   ? await svgFileToText(eventLogoData.eventCover[0])
+          //   : undefined;
           const finalDataBase64 = {
             name: generalInfoData.name,
             groupLink: generalInfoData.groupLink || '',
@@ -160,14 +159,20 @@ function Register() {
               address: dateAndTimeData.address,
               number: dateAndTimeData.number,
               linkMaps: dateAndTimeData.linkMaps,
-              logoUrl: logoSvgText,
-              coverUrl: coverSvgText,
+              // logoUrl: logoSvgText,
+              // coverUrl: coverSvgText,
               // logoFile: logoSvgText, // Base64 string
               // coverFile: coverSvgText, // Base64 string
             },
           };
           console.log(finalDataBase64);
-          mutatePostCreateEvent({ data: finalDataBase64 });
+          mutatePostCreateEvent({
+            data: finalDataBase64,
+            files: {
+              logoFile: eventLogoData.eventLogo?.[0],
+              coverFile: eventLogoData.eventCover?.[0],
+            },
+          });
         } catch (error) {
           console.error('Erro ao converter arquivos:', error);
           toast.error('Erro ao processar as imagens');

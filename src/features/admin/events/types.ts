@@ -94,8 +94,6 @@ export interface EventDataJson {
   address?: string;
   number?: string;
   linkMaps?: string;
-  logoFile?: string;
-  coverFile?: string;
   logoUrl?: string;
   coverUrl?: string;
 }

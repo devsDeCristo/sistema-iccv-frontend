@@ -98,12 +98,8 @@ function Edit() {
   const getDefaultEventLogoValues = (
     event?: EventDetails
   ): EventLogoFormType => ({
-    eventLogo: event?.data?.logoFile
-      ? [svgTextToFile(event.data.logoFile, 'logo.svg')]
-      : undefined,
-    eventCover: event?.data?.coverFile
-      ? [svgTextToFile(event.data.coverFile, 'cover.svg')]
-      : undefined,
+    logoUrl: event?.data?.logoUrl ? event?.data?.logoUrl : undefined,
+    coverUrl: event?.data?.coverUrl ? event?.data?.coverUrl : undefined,
   });
 
   const [currentStep, setCurrentStep] = useState(1);
