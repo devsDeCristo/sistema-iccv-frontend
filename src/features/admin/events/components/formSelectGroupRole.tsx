@@ -134,7 +134,7 @@ function FormSelectGroupRole({ event, groups }: FormSelectGroupRoleProps) {
                   {subscribedCount >= capacity || registeredInGroup ? (
                     <Box
                       sx={{
-                        fontSize: '18px',
+                        fontSize: '17px',
                         flexGrow: 1,
                         position: 'absolute',
                         right: 10,
