@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import {
   Box,
   Button,
@@ -21,7 +21,7 @@ import { EventDetails } from '../../../features/admin/events/types';
 function EventsDetails() {
   const { id = '' } = useParams();
   const theme = useTheme();
-
+  const navigate = useNavigate();
   const { data: eventData } = useGetEvents({ eventId: id }, { enabled: !!id });
   const event = eventData as EventDetails;
 
@@ -55,7 +55,7 @@ function EventsDetails() {
       stackContainer: {
         position: 'relative',
         flexDirection: { xs: 'column-reverse', lg: 'row' },
-        width: { xs: '100%',lg: '80%' },
+        width: { xs: '100%', lg: '80%' },
         ml: 'auto',
         mr: 'auto',
         gap: 4,
@@ -63,12 +63,12 @@ function EventsDetails() {
 
       /* Banner */
       bannerContainer: {
-        mt:3,
+        mt: 3,
         width: { xs: '100%', lg: '80%' },
-          ml: 'auto',
+        ml: 'auto',
         mr: 'auto',
         position: 'relative',
-       
+
         height: 150,
         mb: 4,
       },
@@ -210,7 +210,14 @@ function EventsDetails() {
               })}
             </Box>
 
-            <Button variant="contained" fullWidth sx={styles.button}>
+            <Button
+              variant="contained"
+              fullWidth
+              sx={styles.button}
+              onClick={() => {
+                navigate(`/eventos/${event.id}/inscricao`);
+              }}
+            >
               Inscreva-se
             </Button>
           </Paper>

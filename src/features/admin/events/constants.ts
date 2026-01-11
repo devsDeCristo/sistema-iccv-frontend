@@ -1,6 +1,7 @@
 import {
   Assignment,
   Category,
+  Check,
   Event,
   Photo,
   Settings,
@@ -18,6 +19,20 @@ export const GET_EVENT_USERS_WAITLIST = 'GET_EVENT_USERS_WAITLIST';
 const DEFAULT_MESSAGE = 'Campo obrigatório';
 
 export const EVENT_TYPE_SCHEMA = z.enum(['RETIRO', 'CURSILHO']);
+
+export const GROUP_ROLE_SELECT_SCHEMA = z.object({
+  groupRoleId: z.array(
+    z.string({
+      required_error: 'Selecione ao menos uma opção',
+    })
+  ),
+});
+export const ROLE_SELECT_SCHEMA = z.object({
+  roleId: z.string({
+    required_error: 'Selecione uma opção',
+  }),
+});
+
 export const GENERAL_INFO_SCHEMA = z.object({
   name: z.string({
     required_error: DEFAULT_MESSAGE,
@@ -162,7 +177,18 @@ export const PANELS = [
     icon: Settings,
   },
 ];
-
+export const STEPS_SUB = [
+  {
+    id: 1,
+    label: 'Seleção de grupo e regra',
+    icon: Assignment,
+  },
+  {
+    id: 2,
+    label: 'Confirmação',
+    icon: Check,
+  },
+];
 export const GROUP_ROLE_CURSILHO: GroupRole[] = [
   {
     name: 'Ingresso',

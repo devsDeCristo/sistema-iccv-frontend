@@ -183,10 +183,6 @@ function Register() {
 
   const handleNext = () => {
     if (currentStep < STEPS.length) {
-      // Se só tem uma integração disponível, seleciona automaticamente
-      // if (currentStep === 1 && filteredIntegrations.length === 1) {
-      //   setSelectedIntegration(filteredIntegrations[0].id);
-      // }
       setCurrentStep(currentStep + 1);
     }
   };

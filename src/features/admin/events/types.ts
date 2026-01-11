@@ -5,8 +5,10 @@ import {
   DATE_AND_LOCAL_SCHEMA,
   EVENT_LOGO_SCHEMA,
   GENERAL_INFO_SCHEMA,
+  GROUP_ROLE_SELECT_SCHEMA,
   REGISTER_EVENT_SCHEMA,
   REGISTRATION_SETTINGS_SCHEMA,
+  ROLE_SELECT_SCHEMA,
 } from './constants';
 export type EventType = 'CURSILHO' | 'RETIRO';
 export interface EventDetails {
@@ -108,6 +110,10 @@ export interface CreateEventPayload {
   data: EventDataJson;
   type: EventType;
 }
+
+export type SelectGroupRoleFormType = z.infer<typeof GROUP_ROLE_SELECT_SCHEMA>;
+
+export type SelectRoleFormType = z.infer<typeof ROLE_SELECT_SCHEMA>;
 
 export type RegisterEventFormType = z.infer<typeof REGISTER_EVENT_SCHEMA>;
 
