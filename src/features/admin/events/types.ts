@@ -77,9 +77,10 @@ export interface GroupRole {
   capacity: number;
   // expanded: boolean;
   roles: {
+    id?: string;
     price: number;
     description: string;
-    registered: number;
+    registered?: number;
   }[];
 }
 export interface EventDataJson {

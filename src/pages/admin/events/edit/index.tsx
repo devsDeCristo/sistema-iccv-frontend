@@ -89,6 +89,7 @@ function Edit() {
         name: groupRole.name,
         capacity: groupRole.capacity,
         roles: groupRole.roles.map((role) => ({
+          id: role.id,
           price: role.price,
           description: role.description,
         })),
