@@ -9,6 +9,7 @@ import {
   EventLogoFormType,
   EventType,
   GeneralInfoFormType,
+  GroupRole,
   RegistrationSettingsFormType,
 } from '../../../../features/admin/events/types';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -19,11 +20,13 @@ import {
   GENERAL_INFO_SCHEMA,
   REGISTRATION_SETTINGS_SCHEMA,
   STEPS,
+  GROUP_ROLE_RETIRO,
+  GROUP_ROLE_CURSILHO,
 } from '../../../../features/admin/events/constants';
 import { usePostCreateEvent } from '../../../../features/admin/events/api/postEvent';
 import { useNavigate } from 'react-router-dom';
 import { StepProgress } from '../../../../components/step';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ArrowForward, Check } from '@mui/icons-material';
 import { FormRegistrationSettings } from '../../../../features/admin/events/components/formRegistrationSettings';
 import { FormDateAndLocal } from '../../../../features/admin/events/components/formDateAndLocal';
@@ -31,11 +34,7 @@ import { SelectCategoryEvent } from '../../../../features/admin/events/component
 import { FormLogoAndCover } from '../../../../features/admin/events/components/formLogoAndCover';
 import { toast } from 'react-toastify';
 import { queryClient } from '../../../../config/lib/react-query/query-client';
-import {
-  fileToBase64,
-  svgFileToText,
-  createFormDataWithFiles,
-} from '../../../../features/admin/events/utils/fileConverters';
+import { svgFileToText } from '../../../../features/admin/events/utils/fileConverters';
 
 function Register() {
   const navigate = useNavigate();
@@ -43,6 +42,7 @@ function Register() {
   const methodsCategoryEvent = useForm<CategoryEventFormType>({
     resolver: zodResolver(CATEGORY_EVENT_SCHEMA),
   });
+
   const methodsGeneralInfo = useForm<GeneralInfoFormType>({
     resolver: zodResolver(GENERAL_INFO_SCHEMA),
     defaultValues: {
@@ -52,16 +52,33 @@ function Register() {
   const methodsDateAndTime = useForm<DateAndLocalFormType>({
     resolver: zodResolver(DATE_AND_LOCAL_SCHEMA),
   });
-  const methodsRegistrationSettings = useForm<RegistrationSettingsFormType>({
-    resolver: zodResolver(REGISTRATION_SETTINGS_SCHEMA),
-  });
+
   const methodsEventLogo = useForm<EventLogoFormType>({
     resolver: zodResolver(EVENT_LOGO_SCHEMA),
   });
   const [eventTypeSelected, setEventTypeSelected] = useState<
     EventType | undefined
   >(undefined);
+  const getDefaultGroupRoles = (eventType: EventType): GroupRole[] => {
+    return eventType === 'RETIRO' ? GROUP_ROLE_RETIRO : GROUP_ROLE_CURSILHO;
+  };
+  const methodsRegistrationSettings = useForm<RegistrationSettingsFormType>({
+    resolver: zodResolver(REGISTRATION_SETTINGS_SCHEMA),
+    defaultValues: {
+      groupRoles: eventTypeSelected
+        ? getDefaultGroupRoles(eventTypeSelected!)
+        : [],
+    },
+  });
+  useEffect(() => {
+    if (!eventTypeSelected) return;
+    const defaultGroupRoles: GroupRole[] =
+      eventTypeSelected === 'RETIRO' ? GROUP_ROLE_RETIRO : GROUP_ROLE_CURSILHO;
 
+    methodsRegistrationSettings.reset({
+      groupRoles: defaultGroupRoles,
+    });
+  }, [eventTypeSelected]);
   const { mutate: mutatePostCreateEvent } = usePostCreateEvent({
     onSuccess: () => {
       queryClient.invalidateQueries('GET_EVENTS');
@@ -143,8 +160,10 @@ function Register() {
               address: dateAndTimeData.address,
               number: dateAndTimeData.number,
               linkMaps: dateAndTimeData.linkMaps,
-              logoFile: logoSvgText, // Base64 string
-              coverFile: coverSvgText, // Base64 string
+              logoUrl: logoSvgText,
+              coverUrl: coverSvgText,
+              // logoFile: logoSvgText, // Base64 string
+              // coverFile: coverSvgText, // Base64 string
             },
           };
           console.log(finalDataBase64);
@@ -203,14 +222,14 @@ function Register() {
       formMethods: methodsEventLogo,
       onSubmit: eventLogoSubmit,
       component: FormLogoAndCover,
-      props: { eventTypeSelected },
+      props: {},
     },
     {
       step: 5,
       formMethods: methodsRegistrationSettings,
       onSubmit: registrationSettingsSubmit,
       component: FormRegistrationSettings,
-      props: { eventTypeSelected },
+      props: {},
     },
   ];
 

@@ -6,6 +6,7 @@ import {
   Settings,
 } from '@mui/icons-material';
 import { z } from 'zod';
+import { GroupRole } from './types';
 
 export const GET_EVENTS = 'GET_EVENTS';
 export const GET_BEDROOMS = 'GET_BEDROOMS';
@@ -175,5 +176,63 @@ export const PANELS = [
     id: 4,
     label: 'Configurações de inscrição',
     icon: Settings,
+  },
+];
+
+export const GROUP_ROLE_CURSILHO: GroupRole[] = [
+  {
+    name: 'Ingresso',
+    capacity: 100,
+    roles: [
+      { price: 20, description: 'Cursilhisto(a)' },
+      { price: 20, description: 'Cursilheiro(a)' },
+    ],
+  },
+];
+export const GROUP_ROLE_RETIRO: GroupRole[] = [
+  {
+    name: 'Completo',
+    capacity: 100,
+    roles: [
+      { price: 0, description: '0 a 7 anos' },
+      { price: 115, description: '8 a 12 anos' },
+      { price: 230, description: '13 a 20 anos' },
+    ],
+  },
+  {
+    name: 'Dária: 1º dia',
+    capacity: 30,
+    roles: [
+      { price: 0, description: '0 a 7 anos' },
+      { price: 45, description: '8 a 12 anos' },
+      { price: 70, description: '13 a 20 anos' },
+    ],
+  },
+  {
+    name: 'Dária: 2º dia',
+    capacity: 30,
+    roles: [
+      { price: 0, description: '0 a 7 anos' },
+      { price: 45, description: '8 a 12 anos' },
+      { price: 70, description: '13 a 20 anos' },
+    ],
+  },
+  {
+    name: 'Dária: 3º dia',
+    capacity: 30,
+    roles: [
+      { price: 0, description: '0 a 7 anos' },
+      { price: 45, description: '8 a 12 anos' },
+      { price: 70, description: '13 a 20 anos' },
+    ],
+  },
+  {
+    name: 'Dária: 4º dia',
+    capacity: 30,
+    roles: [
+      { price: 0, description: '0 a 7 anos' },
+      { price: 45, description: '8 a 12 anos' },
+      { price: 70, description: '13 a 20 anos' },
+    ],
   },
 ];

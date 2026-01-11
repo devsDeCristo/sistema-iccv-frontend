@@ -15,7 +15,7 @@ import {
 } from 'react-hook-form';
 import { EventLogoFormType } from '../types';
 import { Close, Upload } from '@mui/icons-material';
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import Resizer from 'react-image-file-resizer';
 import { toast } from 'react-toastify';
 
@@ -36,6 +36,15 @@ function FormLogoAndCover() {
   // const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const logo = useWatch({ control, name: 'eventLogo' });
   const cover = useWatch({ control, name: 'eventCover' });
+  const logoPreview = useMemo(() => {
+    if (!logo || !logo[0]) return null;
+    return URL.createObjectURL(logo[0]);
+  }, [logo]);
+
+  const coverPreview = useMemo(() => {
+    if (!cover || !cover[0]) return null;
+    return URL.createObjectURL(cover[0]);
+  }, [cover]);
 
   const handleDragOver = useCallback(
     (e: React.DragEvent, field: FieldPath<EventLogoFormType>) => {
@@ -202,7 +211,7 @@ function FormLogoAndCover() {
           />
         )}
       />
-      {logo && logo[0] ? (
+      {logo && logo[0] && logoPreview ? (
         <Box
           sx={{
             // position: 'relative',
@@ -226,7 +235,7 @@ function FormLogoAndCover() {
           >
             <Box
               component="img"
-              src={URL.createObjectURL(logo[0])}
+              src={logoPreview}
               alt="Preview da logo"
               sx={{
                 // width: '100%',
@@ -323,7 +332,7 @@ function FormLogoAndCover() {
         )}
       />
 
-      {cover && cover[0] ? (
+      {cover && cover[0] && coverPreview ? (
         <Box
           sx={{
             // position: 'relative',
@@ -347,7 +356,7 @@ function FormLogoAndCover() {
           >
             <Box
               component="img"
-              src={URL.createObjectURL(cover[0])}
+              src={coverPreview}
               alt="Preview da capa"
               sx={{
                 // width: '100%',

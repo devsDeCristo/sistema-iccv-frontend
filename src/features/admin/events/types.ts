@@ -93,6 +93,8 @@ export interface EventDataJson {
   linkMaps?: string;
   logoFile?: string;
   coverFile?: string;
+  logoUrl?: string;
+  coverUrl?: string;
 }
 export interface CreateEventPayload {
   name: string;

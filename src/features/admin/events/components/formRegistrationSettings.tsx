@@ -8,111 +8,41 @@ import {
   useTheme,
 } from '@mui/material';
 import { Input } from '../../../../components/input';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import {
   Add,
   Delete,
   KeyboardArrowDown,
   KeyboardArrowUp,
 } from '@mui/icons-material';
-import { EventType, GroupRole, RegistrationSettingsFormType } from '../types';
-import { Controller, useFormContext } from 'react-hook-form';
-interface FormRegistrationSettingsProps {
-  eventTypeSelected?: EventType | undefined;
-}
+import { GroupRole, RegistrationSettingsFormType } from '../types';
+import { Controller, useFormContext, useWatch } from 'react-hook-form';
+// interface FormRegistrationSettingsProps {
+//   eventTypeSelected?: EventType | undefined;
+// }
 interface GroupRoleExtended extends GroupRole {
   expanded: boolean;
 }
 
-function FormRegistrationSettings({
-  eventTypeSelected,
-}: FormRegistrationSettingsProps) {
+function FormRegistrationSettings() {
   const {
     control,
-    reset,
     // formState: { errors },
   } = useFormContext<RegistrationSettingsFormType>();
 
-  const groupRolesCursilho: GroupRole[] = [
-    {
-      name: 'Ingresso',
-      capacity: 100,
-      roles: [
-        { price: 20, description: 'Cursilhisto(a)' },
-        { price: 20, description: 'Cursilheiro(a)' },
-      ],
-    },
-  ];
-  const groupRolesRetiro: GroupRole[] = [
-    {
-      name: 'Completo',
-      capacity: 100,
-      roles: [
-        { price: 0, description: '0 a 7 anos' },
-        { price: 115, description: '8 a 12 anos' },
-        { price: 230, description: '13 a 20 anos' },
-      ],
-    },
-    {
-      name: 'Dária: 1º dia',
-      capacity: 30,
-      roles: [
-        { price: 0, description: '0 a 7 anos' },
-        { price: 45, description: '8 a 12 anos' },
-        { price: 70, description: '13 a 20 anos' },
-      ],
-    },
-    {
-      name: 'Dária: 2º dia',
-      capacity: 30,
-      roles: [
-        { price: 0, description: '0 a 7 anos' },
-        { price: 45, description: '8 a 12 anos' },
-        { price: 70, description: '13 a 20 anos' },
-      ],
-    },
-    {
-      name: 'Dária: 3º dia',
-      capacity: 30,
-      roles: [
-        { price: 0, description: '0 a 7 anos' },
-        { price: 45, description: '8 a 12 anos' },
-        { price: 70, description: '13 a 20 anos' },
-      ],
-    },
-    {
-      name: 'Dária: 4º dia',
-      capacity: 30,
-      roles: [
-        { price: 0, description: '0 a 7 anos' },
-        { price: 45, description: '8 a 12 anos' },
-        { price: 70, description: '13 a 20 anos' },
-      ],
-    },
-  ];
+  const selectGroupRoles = useWatch({
+    control,
+    name: 'groupRoles',
+  });
 
-  useEffect(() => {
-    reset(
-      eventTypeSelected === 'CURSILHO'
-        ? {
-            groupRoles: groupRolesCursilho,
-          }
-        : {
-            groupRoles: groupRolesRetiro,
-          }
-    );
-  }, [eventTypeSelected]);
-
-  const [selectGroupRoles, setSelectGroupRoles] = useState<GroupRoleExtended[]>(
-    (eventTypeSelected === 'CURSILHO'
-      ? groupRolesCursilho
-      : groupRolesRetiro
-    ).map((groupRole) => ({
+  const [selectGroupRolesExtended, setSelectGroupRolesExtended] = useState<
+    GroupRoleExtended[]
+  >(
+    selectGroupRoles.map((groupRole) => ({
       ...groupRole,
       expanded: true,
     }))
   );
-
   const theme = useTheme();
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -136,7 +66,7 @@ function FormRegistrationSettings({
           }
         </Typography>
       </Box>
-      {selectGroupRoles.map(({ roles, expanded }, index) => (
+      {selectGroupRolesExtended.map(({ roles, expanded }, index) => (
         <Box
           key={index}
           sx={{
@@ -204,9 +134,9 @@ function FormRegistrationSettings({
               <Chip
                 sx={{ cursor: 'pointer' }}
                 onClick={() => {
-                  const updatedGroupRoles = [...selectGroupRoles];
+                  const updatedGroupRoles = [...selectGroupRolesExtended];
                   updatedGroupRoles[index].expanded = false;
-                  setSelectGroupRoles(updatedGroupRoles);
+                  setSelectGroupRolesExtended(updatedGroupRoles);
                 }}
                 icon={<KeyboardArrowUp />}
                 label="Recolher"
@@ -226,9 +156,9 @@ function FormRegistrationSettings({
               <Chip
                 sx={{ cursor: 'pointer' }}
                 onClick={() => {
-                  const updatedGroupRoles = [...selectGroupRoles];
+                  const updatedGroupRoles = [...selectGroupRolesExtended];
                   updatedGroupRoles[index].expanded = true;
-                  setSelectGroupRoles(updatedGroupRoles);
+                  setSelectGroupRolesExtended(updatedGroupRoles);
                 }}
                 icon={<KeyboardArrowDown />}
                 label="Mostrar Regras"
@@ -287,9 +217,9 @@ function FormRegistrationSettings({
                   >
                     <IconButton
                       onClick={() => {
-                        const updatedGroupRoles = [...selectGroupRoles];
+                        const updatedGroupRoles = [...selectGroupRolesExtended];
                         updatedGroupRoles[index].roles.splice(roleIndex, 1);
-                        setSelectGroupRoles(updatedGroupRoles);
+                        setSelectGroupRolesExtended(updatedGroupRoles);
                       }}
                     >
                       <Delete />
@@ -311,12 +241,12 @@ function FormRegistrationSettings({
               >
                 <Box
                   onClick={() => {
-                    const updatedGroupRoles = [...selectGroupRoles];
+                    const updatedGroupRoles = [...selectGroupRolesExtended];
                     updatedGroupRoles[index].roles.push({
                       price: 0,
                       description: '',
                     });
-                    setSelectGroupRoles(updatedGroupRoles);
+                    setSelectGroupRolesExtended(updatedGroupRoles);
                   }}
                   sx={{
                     display: 'flex',
@@ -344,12 +274,12 @@ function FormRegistrationSettings({
                 </Box>
                 {/* <IconButton
               onClick={() => {
-                const updatedGroupRoles = [...selectGroupRoles];
+                const updatedGroupRoles = [...selectGroupRolesExtended];
                 updatedGroupRoles[index].roles.push({
                   price: 0,
                   description: '',
                 });
-                setSelectGroupRoles(updatedGroupRoles);
+                setSelectGroupRolesExtended(updatedGroupRoles);
               }}
             >
               <Add />

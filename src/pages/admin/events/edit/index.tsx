@@ -2,29 +2,30 @@ import { Header } from '../../../../components/header';
 import { useForm, FormProvider } from 'react-hook-form';
 import { PageStyle } from '../../../../components/pageStyle';
 // import { Form } from '../../../../features/admin/events/components/formGeneralInfo';
-import { Box, Button, Paper, Stack, Tab, Tabs, useTheme } from '@mui/material';
 import {
-  Event,
-  EventDetails,
-  RegisterEventFormType,
-} from '../../../../features/admin/events/types';
+  Box,
+  Button,
+  Paper,
+  Skeleton,
+  Stack,
+  Tab,
+  Tabs,
+  useTheme,
+} from '@mui/material';
+import { EventDetails } from '../../../../features/admin/events/types';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
-  CategoryEventFormType,
   DateAndLocalFormType,
   EventLogoFormType,
-  EventType,
   GeneralInfoFormType,
   RegistrationSettingsFormType,
 } from '../../../../features/admin/events/types';
 import {
-  CATEGORY_EVENT_SCHEMA,
   DATE_AND_LOCAL_SCHEMA,
   EVENT_LOGO_SCHEMA,
   GENERAL_INFO_SCHEMA,
   PANELS,
   REGISTRATION_SETTINGS_SCHEMA,
-  STEPS,
 } from '../../../../features/admin/events/constants';
 import { FormRegistrationSettings } from '../../../../features/admin/events/components/formRegistrationSettings';
 import { FormDateAndLocal } from '../../../../features/admin/events/components/formDateAndLocal';
@@ -46,7 +47,7 @@ function Edit() {
   const theme = useTheme();
   const { id } = useParams();
   const navigate = useNavigate();
-  const { data: eventData } = useGetEvents(
+  const { data: eventData, isLoading } = useGetEvents(
     {
       eventId: id,
     },
@@ -164,45 +165,42 @@ function Edit() {
     },
   });
 
-  const handleNext = () => {
-    if (currentStep < STEPS.length) {
-      // Se só tem uma integração disponível, seleciona automaticamente
-      // if (currentStep === 1 && filteredIntegrations.length === 1) {
-      //   setSelectedIntegration(filteredIntegrations[0].id);
-      // }
-      setCurrentStep(currentStep + 1);
-    }
-  };
-  function onSubmitForm(data: RegisterEventFormType) {
-    if (!id) return;
-    mutatePutUpdateEvent({
-      data,
-      id,
-    });
-  }
+  // const handleNext = () => {
+  //   if (currentStep < STEPS.length) {
+  //     // Se só tem uma integração disponível, seleciona automaticamente
+  //     // if (currentStep === 1 && filteredIntegrations.length === 1) {
+  //     //   setSelectedIntegration(filteredIntegrations[0].id);
+  //     // }
+  //     setCurrentStep(currentStep + 1);
+  //   }
+  // };
 
-  function generalInfoSubmit() {
-    methodsGeneralInfo.trigger().then((isValid) => {
-      if (isValid) {
-        handleNext();
-      }
-    });
-  }
-  function dateAndTimeSubmit() {
-    methodsDateAndTime.trigger().then((isValid) => {
-      if (isValid) {
-        handleNext();
-      }
-    });
-  }
-  function eventLogoSubmit() {
-    methodsEventLogo.trigger().then((isValid) => {
-      if (isValid) {
-        handleNext();
-      }
-    });
-  }
+  // function generalInfoSubmit() {
+  //   methodsGeneralInfo.trigger().then((isValid) => {
+  //     if (isValid) {
+  //       handleNext();
+  //     }
+  //   });
+  // }
+  // function dateAndTimeSubmit() {
+  //   methodsDateAndTime.trigger().then((isValid) => {
+  //     if (isValid) {
+  //       handleNext();
+  //     }
+  //   });
+  // }
+  // function eventLogoSubmit() {
+  //   methodsEventLogo.trigger().then((isValid) => {
+  //     if (isValid) {
+  //       handleNext();
+  //     }
+  //   });
+  // }
   function registrationSettingsSubmit() {
+    if (!id) {
+      toast.error('Erro ao editar o evento');
+      return;
+    }
     methodsRegistrationSettings.trigger().then(async (isValid) => {
       if (isValid) {
         const generalInfoData = methodsGeneralInfo.getValues();
@@ -263,30 +261,30 @@ function Edit() {
     {
       step: 1,
       formMethods: methodsGeneralInfo,
-      onSubmit: generalInfoSubmit,
+      onSubmit: registrationSettingsSubmit,
       component: FormGeneralInfo,
       props: {},
     },
     {
       step: 2,
       formMethods: methodsDateAndTime,
-      onSubmit: dateAndTimeSubmit,
+      onSubmit: registrationSettingsSubmit,
       component: FormDateAndLocal,
       props: {},
     },
     {
       step: 3,
       formMethods: methodsEventLogo,
-      onSubmit: eventLogoSubmit,
+      onSubmit: registrationSettingsSubmit,
       component: FormLogoAndCover,
-      props: { eventTypeSelected },
+      props: {},
     },
     {
       step: 4,
       formMethods: methodsRegistrationSettings,
       onSubmit: registrationSettingsSubmit,
       component: FormRegistrationSettings,
-      props: { eventTypeSelected },
+      props: {},
     },
   ];
 
@@ -307,62 +305,72 @@ function Edit() {
   return (
     <PageStyle>
       <Header title="Editar evento" buttonBack />
-      <Paper
-        sx={{ padding: 3, gap: 3, display: 'flex', flexDirection: 'column' }}
-      >
-        <Stack>
-          <Tabs
-            variant="fullWidth"
-            value={currentStep}
-            sx={styles.tabs}
-            onChange={(_, newValue) => {
-              setCurrentStep(newValue);
-            }}
-          >
-            {PANELS.map(({ label, id }) => (
-              <Tab key={id} label={label} value={id} />
-            ))}
-          </Tabs>
-        </Stack>
-        <FormProvider
-          {...(panelsMethods[currentStep - 1].formMethods as any)}
-          key={currentStep - 1}
+      {isLoading ? (
+        <Skeleton variant="rounded" height={495} />
+      ) : (
+        <Paper
+          sx={{ padding: 3, gap: 3, display: 'flex', flexDirection: 'column' }}
         >
-          <form
-            onSubmit={(
-              panelsMethods[currentStep - 1].formMethods as any
-            ).handleSubmit(panelsMethods[currentStep - 1].onSubmit)}
-          >
-            {React.createElement(
-              panelsMethods[currentStep - 1].component as any,
-              panelsMethods[currentStep - 1].props as any
-            )}
-            <Box
-              sx={{
-                display: 'flex',
-                justifyContent: 'space-between',
+          <Stack>
+            <Tabs
+              variant="fullWidth"
+              value={currentStep}
+              sx={styles.tabs}
+              onChange={(_, newValue) => {
+                setCurrentStep(newValue);
               }}
             >
-              <Button
-                variant="outlined"
-                sx={{ marginTop: 2, width: '120px' }}
-                onClick={currentStep === 1 ? handleClose : handleBack}
+              {PANELS.map(({ label, id, icon: Icon }) => (
+                <Tab
+                  key={id}
+                  label={label}
+                  value={id}
+                  icon={<Icon />}
+                  iconPosition="start"
+                />
+              ))}
+            </Tabs>
+          </Stack>
+          <FormProvider
+            {...(panelsMethods[currentStep - 1].formMethods as any)}
+            key={currentStep - 1}
+          >
+            <form
+              onSubmit={(
+                panelsMethods[currentStep - 1].formMethods as any
+              ).handleSubmit(panelsMethods[currentStep - 1].onSubmit)}
+            >
+              {React.createElement(
+                panelsMethods[currentStep - 1].component as any,
+                panelsMethods[currentStep - 1].props as any
+              )}
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                }}
               >
-                cancelar
-              </Button>
-              <Button
-                variant="contained"
-                sx={{ marginTop: 2, width: '120px' }}
-                type="submit"
-                disabled={!canProceedToNextStep()}
-                endIcon={<Check />}
-              >
-                Salvar alterações
-              </Button>
-            </Box>
-          </form>
-        </FormProvider>
-      </Paper>
+                <Button
+                  variant="outlined"
+                  sx={{ marginTop: 2, width: '120px' }}
+                  onClick={currentStep === 1 ? handleClose : handleBack}
+                >
+                  cancelar
+                </Button>
+                <Button
+                  variant="contained"
+                  sx={{ marginTop: 2, width: '200px' }}
+                  type="submit"
+                  disabled={!canProceedToNextStep()}
+                  endIcon={<Check />}
+                >
+                  Salvar alterações
+                </Button>
+              </Box>
+            </form>
+          </FormProvider>
+        </Paper>
+      )}
     </PageStyle>
   );
 }
