@@ -1,4 +1,4 @@
-import { Box, useTheme } from '@mui/material';
+import { Box } from '@mui/material';
 
 const getEmbedUrl = (url?: string | null): string | null => {
   if (!url) return null;
@@ -22,7 +22,7 @@ interface GoogleMapProps {
 }
 const GoogleMap = ({ linkMap, height = 300, width = 400 }: GoogleMapProps) => {
   const embedUrl = getEmbedUrl(linkMap);
-  const theme = useTheme();
+  // const theme = useTheme();
 
   return (
     <Box
@@ -32,7 +32,7 @@ const GoogleMap = ({ linkMap, height = 300, width = 400 }: GoogleMapProps) => {
         textAlign: 'right',
         width: '100%',
         height: 'fit-content',
-        ...(theme.palette.mode === 'dark' && { filter: 'invert(95%)' }),
+        // ...(theme.palette.mode === 'dark' && { filter: 'invert(95%)' }),
       }}
     >
       {!embedUrl ? (
