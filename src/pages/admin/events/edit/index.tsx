@@ -36,10 +36,7 @@ import { useGetEvents } from '../../../../features/admin/events/api/getEvents';
 import { usePutUpdateEvent } from '../../../../features/admin/events/api/putEvent';
 import React, { useEffect, useMemo, useState } from 'react';
 import { FormGeneralInfo } from '../../../../features/admin/events/components/formGeneralInfo';
-import {
-  // svgFileToText,
-  svgTextToFile,
-} from '../../../../features/admin/events/utils/fileConverters';
+
 import { toast } from 'react-toastify';
 import { Check } from '@mui/icons-material';
 
@@ -174,16 +171,8 @@ function Edit() {
         const dateAndTimeData = methodsDateAndTime.getValues();
         const registrationSettingsData =
           methodsRegistrationSettings.getValues();
-        // const eventLogoData = methodsEventLogo.getValues();
-
         try {
-          // const logoSvgText = eventLogoData.eventLogo?.[0]
-          //   ? await svgFileToText(eventLogoData.eventLogo[0])
-          //   : undefined;
-          // const coverSvgText = eventLogoData.eventCover?.[0]
-          //   ? await svgFileToText(eventLogoData.eventCover[0])
-          //   : undefined;
-          const finalDataBase64 = {
+          const finalData = {
             name: generalInfoData.name,
             groupLink: generalInfoData.groupLink || '',
             isActive: generalInfoData.isActive,
@@ -202,12 +191,31 @@ function Edit() {
               address: dateAndTimeData.address,
               number: dateAndTimeData.number,
               linkMaps: dateAndTimeData.linkMaps,
-              // logoFile: logoSvgText, // Base64 string
-              // coverFile: coverSvgText, // Base64 string
+              // ...(methodsEventLogo.getValues().eventLogo?.[0]
+              //   ? methodsEventLogo.getValues().logoUrl
+              //     ? {
+              //         logoUrl: methodsEventLogo.getValues().logoUrl,
+              //       }
+              //     : {}
+              //   : {}),
+              // ...(methodsEventLogo.getValues().eventCover?.[0]
+              //   ? methodsEventLogo.getValues().coverUrl
+              //     ? {
+              //         coverUrl: methodsEventLogo.getValues().coverUrl,
+              //       }
+              //     : {}
+              //   : {}),
             },
           };
-          console.log(finalDataBase64);
-          mutatePutUpdateEvent({ data: finalDataBase64, id: id! });
+          console.log(finalData);
+          mutatePutUpdateEvent({
+            data: finalData,
+            id: id!,
+            files: {
+              logoFile: methodsEventLogo.getValues().eventLogo?.[0],
+              coverFile: methodsEventLogo.getValues().eventCover?.[0],
+            },
+          });
         } catch (error) {
           console.error('Erro ao converter arquivos:', error);
           toast.error('Erro ao processar as imagens');
