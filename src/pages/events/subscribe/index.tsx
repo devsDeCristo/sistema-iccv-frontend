@@ -4,6 +4,7 @@ import { PageStyle } from '../../../components/pageStyle';
 import { useGetEvents } from '../../../features/admin/events/api/getEvents';
 import {
   EventDetails,
+  GroupRole,
   SelectGroupRoleFormType,
   SelectRoleFormType,
 } from '../../../features/admin/events/types';
@@ -29,6 +30,9 @@ function Subscribe() {
   );
   const event = eventData as EventDetails;
   const [currentStep, setCurrentStep] = useState(1);
+  const [groupRolesSelected, setGroupRolesSelected] = useState<
+    GroupRole[] | null
+  >(null);
 
   const methodsSelectGroupRole = useForm<SelectGroupRoleFormType>({
     resolver: zodResolver(GROUP_ROLE_SELECT_SCHEMA),
@@ -50,9 +54,12 @@ function Subscribe() {
   const handleClose = () => {
     navigate(-1);
   };
-  const selectGroupRoleSubmit = () => {
+  const selectGroupRoleSubmit = (data: SelectGroupRoleFormType) => {
     methodsSelectGroupRole.trigger().then((isValid) => {
       if (isValid) {
+        setGroupRolesSelected(
+          event.groupRoles.filter((gr) => data.groupRoleId.includes(gr.id!))
+        );
         handleNext();
       }
     });
@@ -73,7 +80,7 @@ function Subscribe() {
       formMethods: methodsSelectRole,
       onSubmit: selectRoleSubmit,
       component: FormSelectRole,
-      props: {},
+      props: { groupRoles: groupRolesSelected || null },
     },
   ];
 

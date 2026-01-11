@@ -37,7 +37,9 @@ function FormSelectGroupRole({ event }: FormSelectGroupRoleProps) {
           <Grid item xs={12} md={12}>
             {event?.groupRoles?.map((role) => {
               if (role.id === undefined) return null;
-              const isSelected = field.value.includes(role.id);
+              const isSelected = field?.value
+                ? field.value.includes(role.id)
+                : false;
               return (
                 <Box
                   key={role.id}
@@ -47,7 +49,11 @@ function FormSelectGroupRole({ event }: FormSelectGroupRoleProps) {
                         field.value.filter((id) => id !== role.id)
                       );
                     } else {
-                      field.onChange([...field.value, role.id]);
+                      if (field.value) {
+                        field.onChange([...field.value, role.id]);
+                      } else {
+                        field.onChange([role.id]);
+                      }
                     }
                   }}
                   sx={{
