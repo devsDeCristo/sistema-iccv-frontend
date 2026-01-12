@@ -2,8 +2,6 @@ import {
   Avatar,
   Box,
   Card,
-  Chip,
-  Divider,
   IconButton,
   ListItemIcon,
   ListItemText,
@@ -16,7 +14,7 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
-import { formatCPF, formatDate } from '../../../../utils';
+import { formatCPF } from '../../../../utils';
 import {
   DataGrid,
   GridApi,
@@ -30,23 +28,20 @@ import {
   selectedGridRowsSelector,
 } from '@mui/x-data-grid';
 import { useParams } from 'react-router-dom';
-import { Badge, Delete, Edit, MoreVert, Reply } from '@mui/icons-material';
-import FileSaver from 'file-saver';
-import { pdf } from '@react-pdf/renderer';
-import PdfBadge from '../../../../components/pdfBadge';
+import { Download, Edit, MoreVert, Reply } from '@mui/icons-material';
 import { PaymentResponse, User } from '../../../../types/user';
 import { useEffect, useMemo, useState } from 'react';
-import Swal from 'sweetalert2';
-import { useRemoveUserFromEvent } from '../api/deleteUser';
-import { ModalEditWork } from './modalEditWork';
-import { useGetUsers } from '../api/getUsers';
-import { filterUsers } from '../types';
-import dayjs from 'dayjs';
 import CustomChip from '../../../../components/customChip';
-import { ACTION_FROM, GET_EVENT_USERS, PAYMENT_METHODS, PAYMENT_STATUS, PAYMENT_STATUS_COLOR } from '../constants';
-import { queryClient } from '../../../../config/lib/react-query/query-client';
+import {
+  ACTION_FROM,
+  PAYMENT_METHODS,
+  PAYMENT_STATUS,
+  PAYMENT_STATUS_COLOR,
+} from '../constants';
+
 import { toast } from 'react-toastify';
 import { useGetPayments } from '../api/getPayments';
+import { ModalPayment } from './modalPayments';
 const getSelectedRowsToExport = ({
   apiRef,
 }: GridGetRowsToExportParams): GridRowId[] => {
@@ -99,13 +94,14 @@ function ListPayments({
       enabled: !!eventId,
     }
   );
-  const payments = paymentsData as PaymentResponse[]
+  const payments = paymentsData as PaymentResponse[];
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const openMenu = Boolean(anchorEl);
   const [rowSelected, setRowSelected] = useState<User | null>(null);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [openModalEditWork, setOpenModalEditWork] = useState(false);
+  const [selectedPayment, setSelectedPayment] =
+    useState<PaymentResponse | null>(null);
+  const [openModalPayment, setOpenModalPayment] = useState(false);
   const [panel, setPanel] = useState<string>('1');
   const theme = useTheme();
 
@@ -142,24 +138,7 @@ function ListPayments({
   const handleClose = () => {
     setAnchorEl(null);
   };
-  const { mutate: mutateRemoveUserFromEvent } = useRemoveUserFromEvent({
-    onSuccess: () => {
-      Swal.fire({
-        title: 'Desvinculado!',
-        text: 'Usuário desvinculado do evento com sucesso.',
-        icon: 'success',
-      });
-      queryClient.invalidateQueries(GET_EVENT_USERS);
-    },
-    onError: () => {
-      Swal.fire({
-        title: 'Erro ao remover usuário do evento',
-        text: 'Ocorreu um erro ao tentar desvincular o usuário do evento. Por favor, tente novamente mais tarde.',
-        icon: 'error',
-        confirmButtonText: 'OK',
-      });
-    },
-  });
+
   const groupsRules = useMemo(
     () => event?.groupRoles?.map((g: any) => g.name) ?? [],
     [event]
@@ -171,18 +150,12 @@ function ListPayments({
     }
   }, [groupsRules]);
 
-  // const { mutate: mutateDeleteEventUser } = useDeleteRelationEventUser({});
-  async function handleDownloadPDF(data: User[]) {
-    if (!data) return;
-    const blob = await pdf(<PdfBadge data={data || []} />).toBlob();
-    FileSaver.saveAs(blob, 'crachas.pdf');
-  }
   const handleClickOptions = (
     event: React.MouseEvent<HTMLElement>,
     params: GridCellParams
   ) => {
     setRowSelected(params.row);
-    setSelectedUser(params.row as User);
+    setSelectedPayment(params.row as PaymentResponse);
     setAnchorEl(event.currentTarget);
   };
 
@@ -225,35 +198,47 @@ function ListPayments({
       headerName: 'E-mail',
       width: 220,
     },
-     {
+    {
       field: 'method',
       headerName: 'Método de Pagamento',
       width: 180,
-      renderCell: (params) => <CustomChip label={PAYMENT_METHODS(params.value)}  customColor={theme.palette.chips.info}/>,
-      
+      renderCell: (params) => (
+        <CustomChip
+          label={PAYMENT_METHODS(params.value)}
+          customColor={theme.palette.chips.info}
+        />
+      ),
     },
-     {
+    {
       field: 'status',
       headerName: 'Status',
       width: 120,
-      renderCell: (params) => <CustomChip label={PAYMENT_STATUS(params.value)}  customColor={PAYMENT_STATUS_COLOR(params.value, theme)} />,
-    
-      
+      renderCell: (params) => (
+        <CustomChip
+          label={PAYMENT_STATUS(params.value)}
+          customColor={PAYMENT_STATUS_COLOR(params.value, theme)}
+        />
+      ),
     },
-     {
+    {
       field: 'receivedFrom',
       headerName: 'Ação',
       width: 100,
-      renderCell: (params) => <CustomChip label={ACTION_FROM(params.value)}  customColor={theme.palette.info.main} />,
-      
+      renderCell: (params) => (
+        <CustomChip
+          label={ACTION_FROM(params.value)}
+          customColor={theme.palette.info.main}
+        />
+      ),
     },
-       {
+    {
       field: 'amount',
       headerName: 'Valor',
       width: 100,
-      renderCell: (params) => renderCellWithCopy(`R$ ${params.value.toFixed(2)}`),
+      renderCell: (params) =>
+        renderCellWithCopy(`R$ ${params.value.toFixed(2)}`),
     },
-    
+
     {
       field: 'groupName',
       headerName: 'Ingresso',
@@ -267,12 +252,12 @@ function ListPayments({
         </Stack>
       ),
     },
-   
+
     {
       field: 'actions',
       headerName: '',
       sortable: false,
-      width: 80,
+      width: 50,
       renderCell: (params: GridCellParams) => {
         return (
           <Box key={params.id}>
@@ -291,14 +276,6 @@ function ListPayments({
     },
   ];
 
-  const handleClickEdit = (event: React.MouseEvent) => {
-    event.stopPropagation();
-    const link = `${window.location.origin}/admin/usuario/${rowSelected?.id}/editar`;
-    window.open(link, '_blank');
-    handleClose();
-  };
- 
-
   const filteredByGroup = (payments: PaymentResponse[]) => {
     if (!panel || groupsRules.length === 0) return payments;
     return payments.filter((payment) => {
@@ -316,7 +293,6 @@ function ListPayments({
     filtered = filteredByGroup(filtered);
     return filtered;
   };
- 
 
   return (
     <>
@@ -351,9 +327,7 @@ function ListPayments({
             toolbar: GridToolbar,
           }}
           pageSizeOptions={[25, 50, 100]}
-          
           initialState={{
-            
             pagination: { paginationModel: { pageSize: 25 } },
           }}
           slotProps={{
@@ -385,11 +359,10 @@ function ListPayments({
           }}
           localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
         />
-        <ModalEditWork
-          open={openModalEditWork}
-          user={selectedUser}
-          eventId={eventId}
-          handleClose={() => setOpenModalEditWork(false)}
+        <ModalPayment
+          open={openModalPayment}
+          handleClose={() => setOpenModalPayment(false)}
+          payment={selectedPayment}
         />
         <Menu
           id="basic-menu"
@@ -400,22 +373,29 @@ function ListPayments({
             'aria-labelledby': 'options-button',
           }}
         >
-          <MenuItem onClick={handleClickEdit}>
+          <MenuItem
+            onClick={() => {
+              setOpenModalPayment(true);
+              handleClose();
+            }}
+          >
             <ListItemIcon>
               <Edit fontSize="small" color="primary" />
             </ListItemIcon>
             <ListItemText>Editar </ListItemText>
-            
           </MenuItem>
-            <MenuItem  sx={{opacity:0.3}}>
-            <ListItemIcon >
+          <MenuItem>
+            <ListItemIcon>
+              <Download fontSize="small" color="warning" />
+            </ListItemIcon>
+            <ListItemText>Exibir Comprovante </ListItemText>
+          </MenuItem>
+          <MenuItem sx={{ opacity: 0.3 }}>
+            <ListItemIcon>
               <Reply fontSize="small" color="error" />
             </ListItemIcon>
             <ListItemText>Extornar </ListItemText>
-            
           </MenuItem>
-
-         
         </Menu>
       </Card>
     </>

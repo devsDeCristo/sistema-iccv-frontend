@@ -303,3 +303,23 @@ export const ACTION_FROM= (status: string): string => {
   return map[status];
 }
 
+
+export const methodPaymentOptions = [
+  { value: 'PIX', label: 'Pix' },
+  { value: 'CREDIT_CARD', label: 'Cartão de Crédito' },
+  { value: 'DEBIT_CARD', label: 'Cartão de Débito' },
+  { value: 'CASH', label: 'Dinheiro' },
+  { value: 'BOLETO', label: 'Boleto' },
+  { value: 'OTHER', label: 'Outro' },
+] as const;
+
+export const statusPaymentOptions = [
+  { value: 'PAID', label: 'Pago' },
+  { value: 'IN_ANALYSIS', label: 'Em análise' },
+  { value: 'DECLINED', label: 'Recusado' },
+  { value: 'CANCELED', label: 'Cancelado' },
+  { value: 'WAITING', label: 'Aguardando' },
+  { value: 'REFUNDED', label: 'Reembolsado' },
+] as const;
+
+
