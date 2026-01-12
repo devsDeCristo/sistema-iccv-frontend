@@ -50,7 +50,16 @@ function FormSelectRole({ groupRoles }: FormSelectRoleProps) {
                           if (isSelected) {
                             field.onChange(currentValues.filter((id: string) => id !== role.id));
                           } else {
-                            field.onChange([...currentValues, role.id]);
+                             // Remove todas as roles do mesmo grupo antes de adicionar a nova
+                            const otherGroupRoleIds = groupRole.roles
+                              ?.map(r => r.id)
+                              .filter((id): id is string => id !== undefined) || [];
+                            
+                            const valuesWithoutCurrentGroup = currentValues.filter(
+                              (id: string) => !otherGroupRoleIds.includes(id)
+                            );
+                            
+                            field.onChange([...valuesWithoutCurrentGroup, role.id]);
                           }
                         };
                         return (

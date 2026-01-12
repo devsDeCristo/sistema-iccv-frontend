@@ -126,7 +126,7 @@ function FormRegistrationSettings() {
                           type="number"
                           size="small"
                           value={value}
-                          onChange={onChange}
+                            onChange={(e) => {onChange(Number(e.target.value))}}
                           // onChange={(event) => onChange(onlyNumber(event.target.value))}
                           required
                           label="Capacidade máxima de inscrições"
@@ -213,7 +213,8 @@ function FormRegistrationSettings() {
                                     size="small"
                                     required
                                     value={value}
-                                    onChange={onChange}
+                                    type="number"
+                                    onChange={(e) => {onChange(Number(e.target.value))}}
                                     label="Preço (R$)"
                                   />
                                 )}
