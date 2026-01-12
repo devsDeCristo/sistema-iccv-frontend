@@ -20,6 +20,8 @@ import { useEffect } from 'react';
 import { usePutBedroom } from '../api/putBedroom';
 import { useGetEvents } from '../api/getEvents';
 import { CheckBox, CheckBoxOutlineBlank, Close } from '@mui/icons-material';
+import { useGetUsers } from '../api/getUsers';
+import { User } from '../../../../types/user';
 
 interface ModalBedRoomProps {
   open: boolean;
@@ -79,12 +81,14 @@ function ModalBedRoom({
     },
   });
 
-  const { data: eventData } = useGetEvents(
+  const { data: userData } = useGetUsers(
     { eventId: eventId || '' },
     {
       enabled: !!eventId,
     }
   );
+
+  const users = userData as User[];
 
   useEffect(() => {
     if (bedRoom) {
@@ -104,22 +108,32 @@ function ModalBedRoom({
     }
   }, [bedRoom]);
 
-  const options =
-    !Array.isArray(eventData) &&
-    eventData?.users?.map((user: any) => ({
-      value: user.id,
-      label: user.fullName,
-    }));
+  function mapUsersToOptions(users: User[]) {
+    return users
+      .flatMap((user) =>
+        user?.groupsRegistration?.map((group) => ({
+          value: user.id,
+          label: user.fullName,
+          groupName: group.name,
+        }))
+      )
+      .sort((a, b) => a?.groupName.localeCompare(b?.groupName));
+  }
 
+  const options = mapUsersToOptions(users || []);
   const onSubimitBedroom = (data: any) => {
     const { tags, capacity, ...rest } = data;
-    console.log(data);
-    
     const transoformData = {
       ...rest,
-      tags: data.tags && data.tags.length > 0 ? data.tags.map((tag: any) => tag.value) : [],
+      tags:
+        data.tags && data.tags.length > 0
+          ? data.tags.map((tag: any) => tag.value)
+          : [],
       capacity: Number(capacity),
-      usersId:  data.usersId && data.usersId.length > 0 ? data.usersId.map((user: any) => user.value) : [],
+      usersId:
+        data.usersId && data.usersId.length > 0
+          ? data.usersId.map((user: any) => user.value)
+          : [],
     };
 
     if (bedRoom) {
@@ -322,10 +336,11 @@ function ModalBedRoom({
                             multiple
                             size="small"
                             disableCloseOnSelect
+                            groupBy={(option) => option.groupName}
                             id="tags-outlined"
                             options={options || []}
                             isOptionEqualToValue={(option, value) =>
-                              option.label == value.label
+                              option.value == value.value
                             }
                             getOptionLabel={(option) => option.label}
                             ListboxProps={{
