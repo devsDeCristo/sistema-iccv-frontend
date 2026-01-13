@@ -215,7 +215,7 @@ export const GROUP_ROLE_RETIRO: GroupRole[] = [
     ],
   },
   {
-    name: 'Dária: 1º dia',
+    name: 'Diária: 1º dia',
     capacity: 30,
     roles: [
       { price: 0, description: '0 a 7 anos' },
@@ -224,7 +224,7 @@ export const GROUP_ROLE_RETIRO: GroupRole[] = [
     ],
   },
   {
-    name: 'Dária: 2º dia',
+    name: 'Diária: 2º dia',
     capacity: 30,
     roles: [
       { price: 0, description: '0 a 7 anos' },
@@ -233,7 +233,7 @@ export const GROUP_ROLE_RETIRO: GroupRole[] = [
     ],
   },
   {
-    name: 'Dária: 3º dia',
+    name: 'Diária: 3º dia',
     capacity: 30,
     roles: [
       { price: 0, description: '0 a 7 anos' },
@@ -242,7 +242,7 @@ export const GROUP_ROLE_RETIRO: GroupRole[] = [
     ],
   },
   {
-    name: 'Dária: 4º dia',
+    name: 'Diária: 4º dia',
     capacity: 30,
     roles: [
       { price: 0, description: '0 a 7 anos' },
