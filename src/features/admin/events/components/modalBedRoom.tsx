@@ -18,7 +18,6 @@ import { Controller, useForm } from 'react-hook-form';
 import { usePostCreateBedroom } from '../api/postBedroom';
 import { useEffect } from 'react';
 import { usePutBedroom } from '../api/putBedroom';
-import { useGetEvents } from '../api/getEvents';
 import { CheckBox, CheckBoxOutlineBlank, Close } from '@mui/icons-material';
 import { useGetUsers } from '../api/getUsers';
 import { User } from '../../../../types/user';

@@ -235,11 +235,7 @@ function Edit() {
       }
     });
   }
-  const handleBack = () => {
-    if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
-    }
-  };
+
   const handleClose = () => {
     navigate(-1);
   };
@@ -275,20 +271,6 @@ function Edit() {
     },
   ];
 
-  const canProceedToNextStep = () => {
-    switch (currentStep) {
-      case 1:
-        return methodsGeneralInfo.formState.isValid;
-      case 2:
-        return methodsDateAndTime.formState.isValid;
-      case 3:
-        return methodsEventLogo.formState.isValid;
-      case 4:
-        return methodsRegistrationSettings.formState.isValid;
-      default:
-        return false;
-    }
-  };
   return (
     <PageStyle>
       <Header title="Editar evento" buttonBack />

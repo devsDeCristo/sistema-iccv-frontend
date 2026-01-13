@@ -116,7 +116,7 @@ function EventsDetails() {
       0
     );
 
-    return Math.max(group.capacity - totalRegistrados, 0);
+    return Math.max(group.capacity || 0 - totalRegistrados, 0);
   };
 
   return (
@@ -197,7 +197,9 @@ function EventsDetails() {
                         {vagas > 0 ? (
                           <Typography>{vagas} vaga(s) restante(s)</Typography>
                         ) : (
-                          <Typography sx={styles.error}>Lista de Espera!</Typography>
+                          <Typography sx={styles.error}>
+                            Lista de Espera!
+                          </Typography>
                         )}
                       </Grid>
                     </Grid>

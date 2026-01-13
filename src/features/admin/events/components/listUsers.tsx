@@ -465,12 +465,12 @@ function ListUsers({
     });
   };
 
-  const handleClickEditWork = (event: React.MouseEvent) => {
-    event.stopPropagation();
-    if (!rowSelected) return;
-    setOpenModalEditWork(true);
-    handleClose();
-  };
+  // const handleClickEditWork = (event: React.MouseEvent) => {
+  //   event.stopPropagation();
+  //   if (!rowSelected) return;
+  //   setOpenModalEditWork(true);
+  //   handleClose();
+  // };
 
   return (
     <>

@@ -15,7 +15,6 @@ import {
 } from '@mui/material';
 
 import { Controller, useForm } from 'react-hook-form';
-import { useGetEvents } from '../api/getEvents';
 import { useEffect } from 'react';
 import { usePostCreateTeam } from '../api/postTeam';
 import { usePutTeam } from '../api/putTeam';
