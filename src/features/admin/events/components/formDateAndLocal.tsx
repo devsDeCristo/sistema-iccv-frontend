@@ -18,16 +18,21 @@ import { formatZipCode, removeMask } from '../../../../utils';
 interface FormDateAndLocalProps {
   isActive?: boolean;
 }
-function FormDateAndLocal({ isActive = true }: FormDateAndLocalProps) {
+function FormDateAndLocal({ isActive = false }: FormDateAndLocalProps) {
   const {
     control,
     setError,
     setValue,
+    clearErrors,
     formState: { errors },
   } = useFormContext<DateAndLocalFormType>();
   const linkMaps = useWatch({ control, name: 'linkMaps' });
   const startDate = useWatch({ control, name: 'startDate' });
   const fetchAddressByCep = async (cep: string) => {
+    if (!cep) {
+      clearErrors('zipCode');
+      return;
+    }
     try {
       const cleanCep = cep.replace(/\D/g, '');
 
@@ -78,6 +83,7 @@ function FormDateAndLocal({ isActive = true }: FormDateAndLocalProps) {
     }
   };
   const theme = useTheme();
+
   return (
     <Grid container spacing={1}>
       <Grid item xs={12} md={12}>
@@ -92,7 +98,7 @@ function FormDateAndLocal({ isActive = true }: FormDateAndLocalProps) {
           render={({ field: { onChange, value } }) => (
             <InputDatePicker
               label="Data Inicial"
-              disablePast={!isActive}
+              disablePast={isActive}
               value={value as unknown as Date}
               onChange={onChange}
               errorMessage={errors.startDate?.message}
@@ -108,7 +114,7 @@ function FormDateAndLocal({ isActive = true }: FormDateAndLocalProps) {
           render={({ field: { onChange, value } }) => (
             <InputDatePicker
               label="Data Final"
-              disablePast={!isActive}
+              disablePast={isActive}
               minDate={startDate as unknown as Date}
               value={value as unknown as Date}
               onChange={onChange}

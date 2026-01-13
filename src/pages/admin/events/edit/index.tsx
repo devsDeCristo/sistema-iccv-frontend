@@ -87,8 +87,9 @@ function Edit() {
         capacity: groupRole.capacity,
         roles: groupRole.roles.map((role) => ({
           id: role.id,
-          price: role.price,
+          price: role.price || 0,
           description: role.description,
+          registered: role.registered || 0,
         })),
       })) || [],
   });
@@ -161,6 +162,17 @@ function Edit() {
   });
 
   function registrationSettingsSubmit() {
+    if (
+      !methodsDateAndTime.formState.isValid ||
+      !methodsGeneralInfo.formState.isValid ||
+      !methodsEventLogo.formState.isValid ||
+      !methodsRegistrationSettings.formState.isValid
+    ) {
+      toast.error(
+        'Não foi possível editar o evento. Verifique se todos os dados foram preenchidos corretamente.'
+      );
+      return;
+    }
     if (!id) {
       toast.error('Erro ao editar o evento');
       return;
@@ -245,7 +257,7 @@ function Edit() {
       formMethods: methodsDateAndTime,
       onSubmit: registrationSettingsSubmit,
       component: FormDateAndLocal,
-      props: {},
+      props: { isActive: methodsGeneralInfo.getValues().isActive },
     },
     {
       step: 3,
@@ -328,7 +340,7 @@ function Edit() {
                 <Button
                   variant="outlined"
                   sx={{ marginTop: 2, width: '120px' }}
-                  onClick={currentStep === 1 ? handleClose : handleBack}
+                  onClick={handleClose}
                 >
                   cancelar
                 </Button>
@@ -336,7 +348,7 @@ function Edit() {
                   variant="contained"
                   sx={{ marginTop: 2, width: '200px' }}
                   type="submit"
-                  disabled={!canProceedToNextStep()}
+                  // disabled={!canProceedToNextStep()}
                   endIcon={<Check />}
                 >
                   Salvar alterações

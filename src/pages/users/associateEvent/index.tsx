@@ -42,7 +42,7 @@ function AssociateEvent() {
       enabled: !!eventId,
     }
   );
-  const event = eventData as EventDetails;
+  // const event = eventData as EventDetails;
   // const usersParticipant = event?.users?.filter((user) => !user?.worker);
 
   // const usersWorker = event?.users?.filter((user) => user?.worker);
@@ -55,46 +55,46 @@ function AssociateEvent() {
   //   eventData &&
   //   eventData.users?.find((event) => event.id === user?.id);
 
-  const nameEvent =
-    (!Array.isArray(eventData) && eventData && eventData.name) ||
-    'Cursilho da cristandade';
+  // const nameEvent =
+  //   (!Array.isArray(eventData) && eventData && eventData.name) ||
+  //   'Cursilho da cristandade';
 
-  const { mutate: mutatePostCreateReEventUser } = usePostCreRelationEventToUser(
-    {
-      onSuccess: () => {
-        Swal.fire({
-          title: 'Cadastro efetuado com sucesso',
-          icon: 'success',
-        }).then((result) => {
-          if (result.isConfirmed && !worker) {
-            if (!Array.isArray(eventData) && eventData?.groupLink)
-              window.open(
-                (!Array.isArray(eventData) &&
-                  eventData &&
-                  eventData?.groupLink) ||
-                  '',
-                '_blank'
-              );
-          }
-          if (result.isConfirmed) {
-            window.location.replace('/eventos');
-          }
-        });
-      },
-    }
-  );
+  // const { mutate: mutatePostCreateReEventUser } = usePostCreRelationEventToUser(
+  //   {
+  //     onSuccess: () => {
+  //       Swal.fire({
+  //         title: 'Cadastro efetuado com sucesso',
+  //         icon: 'success',
+  //       }).then((result) => {
+  //         if (result.isConfirmed && !worker) {
+  //           if (!Array.isArray(eventData) && eventData?.groupLink)
+  //             window.open(
+  //               (!Array.isArray(eventData) &&
+  //                 eventData &&
+  //                 eventData?.groupLink) ||
+  //                 '',
+  //               '_blank'
+  //             );
+  //         }
+  //         if (result.isConfirmed) {
+  //           window.location.replace('/eventos');
+  //         }
+  //       });
+  //     },
+  //   }
+  // );
 
-  const handleButton = () => {
-    if (user === null) {
-      return;
-    }
-    const idUser = user?.id;
-    mutatePostCreateReEventUser({
-      idUser,
-      idEvent: eventId,
-      worker: worker === 0 ? false : true,
-    });
-  };
+  // const handleButton = () => {
+  //   if (user === null) {
+  //     return;
+  //   }
+  //   const idUser = user?.id;
+  //   mutatePostCreateReEventUser({
+  //     idUser,
+  //     idEvent: eventId,
+  //     worker: worker === 0 ? false : true,
+  //   });
+  // };
   const styles = {
     boxContainer: {
       display: 'flex',

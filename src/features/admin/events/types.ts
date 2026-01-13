@@ -88,11 +88,11 @@ export interface Team {
 export interface GroupRole {
   id?: string;
   name: string;
-  capacity: number;
+  capacity: number | null;
   // expanded: boolean;
   roles: {
     id?: string;
-    price: number;
+    price: number | null;
     description: string;
     registered?: number;
   }[];

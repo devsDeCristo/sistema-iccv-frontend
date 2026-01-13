@@ -91,7 +91,7 @@ function Subscribe() {
 
   const { mutate: mutateCreateCheckoutEvent } = usePostCreateCheckoutEvent({
     onSuccess: (data: any) => {
-      console.log(data);
+      // console.log(data);
       const link = data.link;
       window.location.href = link;
     },

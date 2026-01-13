@@ -27,7 +27,7 @@ function FormGeneralInfo() {
               size="small"
               value={value}
               onChange={onChange}
-              // required
+              required
               label="Nome do evento"
               error={!!errors.name}
               errorMessage={errors.name?.message}
@@ -46,6 +46,8 @@ function FormGeneralInfo() {
               menuOptions={OPTIONS_STATUS}
               value={value}
               onChange={onChange}
+              error={!!errors.isActive}
+              errorMessage={errors.isActive?.message}
             />
           )}
         />

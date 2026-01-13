@@ -41,12 +41,14 @@ export const ROLE_SELECT_SCHEMA = z.object({
 export const GENERAL_INFO_SCHEMA = z.object({
   name: z.string({
     required_error: DEFAULT_MESSAGE,
+  }).refine((val) => val.trim().length > 0, {
+    message: DEFAULT_MESSAGE
   }),
   shortDescription: z.string().optional(),
   description: z.string().optional(),
   // eventType: z.string().optional(),
   groupLink: z.string().optional(),
-  isActive: z.boolean(),
+  isActive: z.boolean().optional(),
 });
 export const CATEGORY_EVENT_SCHEMA = z.object({
   eventType: EVENT_TYPE_SCHEMA,
@@ -83,10 +85,10 @@ export const REGISTRATION_SETTINGS_SCHEMA = z.object({
     z.object({
       // id: z.string(),
       name: z.string({ required_error: DEFAULT_MESSAGE }),
-      capacity: z.number({ required_error: DEFAULT_MESSAGE }),
+      capacity: z.number({ required_error: DEFAULT_MESSAGE }).nullable(),
       roles: z.array(
         z.object({
-          price: z.number({ required_error: DEFAULT_MESSAGE }),
+          price: z.number({ required_error: DEFAULT_MESSAGE }).nullable(),
           description: z.string({ required_error: DEFAULT_MESSAGE }),
         })
       ),

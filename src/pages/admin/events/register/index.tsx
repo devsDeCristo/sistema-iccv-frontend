@@ -143,7 +143,7 @@ function Register() {
           const finalDataBase64 = {
             name: generalInfoData.name,
             groupLink: generalInfoData.groupLink || '',
-            isActive: generalInfoData.isActive,
+            isActive: generalInfoData.isActive || false,
             startDate: new Date(dateAndTimeData.startDate),
             endDate: new Date(dateAndTimeData.endDate),
             type: eventTypeSelected!,
@@ -216,7 +216,7 @@ function Register() {
       formMethods: methodsDateAndTime,
       onSubmit: dateAndTimeSubmit,
       component: FormDateAndLocal,
-      props: {},
+      props: { isActive: methodsGeneralInfo.getValues().isActive },
     },
     {
       step: 4,
