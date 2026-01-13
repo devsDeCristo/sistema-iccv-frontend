@@ -378,22 +378,25 @@ function FormRegistrationSettings() {
                                     alignItems: 'center',
                                   }}
                                 >
-                                  <IconButton
-                                    onClick={() => {
-                                      const updatedGroupRoles = [
-                                        ...selectGroupRolesExtended,
-                                      ];
-                                      updatedGroupRoles[index].roles.splice(
-                                        roleIndex,
-                                        1
-                                      );
-                                      setSelectGroupRolesExtended(
-                                        updatedGroupRoles
-                                      );
-                                    }}
-                                  >
-                                    <Delete />
-                                  </IconButton>
+                                  <Tooltip title="Remover Regra">
+                                    <IconButton
+                                      disabled={disabled}
+                                      onClick={() => {
+                                        const updatedGroupRoles = [
+                                          ...selectGroupRolesExtended,
+                                        ];
+                                        updatedGroupRoles[index].roles.splice(
+                                          roleIndex,
+                                          1
+                                        );
+                                        setSelectGroupRolesExtended(
+                                          updatedGroupRoles
+                                        );
+                                      }}
+                                    >
+                                      <Delete />
+                                    </IconButton>
+                                  </Tooltip>
                                 </Box>
                               </Grid>
                             </Box>
@@ -430,16 +433,16 @@ function FormRegistrationSettings() {
                             gap: 1,
                             cursor: 'pointer',
                             borderRadius: 1,
-                            border: '1px solid',
+                            // border: '1px solid',
                             width: 'fit-content',
                             backgroundColor: alpha(
                               theme.palette.text.primary,
                               0.1
                             ),
-                            borderColor: alpha(
-                              theme.palette.text.secondary,
-                              0.5
-                            ),
+                            // borderColor: alpha(
+                            //   theme.palette.text.secondary,
+                            //   0.5
+                            // ),
                             padding: '6px 12px',
                             // backgroundColor: alpha(theme.palette.primary.main, 0.1),
                             color: '#fff',
@@ -449,6 +452,11 @@ function FormRegistrationSettings() {
                                 0.05
                               ),
                             },
+                            border: 'none',
+                            ...(disabled && {
+                              pointerEvents: 'none',
+                              opacity: 0.6,
+                            }),
                           }}
                         >
                           <span
@@ -458,6 +466,24 @@ function FormRegistrationSettings() {
                           </span>
                           <Add />
                         </Box>
+                        {/* <Button
+                            disabled={disabled}
+                            sx={{ marginLeft: 2 }}
+                            endIcon={<Add />}
+                            variant="outlined"
+                            onClick={() => {
+                              const updatedGroupRoles = [
+                                ...selectGroupRolesExtended,
+                              ];
+                              updatedGroupRoles[index].roles?.push({
+                                price: null,
+                                description: '',
+                              });
+                              setSelectGroupRolesExtended(updatedGroupRoles);
+                            }}
+                          >
+                            Adicionar Regra
+                          </Button> */}
                       </Box>
                     </>
                   ) : (
