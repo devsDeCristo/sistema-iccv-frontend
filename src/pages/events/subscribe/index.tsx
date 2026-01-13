@@ -1,4 +1,4 @@
-import {  useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Header } from '../../../components/header';
 import { PageStyle } from '../../../components/pageStyle';
 import { useGetEvents } from '../../../features/admin/events/api/getEvents';
@@ -33,7 +33,6 @@ import { usePostRegisterUserInEvent } from '../../../features/admin/events/api/p
 import Swal from 'sweetalert2';
 import { useGetGroupsByUser } from '../../../features/admin/events/api/getGroupsByUser';
 import { usePostCreateCheckoutEvent } from '../../../features/admin/events/api/postCreateCheckoutEvent';
-
 
 function Subscribe() {
   const { id } = useParams();
@@ -91,9 +90,9 @@ function Subscribe() {
   };
 
   const { mutate: mutateCreateCheckoutEvent } = usePostCreateCheckoutEvent({
-    onSuccess: (data:any) => {
-      console.log(data)
-      const link = data.link
+    onSuccess: (data: any) => {
+      console.log(data);
+      const link = data.link;
       window.location.href = link;
     },
     onError: () => {
@@ -101,59 +100,62 @@ function Subscribe() {
     },
   });
 
-const { mutate: mutateRegisterUserInEvent } = usePostRegisterUserInEvent({
-  onSuccess: (data: any) => {
-    const payload = data as any[];
-    const roleId = payload.map(i => i.roleId );
-    const allRegistered = payload.every(i => i.type === 'REGISTERED');
-    const allWaitlist = payload.every(i => i.type === 'WAITLIST');
+  const { mutate: mutateRegisterUserInEvent, isLoading: isLoadingRegister } =
+    usePostRegisterUserInEvent({
+      onSuccess: (data: any) => {
+        const payload = data as any[];
+        const roleId = payload.map((i) => i.roleId);
+        const allRegistered = payload.every((i) => i.type === 'REGISTERED');
+        const allWaitlist = payload.every((i) => i.type === 'WAITLIST');
 
-    // Caso 3: tudo ficou em lista de espera
-    if (allWaitlist) {
-      Swal.fire({
-        title: 'Inscrição(ões) realizada(s) com sucesso!',
-        text: 'No momento suas inscrições ficaram na lista de espera. Você será notificado caso surja vaga.',
-        icon: 'success',
-        confirmButtonText: 'OK',
-      }).then(() => {
-        navigate('/eventos/' + id);
-      });
-      return;
-    }
+        // Caso 3: tudo ficou em lista de espera
+        if (allWaitlist) {
+          Swal.fire({
+            title: 'Inscrição(ões) realizada(s) com sucesso!',
+            text: 'No momento suas inscrições ficaram na lista de espera. Você será notificado caso surja vaga.',
+            icon: 'success',
+            confirmButtonText: 'OK',
+          }).then(() => {
+            navigate('/eventos/' + id);
+          });
+          return;
+        }
 
-    // Caso 1 e 2: existe pelo menos uma registrada
-    Swal.fire({
-      title: 'Inscrição(ões) realizada(s) com sucesso!',
-      text:
-        allRegistered
-          ? 'Deseja realizar o pagamento agora?'
-          : 'Algumas inscrições ficaram na lista de espera. Deseja realizar o pagamento apenas das confirmadas?',
-      icon: 'success',
-      showCancelButton: true,
-      cancelButtonText: 'Não',
-      confirmButtonText: 'Sim',
-      confirmButtonColor: theme.palette.success.main,
-      cancelButtonColor: theme.palette.error.main,
-    }).then((result) => {
-      if (result.isConfirmed) {
-        setLoadingPayment(true);
-         mutateCreateCheckoutEvent({ eventId: event!.id, userId, data: {roleId} });
-      } else {
-        navigate('/eventos/' + id);
-      }
+        // Caso 1 e 2: existe pelo menos uma registrada
+        Swal.fire({
+          title: 'Inscrição(ões) realizada(s) com sucesso!',
+          text: allRegistered
+            ? 'Deseja realizar o pagamento agora?'
+            : 'Algumas inscrições ficaram na lista de espera. Deseja realizar o pagamento apenas das confirmadas?',
+          icon: 'success',
+          showCancelButton: true,
+          cancelButtonText: 'Não',
+          confirmButtonText: 'Sim',
+          confirmButtonColor: theme.palette.success.main,
+          cancelButtonColor: theme.palette.error.main,
+        }).then((result) => {
+          if (result.isConfirmed) {
+            setLoadingPayment(true);
+            mutateCreateCheckoutEvent({
+              eventId: event!.id,
+              userId,
+              data: { roleId },
+            });
+          } else {
+            navigate('/eventos/' + id);
+          }
+        });
+      },
+
+      onError: () => {
+        Swal.fire({
+          title: 'Erro!',
+          text: 'Ocorreu um erro ao realizar a inscrição, tente novamente.',
+          icon: 'error',
+          confirmButtonText: 'OK',
+        });
+      },
     });
-  },
-
-  onError: () => {
-    Swal.fire({
-      title: 'Erro!',
-      text: 'Ocorreu um erro ao realizar a inscrição, tente novamente.',
-      icon: 'error',
-      confirmButtonText: 'OK',
-    });
-  },
-});
-
 
   const selectRoleSubmit = (data: SelectRoleFormType) => {
     if (event && event.id && data.roleId) {
@@ -208,7 +210,7 @@ const { mutate: mutateRegisterUserInEvent } = usePostRegisterUserInEvent({
       }}
     >
       <Typography variant="h6" gutterBottom>
-        Carregando Pagemento...
+        Carregando Pagamento...
       </Typography>
       <Skeleton variant="rectangular" width={200} height={20} sx={{ mb: 2 }} />
       <Skeleton variant="rectangular" width={150} height={20} />
@@ -257,7 +259,7 @@ const { mutate: mutateRegisterUserInEvent } = usePostRegisterUserInEvent({
                   variant="contained"
                   sx={{ marginTop: 2, width: '120px' }}
                   type="submit"
-                  disabled={!canProceedToNextStep()}
+                  disabled={!canProceedToNextStep() || isLoadingRegister}
                   endIcon={
                     currentStep === STEPS_SUB.length ? (
                       <Check />
