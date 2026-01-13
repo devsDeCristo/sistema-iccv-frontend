@@ -28,8 +28,8 @@ import {
   selectedGridRowsSelector,
 } from '@mui/x-data-grid';
 import { useParams } from 'react-router-dom';
-import { Download, Edit, MoreVert, Reply } from '@mui/icons-material';
-import { PaymentResponse, User } from '../../../../types/user';
+import { Edit, MoreVert, Reply } from '@mui/icons-material';
+import { PaymentResponse } from '../../../../types/user';
 import { useEffect, useMemo, useState } from 'react';
 import CustomChip from '../../../../components/customChip';
 import {
@@ -98,7 +98,6 @@ function ListPayments({
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const openMenu = Boolean(anchorEl);
-  const [rowSelected, setRowSelected] = useState<User | null>(null);
   const [selectedPayment, setSelectedPayment] =
     useState<PaymentResponse | null>(null);
   const [openModalPayment, setOpenModalPayment] = useState(false);
@@ -154,7 +153,6 @@ function ListPayments({
     event: React.MouseEvent<HTMLElement>,
     params: GridCellParams
   ) => {
-    setRowSelected(params.row);
     setSelectedPayment(params.row as PaymentResponse);
     setAnchorEl(event.currentTarget);
   };
@@ -384,12 +382,7 @@ function ListPayments({
             </ListItemIcon>
             <ListItemText>Editar </ListItemText>
           </MenuItem>
-          <MenuItem>
-            <ListItemIcon>
-              <Download fontSize="small" color="warning" />
-            </ListItemIcon>
-            <ListItemText>Exibir Comprovante </ListItemText>
-          </MenuItem>
+          
           <MenuItem sx={{ opacity: 0.3 }}>
             <ListItemIcon>
               <Reply fontSize="small" color="error" />
