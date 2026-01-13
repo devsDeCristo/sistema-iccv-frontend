@@ -11,12 +11,14 @@ interface InputSelectProps {
   label: string;
   menuOptions: { value: any; name: string }[];
   helperText?: string;
+  errorMessage?: string;
 }
 
 const InputSelect = ({
   label,
   menuOptions,
   helperText,
+  errorMessage,
   ...rest
 }: InputSelectProps & SelectProps) => {
   return (
@@ -39,6 +41,7 @@ const InputSelect = ({
           ))}
         </Select>
         {helperText && <FormHelperText>{helperText}</FormHelperText>}
+        {errorMessage && <FormHelperText error>{errorMessage}</FormHelperText>}
       </FormControl>
     </div>
   );
