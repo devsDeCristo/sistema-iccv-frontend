@@ -32,8 +32,8 @@ function EventCard({ event }: { event: Event }) {
         top: '50%',
         left: '50%',
         transform: 'translate(-50%, -50%)',
-        height: 60,
-        background: 'white',
+        height: 110,
+        
         p: '6px',
         borderRadius: 2,
       },

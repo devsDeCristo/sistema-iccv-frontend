@@ -83,8 +83,8 @@ function EventsDetails() {
         top: '50%',
         left: '50%',
         transform: 'translate(-50%, -50%)',
-        height: 90,
-        background: 'white',
+        height: 130,
+       
         p: '6px',
         borderRadius: 2,
       },
