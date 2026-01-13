@@ -90,6 +90,7 @@ export const REGISTRATION_SETTINGS_SCHEMA = z.object({
         z.object({
           price: z.number({ required_error: DEFAULT_MESSAGE }).nullable(),
           description: z.string({ required_error: DEFAULT_MESSAGE }),
+          registered: z.number().optional(),
         })
       ),
     })
@@ -98,8 +99,8 @@ export const REGISTRATION_SETTINGS_SCHEMA = z.object({
 export const EVENT_LOGO_SCHEMA = z.object({
   eventLogo: z.any().optional(),
   eventCover: z.any().optional(),
-  logoUrl: z.string().optional(),
-  coverUrl: z.string().optional(),
+  logoUrl: z.string().optional().nullable(),
+  coverUrl: z.string().optional().nullable(),
   // .refine(
   //   (files) => {
   //     if (!files || files.length === 0) return true;

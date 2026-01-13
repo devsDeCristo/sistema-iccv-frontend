@@ -110,18 +110,22 @@ function Edit() {
   const methodsGeneralInfo = useForm<GeneralInfoFormType>({
     resolver: zodResolver(GENERAL_INFO_SCHEMA),
     defaultValues: getDefaultGeneralInfoValues(event),
+    mode: 'onChange',
   });
   const methodsDateAndTime = useForm<DateAndLocalFormType>({
     resolver: zodResolver(DATE_AND_LOCAL_SCHEMA),
     defaultValues: getDefaultDateAndLocalValues(event),
+    mode: 'onChange',
   });
   const methodsRegistrationSettings = useForm<RegistrationSettingsFormType>({
     resolver: zodResolver(REGISTRATION_SETTINGS_SCHEMA),
     defaultValues: getDefaultRegistrationSettingsValues(event),
+    mode: 'onChange',
   });
   const methodsEventLogo = useForm<EventLogoFormType>({
     resolver: zodResolver(EVENT_LOGO_SCHEMA),
     defaultValues: getDefaultEventLogoValues(event),
+    mode: 'onChange',
   });
   const eventTypeSelected = useMemo(() => event?.type, [event]);
   useEffect(() => {
@@ -155,24 +159,45 @@ function Edit() {
       },
     },
   };
-  const { mutate: mutatePutUpdateEvent } = usePutUpdateEvent({
-    onSuccess: () => {
-      navigate('/admin/eventos');
-    },
-  });
+  const { mutate: mutatePutUpdateEvent, isLoading: isLoadingEdit } =
+    usePutUpdateEvent({
+      onSuccess: () => {
+        navigate('/admin/eventos');
+      },
+    });
 
-  function registrationSettingsSubmit() {
+  async function registrationSettingsSubmit() {
+    const [
+      validDateAndTime,
+      validGeneralInfo,
+      validEventLogo,
+      validRegistrationSettings,
+    ] = await Promise.all([
+      methodsDateAndTime.trigger(),
+      methodsGeneralInfo.trigger(),
+      methodsEventLogo.trigger(),
+      methodsRegistrationSettings.trigger(),
+    ]);
+
     if (
-      !methodsDateAndTime.formState.isValid ||
-      !methodsGeneralInfo.formState.isValid ||
-      !methodsEventLogo.formState.isValid ||
-      !methodsRegistrationSettings.formState.isValid
+      !validDateAndTime ||
+      !validGeneralInfo ||
+      !validEventLogo ||
+      !validRegistrationSettings
     ) {
+      console.log(
+        methodsDateAndTime.formState.errors,
+        methodsGeneralInfo.formState.errors,
+        methodsEventLogo.formState.errors,
+        methodsRegistrationSettings.formState.errors
+      );
+
       toast.error(
         'Não foi possível editar o evento. Verifique se todos os dados foram preenchidos corretamente.'
       );
       return;
     }
+
     if (!id) {
       toast.error('Erro ao editar o evento');
       return;
@@ -183,6 +208,16 @@ function Edit() {
         const dateAndTimeData = methodsDateAndTime.getValues();
         const registrationSettingsData =
           methodsRegistrationSettings.getValues();
+        const groupRolesWithouRegistered =
+          registrationSettingsData.groupRoles.map(
+            ({ roles, ...groupRole }) => ({
+              ...groupRole,
+              roles: roles.map(({ registered, ...role }) => ({
+                ...role,
+              })),
+            })
+          );
+        registrationSettingsData.groupRoles = groupRolesWithouRegistered;
         try {
           const finalData = {
             name: generalInfoData.name,
@@ -330,6 +365,7 @@ function Edit() {
                   variant="contained"
                   sx={{ marginTop: 2, width: '200px' }}
                   type="submit"
+                  disabled={isLoadingEdit}
                   // disabled={!canProceedToNextStep()}
                   endIcon={<Check />}
                 >

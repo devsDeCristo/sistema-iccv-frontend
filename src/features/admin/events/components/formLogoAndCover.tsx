@@ -237,6 +237,7 @@ function FormLogoAndCover() {
           <Tooltip title="Remover imagem">
             <IconButton
               onClick={() => {
+                setValue('logoUrl', null);
                 setValue('eventLogo', null);
               }}
             >
@@ -363,6 +364,7 @@ function FormLogoAndCover() {
           <Tooltip title="Remover imagem">
             <IconButton
               onClick={() => {
+                setValue('coverUrl', null);
                 setValue('eventCover', null);
               }}
             >
