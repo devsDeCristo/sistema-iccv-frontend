@@ -271,7 +271,7 @@ function FormLogoAndCover() {
               color: theme.palette.text.secondary,
             }}
           >
-            SVG (limite: 5MB)
+            SVG; PNG; JPG (limite: 5MB)
           </Typography>
         </Box>
       )}
@@ -399,7 +399,7 @@ function FormLogoAndCover() {
               color: theme.palette.text.secondary,
             }}
           >
-            SVG (limite: 5MB)
+            SVG; PNG; JPG (limite: 5MB)
           </Typography>
         </Box>
       )}
