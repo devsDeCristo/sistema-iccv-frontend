@@ -12,6 +12,7 @@ import {
   Tabs,
   Tooltip,
   Typography,
+  useMediaQuery,
   useTheme,
 } from '@mui/material';
 import { formatCPF } from '../../../../utils';
@@ -94,15 +95,16 @@ function ListPayments({
       enabled: !!eventId,
     }
   );
+   const theme = useTheme();
   const payments = paymentsData as PaymentResponse[];
-
+  const md = useMediaQuery(theme.breakpoints.up('md'));
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const openMenu = Boolean(anchorEl);
   const [selectedPayment, setSelectedPayment] =
     useState<PaymentResponse | null>(null);
   const [openModalPayment, setOpenModalPayment] = useState(false);
   const [panel, setPanel] = useState<string>('1');
-  const theme = useTheme();
+ 
 
   const styles = {
     card: {
@@ -297,7 +299,9 @@ function ListPayments({
       {Array.isArray(groupsRules) && groupsRules.length > 0 && (
         <Stack sx={[styles.card, { p: 0.5, height: '50px' }]}>
           <Tabs
-            variant="fullWidth"
+            variant={md ? 'fullWidth' : 'scrollable'}
+            scrollButtons={md ? false : 'auto'}
+            allowScrollButtonsMobile
             value={panel}
             sx={styles.tabs}
             onChange={(_, newValue) => setPanel(newValue)}

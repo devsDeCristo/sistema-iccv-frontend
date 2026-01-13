@@ -13,6 +13,7 @@ import {
   Tabs,
   Tooltip,
   Typography,
+  useMediaQuery,
   useTheme,
 } from '@mui/material';
 import { formatCPF, formatDate } from '../../../../utils';
@@ -107,6 +108,7 @@ function ListUsers({
   const [openModalEditWork, setOpenModalEditWork] = useState(false);
   const [panel, setPanel] = useState<string>('1');
   const theme = useTheme();
+  const md = useMediaQuery(theme.breakpoints.up('md'));
 
   const styles = {
     card: {
@@ -477,9 +479,12 @@ function ListUsers({
       {Array.isArray(groupsRules) && groupsRules.length > 0 && (
         <Stack sx={[styles.card, { p: 0.5, height: '50px' }]}>
           <Tabs
-            variant="fullWidth"
+            variant={md ? 'fullWidth' : 'scrollable'}
+            scrollButtons={md ? false : 'auto'}
+            allowScrollButtonsMobile
             value={panel}
             sx={styles.tabs}
+            key={'table_' + md}
             onChange={(_, newValue) => setPanel(newValue)}
           >
             {Array.isArray(groupsRules) &&

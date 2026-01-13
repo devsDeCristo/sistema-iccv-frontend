@@ -386,13 +386,16 @@ function Details() {
       />
 
       <Stack
-        sx={[styles.card, { p: 0.5, height: '50px', width: 'fit-content' }]}
+        sx={[styles.card, { p: 0.5, height: '50px', width: 'fit-content', maxWidth: '100%' }]}
       >
         <Tabs
           value={pageValue}
           sx={styles.tabs}
           onChange={handleChange}
           aria-label="basic tabs example"
+           variant="scrollable"
+           scrollButtons="auto"
+           allowScrollButtonsMobile
         >
           <Tab label="Inscritos" value={'usuarios'} />
           <Tab label="Lista de Espera" value={'lista-espera'} />
@@ -450,9 +453,10 @@ function Details() {
                 startIcon={<Download />}
               >
                 Exportar
-              </Button>
-              <Box>
+              </Button >
+              <Box >
                 <Button
+                sx={{width:{xs:'100%', sm:'fit-content'}}}
                   variant="outlined"
                   onClick={handleClickOpenMenu}
                   // onClick={() => handleDownloadPDF(2)}
@@ -467,6 +471,7 @@ function Details() {
               </Box>
               <Box>
                 <Button
+                sx={{width:{xs:'100%', sm:'fit-content'}}}
                   variant="outlined"
                   onClick={() => generatePdfBadge()}
                   startIcon={<BadgeOutlined />}
@@ -572,6 +577,7 @@ function Details() {
             <Stack sx={styles.stackButtons}>
               <Box>
                 <Button
+                sx={{width:{xs:'100%', sm:'fit-content'}}}
                   variant="outlined"
                   onClick={() => generatePdfRooms()}
                   startIcon={<BedOutlined />}
@@ -610,6 +616,7 @@ function Details() {
             <Stack sx={styles.stackButtons}>
               <Box>
                 <Button
+                sx={{width:{xs:'100%', sm:'fit-content'}}}
                   variant="outlined"
                   onClick={() => generatePDFTeams()}
                   startIcon={<People />}
@@ -621,6 +628,7 @@ function Details() {
               </Box>
               <Box>
                 <Button
+                sx={{width:{xs:'100%', sm:'fit-content'}}}
                   variant="outlined"
                   onClick={() => generatePDFEvent()}
                   startIcon={<ViewModuleOutlined />}
