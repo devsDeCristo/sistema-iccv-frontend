@@ -115,8 +115,9 @@ function EventsDetails() {
       (sum, role) => sum + (role?.registered || 0),
       0
     );
+    console.log('totalRegistrados', totalRegistrados, group.capacity);
 
-    return Math.max(group.capacity || 0 - totalRegistrados, 0);
+    return Math.max((group.capacity || 0) - totalRegistrados, 0);
   };
 
   return (
