@@ -60,9 +60,15 @@ function Subscribe() {
 
   const methodsSelectGroupRole = useForm<SelectGroupRoleFormType>({
     resolver: zodResolver(GROUP_ROLE_SELECT_SCHEMA),
+    defaultValues: {
+      groupRoleId: [],
+    },
   });
   const methodsSelectRole = useForm<SelectRoleFormType>({
     resolver: zodResolver(ROLE_SELECT_SCHEMA),
+    defaultValues: {
+      roleId: [],
+    },
   });
 
   const handleNext = () => {

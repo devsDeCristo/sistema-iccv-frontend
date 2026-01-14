@@ -248,6 +248,9 @@ function FormRegistrationSettings() {
                             error={Boolean(
                               errors.groupRoles?.[index]?.capacity
                             )}
+                            InputLabelProps={{
+                              shrink: Boolean(value),
+                            }}
                           />
                         )}
                       />

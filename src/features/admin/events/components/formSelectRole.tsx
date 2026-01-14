@@ -18,11 +18,13 @@ function FormSelectRole({ groupRoles }: FormSelectRoleProps) {
     control,
     setValue,
     formState: { errors },
+    reset,
   } = useFormContext<SelectRoleFormType>();
   const theme = useTheme();
   useEffect(() => {
     // Reset roleId when groupRoles change
-    setValue('roleId', []);
+    // setValue('roleId', []);
+    reset({ roleId: [] });
   }, [groupRoles, setValue]);
   if (!groupRoles) return <></>;
 
@@ -133,15 +135,6 @@ function FormSelectRole({ groupRoles }: FormSelectRoleProps) {
                                 onChange={handleToggle}
                                 inputProps={{ 'aria-label': role.description }}
                               />
-                              {errors.roleId && (
-                                <Typography
-                                  color="error"
-                                  variant="body2"
-                                  sx={{ ml: 2 }}
-                                >
-                                  {errors.roleId.message}
-                                </Typography>
-                              )}{' '}
                               <Box sx={{ ml: 2 }}>
                                 <Typography variant="h6">
                                   {role.description}
@@ -161,7 +154,12 @@ function FormSelectRole({ groupRoles }: FormSelectRoleProps) {
               </>
             );
           })}{' '}
-        </Grid>
+        </Grid>{' '}
+        {errors.roleId && (
+          <Typography color="error" variant="body2" sx={{ mt: 2 }}>
+            {errors.roleId.message}
+          </Typography>
+        )}
       </Grid>
     </Grid>
   );

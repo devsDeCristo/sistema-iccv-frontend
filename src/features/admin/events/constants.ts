@@ -24,26 +24,24 @@ const DEFAULT_MESSAGE = 'Campo obrigatório';
 export const EVENT_TYPE_SCHEMA = z.enum(['RETIRO', 'CURSILHO']);
 
 export const GROUP_ROLE_SELECT_SCHEMA = z.object({
-  groupRoleId: z.array(
-    z.string({
-      required_error: 'Selecione ao menos uma opção',
-    })
-  ),
+  groupRoleId: z.array(z.string()).min(1, {
+    message: 'Selecione ao menos uma opção',
+  }),
 });
 export const ROLE_SELECT_SCHEMA = z.object({
-  roleId: z.array(
-    z.string({
-      required_error: 'Selecione ao menos uma opção',
-    })
-  ),
+  roleId: z.array(z.string()).min(1, {
+    message: 'Selecione ao menos uma opção',
+  }),
 });
 
 export const GENERAL_INFO_SCHEMA = z.object({
-  name: z.string({
-    required_error: DEFAULT_MESSAGE,
-  }).refine((val) => val.trim().length > 0, {
-    message: DEFAULT_MESSAGE
-  }),
+  name: z
+    .string({
+      required_error: DEFAULT_MESSAGE,
+    })
+    .refine((val) => val.trim().length > 0, {
+      message: DEFAULT_MESSAGE,
+    }),
   shortDescription: z.string().optional(),
   description: z.string().optional(),
   // eventType: z.string().optional(),
@@ -268,7 +266,7 @@ export const PAYMENT_METHODS = (payment: PaymentMethod): string => {
   return map[payment];
 };
 
-export const PAYMENT_STATUS= (status: PaymentStatus): string => {
+export const PAYMENT_STATUS = (status: PaymentStatus): string => {
   const map: Record<PaymentStatus, string> = {
     PAID: 'Pago',
     IN_ANALYSIS: 'Em análise',
@@ -279,7 +277,7 @@ export const PAYMENT_STATUS= (status: PaymentStatus): string => {
   };
 
   return map[status];
-}
+};
 
 export const PAYMENT_STATUS_COLOR = (
   status: PaymentStatus,
@@ -297,15 +295,14 @@ export const PAYMENT_STATUS_COLOR = (
   return map[status];
 };
 
-export const ACTION_FROM= (status: string): string => {
+export const ACTION_FROM = (status: string): string => {
   const map: Record<string, string> = {
     SYSTEM: 'Sistema',
     EXTERNAL: 'Externo',
   };
 
   return map[status];
-}
-
+};
 
 export const methodPaymentOptions = [
   { value: 'PIX', label: 'Pix' },
@@ -324,5 +321,3 @@ export const statusPaymentOptions = [
   { value: 'WAITING', label: 'Aguardando' },
   { value: 'REFUNDED', label: 'Reembolsado' },
 ] as const;
-
-

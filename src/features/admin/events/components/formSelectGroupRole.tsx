@@ -34,13 +34,9 @@ function FormSelectGroupRole({ event, groups }: FormSelectGroupRoleProps) {
       </Grid>
       <Grid item xs={12} md={12}>
         <Grid container spacing={2}>
-          {/* <Typography variant="body1" gutterBottom>
-            Selecione qual(is) ingresso(s) deseja comprar:
-          </Typography> */}
           <Controller
             name="groupRoleId"
             control={control}
-            rules={{ required: 'Selecione o tipo de evento' }}
             render={({ field }) => (
               <Grid item xs={12} md={12}>
                 {event?.groupRoles?.map((group) => {
@@ -115,15 +111,6 @@ function FormSelectGroupRole({ event, groups }: FormSelectGroupRoleProps) {
                         onChange={() => field.onChange(group.id)}
                         inputProps={{ 'aria-label': group.name }}
                       />
-                      {errors.groupRoleId && (
-                        <Typography
-                          color="error"
-                          variant="body2"
-                          sx={{ ml: 2 }}
-                        >
-                          {errors.groupRoleId.message}
-                        </Typography>
-                      )}{' '}
                       <Box
                         sx={{
                           ml: 2,
@@ -178,7 +165,12 @@ function FormSelectGroupRole({ event, groups }: FormSelectGroupRoleProps) {
               </Grid>
             )}
           />
-        </Grid>
+        </Grid>{' '}
+        {errors.groupRoleId && (
+          <Typography color="error" variant="body2" sx={{ mt: 1 }}>
+            {errors.groupRoleId.message}
+          </Typography>
+        )}
       </Grid>
     </Grid>
   );
