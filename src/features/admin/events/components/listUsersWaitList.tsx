@@ -8,6 +8,7 @@ import {
   Tabs,
   Tooltip,
   Typography,
+  useMediaQuery,
   useTheme,
 } from '@mui/material';
 import { formatCPF, formatDate } from '../../../../utils';
@@ -88,6 +89,7 @@ function ListUsersWaitList({
   );
   const [panel, setPanel] = useState<string>('1');
   const theme = useTheme();
+  const md = useMediaQuery(theme.breakpoints.up('md'));
 
   const styles = {
     card: {
@@ -119,7 +121,7 @@ function ListUsersWaitList({
       },
     },
   };
-   const { mutate: mutateMoveUserFromEvent } = usePutMoveUserFromEvent({
+  const { mutate: mutateMoveUserFromEvent } = usePutMoveUserFromEvent({
     onSuccess: () => {
       Swal.fire({
         title: 'Inscrito!',
@@ -227,7 +229,7 @@ function ListUsersWaitList({
       renderCell: (params) => (
         <Stack direction="column" gap={1} sx={{ p: 0.5 }}>
           {Array.isArray(params.value) &&
-            params.value.map((group: any) => (
+            params.value.map((group: any) =>
               group.roles.map((role: any) => (
                 <Typography
                   key={role.id}
@@ -236,8 +238,7 @@ function ListUsersWaitList({
                   {group.name} - {role.description}
                 </Typography>
               ))
-            ))}
-           
+            )}
         </Stack>
       ),
     },
@@ -286,8 +287,6 @@ function ListUsersWaitList({
     });
   };
 
- 
-
   const filteredByGroup = (usersData: User[]) => {
     if (!panel || groupsRules.length === 0) return usersData;
     return usersData.filter((user) => {
@@ -313,7 +312,9 @@ function ListUsersWaitList({
       {Array.isArray(groupsRules) && groupsRules.length > 0 && (
         <Stack sx={[styles.card, { p: 0.5, height: '50px' }]}>
           <Tabs
-            variant="fullWidth"
+            variant={md ? 'fullWidth' : 'scrollable'}
+            scrollButtons={md ? false : 'auto'}
+            allowScrollButtonsMobile
             value={panel}
             sx={styles.tabs}
             onChange={(_, newValue) => setPanel(newValue)}

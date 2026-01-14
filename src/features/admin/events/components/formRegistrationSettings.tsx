@@ -37,7 +37,7 @@ function FormRegistrationSettings() {
     formState: { errors },
   } = useFormContext<RegistrationSettingsFormType>();
   const theme = useTheme();
-  const selectGroupRoles = useWatch({
+  const groupRoles = useWatch({
     control,
     name: 'groupRoles',
   });
@@ -45,18 +45,27 @@ function FormRegistrationSettings() {
   const [selectGroupRolesExtended, setSelectGroupRolesExtended] = useState<
     GroupRoleExtended[]
   >(
-    selectGroupRoles?.map((groupRole) => ({
+    groupRoles?.map((groupRole) => ({
       ...groupRole,
       expanded: true,
     }))
   );
+  // useEffect(() => {
+  //   // Sync extended state with form state
+  //   const syncedGroupRoles = selectGroupRolesExtended.map(
+  //     ({ expanded, ...groupRole }) => groupRole
+  //   );
+  //   setValue('groupRoles', syncedGroupRoles);
+  // }, [selectGroupRolesExtended, setValue]);
+
   useEffect(() => {
-    // Sync extended state with form state
-    const syncedGroupRoles = selectGroupRolesExtended.map(
-      ({ expanded, ...groupRole }) => groupRole
-    );
-    setValue('groupRoles', syncedGroupRoles);
-  }, [selectGroupRolesExtended, setValue]);
+    // Sync form state with extended state
+    const extendedGroupRoles = groupRoles?.map((groupRole) => ({
+      ...groupRole,
+      expanded: true,
+    }));
+    setSelectGroupRolesExtended(extendedGroupRoles || []);
+  }, [groupRoles]);
 
   const handleRemoveGroupRole = (index: number) => {
     Swal.fire({
@@ -73,6 +82,7 @@ function FormRegistrationSettings() {
         const updatedGroupRoles = [...selectGroupRolesExtended];
         updatedGroupRoles.splice(index, 1);
         setSelectGroupRolesExtended(updatedGroupRoles);
+
         // Swal.fire(
         //   'Removido!',
         //   'O grupo de inscrições foi removido.',
@@ -115,6 +125,7 @@ function FormRegistrationSettings() {
               roles: [],
               expanded: true,
             });
+
             setSelectGroupRolesExtended(updatedGroupRoles);
           }}
         >
@@ -128,9 +139,9 @@ function FormRegistrationSettings() {
               return registered && registered > 0;
             });
             return (
-              <Grid item xs={12} md={12} key={index}>
+              <Grid item xs={12} md={12}>
                 <Box
-                  key={index}
+                  key={index + 'groupRole'}
                   sx={{
                     padding: 2,
                     gap: 2,
@@ -201,7 +212,7 @@ function FormRegistrationSettings() {
                       flexDirection: { xs: 'column', sm: 'row' },
                     }}
                   >
-                    <Grid item xs={12} md={10} key={index}>
+                    <Grid item xs={12} md={10}>
                       <Controller
                         control={control}
                         name={`groupRoles.${index}.name`}
@@ -222,7 +233,7 @@ function FormRegistrationSettings() {
                         )}
                       />
                     </Grid>
-                    <Grid item xs={12} md={2} key={index}>
+                    <Grid item xs={12} md={2}>
                       <Controller
                         control={control}
                         name={`groupRoles.${index}.capacity`}
@@ -265,6 +276,7 @@ function FormRegistrationSettings() {
                             ...selectGroupRolesExtended,
                           ];
                           updatedGroupRoles[index].expanded = false;
+
                           setSelectGroupRolesExtended(updatedGroupRoles);
                         }}
                         icon={<KeyboardArrowUp />}
@@ -289,6 +301,7 @@ function FormRegistrationSettings() {
                             ...selectGroupRolesExtended,
                           ];
                           updatedGroupRoles[index].expanded = true;
+
                           setSelectGroupRolesExtended(updatedGroupRoles);
                         }}
                         icon={<KeyboardArrowDown />}
@@ -297,7 +310,7 @@ function FormRegistrationSettings() {
                     </Divider>
                     // </Divider>
                   )}{' '}
-                  <Grid item xs={12} md={12} key={index}>
+                  <Grid item xs={12} md={12}>
                     <Grid container spacing={2}>
                       {expanded &&
                         roles?.map(({ description }, roleIndex) => (
@@ -312,7 +325,7 @@ function FormRegistrationSettings() {
                                 flexDirection: { xs: 'column', md: 'row' },
                               }}
                             >
-                              <Grid item xs={12} md={10} key={index}>
+                              <Grid item xs={12} md={10}>
                                 <Controller
                                   control={control}
                                   name={`groupRoles.${index}.roles.${roleIndex}.description`}
@@ -340,7 +353,7 @@ function FormRegistrationSettings() {
                                   )}
                                 />{' '}
                               </Grid>
-                              <Grid item xs={12} md={1.7} key={index}>
+                              <Grid item xs={12} md={1.7}>
                                 <Controller
                                   control={control}
                                   name={`groupRoles.${index}.roles.${roleIndex}.price`}
@@ -373,7 +386,7 @@ function FormRegistrationSettings() {
                                   )}
                                 />
                               </Grid>
-                              <Grid item xs={12} md={0.2} key={index}>
+                              <Grid item xs={12} md={0.2}>
                                 <Box
                                   sx={{
                                     display: 'flex',
@@ -392,6 +405,7 @@ function FormRegistrationSettings() {
                                           roleIndex,
                                           1
                                         );
+
                                         setSelectGroupRolesExtended(
                                           updatedGroupRoles
                                         );
@@ -427,6 +441,7 @@ function FormRegistrationSettings() {
                               price: null,
                               description: '',
                             });
+
                             setSelectGroupRolesExtended(updatedGroupRoles);
                           }}
                           sx={{
@@ -448,7 +463,7 @@ function FormRegistrationSettings() {
                             // ),
                             padding: '6px 12px',
                             // backgroundColor: alpha(theme.palette.primary.main, 0.1),
-                            color: '#fff',
+
                             '&:hover': {
                               backgroundColor: alpha(
                                 theme.palette.text.primary,

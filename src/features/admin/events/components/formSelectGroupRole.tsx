@@ -75,7 +75,7 @@ function FormSelectGroupRole({ event, groups }: FormSelectGroupRoleProps) {
                       }}
                       sx={{
                         position: 'relative',
-                        p: 2,
+                        padding: {xs:"25px 20px", md:"15px 15px"},
                         mt: 2,
                         borderRadius: 2,
                         border: isSelected
@@ -126,15 +126,18 @@ function FormSelectGroupRole({ event, groups }: FormSelectGroupRoleProps) {
                       {(registeredInGroup || registeredInGroupWaitList) && (
                         <Box
                           sx={{
-                            fontSize: '17px',
+                            fontSize: '15px',
                             flexGrow: 1,
                             position: 'absolute',
+                            backgroundColor: theme.palette.background.paper,
+                            padding: '0.5px 5px',
                             right: 10,
-                            top: 10,
+                            top: 0,
                             color: registeredInGroup
                               ? theme.palette.success.main
                               : theme.palette.warning.main,
                             fontWeight: 500,
+                           
                           }}
                         >
                           {`Inscrição Realizada! ${
