@@ -1,4 +1,5 @@
 import {
+  Alert,
   alpha,
   Box,
   Checkbox,
@@ -132,7 +133,7 @@ function FormSelectRole({ groupRoles }: FormSelectRoleProps) {
                                 sx={{ p: 0.5 }}
                                 value={role.id}
                                 checked={isSelected || false}
-                                onChange={handleToggle}
+                                // onChange={handleToggle}
                                 inputProps={{ 'aria-label': role.description }}
                               />
                               <Box sx={{ ml: 2 }}>
@@ -156,9 +157,18 @@ function FormSelectRole({ groupRoles }: FormSelectRoleProps) {
           })}{' '}
         </Grid>{' '}
         {errors.roleId && (
-          <Typography color="error" variant="body2" sx={{ mt: 2 }}>
-            {errors.roleId.message}
-          </Typography>
+          <Alert
+            severity="error"
+            sx={{
+              mt: 2,
+              backgroundColor: alpha(theme.palette.error.main, 0.1),
+            }}
+            variant="outlined"
+          >
+            <Typography color="error" variant="body2">
+              {errors.roleId.message}
+            </Typography>
+          </Alert>
         )}
       </Grid>
     </Grid>

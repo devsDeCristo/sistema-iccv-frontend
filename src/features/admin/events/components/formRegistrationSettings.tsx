@@ -33,7 +33,7 @@ interface GroupRoleExtended extends GroupRole {
 function FormRegistrationSettings() {
   const {
     control,
-    setValue,
+    // setValue,
     formState: { errors },
   } = useFormContext<RegistrationSettingsFormType>();
   const theme = useTheme();
