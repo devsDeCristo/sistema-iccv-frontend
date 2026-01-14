@@ -359,7 +359,7 @@ function Edit() {
                   sx={{ marginTop: 2, width: '120px' }}
                   onClick={handleClose}
                 >
-                  {currentStep === PANELS.length ? 'Cancelar' : 'Voltar'}
+                  Cancelar
                 </Button>
                 <Button
                   variant="contained"

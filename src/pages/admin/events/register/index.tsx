@@ -289,7 +289,7 @@ function Register() {
                 sx={{ marginTop: 2, width: '120px' }}
                 onClick={currentStep === 1 ? handleClose : handleBack}
               >
-                cancelar
+                {currentStep === STEPS.length ? 'Cancelar' : 'Voltar'}
               </Button>
               <Button
                 variant="contained"
