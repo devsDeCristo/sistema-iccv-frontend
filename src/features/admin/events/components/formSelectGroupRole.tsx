@@ -1,4 +1,5 @@
 import {
+  Alert,
   alpha,
   Box,
   Checkbox,
@@ -34,13 +35,9 @@ function FormSelectGroupRole({ event, groups }: FormSelectGroupRoleProps) {
       </Grid>
       <Grid item xs={12} md={12}>
         <Grid container spacing={2}>
-          {/* <Typography variant="body1" gutterBottom>
-            Selecione qual(is) ingresso(s) deseja comprar:
-          </Typography> */}
           <Controller
             name="groupRoleId"
             control={control}
-            rules={{ required: 'Selecione o tipo de evento' }}
             render={({ field }) => (
               <Grid item xs={12} md={12}>
                 {event?.groupRoles?.map((group) => {
@@ -60,26 +57,27 @@ function FormSelectGroupRole({ event, groups }: FormSelectGroupRoleProps) {
                   const isSelected = field?.value
                     ? field.value.includes(group.id)
                     : false;
+                  const handleToggle = () => {
+                    if (disabled) return;
+                    if (isSelected) {
+                      field.onChange(
+                        field.value.filter((id) => id !== group.id)
+                      );
+                    } else {
+                      if (field.value) {
+                        field.onChange([...field.value, group.id]);
+                      } else {
+                        field.onChange([group.id]);
+                      }
+                    }
+                  };
                   return (
                     <Box
                       key={group.id}
-                      onClick={() => {
-                        if (disabled) return;
-                        if (isSelected) {
-                          field.onChange(
-                            field.value.filter((id) => id !== group.id)
-                          );
-                        } else {
-                          if (field.value) {
-                            field.onChange([...field.value, group.id]);
-                          } else {
-                            field.onChange([group.id]);
-                          }
-                        }
-                      }}
+                      onClick={handleToggle}
                       sx={{
                         position: 'relative',
-                        padding: {xs:"25px 20px", md:"15px 15px"},
+                        padding: { xs: '25px 20px', md: '15px 15px' },
                         mt: 2,
                         borderRadius: 2,
                         border: isSelected
@@ -112,18 +110,8 @@ function FormSelectGroupRole({ event, groups }: FormSelectGroupRoleProps) {
                         value={group.id}
                         disabled={disabled}
                         checked={isSelected}
-                        onChange={() => field.onChange(group.id)}
                         inputProps={{ 'aria-label': group.name }}
                       />
-                      {errors.groupRoleId && (
-                        <Typography
-                          color="error"
-                          variant="body2"
-                          sx={{ ml: 2 }}
-                        >
-                          {errors.groupRoleId.message}
-                        </Typography>
-                      )}{' '}
                       <Box
                         sx={{
                           ml: 2,
@@ -150,7 +138,13 @@ function FormSelectGroupRole({ event, groups }: FormSelectGroupRoleProps) {
                               ? theme.palette.success.main
                               : theme.palette.warning.main,
                             fontWeight: 500,
-                           
+                            background: alpha(
+                              registeredInGroup
+                                ? theme.palette.success.main
+                                : theme.palette.warning.main,
+                              0.1
+                            ),
+                            borderRadius: '0px 0px 5px 5px',
                           }}
                         >
                           {`Inscrição Realizada! ${
@@ -181,7 +175,21 @@ function FormSelectGroupRole({ event, groups }: FormSelectGroupRoleProps) {
               </Grid>
             )}
           />
-        </Grid>
+        </Grid>{' '}
+        {errors.groupRoleId && (
+          <Alert
+            severity="error"
+            sx={{
+              mt: 2,
+              backgroundColor: alpha(theme.palette.error.main, 0.1),
+            }}
+            variant="outlined"
+          >
+            <Typography color="error" variant="body2">
+              {errors.groupRoleId.message}
+            </Typography>
+          </Alert>
+        )}
       </Grid>
     </Grid>
   );

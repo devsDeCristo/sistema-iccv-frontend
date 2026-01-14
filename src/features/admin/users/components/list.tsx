@@ -62,6 +62,8 @@ const renderCellWithCopy = (value: string | number) => {
           alignItems: 'center',
           gap: 1,
           cursor: 'copy',
+          wordBreak: 'break-word',
+          whiteSpace: 'normal',
         }}
         onClick={handleCopy}
       >
@@ -192,15 +194,15 @@ function List({ search }: { search: string }) {
     {
       field: 'events',
       headerName: 'Eventos',
-      // minWidth: 500,
+      minWidth: 300,
       flex: 4,
       renderCell: (params) => {
         return (
-          <>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
             {(params.row.events || []).map((event: any) => (
               <Button
                 onClick={() => onClickEvent(event.event.id)}
-                sx={{ borderRadius: 5 }}
+                sx={{ borderRadius: 5, p: 0, minWidth: 'auto' }}
               >
                 <CustomChip
                   customColor={theme.palette.chips.default}
@@ -210,7 +212,7 @@ function List({ search }: { search: string }) {
                 />
               </Button>
             ))}
-          </>
+          </Box>
         );
       },
     },

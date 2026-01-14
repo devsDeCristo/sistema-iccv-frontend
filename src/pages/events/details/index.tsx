@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   Box,
@@ -17,6 +17,7 @@ import GoogleMap from '../../../components/mapWord';
 
 import { useGetEvents } from '../../../features/admin/events/api/getEvents';
 import { EventDetails } from '../../../features/admin/events/types';
+import CapaLogin from '../../../assets/capaLogin2.jpg';
 
 function EventsDetails() {
   const { id = '' } = useParams();
@@ -24,7 +25,18 @@ function EventsDetails() {
   const navigate = useNavigate();
   const { data: eventData } = useGetEvents({ eventId: id }, { enabled: !!id });
   const event = eventData as EventDetails;
-
+  const scrollToTop = () => {
+    const outlet = document.getElementById('layout-scroll');
+    if (outlet) {
+      outlet.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+      return;
+    }
+    const target = document.scrollingElement || document.documentElement;
+    target.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+  };
+  useEffect(() => {
+    scrollToTop();
+  }, []);
   const styles = useMemo(
     () => ({
       title: {
@@ -84,7 +96,7 @@ function EventsDetails() {
         left: '50%',
         transform: 'translate(-50%, -50%)',
         height: 130,
-       
+
         p: '6px',
         borderRadius: 2,
       },
@@ -131,17 +143,20 @@ function EventsDetails() {
 
       {/* Banner */}
       <Stack sx={styles.bannerContainer}>
+        {/* {event?.data?.coverUrl && ( */}
         <img
-          src={event?.data?.coverUrl}
+          src={event?.data?.coverUrl || CapaLogin}
           alt="Banner do Evento"
           style={styles.bannerImage as any}
         />
-
-        <img
-          src={event?.data?.logoUrl}
-          alt="Logo do Evento"
-          style={styles.bannerLogo as any}
-        />
+        {/* )} */}
+        {event?.data?.logoUrl && (
+          <img
+            src={event?.data?.logoUrl}
+            alt="Logo do Evento"
+            style={styles.bannerLogo as any}
+          />
+        )}
       </Stack>
 
       <Stack sx={styles.stackContainer}>
@@ -171,7 +186,12 @@ function EventsDetails() {
             <Typography sx={styles.subtitle}>
               {`Local: ${event?.data?.localName} - ${event?.data?.address}, ${event?.data?.neighborhood}, ${event?.data?.city} - ${event?.data?.state}, ${event?.data?.zipCode}`}
             </Typography>
-            <GoogleMap linkMap={event?.data?.linkMaps as string} width="100%" />
+            {event?.data?.linkMaps && (
+              <GoogleMap
+                linkMap={event?.data?.linkMaps as string}
+                width="100%"
+              />
+            )}
           </Paper>
         </Stack>
 
@@ -216,7 +236,7 @@ function EventsDetails() {
             <Button
               variant="contained"
               fullWidth
-              sx={styles.button}
+              sx={{ ...styles.button, textTransform: 'none' }}
               onClick={() => {
                 navigate(`/eventos/${event.id}/inscricao`);
               }}

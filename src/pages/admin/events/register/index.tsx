@@ -27,7 +27,7 @@ import { usePostCreateEvent } from '../../../../features/admin/events/api/postEv
 import { useNavigate } from 'react-router-dom';
 import { StepProgress } from '../../../../components/step';
 import React, { useEffect, useState } from 'react';
-import { ArrowForward, Check } from '@mui/icons-material';
+import { ArrowBack, ArrowForward, Check } from '@mui/icons-material';
 import { FormRegistrationSettings } from '../../../../features/admin/events/components/formRegistrationSettings';
 import { FormDateAndLocal } from '../../../../features/admin/events/components/formDateAndLocal';
 import { SelectCategoryEvent } from '../../../../features/admin/events/components/selectCategoryEvent';
@@ -286,10 +286,11 @@ function Register() {
             >
               <Button
                 variant="outlined"
+                startIcon={currentStep === 1 ? '' : <ArrowBack />}
                 sx={{ marginTop: 2, width: '120px' }}
                 onClick={currentStep === 1 ? handleClose : handleBack}
               >
-                {currentStep === STEPS.length ? 'Cancelar' : 'Voltar'}
+                {currentStep === 1 ? 'Cancelar' : 'Voltar'}
               </Button>
               <Button
                 variant="contained"

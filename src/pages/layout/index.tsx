@@ -23,21 +23,23 @@ export const Layout = ({ isAdmin }: { isAdmin: boolean }) => {
 
   useEffect(() => {
     if (loaderData) {
-     setUser(loaderData);
+      setUser(loaderData);
     }
   }, [loaderData, setUser]);
 
   return (
     <Stack sx={{ width: '100%', direction: 'column' }}>
-     
-        <MenuAppBar setOpenDrawer={setOpenDrawer} openDrawer={openDrawer}   />
-        <Stack direction={'row'}>
-          <SideBar openDrawer={openDrawer} setOpenDrawer={setOpenDrawer} isAdmin={isAdmin} />
-          <Box sx={styles.boxOutlet}>
-            <Outlet />
-          </Box>
-        </Stack>
-     
+      <MenuAppBar setOpenDrawer={setOpenDrawer} openDrawer={openDrawer} />
+      <Stack direction={'row'}>
+        <SideBar
+          openDrawer={openDrawer}
+          setOpenDrawer={setOpenDrawer}
+          isAdmin={isAdmin}
+        />
+        <Box sx={styles.boxOutlet} id="layout-scroll">
+          <Outlet />
+        </Box>
+      </Stack>
     </Stack>
   );
 };
