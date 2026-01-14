@@ -15,6 +15,7 @@ import { RoutesEvents } from '../pages/events/routes';
 import { authLoaderAdmin } from '../auth/functions/authLoaderAdmin';
 import { Layout } from '../pages/layout';
 import { UserProvider } from '../contexts/userContext';
+import { RoutesMyRegisters } from '../pages/myRegisters/routers';
 
 const routers = (): ReturnType<typeof createBrowserRouter> => {
   return createBrowserRouter(
@@ -51,6 +52,7 @@ const routers = (): ReturnType<typeof createBrowserRouter> => {
         >
           {RoutesUsers()}
           {RoutesEvents()}
+          {RoutesMyRegisters()}
         </Route>
       </Route>
     )

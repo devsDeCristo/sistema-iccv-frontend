@@ -105,6 +105,7 @@ function EventsDetails() {
       },
       button: {
         mt: 2,
+        textTransform: 'none',
       },
     }),
     [theme]

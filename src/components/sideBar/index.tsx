@@ -1,5 +1,5 @@
 import { Sidebar, Menu, MenuItem, sidebarClasses } from 'react-pro-sidebar';
-import { People, Event, Logout } from '@mui/icons-material';
+import { People, Event, Logout, ConfirmationNumber } from '@mui/icons-material';
 import { Link, NavLink } from 'react-router-dom';
 import {
   Box,
@@ -48,6 +48,12 @@ const SideBar: React.FC<SideBarProps> = ({
           link: '/eventos',
           icon: <Event />,
           title: 'Eventos Abertos',
+        },
+        {
+          itemId: '2',
+          link: '/minhasInscricoes',
+          icon: <ConfirmationNumber />,
+          title: 'Minhas Inscrições',
         },
       ];
   const styles = {

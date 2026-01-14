@@ -1,0 +1,49 @@
+export const mockEvents = [
+  {
+    id: 1,
+    title: "Adventure Gear Show",
+    category: "Outdoor & Adventure",
+    date: "June 5, 2029",
+    time: "3:00 PM",
+    location: "Rocky Ridge Exhibition Hall, Denver, CO",
+    image: "https://images.unsplash.com/photo-1616004667892-d348f7349d50?auto=format&fit=crop&w=800&q=80",
+    progress: 65,
+    price: 40,
+  },
+  {
+    id: 2,
+    title: "Symphony Under the Stars",
+    category: "Music",
+    date: "Apr 20, 2029",
+    time: "7:00 PM",
+    location: "Sunset Park, Los Angeles, CA",
+    image: "https://images.unsplash.com/photo-1508057198894-247b23fe5ade?auto=format&fit=crop&w=800&q=80",
+    progress: 75,
+    price: 50,
+  },
+  {
+    id: 3,
+    title: "Tech Innovators Expo",
+    category: "Technology",
+    date: "Aug 15, 2029",
+    time: "10:00 AM",
+    location: "Silicon Valley Convention Center, CA",
+    image: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=800&q=80",
+    progress: 90,
+    price: 100,
+  },
+  {
+    id: 4,
+    title: "Gourmet Food Festival",
+    category: "Food & Drink",
+    date: "Sep 10, 2029",
+    time: "12:00 PM",
+    location: "Central Park, New York, NY",
+    image: "https://images.unsplash.com/photo-1556911220-e15b29be8c2c?auto=format&fit=crop&w=800&q=80",
+    progress: 55,
+    price: 25,
+  },
+];
+
+
+export const GET_PAYMENTS_USER = 'GET_PAYMENTS_USER';
