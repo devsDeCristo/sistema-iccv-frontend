@@ -39,13 +39,31 @@ export const GENERAL_INFO_SCHEMA = z.object({
     .string({
       required_error: DEFAULT_MESSAGE,
     })
+    .max(200, {
+      message: 'Máximo de 200 caracteres',
+    })
     .refine((val) => val.trim().length > 0, {
       message: DEFAULT_MESSAGE,
     }),
-  shortDescription: z.string().optional(),
-  description: z.string().optional(),
+  shortDescription: z
+    .string()
+    .max(100, {
+      message: 'Máximo de 100 caracteres',
+    })
+    .optional(),
+  description: z
+    .string()
+    .max(4000, {
+      message: 'Máximo de 500 caracteres',
+    })
+    .optional(),
   // eventType: z.string().optional(),
-  groupLink: z.string().optional(),
+  groupLink: z
+    .string()
+    .max(255, {
+      message: 'Máximo de 200 caracteres',
+    })
+    .optional(),
   isActive: z.boolean().optional(),
 });
 export const CATEGORY_EVENT_SCHEMA = z.object({
@@ -197,11 +215,15 @@ export const STEPS_SUB = [
 ];
 export const GROUP_ROLE_CURSILHO: GroupRole[] = [
   {
-    name: 'Ingresso',
+    name: 'Cursilhista',
+    capacity: 100,
+    roles: [{ price: 220, description: 'Paricipar a primeira vez' }],
+  },
+  {
+    name: 'Cursilheiro(a)',
     capacity: 100,
     roles: [
-      { price: 20, description: 'Cursilhisto(a)' },
-      { price: 20, description: 'Cursilheiro(a)' },
+      { price: 220, description: 'Já fez cursilho e vai trabalhar no evento' },
     ],
   },
 ];

@@ -130,10 +130,11 @@ function EventCard({ event }: { event: Event }) {
       <CardContent sx={styles.cardContent}>
         <Stack>
           <Typography sx={styles.title}>{event.name}</Typography>
-          <Typography sx={styles.description}>
-            O Cursilho da Cristandade é um encontro intensivo para aprofundar a
-            fé e fortalecer o compromisso cristão na vida diária.
-          </Typography>
+          {event?.data?.shortDescription && (
+            <Typography sx={styles.description}>
+              {event.data?.shortDescription}
+            </Typography>
+          )}
         </Stack>
 
         <Stack gap={1}>

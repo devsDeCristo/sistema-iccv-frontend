@@ -26,6 +26,7 @@ function FormGeneralInfo() {
             <Input
               size="small"
               value={value}
+              inputProps={{ maxLength: 100 }}
               onChange={onChange}
               required
               label="Nome do evento"
@@ -61,8 +62,10 @@ function FormGeneralInfo() {
               size="small"
               value={value}
               onChange={onChange}
+              inputProps={{ maxLength: 100 }}
               // required
               label="Descrição curta"
+              helperText={`${value?.length || 0}/100 caracteres`}
               error={!!errors.shortDescription}
               errorMessage={errors.shortDescription?.message}
             />
@@ -78,9 +81,11 @@ function FormGeneralInfo() {
               size="small"
               value={value}
               onChange={onChange}
+              inputProps={{ maxLength: 4000 }}
               // required
               multiline
-              rows={4}
+              rows={9}
+              helperText={`${value?.length || 0}/4000 caracteres`}
               label="Descrição Detalhada"
               error={!!errors.description}
               errorMessage={errors.description?.message}
@@ -110,6 +115,7 @@ function FormGeneralInfo() {
             <Input
               size="small"
               value={value}
+              inputProps={{ maxLength: 200 }}
               onChange={onChange}
               label="Link do grupo de whatsapp"
               error={!!errors.groupLink}

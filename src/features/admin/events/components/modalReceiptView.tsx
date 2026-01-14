@@ -27,9 +27,9 @@ export function ReceiptPreviewModal({
     const link = document.createElement('a');
     link.href = imageUrl;
     link.download = 'comprovante.png'; // nome sugerido
-    document.body.appendChild(link);
+    document?.body?.appendChild(link);
     link.click();
-    document.body.removeChild(link);
+    document?.body?.removeChild(link);
   };
 
   return (
