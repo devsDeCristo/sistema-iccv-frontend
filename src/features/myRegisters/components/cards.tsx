@@ -35,9 +35,9 @@ function EventCard({ payment }: { payment: paymentsWithRoles & { data: PaymentDa
 
   function handleOpenModal(paymentData: paymentsWithRoles & { data: PaymentData }) {
     const dataArray=[...paymentData.registeredRoles,...paymentData.waitlistRoles].map((role:any)=>{
-    
+      
       return {
-        
+        method: role.paymentMethod||'',
         roleId: role.roleId,
         tipo: paymentData.registeredRoles.includes(role) ? 'REGISTERED' : 'WAITLIST',
         status: role.paymentStatus||'WAITING',
@@ -121,7 +121,7 @@ function EventCard({ payment }: { payment: paymentsWithRoles & { data: PaymentDa
       borderRadius: 2,
     },
   };
-  const fullPaid = !(payment?.registeredRoles.some((role) => role.paymentStatus === 'WAITING'));
+  const fullPaid = (payment?.registeredRoles.every((role) => role.paymentStatus === 'PAID'));
 
   return (<>
     <Paper sx={styles.card}>
@@ -177,7 +177,7 @@ function EventCard({ payment }: { payment: paymentsWithRoles & { data: PaymentDa
         <Stack sx={styles.stackButton} direction="row" justifyContent="space-between" gap={1}>
           <Button
           fullWidth
-            variant="contained"
+            variant="outlined"
             
             size="small"
 
@@ -194,7 +194,7 @@ function EventCard({ payment }: { payment: paymentsWithRoles & { data: PaymentDa
 
             onClick={() => handleOpenModal(payment)}
           >
-            Detalhes
+            Pagamentos
           </Button>
         </Stack>
       </CardContent>
@@ -205,6 +205,7 @@ function EventCard({ payment }: { payment: paymentsWithRoles & { data: PaymentDa
         payments={dataModal}
         eventId={payment.eventId}
         userId={JSON.parse(localStorage.getItem('user') || '{}').id}
+
       /> </>
 
 
