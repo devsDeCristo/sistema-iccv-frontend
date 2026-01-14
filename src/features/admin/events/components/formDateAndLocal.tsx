@@ -184,11 +184,13 @@ function FormDateAndLocal({ isActive = false }: FormDateAndLocalProps) {
               render={({ field: { onChange, value } }) => (
                 <Input
                   size="small"
+                  spellCheck
                   label="Endereço"
                   value={value}
                   onChange={onChange}
                   error={!!errors.address}
                   errorMessage={errors.address?.message}
+                  InputLabelProps={{ shrink: Boolean(value) }}
                 />
               )}
             />
@@ -205,6 +207,7 @@ function FormDateAndLocal({ isActive = false }: FormDateAndLocalProps) {
                   onChange={onChange}
                   error={!!errors.city}
                   errorMessage={errors.city?.message}
+                  InputLabelProps={{ shrink: Boolean(value) }}
                 />
               )}
             />
@@ -221,6 +224,7 @@ function FormDateAndLocal({ isActive = false }: FormDateAndLocalProps) {
                   onChange={onChange}
                   error={!!errors.neighborhood}
                   errorMessage={errors.neighborhood?.message}
+                  InputLabelProps={{ shrink: Boolean(value) }}
                 />
               )}
             />
@@ -237,6 +241,7 @@ function FormDateAndLocal({ isActive = false }: FormDateAndLocalProps) {
                   onChange={onChange}
                   error={!!errors.number}
                   errorMessage={errors.number?.message}
+                  InputLabelProps={{ shrink: Boolean(value) }}
                 />
               )}
             />
