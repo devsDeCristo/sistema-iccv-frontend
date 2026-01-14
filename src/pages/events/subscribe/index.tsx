@@ -212,7 +212,8 @@ function Subscribe() {
         left: 0,
         right: 0,
         bottom: 0,
-        backgroundColor: alpha(theme.palette.background.default, 0.7),
+        backdropFilter: 'blur(4px)',
+        backgroundColor: alpha(theme.palette.background.default, 0.8),
       }}
     >
       <Typography variant="h6" gutterBottom>

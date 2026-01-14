@@ -53,8 +53,6 @@ function EventCard({ payment }: { payment: paymentsWithRoles & { data: PaymentDa
     setDataModal(null);
   }
  
-
-
   const styles = {
       bannerLogo: {
         position: 'absolute',
