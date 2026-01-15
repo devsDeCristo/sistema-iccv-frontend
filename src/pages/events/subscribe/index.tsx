@@ -67,7 +67,7 @@ function Subscribe() {
   const methodsSelectRole = useForm<SelectRoleFormType>({
     resolver: zodResolver(ROLE_SELECT_SCHEMA),
     defaultValues: {
-      roleId: [],
+      groupRole: [],
     },
   });
 
@@ -164,8 +164,13 @@ function Subscribe() {
     });
 
   const selectRoleSubmit = (data: SelectRoleFormType) => {
-    if (event && event.id && data.roleId) {
-      mutateRegisterUserInEvent({ eventId: event.id, userId, data });
+    if (event && event.id && data.groupRole) {
+      const roleIds = data.groupRole.flatMap((gr) => gr.roleIds);
+      mutateRegisterUserInEvent({
+        eventId: event.id,
+        userId,
+        data: { roleId: roleIds },
+      });
     }
   };
   const stepMethods = [

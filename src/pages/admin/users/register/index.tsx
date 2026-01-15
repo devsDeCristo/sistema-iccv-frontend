@@ -3,7 +3,7 @@ import { Header } from '../../../../components/header';
 import { useForm, FormProvider } from 'react-hook-form';
 import { PageStyle } from '../../../../components/pageStyle';
 import { Form } from '../../../../features/admin/users/components/form';
-import { Button } from '@mui/material';
+import { Button, Paper } from '@mui/material';
 import { usePermission } from '../../../../hooks/usePermission';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -97,19 +97,21 @@ function RegisterUser() {
   return (
     <PageStyle>
       <Header title="Novo Usuário" buttonBack={permission} />
-      <FormProvider {...methods}>
-        <form onSubmit={methods.handleSubmit(onSubmitForm)}>
-          <Form />
-          <Button
-            variant="contained"
-            fullWidth
-            sx={{ marginTop: 2 }}
-            type="submit"
-          >
-            Cadastrar
-          </Button>
-        </form>
-      </FormProvider>
+      <Paper sx={{ padding: 3 }}>
+        <FormProvider {...methods}>
+          <form onSubmit={methods.handleSubmit(onSubmitForm)}>
+            <Form />
+            <Button
+              variant="contained"
+              fullWidth
+              sx={{ marginTop: 2 }}
+              type="submit"
+            >
+              Cadastrar
+            </Button>
+          </form>
+        </FormProvider>
+      </Paper>
     </PageStyle>
   );
 }

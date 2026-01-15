@@ -7,12 +7,15 @@ import {
   Radio,
   Stack,
   useTheme,
-  Tooltip,
   Skeleton,
   alpha,
 } from '@mui/material';
 import { Controller, useForm } from 'react-hook-form';
-import { methodPaymentOptions, PAYMENT_STATUS_COLOR, statusPaymentOptions } from '../../admin/events/constants';
+import {
+  methodPaymentOptions,
+  PAYMENT_STATUS_COLOR,
+  statusPaymentOptions,
+} from '../../admin/events/constants';
 import { usePostCreateCheckoutEvent } from '../../admin/events/api/postCreateCheckoutEvent';
 import { useState } from 'react';
 import CustomChip from '../../../components/customChip';
@@ -52,7 +55,6 @@ export function ModalPayment({
     onSuccess: (data: any) => {
       const link = data.link;
       window.location.href = link;
-
     },
     onError: () => {
       setLoading(false);
@@ -61,7 +63,11 @@ export function ModalPayment({
 
   const onSubmit = (data: any) => {
     setLoading(true);
-    mutateCreateCheckoutEvent({ data: { roleId: data.selectedRoleIds }, eventId: eventId, userId: userId });
+    mutateCreateCheckoutEvent({
+      data: { roleId: data.selectedRoleIds },
+      eventId: eventId,
+      userId: userId,
+    });
   };
 
   const Loading = () => (
@@ -122,10 +128,11 @@ export function ModalPayment({
               render={({ field }) => (
                 <Stack spacing={1.5}>
                   {payments?.map((item) => {
-                 
                     const isPaid =
-                      item.status === 'PAID' || item.status=='IN_ANALYSIS' || item.tipo === 'WAITLIST' || (item.status === 'WAITING' && item.method!=='OTHER');
-                    
+                      item.status === 'PAID' ||
+                      item.status == 'IN_ANALYSIS' ||
+                      item.tipo === 'WAITLIST' ||
+                      (item.status === 'WAITING' && item.method !== 'OTHER');
 
                     const selected = field.value.includes(item.roleId);
 
@@ -178,7 +185,6 @@ export function ModalPayment({
 
                           <Stack direction="row" spacing={1} mt={1}>
                             <CustomChip
-                              
                               label={
                                 item.tipo === 'REGISTERED'
                                   ? 'Inscrito'
@@ -191,37 +197,33 @@ export function ModalPayment({
                               }
                             />
                             <CustomChip
-                             
                               label={
                                 statusPaymentOptions.find(
                                   (option) => option.value === item.status
                                 )?.label || item.status
                               }
-                              customColor={PAYMENT_STATUS_COLOR(item.status as any, theme)}
+                              customColor={PAYMENT_STATUS_COLOR(
+                                item.status as any,
+                                theme
+                              )}
                             />
-                            {item.method!='OTHER' && (
-                            <CustomChip
-                              
-                              label={
-                                methodPaymentOptions.find(
-                                  (option) => option.value === item.method
-                              )?.label || "Pagamento Automatico"
-                              }
-                              customColor={theme.palette.info.main}
-                            />)}
+                            {item.method != 'OTHER' && (
+                              <CustomChip
+                                label={
+                                  methodPaymentOptions.find(
+                                    (option) => option.value === item.method
+                                  )?.label || 'Pagamento Automatico'
+                                }
+                                customColor={theme.palette.info.main}
+                              />
+                            )}
                           </Stack>
                         </Box>
                       </Box>
                     );
 
                     return isPaid ? (
-                      <Tooltip
-                        key={item.roleId}
-                        title="Pagamento Indisponível"
-                        placement="top"
-                      >
-                        <Box>{Card}</Box>
-                      </Tooltip>
+                      <Box>{Card}</Box>
                     ) : (
                       <Box key={item.roleId}>{Card}</Box>
                     );
@@ -232,7 +234,11 @@ export function ModalPayment({
 
             <Stack direction="row" justifyContent="flex-end" spacing={1} mt={3}>
               <Button onClick={handleClose}>Cancelar</Button>
-              <Button disabled={!selectedRoleIds || selectedRoleIds.length === 0} variant="contained" onClick={handleSubmit(onSubmit)}>
+              <Button
+                disabled={!selectedRoleIds || selectedRoleIds.length === 0}
+                variant="contained"
+                onClick={handleSubmit(onSubmit)}
+              >
                 Realizar Pagamento
               </Button>
             </Stack>

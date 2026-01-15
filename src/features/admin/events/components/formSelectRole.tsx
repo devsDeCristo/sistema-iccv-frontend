@@ -25,7 +25,12 @@ function FormSelectRole({ groupRoles }: FormSelectRoleProps) {
   useEffect(() => {
     // Reset roleId when groupRoles change
     // setValue('roleId', []);
-    reset({ roleId: [] });
+    reset({
+      groupRole: groupRoles.map((gr) => ({
+        groupRoleId: gr.id,
+        roleIds: [],
+      })),
+    });
   }, [groupRoles, setValue]);
   if (!groupRoles) return <></>;
 
@@ -62,7 +67,7 @@ function FormSelectRole({ groupRoles }: FormSelectRoleProps) {
                   </Typography>
                   <Divider sx={{ mb: 1 }} />
                   <Controller
-                    name="roleId"
+                    name={`groupRole.${groupRoles.indexOf(groupRole)}.roleIds`}
                     control={control}
                     rules={{ required: 'Selecione ao menos uma opção' }}
                     render={({ field }) => (
@@ -146,30 +151,41 @@ function FormSelectRole({ groupRoles }: FormSelectRoleProps) {
                               </Box>
                             </Box>
                           );
-                        })}
+                        })}{' '}
+                        {errors?.groupRole &&
+                          Array.isArray(errors?.groupRole) &&
+                          errors?.groupRole?.some(
+                            (g) => !!g?.roleIds?.message
+                          ) && (
+                            <Alert
+                              severity="error"
+                              sx={{
+                                mt: 2,
+                                backgroundColor: alpha(
+                                  theme.palette.error.main,
+                                  0.1
+                                ),
+                              }}
+                              variant="outlined"
+                            >
+                              <Typography color="error" variant="body2">
+                                {Array.isArray(errors?.groupRole)
+                                  ? errors?.groupRole?.find(
+                                      (g) => !!g?.roleIds?.message
+                                    )?.roleIds?.message
+                                  : undefined}
+                              </Typography>
+                            </Alert>
+                          )}
                       </Grid>
                     )}
                   />
-                </Grid>
+                </Grid>{' '}
                 {/* <Divider sx={{ mt: 3, mb: 3 }} /> */}
               </>
             );
           })}{' '}
         </Grid>{' '}
-        {errors.roleId && (
-          <Alert
-            severity="error"
-            sx={{
-              mt: 2,
-              backgroundColor: alpha(theme.palette.error.main, 0.1),
-            }}
-            variant="outlined"
-          >
-            <Typography color="error" variant="body2">
-              {errors.roleId.message}
-            </Typography>
-          </Alert>
-        )}
       </Grid>
     </Grid>
   );

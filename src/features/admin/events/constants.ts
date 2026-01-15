@@ -29,9 +29,14 @@ export const GROUP_ROLE_SELECT_SCHEMA = z.object({
   }),
 });
 export const ROLE_SELECT_SCHEMA = z.object({
-  roleId: z.array(z.string()).min(1, {
-    message: 'Selecione ao menos uma opção',
-  }),
+  groupRole:z.array(z.object({
+    groupRoleId: z.string({
+      required_error: DEFAULT_MESSAGE,
+    }),
+    roleIds: z.array(z.string()).min(1, {
+      message: 'Selecione ao menos uma opção',
+    }),
+  })),
 });
 
 export const GENERAL_INFO_SCHEMA = z.object({

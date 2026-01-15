@@ -258,8 +258,8 @@ function List({ search }: { search: string }) {
       width: 60,
       //flex: 1,
       renderCell: (params: GridCellParams) => {
-        const user = JSON.parse(localStorage.getItem('user') || '{}') as User;
-        const disabledButton = user ? params.row.id === user.id : false;
+        // const user = JSON.parse(localStorage.getItem('user') || '{}') as User;
+        // const disabledButton = user ? params.row.id === user.id : false;
 
         return (
           <Box key={params.id}>
@@ -268,7 +268,7 @@ function List({ search }: { search: string }) {
               id="basic-button"
               onClick={(event) => handleClickOptions(event, params)}
             >
-              <IconButton size="small" disabled={disabledButton}>
+              <IconButton size="small">
                 <MoreVert color="inherit" />
               </IconButton>
             </Tooltip>

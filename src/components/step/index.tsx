@@ -157,17 +157,19 @@ export const StepProgress: React.FC<StepProgressProps> = ({
                     borderRadius: '50%',
                     border: '2px solid',
                     borderColor:
-                      isActive || isCompleted ? '#28166F' : '#E0E0E0',
+                      isActive || isCompleted
+                        ? theme.palette.primary.main
+                        : '#E0E0E0',
                     backgroundColor: isActive
-                      ? '#28166F'
+                      ? theme.palette.primary.main
                       : isCompleted
-                      ? 'rgba(40, 22, 111, 0.1)'
+                      ? alpha(theme.palette.primary.main, 0.2)
                       : 'transparent',
                     color: isActive
                       ? '#FFFFFF'
                       : isCompleted
-                      ? '#28166F'
-                      : '#727272',
+                      ? theme.palette.primary.main
+                      : theme.palette.text.primary,
                     transition: 'all 0.3s',
                   }}
                 >
@@ -185,10 +187,10 @@ export const StepProgress: React.FC<StepProgressProps> = ({
                       whiteSpace: 'nowrap',
                       textOverflow: 'ellipsis',
                       color: isActive
-                        ? '#28166F'
+                        ? theme.palette.primary.main
                         : isCompleted
-                        ? 'rgba(40, 22, 111, 0.8)'
-                        : '#727272',
+                        ? theme.palette.primary.main
+                        : theme.palette.text.primary,
                     }}
                   >
                     {step.label}
@@ -200,7 +202,9 @@ export const StepProgress: React.FC<StepProgressProps> = ({
                       width: '100%',
                       height: '2px',
                       backgroundColor:
-                        currentStep > step.id ? '#28166F' : '#E0E0E0',
+                        currentStep > step.id
+                          ? theme.palette.primary.main
+                          : '#E0E0E0',
                     }}
                   />
                 )}
