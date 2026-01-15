@@ -160,10 +160,19 @@ function FormLogoAndCover() {
             ref={fileInputRefLogo}
             hidden
             type="file"
-            accept="image/svg+xml"
+            accept="image/*"
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
               const file = e.target.files?.[0] || null;
-              // handleLogoChange(file);
+              
+              if((file?.size||0) > 2 * 1024 * 1024){
+                setError('eventLogo', {
+                  type: 'manual',
+                  message: 'O tamanho do arquivo excede o limite de 2MB.',
+                });
+                toast.error('O tamanho do arquivo não deve exceder o limite de 2MB.');
+                return;
+              }
+
               onChange(file ? [file] : null);
             }}
             // error={!!errors.eventCover}
@@ -271,10 +280,21 @@ function FormLogoAndCover() {
               color: theme.palette.text.secondary,
             }}
           >
-            SVG; PNG; JPG (limite: 5MB)
+            SVG; PNG; JPG (limite: 2MB)
           </Typography>
         </Box>
+        
       )}
+      {errors.eventLogo && (
+        <Grid item xs={12}>
+          <Typography color="error" variant="caption">
+            {typeof errors.eventLogo?.message === 'string'
+              ? errors.eventLogo.message
+              : ''}
+          </Typography>
+        </Grid>
+      )}
+
       <Grid item xs={12} md={12}>
         <Typography variant="h6" fontSize={18}>
           Capa
@@ -291,6 +311,14 @@ function FormLogoAndCover() {
             accept="image/*"
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
               const file = e.target.files?.[0] || null;
+              if((file?.size||0) > 2 * 1024 * 1024){
+                setError('eventCover', {
+                  type: 'manual',
+                  message: 'O tamanho do arquivo excede o limite de 2MB.',
+                });
+                toast.error('O tamanho do arquivo não deve exceder o limite de 2MB.');
+                return;
+              }
               // handleLogoChange(file);
               onChange(file ? [file] : null);
             }}
@@ -399,7 +427,7 @@ function FormLogoAndCover() {
               color: theme.palette.text.secondary,
             }}
           >
-            SVG; PNG; JPG (limite: 5MB)
+            SVG; PNG; JPG (limite: 2MB)
           </Typography>
         </Box>
       )}
@@ -412,15 +440,7 @@ function FormLogoAndCover() {
           </Typography>
         </Grid>
       )}
-      {errors.eventLogo && (
-        <Grid item xs={12}>
-          <Typography color="error" variant="caption">
-            {typeof errors.eventLogo?.message === 'string'
-              ? errors.eventLogo.message
-              : ''}
-          </Typography>
-        </Grid>
-      )}
+      
     </Grid>
   );
 }
