@@ -265,7 +265,7 @@ function Subscribe() {
                   sx={{ marginTop: 2, width: '120px' }}
                   onClick={currentStep === 1 ? handleClose : handleBack}
                 >
-                  cancelar
+                  {currentStep === 1 ? 'Cancelar' : 'Voltar'}
                 </Button>
                 <Button
                   variant="contained"
