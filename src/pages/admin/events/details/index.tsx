@@ -650,7 +650,7 @@ function Details() {
                 variant="contained"
                 onClick={() => setOpenModalTeam(true)}
               >
-                Adicionar time
+                Adicionar Equipe
               </Button>
             </Stack>
           </Paper>
