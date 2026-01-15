@@ -112,7 +112,7 @@ export function ModalPayment({
               bgcolor: 'background.paper',
               p: 3,
               borderRadius: 2,
-              width: '100%',
+              width: '90%',
               maxWidth: 520,
               maxHeight: '80vh',
               overflowY: 'auto',
@@ -121,6 +121,8 @@ export function ModalPayment({
             <Typography fontSize={18} fontWeight={600} mb={1}>
               Selecione os pagamentos
             </Typography>
+
+            <Box sx={{overflowY: 'auto', maxHeight: '55vh', mt: 2 }}>
 
             <Controller
               name="selectedRoleIds"
@@ -196,6 +198,7 @@ export function ModalPayment({
                                   : theme.palette.warning.main
                               }
                             />
+                            {item.tipo !== 'WAITLIST' && (
                             <CustomChip
                               label={
                                 statusPaymentOptions.find(
@@ -206,13 +209,13 @@ export function ModalPayment({
                                 item.status as any,
                                 theme
                               )}
-                            />
-                            {item.method != 'OTHER' && (
+                            />)}
+                            {item.method != 'OTHER' && item.tipo !== 'WAITLIST' && (
                               <CustomChip
                                 label={
                                   methodPaymentOptions.find(
                                     (option) => option.value === item.method
-                                  )?.label || 'Pagamento Automatico'
+                                  )?.label || ''
                                 }
                                 customColor={theme.palette.info.main}
                               />
@@ -231,7 +234,7 @@ export function ModalPayment({
                 </Stack>
               )}
             />
-
+</Box>
             <Stack direction="row" justifyContent="flex-end" spacing={1} mt={3}>
               <Button onClick={handleClose}>Cancelar</Button>
               <Button
