@@ -1,6 +1,5 @@
 import {
   Paper,
-  CardContent,
   Typography,
   Box,
   Stack,
@@ -17,7 +16,7 @@ import dayjs from 'dayjs';
 import CalendarMonthOutlinedIcon from '@mui/icons-material/CalendarMonthOutlined';
 import RoomOutlinedIcon from '@mui/icons-material/RoomOutlined';
 import { Event } from '../../admin/events/types';
-import { Person, Work } from '@mui/icons-material';
+import { Person } from '@mui/icons-material';
 import CapaLogin from '../../../assets/capaLogin2.jpg';
 
 function EventCard({ event }: { event: Event }) {
@@ -90,6 +89,7 @@ function EventCard({ event }: { event: Event }) {
       height: '100px',
       overflow: 'hidden',
       textOverflow: 'ellipsis',
+      textAlign: 'justify',
     },
     icon: { color: theme.palette.text.secondary, fontSize: '20px' },
     infoText: { fontSize: '0.875rem' },
