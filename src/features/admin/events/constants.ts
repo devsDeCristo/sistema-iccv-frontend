@@ -116,6 +116,7 @@ export const REGISTRATION_SETTINGS_SCHEMA = z.object({
         value =>!!value
       ),
           registered: z.number().optional(),
+          waitlisted: z.number().optional(),
         })
       ),
     })

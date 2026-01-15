@@ -105,8 +105,9 @@ function FormRegistrationSettings() {
       <Grid item xs={12} md={12}>
         <Grid container spacing={2}>
           {groupRoles.map(({ roles }, index) => {
-            const disabledGroup = roles.some(({ registered }) => {
-              return registered && registered > 0;
+       
+            const disabledGroup = roles.some(({ registered, waitlisted }) => {
+              return (registered && registered > 0) || (waitlisted && waitlisted > 0);
             });
 
             const expanded =
@@ -233,7 +234,7 @@ function FormRegistrationSettings() {
                             type="text"
                             size="small"
                             placeholder="Ex: 200"
-                            disabled={disabledGroup}
+                           //isabled={disabledGroup}
                             value={value ?? ''}
                             onChange={(e) => {
                               const sanitized = sanitizeInteger(e.target.value);

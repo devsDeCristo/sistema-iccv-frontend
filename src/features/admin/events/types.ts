@@ -95,6 +95,7 @@ export interface GroupRole {
     price: number;
     description: string;
     registered?: number;
+    waitlisted?: number;
   }[];
 }
 

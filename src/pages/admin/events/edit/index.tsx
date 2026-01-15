@@ -90,6 +90,7 @@ function Edit() {
           price: role.price || 0,
           description: role.description,
           registered: role.registered || 0,
+          waitlisted: role.waitlisted || 0,
         })),
       })) || [],
   });
