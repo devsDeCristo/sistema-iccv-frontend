@@ -1,4 +1,5 @@
 import {
+  Alert,
   alpha,
   Box,
   Button,
@@ -104,9 +105,10 @@ function FormRegistrationSettings() {
       <Grid item xs={12} md={12}>
         <Grid container spacing={2}>
           {groupRoles.map(({ roles }, index) => {
-            const disabled = roles.some(({ registered }) => {
+            const disabledGroup = roles.some(({ registered }) => {
               return registered && registered > 0;
             });
+
             const expanded =
               groupsExpanded?.find(
                 (group: any) => Object.keys(group)[0] === index.toString()
@@ -129,7 +131,7 @@ function FormRegistrationSettings() {
                     alignItems="center"
                     justifyContent="space-between"
                     // width={'100%'}
-                    sx={{ mb: disabled ? 0 : 2 }}
+                    sx={{ mb: disabledGroup ? 0 : 2 }}
                   >
                     <Typography
                       variant="subtitle1"
@@ -164,7 +166,7 @@ function FormRegistrationSettings() {
                       <IconButton
                         sx={{
                           '&:hover': { color: theme.palette.error.main },
-                          display: disabled ? 'none' : 'flex',
+                          display: disabledGroup ? 'none' : 'flex',
                         }}
                         onClick={() => handleRemoveGroupRole(index)}
                       >
@@ -172,11 +174,23 @@ function FormRegistrationSettings() {
                       </IconButton>
                     </Tooltip>
                   </Stack>
-                  {disabled && (
-                    <Typography variant="body2" sx={{ mb: 2 }}>
+                  {disabledGroup && (
+                    <Alert
+                      severity="warning"
+                      variant="outlined"
+                      sx={{
+                        mb: 2,
+                        background: alpha(theme.palette.warning.main, 0.1),
+                      }}
+                    >
+                      {' '}
                       Esse grupo possui inscrições já realizadas, portanto não
-                      pode ser editado ou removido.
-                    </Typography>
+                      pode ser removido.
+                    </Alert>
+                    // <Typography variant="body2" sx={{ mb: 2 }} color="warning">
+                    //   Esse grupo possui inscrições já realizadas, portanto não
+                    //   pode ser removido.
+                    // </Typography>
                   )}
                   <Box
                     sx={{
@@ -194,7 +208,7 @@ function FormRegistrationSettings() {
                             size="small"
                             value={value}
                             placeholder="Ex: Meia entrada"
-                            disabled={disabled}
+                            // disabled={disabled}
                             onChange={onChange}
                             // onChange={(event) => onChange(onlyNumber(event.target.value))}
                             required
@@ -219,7 +233,7 @@ function FormRegistrationSettings() {
                             type="text"
                             size="small"
                             placeholder="Ex: 200"
-                            disabled={disabled}
+                            disabled={disabledGroup}
                             value={value ?? ''}
                             onChange={(e) => {
                               const sanitized = sanitizeInteger(e.target.value);
@@ -331,7 +345,7 @@ function FormRegistrationSettings() {
                   <Grid item xs={12} md={12}>
                     <Grid container spacing={2}>
                       {expanded &&
-                        roles?.map((_role, roleIndex) => (
+                        roles?.map(({ registered }, roleIndex) => (
                           <Grid item xs={12} md={12}>
                             <Box
                               key={roleIndex}
@@ -352,7 +366,7 @@ function FormRegistrationSettings() {
                                       size="small"
                                       required
                                       placeholder="Ex: Idade entre 2 e 10 anos"
-                                      disabled={disabled}
+                                      // disabled={!!registered}
                                       sx={{ width: '100%' }}
                                       value={value}
                                       onChange={onChange}
@@ -382,7 +396,7 @@ function FormRegistrationSettings() {
                                     <Input
                                       size="small"
                                       required
-                                      disabled={disabled}
+                                      // disabled={!!registered}
                                       value={value ?? ''}
                                       placeholder="Ex: 100"
                                       type="number"
@@ -427,9 +441,9 @@ function FormRegistrationSettings() {
                                     alignItems: 'center',
                                   }}
                                 >
-                                  <Tooltip title="Remover Regra">
+                                  <Tooltip title={'Remover Regra'}>
                                     <IconButton
-                                      disabled={disabled}
+                                      disabled={!!registered}
                                       onClick={() => {
                                         const updatedGroupRoles = [
                                           ...groupRoles,
@@ -502,10 +516,10 @@ function FormRegistrationSettings() {
                               ),
                             },
                             border: 'none',
-                            ...(disabled && {
-                              pointerEvents: 'none',
-                              opacity: 0.6,
-                            }),
+                            // ...(!!registered && {
+                            //   pointerEvents: 'none',
+                            //   opacity: 0.6,
+                            // }),
                           }}
                         >
                           <span

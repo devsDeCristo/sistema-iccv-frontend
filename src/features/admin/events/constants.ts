@@ -105,12 +105,16 @@ export const REGISTRATION_SETTINGS_SCHEMA = z.object({
   groupRoles: z.array(
     z.object({
       // id: z.string(),
-      name: z.string({ required_error: DEFAULT_MESSAGE }),
+      name: z.string({ required_error: DEFAULT_MESSAGE }).refine(
+        value =>!!value
+      ),
       capacity: z.number({ required_error: DEFAULT_MESSAGE }),
       roles: z.array(
         z.object({
           price: z.number({ required_error: DEFAULT_MESSAGE }),
-          description: z.string({ required_error: DEFAULT_MESSAGE }),
+          description: z.string({ required_error: DEFAULT_MESSAGE }).refine(
+        value =>!!value
+      ),
           registered: z.number().optional(),
         })
       ),
