@@ -312,7 +312,7 @@ function FormDateAndLocal({ isActive = false }: FormDateAndLocalProps) {
                   borderColor: alpha(theme.palette.text.secondary, 0.2),
                   backgroundColor: alpha(theme.palette.text.secondary, 0.05),
                   borderRadius: 1.5,
-                  height: 200,
+                  height: { xs: 300, md: 200 },
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
