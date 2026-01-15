@@ -69,7 +69,7 @@ export const myTheme = (colorMode: boolean) =>
       border: colorMode ? '#495C67' : '#D0D0D0',
       chips: {
         default: colorMode ? '#ffffffff' : '#1b263b',
-        pending: colorMode ? '#28363F' : '#F0F1F4',
+        pending: colorMode ? '#a81ff7ff' : '#8217c0ff',
         canceled: colorMode ? '#ff1100ff' : '#fc182eff',
         success: colorMode ? '#51e956ff' : '#59945bff',
         info: colorMode ? '#2491ffff' : '#0080ffff',
