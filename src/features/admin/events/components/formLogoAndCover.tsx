@@ -19,10 +19,12 @@ import { Close, Upload } from '@mui/icons-material';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
 
+
 function FormLogoAndCover() {
   const {
     control,
     setError,
+    clearErrors,
     setValue,
     formState: { errors },
   } = useFormContext<EventLogoFormType>();
@@ -172,6 +174,8 @@ function FormLogoAndCover() {
                 });
                 toast.error('O tamanho do arquivo não deve exceder o limite de 2MB.');
                 return;
+              }else{
+                clearErrors('eventLogo');
               }
 
               onChange(file ? [file] : null);
@@ -320,6 +324,8 @@ function FormLogoAndCover() {
                 });
                 toast.error('O tamanho do arquivo não deve exceder o limite de 2MB.');
                 return;
+              }else{
+                clearErrors('eventCover');
               }
               // handleLogoChange(file);
               onChange(file ? [file] : null);
