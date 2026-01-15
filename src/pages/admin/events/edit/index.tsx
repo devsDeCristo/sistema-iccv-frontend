@@ -213,7 +213,7 @@ function Edit() {
           registrationSettingsData.groupRoles.map(
             ({ roles, ...groupRole }) => ({
               ...groupRole,
-              roles: roles.map(({ registered, ...role }) => ({
+              roles: roles.map(({ registered, waitlisted, ...role }) => ({
                 ...role,
               })),
             })

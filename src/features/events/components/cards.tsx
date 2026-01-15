@@ -86,7 +86,7 @@ function EventCard({ event }: { event: Event }) {
     description: {
       fontSize: '0.875rem',
       color: 'text.secondary',
-      height: '100px',
+      height: '60px',
       overflow: 'hidden',
       textOverflow: 'ellipsis',
       textAlign: 'justify',
@@ -143,7 +143,7 @@ function EventCard({ event }: { event: Event }) {
           gap={1}
         >
           <Typography sx={styles.title}>{event.name}</Typography>
-          <Divider sx={{ width: '100%', mt: 1 }} />
+          <Divider sx={{ width: '100%' }} />
           {event?.data?.shortDescription && (
             <Typography sx={styles.description}>
               {event.data?.shortDescription}
@@ -163,7 +163,7 @@ function EventCard({ event }: { event: Event }) {
             <Stack direction="row" alignItems="center" gap={1}>
               <RoomOutlinedIcon sx={styles.icon} />
               <Typography sx={styles.infoText} color="text.secondary">
-                Chácara Moriásdds
+                Chácara Moriá
               </Typography>
             </Stack>
 
