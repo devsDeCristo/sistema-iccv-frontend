@@ -21,6 +21,7 @@ import { paymentsWithRoles } from '../types';
 import { useGetPayments } from '../api/getPaymentByUser';
 import { ModalPayment } from './modalPayment';
 import React from 'react';
+import CapaLogin from '../../../assets/capaLogin2.jpg';
 
 interface PaymentData {
   coverUrl: string;
@@ -130,17 +131,19 @@ function EventCard({ payment }: { payment: paymentsWithRoles & { data: PaymentDa
           component="img"
           height="120"
           image={
-            payment?.data['coverUrl']
+            payment?.data['coverUrl'] || CapaLogin
           }
           alt={payment?.data?.name}
           sx={styles.cardMedia}
         />
-        <img
-          src={payment?.data?.logoUrl}
-          alt="Logo do Evento"
-          style={styles.bannerLogo as any}
-        />
-  
+        
+      {payment?.data?.logoUrl && (
+          <img
+            src={payment?.data?.logoUrl}
+            alt="Logo do Evento"
+            style={styles.bannerLogo as any}
+          />
+        )}
 
       </Box>
 
