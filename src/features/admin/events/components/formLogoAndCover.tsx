@@ -1,4 +1,5 @@
 import {
+  Alert,
   alpha,
   Box,
   Grid,
@@ -287,11 +288,12 @@ function FormLogoAndCover() {
       )}
       {errors.eventLogo && (
         <Grid item xs={12}>
-          <Typography color="error" variant="caption">
+          <Alert severity="error" variant='outlined' sx={{ mt: 1, backgroundColor: alpha(theme.palette.error.main, 0.1) }}>
             {typeof errors.eventLogo?.message === 'string'
               ? errors.eventLogo.message
               : ''}
-          </Typography>
+          </Alert>
+          
         </Grid>
       )}
 
@@ -433,11 +435,12 @@ function FormLogoAndCover() {
       )}
       {errors.eventCover && (
         <Grid item xs={12}>
-          <Typography color="error" variant="caption">
+          <Alert severity="error" variant='outlined' sx={{ mt: 1, backgroundColor: alpha(theme.palette.error.main, 0.1) }}>
             {typeof errors.eventCover?.message === 'string'
               ? errors.eventCover.message
               : ''}
-          </Typography>
+          </Alert>
+         
         </Grid>
       )}
       
