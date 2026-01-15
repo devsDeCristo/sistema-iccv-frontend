@@ -7,6 +7,7 @@ import {
   Grid,
   Paper,
   Stack,
+  Tooltip,
   Typography,
   useTheme,
 } from '@mui/material';
@@ -49,6 +50,11 @@ function EventsDetails() {
         color: theme.palette.text.secondary,
         mt: '-0.7rem',
         mb: '0.7rem',
+        maxWidth: '100%',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        
+        
       },
       text: {
         fontSize: '0.9rem',
@@ -183,9 +189,11 @@ function EventsDetails() {
 
           <Paper sx={styles.paper}>
             <Typography sx={styles.title}>Localização</Typography>
+            <Tooltip title={`Local: ${event?.data?.localName} - ${event?.data?.address}, ${event?.data?.neighborhood}, ${event?.data?.city} - ${event?.data?.state}, ${event?.data?.zipCode}`} arrow placement='right-end' >
             <Typography sx={styles.subtitle}>
               {`Local: ${event?.data?.localName} - ${event?.data?.address}, ${event?.data?.neighborhood}, ${event?.data?.city} - ${event?.data?.state}, ${event?.data?.zipCode}`}
             </Typography>
+            </Tooltip>
             {event?.data?.linkMaps && (
               <GoogleMap
                 linkMap={event?.data?.linkMaps as string}
