@@ -88,15 +88,16 @@ export interface Team {
 export interface GroupRole {
   id?: string;
   name: string;
-  capacity: number | null;
+  capacity: number;
   // expanded: boolean;
   roles: {
     id?: string;
-    price: number | null;
+    price: number;
     description: string;
     registered?: number;
   }[];
 }
+
 export interface EventDataJson {
   description?: string;
   shortDescription?: string;
