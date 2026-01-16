@@ -43,7 +43,7 @@ function EventsDetails() {
       event.groupRoles.some((eventGroup) => eventGroup.id === group.id)
     );
   }, [event, groups]);
-  console.log(event)
+
 
   const scrollToTop = () => {
     const outlet = document.getElementById('layout-scroll');
