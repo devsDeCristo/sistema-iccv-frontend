@@ -146,7 +146,7 @@ function List({ search }: { search: string }) {
       field: 'contato',
       headerName: 'Contato',
       flex: 1,
-      minWidth: 220,
+      minWidth: 250,
       renderCell: (params) => {
         return (
           <Box
