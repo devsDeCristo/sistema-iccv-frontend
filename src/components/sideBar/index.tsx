@@ -10,6 +10,7 @@ import {
   useTheme,
 } from '@mui/material';
 import Logo from '../../assets/logo-ic.svg?react';
+import { MODULE_PAYMENT } from '../../config/env';
 
 type SideBarProps = {
   validRole?: Boolean | null;
@@ -43,19 +44,23 @@ const SideBar: React.FC<SideBarProps> = ({
         },
       ]
     : [
-        {
-          itemId: '1',
-          link: '/eventos',
-          icon: <Event />,
-          title: 'Eventos Abertos',
-        },
-        {
-          itemId: '2',
-          link: '/minhasInscricoes',
-          icon: <ConfirmationNumber />,
-          title: 'Minhas Inscrições',
-        },
-      ];
+      {
+        itemId: '1',
+        link: '/eventos',
+        icon: <Event />,
+        title: 'Eventos Abertos',
+      },
+      ...(MODULE_PAYMENT=='true'
+        ? [
+            {
+              itemId: '2',
+              link: '/minhasInscricoes',
+              icon: <ConfirmationNumber />,
+              title: 'Minhas Inscrições',
+            },
+          ]
+        : []),
+    ];
   const styles = {
     boxContainer: {
       display: 'flex',
