@@ -90,6 +90,7 @@ function Edit() {
           price: role.price || 0,
           description: role.description,
           registered: role.registered || 0,
+          waitlisted: role.waitlisted || 0,
         })),
       })) || [],
   });
@@ -151,7 +152,7 @@ function Edit() {
       '& .MuiTab-icon': { marginRight: '2px' },
 
       '& button.Mui-selected': {
-        backgroundColor: theme.palette.background.paperSecondary,
+        backgroundColor: theme.palette.background.hover,
       },
       '& .MuiTabs-indicator': {
         backgroundColor: 'transparent',
@@ -212,7 +213,7 @@ function Edit() {
           registrationSettingsData.groupRoles.map(
             ({ roles, ...groupRole }) => ({
               ...groupRole,
-              roles: roles.map(({ registered, ...role }) => ({
+              roles: roles.map(({ registered, waitlisted, ...role }) => ({
                 ...role,
               })),
             })
@@ -317,7 +318,9 @@ function Edit() {
         >
           <Stack>
             <Tabs
-              variant="fullWidth"
+              variant="scrollable"
+              scrollButtons="auto"
+              allowScrollButtonsMobile
               value={currentStep}
               sx={styles.tabs}
               onChange={(_, newValue) => {

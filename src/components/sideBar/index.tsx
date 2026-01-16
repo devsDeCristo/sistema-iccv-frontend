@@ -11,6 +11,7 @@ import {
 } from '@mui/material';
 import Logo from '../../assets/logo-ic.svg?react';
 
+
 type SideBarProps = {
   validRole?: Boolean | null;
   isAdmin?: Boolean;
@@ -25,6 +26,7 @@ const SideBar: React.FC<SideBarProps> = ({
   setOpenDrawer,
 }) => {
   const theme = useTheme();
+  const admin = JSON.parse(localStorage.getItem('user') || '{}')?.role==1;
   // const image =
   // ('https://www.holiness.org.br/wp-content/uploads/2021/04/cruz.jpg');
   const optionsPages = isAdmin
@@ -43,19 +45,23 @@ const SideBar: React.FC<SideBarProps> = ({
         },
       ]
     : [
-        {
-          itemId: '1',
-          link: '/eventos',
-          icon: <Event />,
-          title: 'Eventos Abertos',
-        },
-        {
-          itemId: '2',
-          link: '/minhasInscricoes',
-          icon: <ConfirmationNumber />,
-          title: 'Minhas Inscrições',
-        },
-      ];
+      {
+        itemId: '1',
+        link: '/eventos',
+        icon: <Event />,
+        title: 'Eventos Abertos',
+      },
+      ...(admin
+        ? [
+            {
+              itemId: '2',
+              link: '/minhasInscricoes',
+              icon: <ConfirmationNumber />,
+              title: 'Minhas Inscrições',
+            },
+          ]
+        : []),
+    ];
   const styles = {
     boxContainer: {
       display: 'flex',

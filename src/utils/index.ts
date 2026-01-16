@@ -72,3 +72,34 @@ export const onlyNumber = (value: string): string => {
 export const formatState = (value: string): string => {
   return value.replace(/[^\p{L}]/gu, '').slice(0, 2);
 };
+
+
+export function sanitizePrice(input: string): number | null{
+  if (!input) return null
+
+  // normaliza vírgula para ponto
+  let v = input.replace(',', '');
+
+  // remove qualquer caractere que não seja dígito ou ponto (remove '-' e letras)
+  v = v.replace(/[^0-9.]/g, '');
+  
+  return Number(v);
+
+}
+
+export function sanitizeInteger(input: string): string {
+  if (input === null || input === undefined) return '';
+  const v = String(input).replace(/\D/g, '');
+  // remove zeros à esquerda (mas deixa '0' se for zero)
+  return v.replace(/^0+(?=\d)/, '');
+}
+
+export function formatBRNumber(value: number, decimals = 2): string {
+  if (value === null || value === undefined || Number.isNaN(value)) return '';
+  // se for inteiro, não força casas decimais
+  const hasDecimal = Math.round(value) !== value;
+  return new Intl.NumberFormat('pt-BR', {
+    minimumFractionDigits: hasDecimal ? Math.min(decimals, 2) : 0,
+    maximumFractionDigits: decimals,
+  }).format(value);
+}

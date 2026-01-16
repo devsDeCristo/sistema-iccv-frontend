@@ -147,7 +147,7 @@ function FormSelectGroupRole({ event, groups }: FormSelectGroupRoleProps) {
                             borderRadius: '0px 0px 5px 5px',
                           }}
                         >
-                          {`Inscrição Realizada! ${
+                          {`Inscrito! ${
                             registeredInGroupWaitList ? '(Lista de Espera)' : ''
                           }`}
                         </Box>

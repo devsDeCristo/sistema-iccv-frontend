@@ -7,6 +7,7 @@ import {
   Grid,
   Paper,
   Stack,
+  Tooltip,
   Typography,
   useTheme,
 } from '@mui/material';
@@ -16,15 +17,34 @@ import { PageStyle } from '../../../components/pageStyle';
 import GoogleMap from '../../../components/mapWord';
 
 import { useGetEvents } from '../../../features/admin/events/api/getEvents';
-import { EventDetails } from '../../../features/admin/events/types';
+import {
+  EventDetails,
+} from '../../../features/admin/events/types';
 import CapaLogin from '../../../assets/capaLogin2.jpg';
+import { ConfirmationNumber, WhatsApp } from '@mui/icons-material';
+import { useGetGroupsByUser } from '../../../features/admin/events/api/getGroupsByUser';
 
 function EventsDetails() {
   const { id = '' } = useParams();
   const theme = useTheme();
   const navigate = useNavigate();
+  const userId = JSON.parse(localStorage.getItem('user') || '{}')?.id || '';
+  const { data: groupsData } = useGetGroupsByUser(
+    { userId },
+    { enabled: !!userId }
+  );
+  const groups = groupsData?.present || [];
   const { data: eventData } = useGetEvents({ eventId: id }, { enabled: !!id });
   const event = eventData as EventDetails;
+  console.log('event', event, groups);
+  const registeredInEvent = useMemo(() => {
+    if (!event || groups.length === 0) return false;
+    return groups.some((group) =>
+      event.groupRoles.some((eventGroup) => eventGroup.id === group.id)
+    );
+  }, [event, groups]);
+
+
   const scrollToTop = () => {
     const outlet = document.getElementById('layout-scroll');
     if (outlet) {
@@ -49,6 +69,9 @@ function EventsDetails() {
         color: theme.palette.text.secondary,
         mt: '-0.7rem',
         mb: '0.7rem',
+        maxWidth: '100%',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
       },
       text: {
         fontSize: '0.9rem',
@@ -117,6 +140,7 @@ function EventsDetails() {
       },
       button: {
         mt: 2,
+        height: 40,
         textTransform: 'none',
       },
     }),
@@ -183,9 +207,15 @@ function EventsDetails() {
 
           <Paper sx={styles.paper}>
             <Typography sx={styles.title}>Localização</Typography>
-            <Typography sx={styles.subtitle}>
-              {`Local: ${event?.data?.localName} - ${event?.data?.address}, ${event?.data?.neighborhood}, ${event?.data?.city} - ${event?.data?.state}, ${event?.data?.zipCode}`}
-            </Typography>
+            <Tooltip
+              title={`Local: ${event?.data?.localName} - ${event?.data?.address}, ${event?.data?.neighborhood}, ${event?.data?.city} - ${event?.data?.state}, ${event?.data?.zipCode}`}
+              arrow
+              placement="right-end"
+            >
+              <Typography sx={styles.subtitle}>
+                {`Local: ${event?.data?.localName} - ${event?.data?.address}, ${event?.data?.neighborhood}, ${event?.data?.city} - ${event?.data?.state}, ${event?.data?.zipCode}`}
+              </Typography>
+            </Tooltip>
             {event?.data?.linkMaps && (
               <GoogleMap
                 linkMap={event?.data?.linkMaps as string}
@@ -202,7 +232,6 @@ function EventsDetails() {
             <Typography sx={styles.subtitle}>
               Informações sobre vagas disponíveis
             </Typography>
-
             <Box sx={styles.vacancyBox}>
               {event?.groupRoles?.map((group, index) => {
                 const vagas = getVagasRestantes(group);
@@ -232,10 +261,10 @@ function EventsDetails() {
                 );
               })}
             </Box>
-
             <Button
               variant="contained"
               fullWidth
+              startIcon={<ConfirmationNumber />}
               sx={{ ...styles.button, textTransform: 'none' }}
               onClick={() => {
                 navigate(`/eventos/${event.id}/inscricao`);
@@ -243,6 +272,26 @@ function EventsDetails() {
             >
               Inscreva-se
             </Button>
+            
+            {registeredInEvent && (
+            <Button
+              variant="contained"
+              fullWidth
+              startIcon={<WhatsApp />}
+              sx={{
+                ...styles.button,
+                textTransform: 'none',
+                color: 'white',
+                backgroundColor: '#25D366',
+                '&:hover': { backgroundColor: '#1ebe5d' },
+              }}
+             onClick={() => {window.open(event?.groupLink || '', '_blank');}}
+                
+            
+            >
+              Entre no Grupo do Evento!
+            </Button>
+            )}
           </Paper>
         </Stack>
       </Stack>

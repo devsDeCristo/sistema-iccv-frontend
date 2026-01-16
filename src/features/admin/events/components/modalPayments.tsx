@@ -18,6 +18,8 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Close, Upload } from '@mui/icons-material';
 import { methodPaymentOptions, statusPaymentOptions } from '../constants';
 import { usePutUpdatePayment } from '../api/putPayment';
+import { useGetDiscounts } from '../api/getDiscounts';
+import { discountsResponse } from '../../../../types/user';
 
 interface ModalPaymentProps {
   open: boolean;
@@ -30,6 +32,7 @@ const titleMap: Record<string, string> = {
   cpf: 'CPF',
   groupName: 'Nome do Grupo',
   id: 'ID do Pagamento',
+  fullName: 'Nome Completo',
   status: 'Status',
   method: 'Método de Pagamento',
   codeTransaction: 'Código da Transação',
@@ -56,6 +59,10 @@ export function ModalPayment({
       handleClose();
     },
   });
+  const {data=[]} = useGetDiscounts({
+    enabled: open,
+  });
+  const discounts = data as discountsResponse[];
 
   const preview = useMemo(() => {
     if (!receiptFile) return null;
@@ -65,7 +72,9 @@ export function ModalPayment({
   useEffect(() => {
     if (payment) {
       reset({
-        id: payment.id,
+        //id: payment.id,
+        name: payment.fullName,
+        discountsAppliedId: payment.discountsAppliedId,
         cpf: payment.cpf,
         amount: payment.amount,
         groupName: payment.groupName,
@@ -82,6 +91,7 @@ export function ModalPayment({
       data: {
         status: data.status,
         method: data.method,
+        discountsAppliedId: data.discountsAppliedId
       },
       id: payment.id,
       files: {
@@ -165,7 +175,7 @@ export function ModalPayment({
               mt={1}
               sx={{ overflowY: 'auto', maxHeight: '70vh', pr: 1 }}
             >
-              {['id', 'cpf', 'amount', 'groupName', 'codeTransaction'].map(
+              {[ 'codeTransaction','fullName', 'cpf', 'amount', 'groupName'].map(
                 (field) => {
                   const value =
                     field === 'amount'
@@ -179,7 +189,7 @@ export function ModalPayment({
                       item
                       xs={12}
                       md={
-                        field === 'groupName' || field === 'codeTransaction'
+                        field === 'codeTransaction'
                           ? 12
                           : 6
                       }
@@ -208,7 +218,7 @@ export function ModalPayment({
               )}
 
               {/* STATUS */}
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12} md={4}>
                 <Controller
                   name="status"
                   control={control}
@@ -234,7 +244,7 @@ export function ModalPayment({
               </Grid>
 
               {/* METHOD */}
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12} md={4}>
                 <Controller
                   name="method"
                   control={control}
@@ -251,6 +261,32 @@ export function ModalPayment({
                         {methodPaymentOptions.map((option) => (
                           <option key={option.value} value={option.value}>
                             {option.label}
+                          </option>
+                        ))}
+                      </TextField>
+                    </>
+                  )}
+                />
+              </Grid>
+              {/*Discount*/}
+              <Grid item xs={12} md={4}>
+                <Controller
+                  name="discountsAppliedId"
+                  control={control}
+                  render={({ field }) => (
+                    <>
+                      <Title title="Desconto Aplicado" />
+                      <TextField
+                        {...field}
+                        select
+                        SelectProps={{ native: true }}
+                        fullWidth
+                        size="small"
+                      >
+                        <option value="">Nenhum</option>
+                        {discounts.map((option) => (
+                          <option key={option.id} value={option.id}>
+                            {option.description}
                           </option>
                         ))}
                       </TextField>

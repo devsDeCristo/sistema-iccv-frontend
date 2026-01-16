@@ -1,4 +1,5 @@
 import {
+  Alert,
   alpha,
   Box,
   Button,
@@ -12,7 +13,7 @@ import {
   useTheme,
 } from '@mui/material';
 import { Input } from '../../../../components/input';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import {
   Add,
   Close,
@@ -20,20 +21,15 @@ import {
   KeyboardArrowDown,
   KeyboardArrowUp,
 } from '@mui/icons-material';
-import { GroupRole, RegistrationSettingsFormType } from '../types';
+import { RegistrationSettingsFormType } from '../types';
 import { Controller, useFormContext, useWatch } from 'react-hook-form';
 import Swal from 'sweetalert2';
-// interface FormRegistrationSettingsProps {
-//   eventTypeSelected?: EventType | undefined;
-// }
-interface GroupRoleExtended extends GroupRole {
-  expanded: boolean;
-}
+import { sanitizePrice, sanitizeInteger } from '../../../../utils';
 
 function FormRegistrationSettings() {
   const {
     control,
-    // setValue,
+    setValue,
     formState: { errors },
   } = useFormContext<RegistrationSettingsFormType>();
   const theme = useTheme();
@@ -41,31 +37,11 @@ function FormRegistrationSettings() {
     control,
     name: 'groupRoles',
   });
-
-  const [selectGroupRolesExtended, setSelectGroupRolesExtended] = useState<
-    GroupRoleExtended[]
-  >(
-    groupRoles?.map((groupRole) => ({
-      ...groupRole,
-      expanded: true,
+  const [groupsExpanded, setGroupsExpanded] = useState<any>(
+    groupRoles?.map((_v, index) => ({
+      [index]: true,
     }))
   );
-  // useEffect(() => {
-  //   // Sync extended state with form state
-  //   const syncedGroupRoles = selectGroupRolesExtended.map(
-  //     ({ expanded, ...groupRole }) => groupRole
-  //   );
-  //   setValue('groupRoles', syncedGroupRoles);
-  // }, [selectGroupRolesExtended, setValue]);
-
-  useEffect(() => {
-    // Sync form state with extended state
-    const extendedGroupRoles = groupRoles?.map((groupRole) => ({
-      ...groupRole,
-      expanded: true,
-    }));
-    setSelectGroupRolesExtended(extendedGroupRoles || []);
-  }, [groupRoles]);
 
   const handleRemoveGroupRole = (index: number) => {
     Swal.fire({
@@ -79,18 +55,13 @@ function FormRegistrationSettings() {
       cancelButtonText: 'Cancelar',
     }).then((result) => {
       if (result.isConfirmed) {
-        const updatedGroupRoles = [...selectGroupRolesExtended];
+        const updatedGroupRoles = [...groupRoles];
         updatedGroupRoles.splice(index, 1);
-        setSelectGroupRolesExtended(updatedGroupRoles);
-
-        // Swal.fire(
-        //   'Removido!',
-        //   'O grupo de inscrições foi removido.',
-        //   'success'
-        // );
+        setValue('groupRoles', updatedGroupRoles);
       }
     });
   };
+
   return (
     <Grid container spacing={2}>
       <Grid item xs={12} md={12}>
@@ -118,15 +89,14 @@ function FormRegistrationSettings() {
           endIcon={<Add />}
           variant="contained"
           onClick={() => {
-            const updatedGroupRoles = [...selectGroupRolesExtended];
+            const updatedGroupRoles = [...groupRoles] as any;
             updatedGroupRoles.push({
               name: '',
               capacity: null,
               roles: [],
-              expanded: true,
             });
 
-            setSelectGroupRolesExtended(updatedGroupRoles);
+            setValue('groupRoles', updatedGroupRoles);
           }}
         >
           Adicionar novo grupo
@@ -134,10 +104,16 @@ function FormRegistrationSettings() {
       </Grid>
       <Grid item xs={12} md={12}>
         <Grid container spacing={2}>
-          {selectGroupRolesExtended.map(({ roles, expanded }, index) => {
-            const disabled = roles.some(({ registered }) => {
-              return registered && registered > 0;
+          {groupRoles.map(({ roles }, index) => {
+       
+            const disabledGroup = roles.some(({ registered, waitlisted }) => {
+              return (registered && registered > 0) || (waitlisted && waitlisted > 0);
             });
+
+            const expanded =
+              groupsExpanded?.find(
+                (group: any) => Object.keys(group)[0] === index.toString()
+              )?.[index] ?? true;
             return (
               <Grid item xs={12} md={12}>
                 <Box
@@ -156,7 +132,7 @@ function FormRegistrationSettings() {
                     alignItems="center"
                     justifyContent="space-between"
                     // width={'100%'}
-                    sx={{ mb: disabled ? 0 : 2 }}
+                    sx={{ mb: disabledGroup ? 0 : 2 }}
                   >
                     <Typography
                       variant="subtitle1"
@@ -191,7 +167,7 @@ function FormRegistrationSettings() {
                       <IconButton
                         sx={{
                           '&:hover': { color: theme.palette.error.main },
-                          display: disabled ? 'none' : 'flex',
+                          display: disabledGroup ? 'none' : 'flex',
                         }}
                         onClick={() => handleRemoveGroupRole(index)}
                       >
@@ -199,11 +175,23 @@ function FormRegistrationSettings() {
                       </IconButton>
                     </Tooltip>
                   </Stack>
-                  {disabled && (
-                    <Typography variant="body2" sx={{ mb: 2 }}>
+                  {disabledGroup && (
+                    <Alert
+                      severity="warning"
+                      variant="outlined"
+                      sx={{
+                        mb: 2,
+                        background: alpha(theme.palette.warning.main, 0.1),
+                      }}
+                    >
+                      {' '}
                       Esse grupo possui inscrições já realizadas, portanto não
-                      pode ser editado ou removido.
-                    </Typography>
+                      pode ser removido.
+                    </Alert>
+                    // <Typography variant="body2" sx={{ mb: 2 }} color="warning">
+                    //   Esse grupo possui inscrições já realizadas, portanto não
+                    //   pode ser removido.
+                    // </Typography>
                   )}
                   <Box
                     sx={{
@@ -220,7 +208,8 @@ function FormRegistrationSettings() {
                           <Input
                             size="small"
                             value={value}
-                            disabled={disabled}
+                            placeholder="Ex: Meia entrada"
+                            // disabled={disabled}
                             onChange={onChange}
                             // onChange={(event) => onChange(onlyNumber(event.target.value))}
                             required
@@ -229,6 +218,9 @@ function FormRegistrationSettings() {
                               errors.groupRoles?.[index]?.name?.message
                             }
                             error={Boolean(errors.groupRoles?.[index]?.name)}
+                            InputLabelProps={{
+                              shrink: true,
+                            }}
                           />
                         )}
                       />
@@ -239,18 +231,44 @@ function FormRegistrationSettings() {
                         name={`groupRoles.${index}.capacity`}
                         render={({ field: { onChange, value } }) => (
                           <Input
-                            type="number"
+                            type="text"
                             size="small"
-                            disabled={disabled}
-                            value={value}
+                            placeholder="Ex: 200"
+                           //isabled={disabledGroup}
+                            value={value ?? ''}
                             onChange={(e) => {
-                              if (!e.target.value) {
+                              const sanitized = sanitizeInteger(e.target.value);
+                              if (!sanitized) {
                                 onChange(null);
                                 return;
                               }
-                              onChange(Number(e.target.value));
+                              onChange(Number(sanitized));
                             }}
-                            // onChange={(event) => onChange(onlyNumber(event.target.value))}
+                            onPaste={(e) => {
+                              e.preventDefault();
+                              const paste = (
+                                e.clipboardData || (window as any).clipboardData
+                              ).getData('text');
+                              const sanitized = sanitizeInteger(paste);
+                              if (!sanitized) {
+                                onChange(null);
+                                return;
+                              }
+                              onChange(Number(sanitized));
+                            }}
+                            onKeyDown={(e) => {
+                              const allowed = [
+                                'Backspace',
+                                'Tab',
+                                'ArrowLeft',
+                                'ArrowRight',
+                                'Delete',
+                              ];
+                              if (allowed.includes(e.key)) return;
+                              if (!/^[0-9]$/.test(e.key)) {
+                                e.preventDefault();
+                              }
+                            }}
                             required
                             label="Capacidade máxima de inscrições"
                             errorMessage={
@@ -259,8 +277,13 @@ function FormRegistrationSettings() {
                             error={Boolean(
                               errors.groupRoles?.[index]?.capacity
                             )}
+                            inputProps={{
+                              inputMode: 'numeric',
+                              pattern: '\\d*',
+                              min: 0,
+                            }}
                             InputLabelProps={{
-                              shrink: Boolean(value),
+                              shrink: true,
                             }}
                           />
                         )}
@@ -272,12 +295,17 @@ function FormRegistrationSettings() {
                       <Chip
                         sx={{ cursor: 'pointer' }}
                         onClick={() => {
-                          const updatedGroupRoles = [
-                            ...selectGroupRolesExtended,
-                          ];
-                          updatedGroupRoles[index].expanded = false;
-
-                          setSelectGroupRolesExtended(updatedGroupRoles);
+                          const updatedGroupRoles = [...groupsExpanded];
+                          const groupIndex = updatedGroupRoles.findIndex(
+                            (group: any) =>
+                              Object.keys(group)[0] === index.toString()
+                          );
+                          if (groupIndex !== -1) {
+                            updatedGroupRoles[groupIndex][index] = false;
+                          } else {
+                            updatedGroupRoles.push({ [index]: false });
+                          }
+                          setGroupsExpanded(updatedGroupRoles);
                         }}
                         icon={<KeyboardArrowUp />}
                         label="Recolher"
@@ -297,12 +325,17 @@ function FormRegistrationSettings() {
                       <Chip
                         sx={{ cursor: 'pointer' }}
                         onClick={() => {
-                          const updatedGroupRoles = [
-                            ...selectGroupRolesExtended,
-                          ];
-                          updatedGroupRoles[index].expanded = true;
-
-                          setSelectGroupRolesExtended(updatedGroupRoles);
+                          const updatedGroupRoles = [...groupsExpanded];
+                          const groupIndex = updatedGroupRoles.findIndex(
+                            (group: any) =>
+                              Object.keys(group)[0] === index.toString()
+                          );
+                          if (groupIndex !== -1) {
+                            updatedGroupRoles[groupIndex][index] = true;
+                          } else {
+                            updatedGroupRoles.push({ [index]: true });
+                          }
+                          setGroupsExpanded(updatedGroupRoles);
                         }}
                         icon={<KeyboardArrowDown />}
                         label="Mostrar Regras"
@@ -313,7 +346,7 @@ function FormRegistrationSettings() {
                   <Grid item xs={12} md={12}>
                     <Grid container spacing={2}>
                       {expanded &&
-                        roles?.map(({ description }, roleIndex) => (
+                        roles?.map(({ registered }, roleIndex) => (
                           <Grid item xs={12} md={12}>
                             <Box
                               key={roleIndex}
@@ -333,9 +366,9 @@ function FormRegistrationSettings() {
                                     <Input
                                       size="small"
                                       required
-                                      disabled={disabled}
+                                      placeholder="Ex: Idade entre 2 e 10 anos"
+                                      // disabled={!!registered}
                                       sx={{ width: '100%' }}
-                                      placeholder={`Ex: ${description}`}
                                       value={value}
                                       onChange={onChange}
                                       label="Descrição"
@@ -349,6 +382,9 @@ function FormRegistrationSettings() {
                                           roleIndex
                                         ]?.description?.message
                                       }
+                                      InputLabelProps={{
+                                        shrink: true,
+                                      }}
                                     />
                                   )}
                                 />{' '}
@@ -361,15 +397,24 @@ function FormRegistrationSettings() {
                                     <Input
                                       size="small"
                                       required
-                                      disabled={disabled}
-                                      value={value}
+                                      // disabled={!!registered}
+                                      value={value ?? ''}
+                                      placeholder="Ex: 100"
                                       type="number"
                                       onChange={(e) => {
-                                        if (!e.target.value) {
+                                        const val = e.target.value;
+                                        if (!val) {
                                           onChange(null);
                                           return;
                                         }
-                                        onChange(Number(e.target.value));
+                                        onChange(sanitizePrice(val));
+                                      }}
+                                      onKeyDown={(e) => {
+                                        // bloquear caracteres não desejados no input de preço
+                                        const blocked = ['e', 'E', '+', '-'];
+                                        if (blocked.includes(e.key)) {
+                                          e.preventDefault();
+                                        }
                                       }}
                                       label="Preço (R$)"
                                       error={Boolean(
@@ -382,6 +427,9 @@ function FormRegistrationSettings() {
                                           roleIndex
                                         ]?.price?.message
                                       }
+                                      InputLabelProps={{
+                                        shrink: true,
+                                      }}
                                     />
                                   )}
                                 />
@@ -394,19 +442,20 @@ function FormRegistrationSettings() {
                                     alignItems: 'center',
                                   }}
                                 >
-                                  <Tooltip title="Remover Regra">
+                                  <Tooltip title={'Remover Regra'}>
                                     <IconButton
-                                      disabled={disabled}
+                                      disabled={!!registered}
                                       onClick={() => {
                                         const updatedGroupRoles = [
-                                          ...selectGroupRolesExtended,
+                                          ...groupRoles,
                                         ];
                                         updatedGroupRoles[index].roles.splice(
                                           roleIndex,
                                           1
                                         );
 
-                                        setSelectGroupRolesExtended(
+                                        setValue(
+                                          'groupRoles',
                                           updatedGroupRoles
                                         );
                                       }}
@@ -434,15 +483,12 @@ function FormRegistrationSettings() {
                       >
                         <Box
                           onClick={() => {
-                            const updatedGroupRoles = [
-                              ...selectGroupRolesExtended,
-                            ];
+                            const updatedGroupRoles = [...groupRoles] as any;
                             updatedGroupRoles[index].roles?.push({
                               price: null,
                               description: '',
                             });
-
-                            setSelectGroupRolesExtended(updatedGroupRoles);
+                            setValue('groupRoles', updatedGroupRoles);
                           }}
                           sx={{
                             display: 'flex',
@@ -471,10 +517,10 @@ function FormRegistrationSettings() {
                               ),
                             },
                             border: 'none',
-                            ...(disabled && {
-                              pointerEvents: 'none',
-                              opacity: 0.6,
-                            }),
+                            // ...(!!registered && {
+                            //   pointerEvents: 'none',
+                            //   opacity: 0.6,
+                            // }),
                           }}
                         >
                           <span

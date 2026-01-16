@@ -8,19 +8,30 @@ import {
 type PostRegisterUserInEventProps = {
   eventId: string;
   userId: string;
-  data: any;
+  data: { roleId: string[] };
 };
 
-const postRegisterUserInEvent = ({ data, eventId, userId }: PostRegisterUserInEventProps) =>
+const postRegisterUserInEvent = ({
+  data,
+  eventId,
+  userId,
+}: PostRegisterUserInEventProps) =>
   apiClient
-    .post<boolean>(`/events/${eventId}/users/${userId}`, {roleRegistrationId: data.roleId})
+    .post<boolean>(`/events/${eventId}/users/${userId}`, {
+      roleRegistrationId: data.roleId,
+    })
     .then((response) => {
-      handleResponseSuccess(response.data, 'Inscrição realizada com sucesso!')();
+      handleResponseSuccess(
+        response.data,
+        'Inscrição realizada com sucesso!'
+      )();
       return response.data;
     })
     .catch(handleResponseThrowError());
 
-type PostRegisterUserInEventData = Awaited<ReturnType<typeof postRegisterUserInEvent>>;
+type PostRegisterUserInEventData = Awaited<
+  ReturnType<typeof postRegisterUserInEvent>
+>;
 
 export const usePostRegisterUserInEvent = ({
   onSuccess,

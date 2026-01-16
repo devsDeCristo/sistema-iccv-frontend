@@ -32,7 +32,8 @@ function ModalEditRole({
   user,
 }: ModalAddUserProps) {
   const [valueRole, setValueRole] = useState(user?.role || 5);
-
+  // const userLocal = JSON.parse(localStorage.getItem('user') || '{}') as User;
+  // const disabledButton = userLocal ? userLocal.id === userLocal.id : false;
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setValueRole(Number((event.target as HTMLInputElement).value));
   };

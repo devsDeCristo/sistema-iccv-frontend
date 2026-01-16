@@ -18,6 +18,7 @@ export const GET_EVENT_USERS = 'GET_EVENT_USERS';
 export const GET_EVENT_USERS_WAITLIST = 'GET_EVENT_USERS_WAITLIST';
 export const GET_GROUPS_BY_USER = 'GET_GROUPS_BY_USER';
 export const GET_PAYMENTS_EVENT = 'GET_PAYMENTS_EVENT';
+export const GET_DISCOUNTS = 'GET_DISCOUNTS';
 
 const DEFAULT_MESSAGE = 'Campo obrigatório';
 
@@ -29,9 +30,14 @@ export const GROUP_ROLE_SELECT_SCHEMA = z.object({
   }),
 });
 export const ROLE_SELECT_SCHEMA = z.object({
-  roleId: z.array(z.string()).min(1, {
-    message: 'Selecione ao menos uma opção',
-  }),
+  groupRole:z.array(z.object({
+    groupRoleId: z.string({
+      required_error: DEFAULT_MESSAGE,
+    }),
+    roleIds: z.array(z.string()).min(1, {
+      message: 'Selecione ao menos uma opção',
+    }),
+  })),
 });
 
 export const GENERAL_INFO_SCHEMA = z.object({
@@ -100,13 +106,18 @@ export const REGISTRATION_SETTINGS_SCHEMA = z.object({
   groupRoles: z.array(
     z.object({
       // id: z.string(),
-      name: z.string({ required_error: DEFAULT_MESSAGE }),
-      capacity: z.number({ required_error: DEFAULT_MESSAGE }).nullable(),
+      name: z.string({ required_error: DEFAULT_MESSAGE }).refine(
+        value =>!!value
+      ),
+      capacity: z.number({ required_error: DEFAULT_MESSAGE }),
       roles: z.array(
         z.object({
-          price: z.number({ required_error: DEFAULT_MESSAGE }).nullable(),
-          description: z.string({ required_error: DEFAULT_MESSAGE }),
+          price: z.number({ required_error: DEFAULT_MESSAGE }),
+          description: z.string({ required_error: DEFAULT_MESSAGE }).refine(
+        value =>!!value
+      ),
           registered: z.number().optional(),
+          waitlisted: z.number().optional(),
         })
       ),
     })

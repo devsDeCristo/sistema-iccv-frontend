@@ -1,6 +1,5 @@
 import {
   Paper,
-  CardContent,
   Typography,
   Box,
   Stack,
@@ -9,6 +8,7 @@ import {
   LinearProgress,
   CardMedia,
   alpha,
+  Divider,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useGetEvents } from '../../admin/events/api/getEvents';
@@ -16,7 +16,7 @@ import dayjs from 'dayjs';
 import CalendarMonthOutlinedIcon from '@mui/icons-material/CalendarMonthOutlined';
 import RoomOutlinedIcon from '@mui/icons-material/RoomOutlined';
 import { Event } from '../../admin/events/types';
-import { Work } from '@mui/icons-material';
+import { Person } from '@mui/icons-material';
 import CapaLogin from '../../../assets/capaLogin2.jpg';
 
 function EventCard({ event }: { event: Event }) {
@@ -69,19 +69,27 @@ function EventCard({ event }: { event: Event }) {
     chipEvento: { background: '#e0f2ff', color: '#0077cc' },
 
     cardContent: {
-      pt: 2,
-      mb: 4,
+      p: 2,
+
       display: 'flex',
+      height: 'calc(100% - 120px)',
       flexDirection: 'column',
-      gap: 2,
+      justifyContent: 'space-between',
     },
-    title: { fontSize: '1.1rem', fontWeight: 500 },
+    title: {
+      fontSize: '1.1rem',
+      fontWeight: 500,
+      height: '50px',
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+    },
     description: {
       fontSize: '0.875rem',
       color: 'text.secondary',
-      maxHeight: '100px',
+      height: '60px',
       overflow: 'hidden',
       textOverflow: 'ellipsis',
+      textAlign: 'justify',
     },
     icon: { color: theme.palette.text.secondary, fontSize: '20px' },
     infoText: { fontSize: '0.875rem' },
@@ -94,10 +102,9 @@ function EventCard({ event }: { event: Event }) {
       },
     },
     button: {
-      position: 'absolute',
-      bottom: 10,
-      left: 10,
-      right: 10,
+      width: '100%',
+      mt: 1,
+      height: 36,
       borderRadius: 2,
     },
   };
@@ -127,47 +134,56 @@ function EventCard({ event }: { event: Event }) {
         <Box sx={styles.chipTopLeft}>{type}</Box>
       </Box>
 
-      <CardContent sx={styles.cardContent}>
-        <Stack>
+      <Box sx={styles.cardContent}>
+        <Stack
+          direction={'column'}
+          justifyContent={'space-between'}
+          alignItems={'flex-start'}
+          sx={{ height: '100%' }}
+          gap={1}
+        >
           <Typography sx={styles.title}>{event.name}</Typography>
+          <Divider sx={{ width: '100%' }} />
           {event?.data?.shortDescription && (
             <Typography sx={styles.description}>
               {event.data?.shortDescription}
             </Typography>
           )}
+
+          <Divider sx={{ width: '30%', ml: '35%', mt: 1, mb: 1 }} />
+
+          <Stack gap={1}>
+            <Stack direction="row" alignItems="center" gap={1}>
+              <CalendarMonthOutlinedIcon sx={styles.icon} />
+              <Typography sx={styles.infoText} color="text.secondary">
+                {dayjs(event.startDate).format('DD/MM/YYYY')} ás{' '}
+                {dayjs(event.startDate).format('HH:mm')}
+              </Typography>
+            </Stack>
+            <Stack direction="row" alignItems="center" gap={1}>
+              <RoomOutlinedIcon sx={styles.icon} />
+              <Typography sx={styles.infoText} color="text.secondary">
+                Chácara Moriá
+              </Typography>
+            </Stack>
+
+            <Stack direction="row" alignItems="center" gap={1}>
+              <Person  sx={styles.icon} />
+              <Typography sx={styles.infoText} color="text.secondary">
+                {users} / {capacity} Inscritos
+              </Typography>
+            </Stack>
+          </Stack>
+
+          <Box sx={styles.progressBox}>
+            <LinearProgress
+              valueBuffer={100}
+              value={percentOcupped}
+              variant="determinate"
+              sx={styles.progressBar}
+            />
+          </Box>
         </Stack>
-
-        <Stack gap={1}>
-          <Stack direction="row" alignItems="center" gap={1}>
-            <CalendarMonthOutlinedIcon sx={styles.icon} />
-            <Typography sx={styles.infoText} color="text.secondary">
-              {dayjs(event.startDate).format('DD/MM/YYYY')} ás{' '}
-              {dayjs(event.startDate).format('HH:mm')}
-            </Typography>
-          </Stack>
-          <Stack direction="row" alignItems="center" gap={1}>
-            <RoomOutlinedIcon sx={styles.icon} />
-            <Typography sx={styles.infoText} color="text.secondary">
-              Chácara Moriásdds
-            </Typography>
-          </Stack>
-
-          <Stack direction="row" alignItems="center" gap={1}>
-            <Work sx={styles.icon} />
-            <Typography sx={styles.infoText} color="text.secondary">
-              {users} / {capacity} Inscritos
-            </Typography>
-          </Stack>
-        </Stack>
-
-        <Box sx={styles.progressBox}>
-          <LinearProgress
-            valueBuffer={100}
-            value={percentOcupped}
-            variant="determinate"
-            sx={styles.progressBar}
-          />
-        </Box>
 
         <Button
           variant="contained"
@@ -178,7 +194,7 @@ function EventCard({ event }: { event: Event }) {
         >
           Ver mais
         </Button>
-      </CardContent>
+      </Box>
     </Paper>
   );
 }

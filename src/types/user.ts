@@ -19,6 +19,12 @@ export type PaymentMethod =
   | 'BOLETO'
   | 'OTHER';
 
+  export interface discountsResponse {
+    id: string;
+    percentage: number;
+    description: string;
+  }
+
 export interface PaymentResponse {
   // dados do usuário
   id: string;
@@ -42,6 +48,7 @@ export interface PaymentResponse {
   groupName: string;
 
   payload: Record<string, any> | null;
+  discountsAppliedId?: string;
 }
 export interface User {
   id: string;

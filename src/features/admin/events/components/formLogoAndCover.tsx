@@ -1,4 +1,5 @@
 import {
+  Alert,
   alpha,
   Box,
   Grid,
@@ -18,10 +19,12 @@ import { Close, Upload } from '@mui/icons-material';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
 
+
 function FormLogoAndCover() {
   const {
     control,
     setError,
+    clearErrors,
     setValue,
     formState: { errors },
   } = useFormContext<EventLogoFormType>();
@@ -160,10 +163,21 @@ function FormLogoAndCover() {
             ref={fileInputRefLogo}
             hidden
             type="file"
-            accept="image/svg+xml"
+            accept="image/*"
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
               const file = e.target.files?.[0] || null;
-              // handleLogoChange(file);
+              
+              if((file?.size||0) > 2 * 1024 * 1024){
+                setError('eventLogo', {
+                  type: 'manual',
+                  message: 'O tamanho do arquivo excede o limite de 2MB.',
+                });
+                toast.error('O tamanho do arquivo não deve exceder o limite de 2MB.');
+                return;
+              }else{
+                clearErrors('eventLogo');
+              }
+
               onChange(file ? [file] : null);
             }}
             // error={!!errors.eventCover}
@@ -271,10 +285,22 @@ function FormLogoAndCover() {
               color: theme.palette.text.secondary,
             }}
           >
-            SVG; PNG; JPG (limite: 5MB)
+            SVG; PNG; JPG (limite: 2MB)
           </Typography>
         </Box>
+        
       )}
+      {errors.eventLogo && (
+        <Grid item xs={12}>
+          <Alert severity="error" variant='outlined' sx={{ mt: 1, backgroundColor: alpha(theme.palette.error.main, 0.1) }}>
+            {typeof errors.eventLogo?.message === 'string'
+              ? errors.eventLogo.message
+              : ''}
+          </Alert>
+          
+        </Grid>
+      )}
+
       <Grid item xs={12} md={12}>
         <Typography variant="h6" fontSize={18}>
           Capa
@@ -291,6 +317,16 @@ function FormLogoAndCover() {
             accept="image/*"
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
               const file = e.target.files?.[0] || null;
+              if((file?.size||0) > 2 * 1024 * 1024){
+                setError('eventCover', {
+                  type: 'manual',
+                  message: 'O tamanho do arquivo excede o limite de 2MB.',
+                });
+                toast.error('O tamanho do arquivo não deve exceder o limite de 2MB.');
+                return;
+              }else{
+                clearErrors('eventCover');
+              }
               // handleLogoChange(file);
               onChange(file ? [file] : null);
             }}
@@ -399,28 +435,21 @@ function FormLogoAndCover() {
               color: theme.palette.text.secondary,
             }}
           >
-            SVG; PNG; JPG (limite: 5MB)
+            SVG; PNG; JPG (limite: 2MB)
           </Typography>
         </Box>
       )}
       {errors.eventCover && (
         <Grid item xs={12}>
-          <Typography color="error" variant="caption">
+          <Alert severity="error" variant='outlined' sx={{ mt: 1, backgroundColor: alpha(theme.palette.error.main, 0.1) }}>
             {typeof errors.eventCover?.message === 'string'
               ? errors.eventCover.message
               : ''}
-          </Typography>
+          </Alert>
+         
         </Grid>
       )}
-      {errors.eventLogo && (
-        <Grid item xs={12}>
-          <Typography color="error" variant="caption">
-            {typeof errors.eventLogo?.message === 'string'
-              ? errors.eventLogo.message
-              : ''}
-          </Typography>
-        </Grid>
-      )}
+      
     </Grid>
   );
 }

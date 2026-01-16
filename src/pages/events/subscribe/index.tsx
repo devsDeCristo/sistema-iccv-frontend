@@ -34,6 +34,7 @@ import Swal from 'sweetalert2';
 import { useGetGroupsByUser } from '../../../features/admin/events/api/getGroupsByUser';
 import { usePostCreateCheckoutEvent } from '../../../features/admin/events/api/postCreateCheckoutEvent';
 
+
 function Subscribe() {
   const { id } = useParams();
   const theme = useTheme();
@@ -67,7 +68,7 @@ function Subscribe() {
   const methodsSelectRole = useForm<SelectRoleFormType>({
     resolver: zodResolver(ROLE_SELECT_SCHEMA),
     defaultValues: {
-      roleId: [],
+      groupRole: [],
     },
   });
 
@@ -95,16 +96,17 @@ function Subscribe() {
     });
   };
 
-  const { mutate: mutateCreateCheckoutEvent } = usePostCreateCheckoutEvent({
-    onSuccess: (data: any) => {
-      // console.log(data);
-      const link = data.link;
-      window.location.href = link;
-    },
-    onError: () => {
-      navigate('/eventos/' + id);
-    },
-  });
+ const { mutate: mutateCreateCheckoutEvent } = usePostCreateCheckoutEvent({
+  onSuccess: (data: any) => {
+    const link = data.link;
+
+    window.open(link, '_blank', 'noopener,noreferrer');
+    setLoadingPayment(false);
+  },
+  onError: () => {
+    navigate('/eventos/' + id);
+  },
+});
 
   const { mutate: mutateRegisterUserInEvent, isLoading: isLoadingRegister } =
     usePostRegisterUserInEvent({
@@ -119,6 +121,21 @@ function Subscribe() {
           Swal.fire({
             title: 'Inscrição(ões) realizada(s) com sucesso!',
             text: 'No momento suas inscrições ficaram na lista de espera. Você será notificado caso surja vaga.',
+            icon: 'success',
+            confirmButtonText: 'OK',
+          }).then(() => {
+            navigate('/eventos/' + id);
+          });
+          return;
+        }
+        const admin = JSON.parse(localStorage.getItem('user') || '{}')?.role==1;
+
+        if(!admin){
+          Swal.fire({
+            title: 'Inscrição(ões) realizada(s) com sucesso!',
+            text: allRegistered
+              ? 'Suas inscrições foram confirmadas.'
+              : 'Algumas inscrições ficaram na lista de espera.',
             icon: 'success',
             confirmButtonText: 'OK',
           }).then(() => {
@@ -164,8 +181,13 @@ function Subscribe() {
     });
 
   const selectRoleSubmit = (data: SelectRoleFormType) => {
-    if (event && event.id && data.roleId) {
-      mutateRegisterUserInEvent({ eventId: event.id, userId, data });
+    if (event && event.id && data.groupRole) {
+      const roleIds = data.groupRole.flatMap((gr) => gr.roleIds);
+      mutateRegisterUserInEvent({
+        eventId: event.id,
+        userId,
+        data: { roleId: roleIds },
+      });
     }
   };
   const stepMethods = [
@@ -260,7 +282,7 @@ function Subscribe() {
                   sx={{ marginTop: 2, width: '120px' }}
                   onClick={currentStep === 1 ? handleClose : handleBack}
                 >
-                  cancelar
+                  {currentStep === 1 ? 'Cancelar' : 'Voltar'}
                 </Button>
                 <Button
                   variant="contained"

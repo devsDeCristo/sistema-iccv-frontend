@@ -7,21 +7,25 @@ import {
   Radio,
   Stack,
   useTheme,
-  Chip,
-  Tooltip,
   Skeleton,
   alpha,
 } from '@mui/material';
 import { Controller, useForm } from 'react-hook-form';
-import { statusPaymentOptions } from '../../admin/events/constants';
+import {
+  methodPaymentOptions,
+  PAYMENT_STATUS_COLOR,
+  statusPaymentOptions,
+} from '../../admin/events/constants';
 import { usePostCreateCheckoutEvent } from '../../admin/events/api/postCreateCheckoutEvent';
 import { useState } from 'react';
+import CustomChip from '../../../components/customChip';
 
 interface ModalPaymentProps {
   open: boolean;
   handleClose: () => void;
   payments: {
     roleId: string;
+    method: string;
     tipo: 'WAITLIST' | 'REGISTERED';
     status: String;
     name: string;
@@ -39,18 +43,20 @@ export function ModalPayment({
   eventId,
 }: ModalPaymentProps) {
   const theme = useTheme();
-  const { control, handleSubmit } = useForm({
+  const { control, handleSubmit, watch } = useForm({
     defaultValues: {
       selectedRoleIds: [] as string[],
     },
   });
+  const selectedRoleIds = watch('selectedRoleIds');
   const [loading, setLoading] = useState(false);
 
   const { mutate: mutateCreateCheckoutEvent } = usePostCreateCheckoutEvent({
     onSuccess: (data: any) => {
       const link = data.link;
-      window.location.href = link;
 
+      window.open(link, '_blank', 'noopener,noreferrer');
+      setLoading(false);
     },
     onError: () => {
       setLoading(false);
@@ -59,7 +65,11 @@ export function ModalPayment({
 
   const onSubmit = (data: any) => {
     setLoading(true);
-    mutateCreateCheckoutEvent({ data: { roleId: data.selectedRoleIds }, eventId: eventId, userId: userId });
+    mutateCreateCheckoutEvent({
+      data: { roleId: data.selectedRoleIds },
+      eventId: eventId,
+      userId: userId,
+    });
   };
 
   const Loading = () => (
@@ -104,7 +114,7 @@ export function ModalPayment({
               bgcolor: 'background.paper',
               p: 3,
               borderRadius: 2,
-              width: '100%',
+              width: '90%',
               maxWidth: 520,
               maxHeight: '80vh',
               overflowY: 'auto',
@@ -114,112 +124,129 @@ export function ModalPayment({
               Selecione os pagamentos
             </Typography>
 
-            <Controller
-              name="selectedRoleIds"
-              control={control}
-              render={({ field }) => (
-                <Stack spacing={1.5}>
-                  {payments?.map((item) => {
-                    const isPaid =
-                      item.status === 'PAID' || item.tipo === 'WAITLIST';
-                    const selected = field.value.includes(item.roleId);
+            <Box sx={{ overflowY: 'auto', maxHeight: '55vh', mt: 2 }}>
+              <Controller
+                name="selectedRoleIds"
+                control={control}
+                render={({ field }) => (
+                  <Stack spacing={1.5}>
+                    {payments?.map((item) => {
+                      const isPaid =
+                        item.status === 'PAID' ||
+                        item.status == 'IN_ANALYSIS' ||
+                        item.tipo === 'WAITLIST' ||
+                        (item.status === 'WAITING' && item.method !== 'OTHER');
 
-                    const toggle = () => {
-                      if (isPaid) return;
+                      const selected = field.value.includes(item.roleId);
 
-                      if (selected) {
-                        field.onChange(
-                          field.value.filter((id) => id !== item.roleId)
-                        );
-                      } else {
-                        field.onChange([...field.value, item.roleId]);
-                      }
-                    };
+                      const toggle = () => {
+                        if (isPaid) return;
 
-                    const Card = (
-                      <Box
-                        onClick={toggle}
-                        sx={{
-                          border: '1px solid',
-                          borderColor: selected
-                            ? theme.palette.primary.main
-                            : theme.palette.divider,
-                          borderRadius: 2,
-                          p: 1.5,
-                          display: 'flex',
-                          alignItems: 'flex-start',
-                          gap: 1,
-                          cursor: isPaid ? 'not-allowed' : 'pointer',
-                          opacity: isPaid ? 0.45 : 1,
-                          bgcolor: selected
-                            ? theme.palette.action.selected
-                            : 'transparent',
-                          transition: '0.2s',
-                          '&:hover': {
-                            bgcolor: isPaid
-                              ? 'transparent'
-                              : theme.palette.action.hover,
-                          },
-                        }}
-                      >
-                        <Radio checked={selected} disabled={isPaid} />
+                        if (selected) {
+                          field.onChange(
+                            field.value.filter((id) => id !== item.roleId)
+                          );
+                        } else {
+                          field.onChange([...field.value, item.roleId]);
+                        }
+                      };
 
-                        <Box flex={1}>
-                          <Typography fontWeight={600}>{item.name}</Typography>
+                      const Card = (
+                        <Box
+                          onClick={toggle}
+                          sx={{
+                            border: '1px solid',
+                            borderColor: selected
+                              ? theme.palette.primary.main
+                              : theme.palette.divider,
+                            borderRadius: 2,
+                            p: 1.5,
+                            display: 'flex',
+                            alignItems: 'flex-start',
+                            gap: 1,
+                            cursor: isPaid ? 'not-allowed' : 'pointer',
+                            opacity: isPaid ? 0.45 : 1,
+                            bgcolor: selected
+                              ? theme.palette.action.selected
+                              : 'transparent',
+                            transition: '0.2s',
+                            '&:hover': {
+                              bgcolor: isPaid
+                                ? 'transparent'
+                                : theme.palette.action.hover,
+                            },
+                          }}
+                        >
+                          <Radio checked={selected} disabled={isPaid} />
 
-                          <Typography fontSize={13} color="text.secondary">
-                            {item.groupName}
-                          </Typography>
+                          <Box flex={1}>
+                            <Typography fontWeight={600}>
+                              {item.name}
+                            </Typography>
 
-                          <Stack direction="row" spacing={1} mt={1}>
-                            <Chip
-                              size="small"
-                              label={
-                                item.tipo === 'REGISTERED'
-                                  ? 'Inscrito'
-                                  : 'Lista de espera'
-                              }
-                              color={
-                                item.tipo === 'REGISTERED'
-                                  ? 'primary'
-                                  : 'default'
-                              }
-                            />
-                            <Chip
-                              size="small"
-                              label={
-                                statusPaymentOptions.find(
-                                  (option) => option.value === item.status
-                                )?.label || item.status
-                              }
-                              color={
-                                item.status === 'PAID' ? 'success' : 'warning'
-                              }
-                            />
-                          </Stack>
+                            <Typography fontSize={13} color="text.secondary">
+                              {item.groupName}
+                            </Typography>
+
+                            <Stack direction="row" spacing={1} mt={1}>
+                              <CustomChip
+                                label={
+                                  item.tipo === 'REGISTERED'
+                                    ? 'Inscrito'
+                                    : 'Lista de espera'
+                                }
+                                customColor={
+                                  item.tipo === 'REGISTERED'
+                                    ? theme.palette.success.main
+                                    : theme.palette.warning.main
+                                }
+                              />
+                              {item.tipo !== 'WAITLIST' && (
+                                <CustomChip
+                                  label={
+                                    statusPaymentOptions.find(
+                                      (option) => option.value === item.status
+                                    )?.label || item.status
+                                  }
+                                  customColor={PAYMENT_STATUS_COLOR(
+                                    item.status as any,
+                                    theme
+                                  )}
+                                />
+                              )}
+                              {item.method != 'OTHER' &&
+                                item.tipo !== 'WAITLIST' && (
+                                  <CustomChip
+                                    label={
+                                      methodPaymentOptions.find(
+                                        (option) => option.value === item.method
+                                      )?.label || ''
+                                    }
+                                    customColor={theme.palette.info.main}
+                                  />
+                                )}
+                            </Stack>
+                          </Box>
                         </Box>
-                      </Box>
-                    );
+                      );
 
-                    return isPaid ? (
-                      <Tooltip
-                        key={item.roleId}
-                        title="Pagamento Indisponível"
-                        placement="top"
-                      >
+                      return isPaid ? (
                         <Box>{Card}</Box>
-                      </Tooltip>
-                    ) : (
-                      <Box key={item.roleId}>{Card}</Box>
-                    );
-                  })}
-                </Stack>
-              )}
-            />
-
+                      ) : (
+                        <Box key={item.roleId}>{Card}</Box>
+                      );
+                    })}
+                  </Stack>
+                )}
+              />
+            </Box>
             <Stack direction="row" justifyContent="flex-end" spacing={1} mt={3}>
               <Button onClick={handleClose}>Cancelar</Button>
-              <Button variant="contained" onClick={handleSubmit(onSubmit)}>
+              <Button
+                disabled={!selectedRoleIds || selectedRoleIds.length === 0}
+                variant="contained"
+                onClick={handleSubmit(onSubmit)}
+              >
                 Realizar Pagamento
               </Button>
             </Stack>
