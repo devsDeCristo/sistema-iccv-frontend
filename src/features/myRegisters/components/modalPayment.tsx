@@ -56,6 +56,7 @@ export function ModalPayment({
       const link = data.link;
 
       window.open(link, '_blank', 'noopener,noreferrer');
+      setLoading(false);
     },
     onError: () => {
       setLoading(false);

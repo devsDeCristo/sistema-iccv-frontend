@@ -101,6 +101,7 @@ function Subscribe() {
     const link = data.link;
 
     window.open(link, '_blank', 'noopener,noreferrer');
+    setLoadingPayment(false);
   },
   onError: () => {
     navigate('/eventos/' + id);
@@ -129,7 +130,7 @@ function Subscribe() {
         }
         const admin = JSON.parse(localStorage.getItem('user') || '{}')?.role==1;
 
-        if(admin){
+        if(!admin){
           Swal.fire({
             title: 'Inscrição(ões) realizada(s) com sucesso!',
             text: allRegistered
