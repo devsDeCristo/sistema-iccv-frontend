@@ -96,16 +96,16 @@ function Subscribe() {
     });
   };
 
-  const { mutate: mutateCreateCheckoutEvent } = usePostCreateCheckoutEvent({
-    onSuccess: (data: any) => {
-      // console.log(data);
-      const link = data.link;
-      window.location.href = link;
-    },
-    onError: () => {
-      navigate('/eventos/' + id);
-    },
-  });
+ const { mutate: mutateCreateCheckoutEvent } = usePostCreateCheckoutEvent({
+  onSuccess: (data: any) => {
+    const link = data.link;
+
+    window.open(link, '_blank', 'noopener,noreferrer');
+  },
+  onError: () => {
+    navigate('/eventos/' + id);
+  },
+});
 
   const { mutate: mutateRegisterUserInEvent, isLoading: isLoadingRegister } =
     usePostRegisterUserInEvent({

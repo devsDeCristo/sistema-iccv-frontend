@@ -54,7 +54,8 @@ export function ModalPayment({
   const { mutate: mutateCreateCheckoutEvent } = usePostCreateCheckoutEvent({
     onSuccess: (data: any) => {
       const link = data.link;
-      window.location.href = link;
+
+      window.open(link, '_blank', 'noopener,noreferrer');
     },
     onError: () => {
       setLoading(false);
@@ -122,119 +123,122 @@ export function ModalPayment({
               Selecione os pagamentos
             </Typography>
 
-            <Box sx={{overflowY: 'auto', maxHeight: '55vh', mt: 2 }}>
+            <Box sx={{ overflowY: 'auto', maxHeight: '55vh', mt: 2 }}>
+              <Controller
+                name="selectedRoleIds"
+                control={control}
+                render={({ field }) => (
+                  <Stack spacing={1.5}>
+                    {payments?.map((item) => {
+                      const isPaid =
+                        item.status === 'PAID' ||
+                        item.status == 'IN_ANALYSIS' ||
+                        item.tipo === 'WAITLIST' ||
+                        (item.status === 'WAITING' && item.method !== 'OTHER');
 
-            <Controller
-              name="selectedRoleIds"
-              control={control}
-              render={({ field }) => (
-                <Stack spacing={1.5}>
-                  {payments?.map((item) => {
-                    const isPaid =
-                      item.status === 'PAID' ||
-                      item.status == 'IN_ANALYSIS' ||
-                      item.tipo === 'WAITLIST' ||
-                      (item.status === 'WAITING' && item.method !== 'OTHER');
+                      const selected = field.value.includes(item.roleId);
 
-                    const selected = field.value.includes(item.roleId);
+                      const toggle = () => {
+                        if (isPaid) return;
 
-                    const toggle = () => {
-                      if (isPaid) return;
+                        if (selected) {
+                          field.onChange(
+                            field.value.filter((id) => id !== item.roleId)
+                          );
+                        } else {
+                          field.onChange([...field.value, item.roleId]);
+                        }
+                      };
 
-                      if (selected) {
-                        field.onChange(
-                          field.value.filter((id) => id !== item.roleId)
-                        );
-                      } else {
-                        field.onChange([...field.value, item.roleId]);
-                      }
-                    };
+                      const Card = (
+                        <Box
+                          onClick={toggle}
+                          sx={{
+                            border: '1px solid',
+                            borderColor: selected
+                              ? theme.palette.primary.main
+                              : theme.palette.divider,
+                            borderRadius: 2,
+                            p: 1.5,
+                            display: 'flex',
+                            alignItems: 'flex-start',
+                            gap: 1,
+                            cursor: isPaid ? 'not-allowed' : 'pointer',
+                            opacity: isPaid ? 0.45 : 1,
+                            bgcolor: selected
+                              ? theme.palette.action.selected
+                              : 'transparent',
+                            transition: '0.2s',
+                            '&:hover': {
+                              bgcolor: isPaid
+                                ? 'transparent'
+                                : theme.palette.action.hover,
+                            },
+                          }}
+                        >
+                          <Radio checked={selected} disabled={isPaid} />
 
-                    const Card = (
-                      <Box
-                        onClick={toggle}
-                        sx={{
-                          border: '1px solid',
-                          borderColor: selected
-                            ? theme.palette.primary.main
-                            : theme.palette.divider,
-                          borderRadius: 2,
-                          p: 1.5,
-                          display: 'flex',
-                          alignItems: 'flex-start',
-                          gap: 1,
-                          cursor: isPaid ? 'not-allowed' : 'pointer',
-                          opacity: isPaid ? 0.45 : 1,
-                          bgcolor: selected
-                            ? theme.palette.action.selected
-                            : 'transparent',
-                          transition: '0.2s',
-                          '&:hover': {
-                            bgcolor: isPaid
-                              ? 'transparent'
-                              : theme.palette.action.hover,
-                          },
-                        }}
-                      >
-                        <Radio checked={selected} disabled={isPaid} />
+                          <Box flex={1}>
+                            <Typography fontWeight={600}>
+                              {item.name}
+                            </Typography>
 
-                        <Box flex={1}>
-                          <Typography fontWeight={600}>{item.name}</Typography>
+                            <Typography fontSize={13} color="text.secondary">
+                              {item.groupName}
+                            </Typography>
 
-                          <Typography fontSize={13} color="text.secondary">
-                            {item.groupName}
-                          </Typography>
-
-                          <Stack direction="row" spacing={1} mt={1}>
-                            <CustomChip
-                              label={
-                                item.tipo === 'REGISTERED'
-                                  ? 'Inscrito'
-                                  : 'Lista de espera'
-                              }
-                              customColor={
-                                item.tipo === 'REGISTERED'
-                                  ? theme.palette.success.main
-                                  : theme.palette.warning.main
-                              }
-                            />
-                            {item.tipo !== 'WAITLIST' && (
-                            <CustomChip
-                              label={
-                                statusPaymentOptions.find(
-                                  (option) => option.value === item.status
-                                )?.label || item.status
-                              }
-                              customColor={PAYMENT_STATUS_COLOR(
-                                item.status as any,
-                                theme
-                              )}
-                            />)}
-                            {item.method != 'OTHER' && item.tipo !== 'WAITLIST' && (
+                            <Stack direction="row" spacing={1} mt={1}>
                               <CustomChip
                                 label={
-                                  methodPaymentOptions.find(
-                                    (option) => option.value === item.method
-                                  )?.label || ''
+                                  item.tipo === 'REGISTERED'
+                                    ? 'Inscrito'
+                                    : 'Lista de espera'
                                 }
-                                customColor={theme.palette.info.main}
+                                customColor={
+                                  item.tipo === 'REGISTERED'
+                                    ? theme.palette.success.main
+                                    : theme.palette.warning.main
+                                }
                               />
-                            )}
-                          </Stack>
+                              {item.tipo !== 'WAITLIST' && (
+                                <CustomChip
+                                  label={
+                                    statusPaymentOptions.find(
+                                      (option) => option.value === item.status
+                                    )?.label || item.status
+                                  }
+                                  customColor={PAYMENT_STATUS_COLOR(
+                                    item.status as any,
+                                    theme
+                                  )}
+                                />
+                              )}
+                              {item.method != 'OTHER' &&
+                                item.tipo !== 'WAITLIST' && (
+                                  <CustomChip
+                                    label={
+                                      methodPaymentOptions.find(
+                                        (option) => option.value === item.method
+                                      )?.label || ''
+                                    }
+                                    customColor={theme.palette.info.main}
+                                  />
+                                )}
+                            </Stack>
+                          </Box>
                         </Box>
-                      </Box>
-                    );
+                      );
 
-                    return isPaid ? (
-                      <Box>{Card}</Box>
-                    ) : (
-                      <Box key={item.roleId}>{Card}</Box>
-                    );
-                  })}
-                </Stack>
-              )}
-            />
-</Box>
+                      return isPaid ? (
+                        <Box>{Card}</Box>
+                      ) : (
+                        <Box key={item.roleId}>{Card}</Box>
+                      );
+                    })}
+                  </Stack>
+                )}
+              />
+            </Box>
             <Stack direction="row" justifyContent="flex-end" spacing={1} mt={3}>
               <Button onClick={handleClose}>Cancelar</Button>
               <Button
