@@ -6,19 +6,43 @@ import {
 } from '../../../../utils/service';
 import { queryClient } from '../../../../config/lib/react-query/query-client';
 import { GET_EVENTS } from '../constants';
-
+import { CreateEventPayload } from '../types';
+interface FileUpload {
+  logoFile?: File;
+  coverFile?: File;
+}
 type PostCreateEventProps = {
-  data: any;
+  data: CreateEventPayload;
+  files: FileUpload;
 };
 
-const postCreateEvent = ({ data }: PostCreateEventProps) =>
-  apiClient
-    .post<boolean>(`/events`, data)
+const postCreateEvent = ({ data, files }: PostCreateEventProps) => {
+  const formData = new FormData();
+  //files das imagens do evento
+  if (files.logoFile) formData.append('logoFile', files.logoFile);
+  if (files.coverFile) formData.append('coverFile', files.coverFile);
+  //resto dos dados do evento
+  formData.append('name', data.name);
+  formData.append('isActive', String(data.isActive));
+  formData.append('startDate', data.startDate.toISOString());
+  formData.append('endDate', data.endDate.toISOString());
+  formData.append('type', data.type);
+  formData.append('data', JSON.stringify(data.data));
+  formData.append('groupRoles', JSON.stringify(data.groupRoles));
+  formData.append('isActive', String(data.isActive));
+  if (data.groupLink) formData.append('groupLink', data.groupLink);
+
+  return apiClient
+    .post<boolean>(`/events`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    })
     .then((response) => {
       handleResponseSuccess(response.data, 'Evento criado com sucesso!')();
     })
     .catch(handleResponseThrowError());
-
+};
 type PostCreateEventData = Awaited<ReturnType<typeof postCreateEvent>>;
 
 export const usePostCreateEvent = ({

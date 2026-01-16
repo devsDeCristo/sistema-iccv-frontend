@@ -2,7 +2,7 @@ import { Header } from '../../../../components/header';
 import { useForm, FormProvider } from 'react-hook-form';
 import { PageStyle } from '../../../../components/pageStyle';
 import { Form } from '../../../../features/admin/users/components/form';
-import { Box, Button } from '@mui/material';
+import { Box, Button, Paper } from '@mui/material';
 import { usePermission } from '../../../../hooks/usePermission';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -101,7 +101,6 @@ function EditUser() {
         data.leadershipPosition === ''
           ? undefined
           : data.leadershipPosition,
-     
     };
     mutatePutUser({
       userId: id,
@@ -120,37 +119,42 @@ function EditUser() {
   return (
     <PageStyle>
       <Header
-        title="Edição de usuário"
+        title="Editar usuário"
         buttonBack={permission}
         pageBack={'/admin/usuarios'}
       />
-      <Box display="flex" justifyContent="center" alignItems="center">
-        <Button variant="contained" onClick={() => setIsOpenWebcamModal(true)}>
-          Abrir webcam
-        </Button>
-        <WebcamModal
-          isOpen={isOpenWebcamModal}
-          onClose={onCloseWebcamModal}
-          onSavePhoto={onSavePhoto}
-        />
-        <InputPhoto
-          profilePhoto={userData?.profilePhotoUrl}
-          onSavePhoto={onSavePhoto}
-        />
-      </Box>
-      <FormProvider {...methods}>
-        <form onSubmit={methods.handleSubmit(onSubmitForm)}>
-          <Form />
+      <Paper sx={{ padding: 3 }}>
+        <Box display="flex" justifyContent="center" alignItems="center">
           <Button
             variant="contained"
-            fullWidth
-            sx={{ marginTop: 2 }}
-            type="submit"
+            onClick={() => setIsOpenWebcamModal(true)}
           >
-            Salvar
+            Abrir webcam
           </Button>
-        </form>
-      </FormProvider>
+          <WebcamModal
+            isOpen={isOpenWebcamModal}
+            onClose={onCloseWebcamModal}
+            onSavePhoto={onSavePhoto}
+          />
+          <InputPhoto
+            profilePhoto={userData?.profilePhotoUrl}
+            onSavePhoto={onSavePhoto}
+          />
+        </Box>
+        <FormProvider {...methods}>
+          <form onSubmit={methods.handleSubmit(onSubmitForm)}>
+            <Form />
+            <Button
+              variant="contained"
+              fullWidth
+              sx={{ marginTop: 2 }}
+              type="submit"
+            >
+              Salvar
+            </Button>
+          </form>
+        </FormProvider>
+      </Paper>
     </PageStyle>
   );
 }

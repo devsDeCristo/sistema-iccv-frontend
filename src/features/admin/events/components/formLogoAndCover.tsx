@@ -1,0 +1,428 @@
+import {
+  alpha,
+  Box,
+  Grid,
+  IconButton,
+  Tooltip,
+  Typography,
+  useTheme,
+} from '@mui/material';
+import {
+  Controller,
+  FieldPath,
+  useFormContext,
+  useWatch,
+} from 'react-hook-form';
+import { EventLogoFormType } from '../types';
+import { Close, Upload } from '@mui/icons-material';
+import { useCallback, useMemo, useRef, useState } from 'react';
+import { toast } from 'react-toastify';
+
+function FormLogoAndCover() {
+  const {
+    control,
+    setError,
+    setValue,
+    formState: { errors },
+  } = useFormContext<EventLogoFormType>();
+
+  const fileInputRefLogo = useRef<HTMLInputElement>(null);
+  const fileInputRefCover = useRef<HTMLInputElement>(null);
+  const [isDraggingLogo, setIsDraggingLogo] = useState(false);
+  const [isDraggingCover, setIsDraggingCover] = useState(false);
+
+  // const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  // const [coverPreview, setCoverPreview] = useState<string | null>(null);
+  const logoFile = useWatch({ control, name: 'eventLogo' });
+  const coverFile = useWatch({ control, name: 'eventCover' });
+  const logoUrl = useWatch({ control, name: 'logoUrl' });
+  const coverUrl = useWatch({ control, name: 'coverUrl' });
+  const logoPreview = useMemo(() => {
+    if (!logoFile || !logoFile[0]) return null;
+    return URL.createObjectURL(logoFile[0]);
+  }, [logoFile]);
+
+  const coverPreview = useMemo(() => {
+    if (!coverFile || !coverFile[0]) return null;
+    return URL.createObjectURL(coverFile[0]);
+  }, [coverFile]);
+
+  const handleDragOver = useCallback(
+    (e: React.DragEvent, field: FieldPath<EventLogoFormType>) => {
+      e.preventDefault();
+      if (field === 'eventLogo') {
+        setIsDraggingLogo(true);
+      } else {
+        setIsDraggingCover(true);
+      }
+    },
+    []
+  );
+
+  const handleDragLeave = useCallback(
+    (e: React.DragEvent, field: FieldPath<EventLogoFormType>) => {
+      e.preventDefault();
+      if (field === 'eventLogo') {
+        setIsDraggingLogo(false);
+      } else {
+        setIsDraggingCover(false);
+      }
+    },
+    []
+  );
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent, field: FieldPath<EventLogoFormType>) => {
+      e.preventDefault();
+      if (field === 'eventLogo') {
+        setIsDraggingLogo(false);
+      } else {
+        setIsDraggingCover(false);
+      }
+
+      const files = e.dataTransfer.files;
+      if (files && files.length > 0) {
+        const file = files[0];
+        handleImageChange(file, field);
+      }
+    },
+    []
+  );
+  const handleButtonClick = (ref: React.RefObject<HTMLInputElement>) => {
+    if (ref.current) {
+      ref.current.value = ''; // zera antes de abrir
+      ref.current.click();
+    }
+  };
+
+  const handleImageChange = (
+    file: File | null,
+    field: FieldPath<EventLogoFormType>
+  ) => {
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      setError(field, {
+        type: 'manual',
+        message: 'Arquivo de imagem inválido.',
+      });
+      toast.error('Por favor, selecione um arquivo de imagem válido.');
+      return;
+    }
+
+    // Apenas salva o arquivo original, sem redimensionar
+    setValue(field, [file]);
+  };
+  const theme = useTheme();
+  const styles = {
+    box: (isDragging: boolean) => ({
+      border: 2,
+      borderStyle: 'dashed',
+      borderRadius: 2,
+      borderColor: isDragging
+        ? theme.palette.primary.main
+        : theme.palette.divider,
+      bgcolor: isDragging ? `${theme.palette.action.hover}` : 'transparent',
+      p: 3,
+      width: '100%',
+      textAlign: 'center',
+      cursor: 'pointer',
+      transition: 'all 0.2s',
+      '&:hover': {
+        borderColor: theme.palette.primary.main,
+        bgcolor: theme.palette.action.hover,
+      },
+    }),
+    uploadIcon: (isDragging: boolean) => ({
+      fontSize: 35,
+      mx: 'auto',
+      color: isDragging
+        ? theme.palette.text.primary
+        : theme.palette.text.secondary,
+    }),
+    text: {
+      fontSize: '0.875rem',
+      fontWeight: 500,
+      mb: 0.5,
+    },
+  };
+  return (
+    <Grid container spacing={1}>
+      <Grid item xs={12} md={12}>
+        <Typography variant="h6" fontSize={18}>
+          Logo
+        </Typography>
+      </Grid>
+      <Controller
+        name="eventLogo"
+        control={control}
+        render={({ field: { onChange } }) => (
+          <input
+            ref={fileInputRefLogo}
+            hidden
+            type="file"
+            accept="image/svg+xml"
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+              const file = e.target.files?.[0] || null;
+              // handleLogoChange(file);
+              onChange(file ? [file] : null);
+            }}
+            // error={!!errors.eventCover}
+            // errorMessage={
+            //   typeof errors.eventCover?.message === 'string'
+            //     ? errors.eventCover.message
+            //     : undefined
+            // }
+          />
+        )}
+      />
+      {logoPreview || logoUrl ? (
+        <Box
+          sx={{
+            // position: 'relative',
+            width: '100%',
+            // maxWidth: 200,
+            border: `1px solid ${theme.palette.divider}`,
+            mt: 2,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 2,
+            justifyContent: 'space-between',
+            borderRadius: 2,
+            p: 2,
+          }}
+        >
+          <Box
+            sx={{
+              display: 'flex',
+              gap: 2,
+            }}
+          >
+            <Box
+              component="img"
+              src={logoUrl || logoPreview || ''}
+              alt="Preview da logo"
+              sx={{
+                // width: '100%',
+                width: 150,
+                height: 'auto',
+                maxHeight: 200,
+                objectFit: 'contain',
+                borderRadius: 2,
+                p: 2,
+                bgcolor: theme.palette.background.default,
+              }}
+            />
+
+            <Box
+              className="flex-1"
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'start',
+                justifyContent: 'center',
+              }}
+            >
+              <Typography fontWeight={500} fontSize={'16px'}>
+                {logoPreview ? logoFile[0]?.name : 'Logo atual'}
+              </Typography>
+              <Typography
+                fontSize={'14px'}
+                sx={{ color: alpha(theme.palette.text.primary, 0.7) }}
+              >
+                {logoFile?.[0]?.size &&
+                  `${(logoFile?.[0]?.size / 1024).toFixed(1)} KB`}
+              </Typography>
+            </Box>
+          </Box>
+          <Tooltip title="Remover imagem">
+            <IconButton
+              onClick={() => {
+                setValue('logoUrl', null);
+                setValue('eventLogo', null);
+              }}
+            >
+              <Close />
+            </IconButton>
+          </Tooltip>
+          {/* <Button
+            variant="outlined"
+            size="small"
+            sx={{ mt: 1 }}
+            onClick={() => handleButtonClick(fileInputRefLogo)}
+          >
+            Alterar Logo
+          </Button> */}
+        </Box>
+      ) : (
+        <Box
+          onClick={() => handleButtonClick(fileInputRefLogo)}
+          onDragOver={(e) => handleDragOver(e, 'eventLogo')}
+          onDragLeave={(e) => handleDragLeave(e, 'eventLogo')}
+          onDrop={(e) => handleDrop(e, 'eventLogo')}
+          sx={styles.box(isDraggingLogo)}
+        >
+          <Upload sx={styles.uploadIcon(isDraggingLogo)} />
+          <Typography sx={styles.text}>
+            Clique ou arraste a imagem para fazer upload
+          </Typography>
+          <Typography
+            sx={{
+              fontSize: '0.75rem',
+              color: theme.palette.text.secondary,
+            }}
+          >
+            SVG; PNG; JPG (limite: 5MB)
+          </Typography>
+        </Box>
+      )}
+      <Grid item xs={12} md={12}>
+        <Typography variant="h6" fontSize={18}>
+          Capa
+        </Typography>
+      </Grid>
+      <Controller
+        name="eventCover"
+        control={control}
+        render={({ field: { onChange } }) => (
+          <input
+            hidden
+            ref={fileInputRefCover}
+            type="file"
+            accept="image/*"
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+              const file = e.target.files?.[0] || null;
+              // handleLogoChange(file);
+              onChange(file ? [file] : null);
+            }}
+          />
+        )}
+      />
+
+      {coverUrl || coverPreview ? (
+        <Box
+          sx={{
+            // position: 'relative',
+            width: '100%',
+            // maxWidth: 200,
+            border: `1px solid ${theme.palette.divider}`,
+            mt: 2,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 2,
+            justifyContent: 'space-between',
+            borderRadius: 2,
+            p: 2,
+          }}
+        >
+          <Box
+            sx={{
+              display: 'flex',
+              gap: 2,
+            }}
+          >
+            <Box
+              component="img"
+              src={coverUrl || coverPreview || ''}
+              alt="Preview da capa"
+              sx={{
+                // width: '100%',
+                width: 150,
+                height: 'auto',
+                maxHeight: 200,
+                objectFit: 'contain',
+                borderRadius: 2,
+                // height: '100%',
+                alignItems: 'center',
+                justifyContent: 'center',
+                textAlign: 'center',
+                p: 2,
+                bgcolor: theme.palette.background.default,
+              }}
+            />
+
+            <Box
+              className="flex-1"
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'start',
+                justifyContent: 'center',
+              }}
+            >
+              <Typography fontWeight={500} fontSize={'16px'}>
+                {coverFile?.[0]?.name ? coverFile?.[0].name : 'Capa atual'}
+              </Typography>
+              <Typography
+                fontSize={'14px'}
+                sx={{ color: alpha(theme.palette.text.primary, 0.7) }}
+              >
+                {coverFile?.[0]?.size &&
+                  `${(coverFile?.[0]?.size / 1024).toFixed(1)} KB`}
+              </Typography>
+            </Box>
+          </Box>
+          <Tooltip title="Remover imagem">
+            <IconButton
+              onClick={() => {
+                setValue('coverUrl', null);
+                setValue('eventCover', null);
+              }}
+            >
+              <Close />
+            </IconButton>
+          </Tooltip>
+          {/* <Button
+            variant="outlined"
+            size="small"
+            sx={{ mt: 1 }}
+            onClick={() => handleButtonClick(fileInputRefLogo)}
+          >
+            Alterar Logo
+          </Button> */}
+        </Box>
+      ) : (
+        <Box
+          onClick={() => handleButtonClick(fileInputRefCover)}
+          onDragOver={(e) => handleDragOver(e, 'eventCover')}
+          onDragLeave={(e) => handleDragLeave(e, 'eventCover')}
+          onDrop={(e) => handleDrop(e, 'eventCover')}
+          sx={styles.box(isDraggingCover)}
+        >
+          <Upload sx={styles.uploadIcon(isDraggingCover)} />
+          <Typography sx={styles.text}>
+            Clique ou arraste a imagem para fazer upload
+          </Typography>
+
+          <Typography
+            sx={{
+              fontSize: '0.75rem',
+              color: theme.palette.text.secondary,
+            }}
+          >
+            SVG; PNG; JPG (limite: 5MB)
+          </Typography>
+        </Box>
+      )}
+      {errors.eventCover && (
+        <Grid item xs={12}>
+          <Typography color="error" variant="caption">
+            {typeof errors.eventCover?.message === 'string'
+              ? errors.eventCover.message
+              : ''}
+          </Typography>
+        </Grid>
+      )}
+      {errors.eventLogo && (
+        <Grid item xs={12}>
+          <Typography color="error" variant="caption">
+            {typeof errors.eventLogo?.message === 'string'
+              ? errors.eventLogo.message
+              : ''}
+          </Typography>
+        </Grid>
+      )}
+    </Grid>
+  );
+}
+
+export { FormLogoAndCover };

@@ -8,12 +8,12 @@ import {
   ListItemText,
   Menu,
   MenuItem,
-  Paper,
   Stack,
   Tab,
   Tabs,
   Tooltip,
   Typography,
+  useMediaQuery,
   useTheme,
 } from '@mui/material';
 import { formatCPF, formatDate } from '../../../../utils';
@@ -30,20 +30,12 @@ import {
   selectedGridRowsSelector,
 } from '@mui/x-data-grid';
 import { useParams } from 'react-router-dom';
-import {
-  AssignmentInd,
-  Badge,
-  Close,
-  Delete,
-  Done,
-  Edit,
-  MoreVert,
-} from '@mui/icons-material';
+import { Badge, Delete, Edit, MoreVert } from '@mui/icons-material';
 import FileSaver from 'file-saver';
 import { pdf } from '@react-pdf/renderer';
 import PdfBadge from '../../../../components/pdfBadge';
 import { User } from '../../../../types/user';
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Swal from 'sweetalert2';
 import { useRemoveUserFromEvent } from '../api/deleteUser';
 import { ModalEditWork } from './modalEditWork';
@@ -92,10 +84,12 @@ function ListUsers({
   search,
   apiRef,
   filters,
+  event,
 }: {
   search: string;
   filters: filterUsers;
   apiRef: React.MutableRefObject<GridApi>;
+  event: any;
 }) {
   const { id: eventId = '' } = useParams();
   const { data: usersData, isLoading } = useGetUsers(
@@ -106,6 +100,7 @@ function ListUsers({
       enabled: !!eventId,
     }
   );
+
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const openMenu = Boolean(anchorEl);
   const [rowSelected, setRowSelected] = useState<User | null>(null);
@@ -113,6 +108,38 @@ function ListUsers({
   const [openModalEditWork, setOpenModalEditWork] = useState(false);
   const [panel, setPanel] = useState<string>('1');
   const theme = useTheme();
+  const md = useMediaQuery(theme.breakpoints.up('md'));
+
+  const styles = {
+    card: {
+      borderRadius: '5px',
+      backgroundColor: theme.palette.background.paper,
+      boxShadow: '0px 0px 3px  #0000001a',
+      border: 'none',
+      '&::before': {
+        display: 'none',
+      },
+    },
+    tabs: {
+      '& button': {
+        color: theme.palette.text.disabled,
+        textTransform: 'capitalize',
+        minHeight: '20px',
+        Height: '100%',
+        borderRadius: '5px',
+        paddingX: '10px',
+      },
+      '& .MuiTab-icon': { marginRight: '2px' },
+
+      '& button.Mui-selected': {
+        backgroundColor: theme.palette.background.hover,
+      },
+      '& .MuiTabs-indicator': {
+        backgroundColor: 'transparent',
+        border: 'none',
+      },
+    },
+  };
   const handleClose = () => {
     setAnchorEl(null);
   };
@@ -134,6 +161,16 @@ function ListUsers({
       });
     },
   });
+  const groupsRules = useMemo(
+    () => event?.groupRoles?.map((g: any) => g.name) ?? [],
+    [event]
+  ) as string[];
+
+  useEffect(() => {
+    if (groupsRules.length > 0) {
+      setPanel(groupsRules[0]);
+    }
+  }, [groupsRules]);
 
   if (!usersData || !Array.isArray(usersData)) {
     return null;
@@ -175,29 +212,47 @@ function ListUsers({
     },
     {
       field: 'fullName',
-      headerName: 'Nome',
+      headerName: 'Nome/Crachá',
       flex: 2,
-      minWidth: 200,
+      minWidth: 180,
       // maxWidth: 300,
-      renderCell: (params) => renderCellWithCopy(params.row.fullName),
+      renderCell: (params) => (
+        <Stack direction="column" gap={1} sx={{ p: 0.5 }}>
+          <Typography>{params.value}</Typography>
+          <Typography sx={{ mt: -1.5, fontWeight: 300, fontSize: '0.85rem' }}>
+            {params.row.badgeName}
+          </Typography>
+        </Stack>
+      ),
     },
+
     {
       field: 'cpf',
       headerName: 'CPF',
-      flex: 1,
-      minWidth: 140,
+      width: 140,
       renderCell: (params) => renderCellWithCopy(formatCPF(params.row.cpf)),
     },
     {
       field: 'birthday',
-      headerName: 'Data de nascimento',
-      flex: 1,
-      minWidth: 120,
+      headerName: 'Nascimento',
+      width: 130,
       valueGetter: (params) => formatDate(params.row.birthday),
     },
 
-    { field: 'neighborhood', headerName: 'Bairro', flex: 1, minWidth: 100 },
-    { field: 'city', headerName: 'Cidade', flex: 1, minWidth: 120 },
+    {
+      field: 'city',
+      headerName: 'Endereço',
+
+      width: 170,
+      renderCell: (params) => (
+        <Stack direction="column" gap={1} sx={{ p: 0.5 }}>
+          <Typography>{params.value}</Typography>
+          <Typography sx={{ mt: -1.5, fontWeight: 300, fontSize: '0.85rem' }}>
+            {params.row.neighborhood}
+          </Typography>
+        </Stack>
+      ),
+    },
     { field: 'leadershipPosition', headerName: 'Cargo na igreja', flex: 1 },
     {
       field: 'hypertensive',
@@ -212,11 +267,7 @@ function ListUsers({
       valueGetter: (params) => (params.row.diabetes ? 'Sim' : 'Não'),
     },
     { field: 'notes', headerName: 'Observações', flex: 1, minWidth: 80 },
-    {
-      field: 'badgeName',
-      headerName: 'Nome do crachá',
-      flex: 1,
-    },
+
     {
       field: 'cellphone',
       headerName: 'Telefone',
@@ -254,94 +305,10 @@ function ListUsers({
       valueGetter: (params) => formatDate(params.row.createdAt),
     },
     {
-      field: 'actions',
-      headerName: '',
-      sortable: false,
-      width: 80,
-      renderCell: (params: GridCellParams) => {
-        return (
-          <Box key={params.id}>
-            <Tooltip
-              title={'Opções'}
-              id="basic-button"
-              onClick={(event) => handleClickOptions(event, params)}
-            >
-              <IconButton size="small">
-                <MoreVert color="inherit" />
-              </IconButton>
-            </Tooltip>
-          </Box>
-        );
-      },
-    },
-  ];
-  const columnsByEvent: GridColDef[] = [
-    {
-      sortable: false,
-      field: 'foto',
-      headerName: '',
-      width: 60,
-      renderCell: (params) => {
-        return (
-          <Avatar
-            alt={params?.row?.fullName}
-            src={params?.row?.profilePhotoUrl || '/'}
-            sx={{
-              width: '30px',
-              height: '30px',
-            }}
-          />
-        );
-      },
-    },
-    { field: 'fullName', headerName: 'Nome', flex: 1, minWidth: 200 },
-    {
-      field: 'paid',
-      headerName: 'Pago',
-      align: 'center',
-      headerAlign: 'center',
-
-      width: 30,
-      renderCell: (params) => (
-        <Typography
-          sx={{
-            color: params.row.paid ? 'green' : 'red',
-            display: 'flex',
-            alignItems: 'center',
-          }}
-          variant="body2"
-        >
-          {params.row.paid ? <Done /> : <Close />}{' '}
-          {params.row.paid ? 'Sim' : 'Não'}
-        </Typography>
-      ),
-    },
-    {
-      field: 'worker',
-      headerName: 'Servindo',
-      align: 'center',
-      headerAlign: 'center',
-      width: 100,
-      valueGetter: (params) => params.row.worker,
-      renderCell: (params) => (
-        <Typography
-          sx={{
-            color: params.row.worker ? 'green' : 'red',
-            display: 'flex',
-            alignItems: 'center',
-          }}
-          variant="body2"
-        >
-          {params.row.worker ? <Done /> : <Close />}{' '}
-          {params.row.worker ? 'Sim' : 'Não'}
-        </Typography>
-      ),
-    },
-    {
       field: 'bedrooms',
       headerName: 'Quartos',
 
-      width: 300,
+      width: 200,
       renderCell: (params) => (
         <Stack
           direction="row"
@@ -364,7 +331,7 @@ function ListUsers({
       field: 'teams',
       headerName: 'Equipes',
 
-      width: 300,
+      width: 200,
       renderCell: (params) => (
         <Stack
           direction="row"
@@ -440,14 +407,24 @@ function ListUsers({
     handleClose();
   };
 
+  const filteredByGroup = (usersData: User[]) => {
+    if (!panel || groupsRules.length === 0) return usersData;
+    return usersData.filter((user) => {
+      return user.groupsRegistration?.some(
+        (group: any) => group.name === panel
+      );
+    });
+  };
+
   const filteredData = (usersData: User[]) => {
     let filtered = usersData.filter(
       (user) =>
         user.fullName?.toLowerCase().includes(search.toLowerCase()) ||
-        user.cpf?.includes(search) || 
+        user.cpf?.includes(search) ||
         user.badgeName?.toLowerCase().includes(search.toLowerCase())
     );
     filtered = filterUsers(filtered, filters);
+    filtered = filteredByGroup(filtered);
     return filtered;
   };
   const normalize = (str: string) => str?.trim().normalize('NFC').toLowerCase();
@@ -490,26 +467,33 @@ function ListUsers({
     });
   };
 
-  const handleClickEditWork = (event: React.MouseEvent) => {
-    event.stopPropagation();
-    if (!rowSelected) return;
-    setOpenModalEditWork(true);
-    handleClose();
-  };
+  // const handleClickEditWork = (event: React.MouseEvent) => {
+  //   event.stopPropagation();
+  //   if (!rowSelected) return;
+  //   setOpenModalEditWork(true);
+  //   handleClose();
+  // };
 
   return (
     <>
-      <Paper>
-        <Tabs
-          variant="fullWidth"
-          sx={{ textTransform: 'none' }}
-          value={panel}
-          onChange={(_, newValue) => setPanel(newValue)}
-        >
-          <Tab label="Por Usuário" value={'1'} />
-          <Tab label="Por Evento" value={'2'} />
-        </Tabs>
-      </Paper>
+      {Array.isArray(groupsRules) && groupsRules.length > 0 && (
+        <Stack sx={[styles.card, { p: 0.5, height: '50px' }]}>
+          <Tabs
+            variant={md ? 'fullWidth' : 'scrollable'}
+            scrollButtons={md ? false : 'auto'}
+            allowScrollButtonsMobile
+            value={panel}
+            sx={styles.tabs}
+            key={'table_' + md}
+            onChange={(_, newValue) => setPanel(newValue)}
+          >
+            {Array.isArray(groupsRules) &&
+              groupsRules.map((groupName) => (
+                <Tab key={groupName} label={groupName} value={groupName} />
+              ))}
+          </Tabs>
+        </Stack>
+      )}
 
       <Card>
         <DataGrid
@@ -519,7 +503,7 @@ function ListUsers({
           apiRef={apiRef}
           getRowHeight={() => 'auto'}
           rows={filteredData(usersData || [])}
-          columns={panel === '1' ? columns : columnsByEvent}
+          columns={columns}
           loading={isLoading}
           autoHeight={true}
           slots={{
@@ -535,6 +519,8 @@ function ListUsers({
                 indicatedBy: false,
                 emergencyContact: false,
                 email: false,
+                leadershipPosition: false,
+
                 // cpf: false,
                 cellphone: false,
                 // badgeName: false,
@@ -591,23 +577,12 @@ function ListUsers({
             'aria-labelledby': 'options-button',
           }}
         >
-          {panel == '1' && (
-            <MenuItem onClick={handleClickEdit}>
-              <ListItemIcon>
-                <Edit fontSize="small" color="primary" />
-              </ListItemIcon>
-              <ListItemText>Editar Usuário</ListItemText>
-            </MenuItem>
-          )}
-
-          {panel == '2' && (
-            <MenuItem onClick={handleClickEditWork}>
-              <ListItemIcon>
-                <AssignmentInd fontSize="small" color="primary" />
-              </ListItemIcon>
-              <ListItemText>Participação no evento</ListItemText>
-            </MenuItem>
-          )}
+          <MenuItem onClick={handleClickEdit}>
+            <ListItemIcon>
+              <Edit fontSize="small" color="primary" />
+            </ListItemIcon>
+            <ListItemText>Editar Usuário</ListItemText>
+          </MenuItem>
 
           <MenuItem onClick={handleClickDownloadBadge}>
             <ListItemIcon>

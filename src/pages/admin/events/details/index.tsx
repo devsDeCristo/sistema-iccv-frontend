@@ -13,6 +13,7 @@ import {
   LinearProgress,
   Menu,
   MenuItem,
+  useTheme,
 } from '@mui/material';
 
 import { useNavigate, useParams } from 'react-router-dom';
@@ -26,7 +27,7 @@ import PdfEvent from '../../../../components/pdfEvent';
 import FileSaver from 'file-saver';
 import { pdf } from '@react-pdf/renderer';
 import {
-  Event,
+  EventDetails,
   filterUsers,
   Team,
 } from '../../../../features/admin/events/types';
@@ -55,6 +56,9 @@ import PdfTeams from '../../../../components/pdfTeams';
 
 import ModalQrCode from '../../../../features/admin/events/components/modalQrCode';
 import PdfEnvelopePhoto from '../../../../components/pdfEnvelopePhoto';
+import { User } from '../../../../types/user';
+import { ListUsersWaitList } from '../../../../features/admin/events/components/listUsersWaitList';
+import { ListPayments } from '../../../../features/admin/events/components/listPayments';
 
 function Details() {
   const { id, subPage } = useParams();
@@ -86,6 +90,7 @@ function Details() {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [openModalQrCode, setOpenModalQrCode] = useState(false);
   const openMenu = Boolean(anchorEl);
+
   const handleClickOpenMenu = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
   };
@@ -93,6 +98,7 @@ function Details() {
   const handleCloseMenu = () => {
     setAnchorEl(null);
   };
+  const theme = useTheme();
   const { data: teamsData = [] } = useGetTeams({
     eventId,
   });
@@ -121,9 +127,38 @@ function Details() {
       enabled: !!eventId,
     }
   );
-  const event = eventData as Event;
+  const users = usersData as User[];
+  const event = eventData as EventDetails;
 
   const styles = {
+    card: {
+      borderRadius: '5px',
+      backgroundColor: theme.palette.background.paper,
+      boxShadow: '0px 0px 3px  #0000001a',
+      border: 'none',
+      '&::before': {
+        display: 'none',
+      },
+    },
+    tabs: {
+      '& button': {
+        color: theme.palette.text.disabled,
+        textTransform: 'capitalize',
+        minHeight: '20px',
+        Height: '100%',
+        borderRadius: '5px',
+        paddingX: '10px',
+      },
+      '& .MuiTab-icon': { marginRight: '2px' },
+
+      '& button.Mui-selected': {
+        backgroundColor: theme.palette.background.hover,
+      },
+      '& .MuiTabs-indicator': {
+        backgroundColor: 'transparent',
+        border: 'none',
+      },
+    },
     boxFilterAndPdf: {
       display: 'flex',
       // flexDirection: { xs: 'column', sm: 'row' },
@@ -175,7 +210,7 @@ function Details() {
     setTimeout(async () => {
       let blob;
 
-      blob = await pdf(<PdfBadge data={usersData || []} />).toBlob();
+      blob = await pdf(<PdfBadge data={users || []} />).toBlob();
       FileSaver.saveAs(blob, 'crachas.pdf');
 
       setLoadingPdfBadge(false);
@@ -198,7 +233,7 @@ function Details() {
       let blob;
 
       blob = await pdf(
-        <PdfEnvelope data={usersData?.filter(({ worker }) => !worker) || []} />
+        <PdfEnvelope data={users?.filter(({ worker }) => !worker) || []} />
       ).toBlob();
       FileSaver.saveAs(blob, 'envelopes-cartas.pdf');
 
@@ -349,19 +384,27 @@ function Details() {
         buttonBack
         pageBack="/admin/eventos"
       />
-      <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+
+      <Stack
+        sx={[styles.card, { p: 0.5, height: '50px', width: 'fit-content', maxWidth: '100%' }]}
+      >
         <Tabs
           value={pageValue}
+          sx={styles.tabs}
           onChange={handleChange}
           aria-label="basic tabs example"
+           variant="scrollable"
+           scrollButtons="auto"
+           allowScrollButtonsMobile
         >
-          <Tab label="Usuários" value={'usuarios'} />
+          <Tab label="Inscritos" value={'usuarios'} />
+          <Tab label="Lista de Espera" value={'lista-espera'} />
+          <Tab label="Pagamentos" value={'pagamentos'} />
           <Tab label="Quartos" value={'quartos'} />
           <Tab label="Equipes" value={'equipes'} />
-          {/* <Tab label="Lista de Espera" value={'lista-espera'} />
-          <Tab label="Alerta de Inscrições" value={'alerta-inscricoes'} /> */}
         </Tabs>
-      </Box>
+      </Stack>
+
       {pageValue === 'usuarios' && (
         <Stack gap={2}>
           <Paper component="div" sx={styles.boxFilterAndPdf}>
@@ -410,9 +453,10 @@ function Details() {
                 startIcon={<Download />}
               >
                 Exportar
-              </Button>
-              <Box>
+              </Button >
+              <Box >
                 <Button
+                sx={{width:{xs:'100%', sm:'fit-content'}}}
                   variant="outlined"
                   onClick={handleClickOpenMenu}
                   // onClick={() => handleDownloadPDF(2)}
@@ -427,6 +471,7 @@ function Details() {
               </Box>
               <Box>
                 <Button
+                sx={{width:{xs:'100%', sm:'fit-content'}}}
                   variant="outlined"
                   onClick={() => generatePdfBadge()}
                   startIcon={<BadgeOutlined />}
@@ -448,6 +493,71 @@ function Details() {
             apiRef={apiRefUsers}
             search={searchUser}
             filters={filtersUsers}
+            event={event}
+          />
+        </Stack>
+      )}
+      {pageValue === 'lista-espera' && (
+        <Stack gap={2}>
+          <Paper component="div" sx={styles.boxFilterAndPdf}>
+            <TextField
+              placeholder="Pesquisar usuário por nome ou CPF"
+              variant="outlined"
+              size="small"
+              value={searchUser}
+              sx={styles.textField}
+              onChange={(e) => setSearchUser(e.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Search />
+                  </InputAdornment>
+                ),
+              }}
+            />
+          </Paper>
+
+          <ListUsersWaitList
+            apiRef={apiRefUsers}
+            search={searchUser}
+            event={event}
+          />
+        </Stack>
+      )}
+      {pageValue === 'pagamentos' && (
+        <Stack gap={2}>
+          <Paper component="div" sx={styles.boxFilterAndPdf}>
+            <TextField
+              placeholder="Pesquisar usuário por nome ou CPF"
+              variant="outlined"
+              size="small"
+              value={searchUser}
+              sx={styles.textField}
+              onChange={(e) => setSearchUser(e.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Search />
+                  </InputAdornment>
+                ),
+              }}
+            />
+            {/* <Typography color="#000">Usuários</Typography> */}
+            <Stack sx={styles.stackButtons}>
+              <Button
+                variant="outlined"
+                onClick={() => handleExport(apiRefUsers)}
+                startIcon={<Download />}
+              >
+                Exportar
+              </Button>
+            </Stack>
+          </Paper>
+
+          <ListPayments
+            apiRef={apiRefUsers}
+            search={searchUser}
+            event={event}
           />
         </Stack>
       )}
@@ -467,6 +577,7 @@ function Details() {
             <Stack sx={styles.stackButtons}>
               <Box>
                 <Button
+                sx={{width:{xs:'100%', sm:'fit-content'}}}
                   variant="outlined"
                   onClick={() => generatePdfRooms()}
                   startIcon={<BedOutlined />}
@@ -505,6 +616,7 @@ function Details() {
             <Stack sx={styles.stackButtons}>
               <Box>
                 <Button
+                sx={{width:{xs:'100%', sm:'fit-content'}}}
                   variant="outlined"
                   onClick={() => generatePDFTeams()}
                   startIcon={<People />}
@@ -516,6 +628,7 @@ function Details() {
               </Box>
               <Box>
                 <Button
+                sx={{width:{xs:'100%', sm:'fit-content'}}}
                   variant="outlined"
                   onClick={() => generatePDFEvent()}
                   startIcon={<ViewModuleOutlined />}
@@ -565,7 +678,7 @@ function Details() {
         open={openModalAddUser}
         handleClose={() => setOpenModalAddUser(false)}
         eventId={id || ''}
-        usersAdded={usersData || []}
+        usersAdded={users || []}
       />
 
       <ModalTeam

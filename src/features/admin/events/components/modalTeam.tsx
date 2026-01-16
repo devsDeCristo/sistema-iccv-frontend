@@ -15,14 +15,15 @@ import {
 } from '@mui/material';
 
 import { Controller, useForm } from 'react-hook-form';
-import { useGetEvents } from '../api/getEvents';
-import { useEffect} from 'react';
+import { useEffect } from 'react';
 import { usePostCreateTeam } from '../api/postTeam';
 import { usePutTeam } from '../api/putTeam';
 import { CheckBox, CheckBoxOutlineBlank, Close } from '@mui/icons-material';
 import { Team } from '../types';
 import { queryClient } from '../../../../config/lib/react-query/query-client';
 import { GET_TEAMS } from '../constants';
+import { User } from '../../../../types/user';
+import { useGetUsers } from '../api/getUsers';
 
 interface ModalTeamProps {
   open: boolean;
@@ -67,7 +68,6 @@ function ModalTeam({ open, handleClose, team, eventId }: ModalTeamProps) {
       reset();
       handleClose();
       queryClient.invalidateQueries(GET_TEAMS);
-
     },
   });
   const { mutate: postCreateTeam } = usePostCreateTeam({
@@ -77,18 +77,27 @@ function ModalTeam({ open, handleClose, team, eventId }: ModalTeamProps) {
       queryClient.invalidateQueries(GET_TEAMS);
     },
   });
-  const { data: eventData } = useGetEvents(
-    { eventId: eventId },
+  const { data: userData } = useGetUsers(
+    { eventId: eventId || '' },
     {
       enabled: !!eventId,
     }
   );
-  const options =
-    !Array.isArray(eventData) &&
-    eventData?.users?.map((user: any) => ({
-      value: user.id,
-      label: user.fullName,
-    }));
+
+  const users = userData as User[];
+  function mapUsersToOptions(users: User[]) {
+    return users
+      .flatMap((user) =>
+        user?.groupsRegistration?.map((group) => ({
+          value: user.id,
+          label: user.fullName,
+          groupName: group.name,
+        }))
+      )
+      .sort((a, b) => a?.groupName.localeCompare(b?.groupName));
+  }
+
+  const options = mapUsersToOptions(users || []);
 
   const onSubimitTeam = (data: any) => {
     const transoformData = {
@@ -124,21 +133,24 @@ function ModalTeam({ open, handleClose, team, eventId }: ModalTeamProps) {
   useEffect(() => {
     if (team) {
       reset({
-        capacity: team.capacity||0,
+        capacity: team.capacity || 0,
         note: team.note,
         name: team.name,
-        usersId: team.users.filter((user) => user.roleTeam === 'MEMBER').map((user) => ({
-          value: user.id,
-          label: user.fullName,
-        })),
-        usersLeadersId: team.users.filter((user) => user.roleTeam === 'LEADER').map((user) => ({
-          value: user.id,
-          label: user.fullName,
-        })),
+        usersId: team.users
+          .filter((user) => user.roleTeam === 'MEMBER')
+          .map((user) => ({
+            value: user.id,
+            label: user.fullName,
+          })),
+        usersLeadersId: team.users
+          .filter((user) => user.roleTeam === 'LEADER')
+          .map((user) => ({
+            value: user.id,
+            label: user.fullName,
+          })),
       });
     }
   }, [team]);
-
 
   return (
     <Modal
@@ -172,7 +184,7 @@ function ModalTeam({ open, handleClose, team, eventId }: ModalTeamProps) {
             </IconButton>
           </Stack>
           <form onSubmit={handleSubmit(onSubimitTeam)}>
-            <Box  sx={styles.overflow}>
+            <Box sx={styles.overflow}>
               <Grid container spacing={1.5}>
                 <Grid item xs={12} md={7}>
                   <Controller
@@ -200,25 +212,27 @@ function ModalTeam({ open, handleClose, team, eventId }: ModalTeamProps) {
                     name="capacity"
                     render={({ field: { onChange, value } }) => {
                       const participantes = Number(
-                        (watch('usersId')?.length || 0) + (watch('usersLeadersId')?.length || 0)
+                        (watch('usersId')?.length || 0) +
+                          (watch('usersLeadersId')?.length || 0)
                       );
-                      
-                      return(
-                      <>
-                        <Title title="Capacidade" />
-                        <TextField
-                          fullWidth
-                           inputProps={{ min: participantes }}
-                          type="number"
-                          variant="outlined"
-                          required
-                          size="small"
-                          placeholder="Informe a capacidade"
-                          value={value}
-                          onChange={onChange}
-                        />
-                      </>
-                    )}}
+
+                      return (
+                        <>
+                          <Title title="Capacidade" />
+                          <TextField
+                            fullWidth
+                            inputProps={{ min: participantes }}
+                            type="number"
+                            variant="outlined"
+                            required
+                            size="small"
+                            placeholder="Informe a capacidade"
+                            value={value}
+                            onChange={onChange}
+                          />
+                        </>
+                      );
+                    }}
                   />
                 </Grid>
                 <Grid item xs={12}>
@@ -247,71 +261,80 @@ function ModalTeam({ open, handleClose, team, eventId }: ModalTeamProps) {
                     control={control}
                     name="usersLeadersId"
                     render={({ field: { onChange, value } }) => {
-                        const capacity = Number(watch('capacity') || 0);
-                        const participantes = Number(
-                          (watch('usersId')?.length || 0)
-                        );
+                      const capacity = Number(watch('capacity') || 0);
+                      const participantes = Number(
+                        watch('usersId')?.length || 0
+                      );
 
-                      return(
-                      <>
-                        <Title title="Lideres" />
-                        <Autocomplete
-                          multiple
-                          size="small"
-                          disableCloseOnSelect
-                          id="tags-outlined"
-                          options={options || []}
-                          isOptionEqualToValue={(option, value) =>
-                            option.label == value.label
-                          }
-                          getOptionLabel={(option) => option.label}
-                          ListboxProps={{
-                            style: {
-                              maxHeight: 200, // altura máxima
-                              overflowY: 'auto', // scroll vertical
-                            },
-                          }}
-                          renderOption={(props, option, { selected }) => {
-                            const { ...optionProps } = props;
-                             const disabled =
-                                (value?.length + participantes) >= capacity && !selected;
-                            return (
-                              <li key={option.label} {...optionProps}>
-                                <Checkbox
-                                  icon={
-                                    <CheckBoxOutlineBlank fontSize="small" />
-                                  }
-                                  checkedIcon={<CheckBox fontSize="small" />}
-                                  style={{
-                                    marginLeft: '-10px',
-                                    marginRight: '5px',
-                                  }}
-                                   disabled={disabled}
-                                  checked={selected}
-                                />
-                                {option.label}
-                              </li>
-                            );
-                          }}
-                           onChange={(_, newValue) => {
-                              if ((newValue.length+participantes)<= (value?.length || 0)) {
+                      return (
+                        <>
+                          <Title title="Lideres" />
+                          <Autocomplete
+                            multiple
+                            size="small"
+                            disableCloseOnSelect
+                            id="tags-outlined"
+                            options={options || []}
+                            groupBy={(option) => option.groupName}
+                            isOptionEqualToValue={(option, value) =>
+                              option.value == value.value
+                            }
+                            getOptionLabel={(option) => option.label}
+                            ListboxProps={{
+                              style: {
+                                maxHeight: 200, // altura máxima
+                                overflowY: 'auto', // scroll vertical
+                              },
+                            }}
+                            renderOption={(props, option, { selected }) => {
+                              const { ...optionProps } = props;
+                              const disabled =
+                                value?.length + participantes >= capacity &&
+                                !selected;
+                              return (
+                                <li key={option.label} {...optionProps}>
+                                  <Checkbox
+                                    icon={
+                                      <CheckBoxOutlineBlank fontSize="small" />
+                                    }
+                                    checkedIcon={<CheckBox fontSize="small" />}
+                                    style={{
+                                      marginLeft: '-10px',
+                                      marginRight: '5px',
+                                    }}
+                                    disabled={disabled}
+                                    checked={selected}
+                                  />
+                                  {option.label}
+                                </li>
+                              );
+                            }}
+                            onChange={(_, newValue) => {
+                              if (
+                                newValue.length + participantes <=
+                                (value?.length || 0)
+                              ) {
                                 // Removendo alguém → sempre deixa
                                 onChange(newValue);
-                              } else if ((newValue.length+participantes) <= capacity) {
+                              } else if (
+                                newValue.length + participantes <=
+                                capacity
+                              ) {
                                 // Adicionando → só deixa se não passar da capacidade
                                 onChange(newValue);
                               }
                             }}
-                          value={value || []}
-                          renderInput={(params) => (
-                            <TextField
-                              {...params}
-                              placeholder="Participantes"
-                            />
-                          )}
-                        />
-                      </>
-                    )}}
+                            value={value || []}
+                            renderInput={(params) => (
+                              <TextField
+                                {...params}
+                                placeholder="Participantes"
+                              />
+                            )}
+                          />
+                        </>
+                      );
+                    }}
                   />
                 </Grid>
                 <Grid item xs={12}>
@@ -320,69 +343,74 @@ function ModalTeam({ open, handleClose, team, eventId }: ModalTeamProps) {
                     name="usersId"
                     render={({ field: { onChange, value } }) => {
                       const capacity = Number(watch('capacity') || 0);
-const liders = Number(
-                          (watch('usersLeadersId')?.length || 0)
-                        );
-                      return(
-                      <>
-                        <Title title="Participantes" />
-                        <Autocomplete
-                          multiple
-                          size="small"
-                          disableCloseOnSelect
-                          id="tags-outlined"
-                          options={options || []}
-                          isOptionEqualToValue={(option, value) =>
-                            option.label == value.label
-                          }
-                          getOptionLabel={(option) => option.label}
-                          ListboxProps={{
-                            style: {
-                              maxHeight: 200, // altura máxima
-                              overflowY: 'auto', // scroll vertical
-                            },
-                          }}
-                          renderOption={(props, option, { selected }) => {
-                            const { ...optionProps } = props;
-                            const disabled =
-                                (value?.length + liders) >= capacity && !selected;
-                            return (
-                              <li key={option.label} {...optionProps}>
-                                <Checkbox
-                                disabled={disabled}
-                                  icon={
-                                    <CheckBoxOutlineBlank fontSize="small" />
-                                  }
-                                  checkedIcon={<CheckBox fontSize="small" />}
-                                  style={{
-                                    marginLeft: '-10px',
-                                    marginRight: '5px',
-                                  }}
-                                  checked={selected}
-                                />
-                                {option.label}
-                              </li>
-                            );
-                          }}
-                             onChange={(_, newValue) => {
-                              if ((newValue.length+liders) <= (value?.length || 0)) {
+                      const liders = Number(
+                        watch('usersLeadersId')?.length || 0
+                      );
+                      return (
+                        <>
+                          <Title title="Participantes" />
+                          <Autocomplete
+                            multiple
+                            size="small"
+                            disableCloseOnSelect
+                            id="tags-outlined"
+                            options={options || []}
+                            groupBy={(option) => option.groupName}
+                            isOptionEqualToValue={(option, value) =>
+                              option.value == value.value
+                            }
+                            getOptionLabel={(option) => option.label}
+                            ListboxProps={{
+                              style: {
+                                maxHeight: 200, // altura máxima
+                                overflowY: 'auto', // scroll vertical
+                              },
+                            }}
+                            renderOption={(props, option, { selected }) => {
+                              const { ...optionProps } = props;
+                              const disabled =
+                                value?.length + liders >= capacity && !selected;
+                              return (
+                                <li key={option.label} {...optionProps}>
+                                  <Checkbox
+                                    disabled={disabled}
+                                    icon={
+                                      <CheckBoxOutlineBlank fontSize="small" />
+                                    }
+                                    checkedIcon={<CheckBox fontSize="small" />}
+                                    style={{
+                                      marginLeft: '-10px',
+                                      marginRight: '5px',
+                                    }}
+                                    checked={selected}
+                                  />
+                                  {option.label}
+                                </li>
+                              );
+                            }}
+                            onChange={(_, newValue) => {
+                              if (
+                                newValue.length + liders <=
+                                (value?.length || 0)
+                              ) {
                                 // Removendo alguém → sempre deixa
                                 onChange(newValue);
-                              } else if ((newValue.length+liders) <= capacity) {
+                              } else if (newValue.length + liders <= capacity) {
                                 // Adicionando → só deixa se não passar da capacidade
                                 onChange(newValue);
                               }
                             }}
-                          value={value || []}
-                          renderInput={(params) => (
-                            <TextField
-                              {...params}
-                              placeholder="Participantes"
-                            />
-                          )}
-                        />
-                      </>
-                    )}}
+                            value={value || []}
+                            renderInput={(params) => (
+                              <TextField
+                                {...params}
+                                placeholder="Participantes"
+                              />
+                            )}
+                          />
+                        </>
+                      );
+                    }}
                   />
                 </Grid>
               </Grid>

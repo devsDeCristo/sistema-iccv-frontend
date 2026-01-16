@@ -1,22 +1,53 @@
 import { User, UserTeam } from '../../../types/user';
 import { z } from 'zod';
-import { REGISTER_EVENT_SCHEMA } from './constants';
-
-export interface Event {
+import {
+  CATEGORY_EVENT_SCHEMA,
+  DATE_AND_LOCAL_SCHEMA,
+  EVENT_LOGO_SCHEMA,
+  GENERAL_INFO_SCHEMA,
+  GROUP_ROLE_SELECT_SCHEMA,
+  REGISTER_EVENT_SCHEMA,
+  REGISTRATION_SETTINGS_SCHEMA,
+  ROLE_SELECT_SCHEMA,
+} from './constants';
+export type EventType = 'CURSILHO' | 'RETIRO';
+export interface EventDetails {
   id: string;
   name: string;
   startDate: Date;
   endDate: Date;
-  img: string;
-  groupLink: string;
+  groupLink?: string;
   isActive: boolean;
-  price: number;
-  workerPrice: number;
+  data: EventDataJson;
+  type: EventType;
+  groupRoles: GroupRole[];
   createdAt: Date;
-  capacity: number;
-  capacityWorker: number;
   updateAt: Date;
-  users?: User[];
+}
+
+export interface PayLoadGroup {
+  present:Group[];
+  waitlist:Group[];
+}
+export interface Group {
+  id: string;
+  name: string;
+  capacity: number;
+  eventId: string;
+}
+export interface Event {
+  id: string;
+  type: EventType;
+  name: string;
+  startDate: Date;
+  endDate: Date;
+  isActive: boolean;
+  bedroom: number;
+  team: number;
+  waitlist: number;
+  users: number;
+  capacity: number;
+  data:EventDataJson
 }
 export interface filterUsers {
   birthday: { startDate: string | null; endDate: string | null };
@@ -45,7 +76,7 @@ export interface Bedroom {
 export interface Team {
   id: string;
   name: string;
-  event: Event;
+  event: EventDetails;
   users: UserTeam[];
   note: string | null;
   capacity: number;
@@ -54,5 +85,56 @@ export interface Team {
   workerPrice: number;
   groupLink?: string;
 }
+export interface GroupRole {
+  id?: string;
+  name: string;
+  capacity: number | null;
+  // expanded: boolean;
+  roles: {
+    id?: string;
+    price: number | null;
+    description: string;
+    registered?: number;
+  }[];
+}
+export interface EventDataJson {
+  description?: string;
+  shortDescription?: string;
+  localName?: string;
+  zipCode?: string;
+  state?: string;
+  city?: string;
+  neighborhood?: string;
+  address?: string;
+  number?: string;
+  linkMaps?: string;
+  logoUrl?: string;
+  coverUrl?: string;
+}
+export interface CreateEventPayload {
+  name: string;
+  groupLink?: string;
+  isActive: boolean;
+  startDate: Date;
+  endDate: Date;
+  groupRoles: GroupRole[];
+  data: EventDataJson;
+  type: EventType;
+}
+
+export type SelectGroupRoleFormType = z.infer<typeof GROUP_ROLE_SELECT_SCHEMA>;
+
+export type SelectRoleFormType = z.infer<typeof ROLE_SELECT_SCHEMA>;
 
 export type RegisterEventFormType = z.infer<typeof REGISTER_EVENT_SCHEMA>;
+
+export type GeneralInfoFormType = z.infer<typeof GENERAL_INFO_SCHEMA>;
+
+export type DateAndLocalFormType = z.infer<typeof DATE_AND_LOCAL_SCHEMA>;
+
+export type EventLogoFormType = z.infer<typeof EVENT_LOGO_SCHEMA>;
+
+export type RegistrationSettingsFormType = z.infer<
+  typeof REGISTRATION_SETTINGS_SCHEMA
+>;
+export type CategoryEventFormType = z.infer<typeof CATEGORY_EVENT_SCHEMA>;

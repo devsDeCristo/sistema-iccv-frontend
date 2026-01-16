@@ -48,6 +48,15 @@ export const formatCPF = (value: string): string => {
     .replace(/(-\d{2})\d+?$/, '$1');
 };
 
+export const formatZipCode = (value?: string): string => {
+  return value
+    ? value
+        .replace(/\D/g, '')
+        .replace(/^(\d{5})(\d)/, '$1-$2')
+        .slice(0, 9)
+    : '';
+};
+
 export const formatPhoneNumber = (value: string): string => {
   return value
     .replace(/\D/g, '')
