@@ -213,8 +213,10 @@ function Cards() {
             .filter((event) => {
               if(admin){
                return event.id=="467b1abc-0988-4c99-872f-9b1fda67be1d"
+              }else{
+                return event.id!="467b1abc-0988-4c99-872f-9b1fda67be1d"
               }
-              return true;
+              
             })
             .map((event: Event) => <EventCard key={event.id} event={event} />)
         : null}
