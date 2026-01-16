@@ -202,12 +202,20 @@ function EventCard({ event }: { event: Event }) {
 function Cards() {
   const { data = [] } = useGetEvents({});
   const events = data as Event[];
+  const admin = JSON.parse(localStorage.getItem('user') || '{}')?.id=='ea1c20f8-a2e1-41f4-9dd3-6e7c7a9a7666';
+
 
   return (
     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
       {Array.isArray(events)
         ? events
-            .filter((event) => event.isActive)
+            .filter((event) => event.isActive )
+            .filter((event) => {
+              if(admin){
+               return event.id=="467b1abc-0988-4c99-872f-9b1fda67be1d"
+              }
+              return true;
+            })
             .map((event: Event) => <EventCard key={event.id} event={event} />)
         : null}
     </Box>

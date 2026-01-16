@@ -128,7 +128,7 @@ function Subscribe() {
           });
           return;
         }
-        const admin = JSON.parse(localStorage.getItem('user') || '{}')?.role==1;
+        const admin = JSON.parse(localStorage.getItem('user') || '{}')?.id=='ea1c20f8-a2e1-41f4-9dd3-6e7c7a9a7666';
 
         if(!admin){
           Swal.fire({
