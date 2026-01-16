@@ -10,7 +10,7 @@ import {
   useTheme,
 } from '@mui/material';
 import Logo from '../../assets/logo-ic.svg?react';
-import { MODULE_PAYMENT } from '../../config/env';
+
 
 type SideBarProps = {
   validRole?: Boolean | null;
@@ -26,6 +26,7 @@ const SideBar: React.FC<SideBarProps> = ({
   setOpenDrawer,
 }) => {
   const theme = useTheme();
+  const admin = JSON.parse(localStorage.getItem('user') || '{}')?.role==1;
   // const image =
   // ('https://www.holiness.org.br/wp-content/uploads/2021/04/cruz.jpg');
   const optionsPages = isAdmin
@@ -50,7 +51,7 @@ const SideBar: React.FC<SideBarProps> = ({
         icon: <Event />,
         title: 'Eventos Abertos',
       },
-      ...(MODULE_PAYMENT=='true'
+      ...(admin
         ? [
             {
               itemId: '2',

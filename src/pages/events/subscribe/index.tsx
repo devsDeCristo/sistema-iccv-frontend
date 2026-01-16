@@ -33,7 +33,7 @@ import { usePostRegisterUserInEvent } from '../../../features/admin/events/api/p
 import Swal from 'sweetalert2';
 import { useGetGroupsByUser } from '../../../features/admin/events/api/getGroupsByUser';
 import { usePostCreateCheckoutEvent } from '../../../features/admin/events/api/postCreateCheckoutEvent';
-import { MODULE_PAYMENT } from '../../../config/env';
+
 
 function Subscribe() {
   const { id } = useParams();
@@ -127,8 +127,9 @@ function Subscribe() {
           });
           return;
         }
+        const admin = JSON.parse(localStorage.getItem('user') || '{}')?.role==1;
 
-        if(MODULE_PAYMENT!='true'){
+        if(admin){
           Swal.fire({
             title: 'Inscrição(ões) realizada(s) com sucesso!',
             text: allRegistered
