@@ -128,21 +128,21 @@ function Subscribe() {
           });
           return;
         }
-        const admin = JSON.parse(localStorage.getItem('user') || '{}')?.id=='ea1c20f8-a2e1-41f4-9dd3-6e7c7a9a7666';
+        // const admin = JSON.parse(localStorage.getItem('user') || '{}')?.id=='ea1c20f8-a2e1-41f4-9dd3-6e7c7a9a7666';
 
-        if(!admin){
-          Swal.fire({
-            title: 'Inscrição(ões) realizada(s) com sucesso!',
-            text: allRegistered
-              ? 'Suas inscrições foram confirmadas.'
-              : 'Algumas inscrições ficaram na lista de espera.',
-            icon: 'success',
-            confirmButtonText: 'OK',
-          }).then(() => {
-            navigate('/eventos/' + id);
-          });
-          return;
-        }
+        // if(!admin){
+        //   Swal.fire({
+        //     title: 'Inscrição(ões) realizada(s) com sucesso!',
+        //     text: allRegistered
+        //       ? 'Suas inscrições foram confirmadas.'
+        //       : 'Algumas inscrições ficaram na lista de espera.',
+        //     icon: 'success',
+        //     confirmButtonText: 'OK',
+        //   }).then(() => {
+        //     navigate('/eventos/' + id);
+        //   });
+        //   return;
+        // }
 
         // Caso 1 e 2: existe pelo menos uma registrada
         Swal.fire({

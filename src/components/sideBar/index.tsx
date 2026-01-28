@@ -11,7 +11,6 @@ import {
 } from '@mui/material';
 import Logo from '../../assets/logo-ic.svg?react';
 
-
 type SideBarProps = {
   validRole?: Boolean | null;
   isAdmin?: Boolean;
@@ -26,7 +25,7 @@ const SideBar: React.FC<SideBarProps> = ({
   setOpenDrawer,
 }) => {
   const theme = useTheme();
-  const admin = JSON.parse(localStorage.getItem('user') || '{}')?.id=='ea1c20f8-a2e1-41f4-9dd3-6e7c7a9a7666';
+  
   // const image =
   // ('https://www.holiness.org.br/wp-content/uploads/2021/04/cruz.jpg');
   const optionsPages = isAdmin
@@ -45,23 +44,20 @@ const SideBar: React.FC<SideBarProps> = ({
         },
       ]
     : [
-      {
-        itemId: '1',
-        link: '/eventos',
-        icon: <Event />,
-        title: 'Eventos Abertos',
-      },
-      ...(admin
-        ? [
-            {
-              itemId: '2',
-              link: '/minhasInscricoes',
-              icon: <ConfirmationNumber />,
-              title: 'Minhas Inscrições',
-            },
-          ]
-        : []),
-    ];
+        {
+          itemId: '1',
+          link: '/eventos',
+          icon: <Event />,
+          title: 'Eventos Abertos',
+        },
+
+        {
+          itemId: '2',
+          link: '/minhasInscricoes',
+          icon: <ConfirmationNumber />,
+          title: 'Minhas Inscrições',
+        },
+      ];
   const styles = {
     boxContainer: {
       display: 'flex',
@@ -205,7 +201,6 @@ const SideBar: React.FC<SideBarProps> = ({
             menuItemStyles={{
               button: () => styles.buttonMenu,
             }}
-       
           >
             <MenuItem
               className="menu1"
@@ -218,7 +213,7 @@ const SideBar: React.FC<SideBarProps> = ({
                     height: '40px',
                     width: 'auto',
                     margin: '10px',
-                    fill: theme.palette.text.primary
+                    fill: theme.palette.text.primary,
                   }}
                 />
                 <Typography
