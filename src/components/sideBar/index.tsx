@@ -56,7 +56,7 @@ const SideBar: React.FC<SideBarProps> = ({
         //   link: '/minhasInscricoes',
         //   icon: <ConfirmationNumber />,
         //   title: 'Minhas Inscrições',
-        // },
+        // },//s
       ];
   const styles = {
     boxContainer: {
