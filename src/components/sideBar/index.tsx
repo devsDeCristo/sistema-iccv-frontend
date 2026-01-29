@@ -51,12 +51,12 @@ const SideBar: React.FC<SideBarProps> = ({
           title: 'Eventos Abertos',
         },
 
-        {
-          itemId: '2',
-          link: '/minhasInscricoes',
-          icon: <ConfirmationNumber />,
-          title: 'Minhas Inscrições',
-        },
+        // {
+        //   itemId: '2',
+        //   link: '/minhasInscricoes',
+        //   icon: <ConfirmationNumber />,
+        //   title: 'Minhas Inscrições',
+        // },
       ];
   const styles = {
     boxContainer: {
