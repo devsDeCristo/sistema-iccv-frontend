@@ -101,6 +101,7 @@ function Subscribe() {
 
       window.open(link, '_blank', 'noopener,noreferrer');
       setLoadingPayment(false);
+      navigate('/eventos/' + id);
     },
     onError: () => {
       navigate('/eventos/' + id);
