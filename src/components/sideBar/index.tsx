@@ -25,7 +25,7 @@ const SideBar: React.FC<SideBarProps> = ({
   setOpenDrawer,
 }) => {
   const theme = useTheme();
-  
+
   // const image =
   // ('https://www.holiness.org.br/wp-content/uploads/2021/04/cruz.jpg');
   const optionsPages = isAdmin
@@ -50,13 +50,12 @@ const SideBar: React.FC<SideBarProps> = ({
           icon: <Event />,
           title: 'Eventos Abertos',
         },
-
-        // {
-        //   itemId: '2',
-        //   link: '/minhasInscricoes',
-        //   icon: <ConfirmationNumber />,
-        //   title: 'Minhas Inscrições',
-        // },//s
+        {
+          itemId: '2',
+          link: '/minhasInscricoes',
+          icon: <ConfirmationNumber />,
+          title: 'Minhas Inscrições',
+        },
       ];
   const styles = {
     boxContainer: {
