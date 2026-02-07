@@ -8,16 +8,23 @@ import {
 type PutMoveUserFromEventProps = {
   idUser: string;
   idEvent: string;
+  idUserRemoved: string;
   rule: string;
 };
 
 const putMoveUserFromEvent = ({
   idUser,
   idEvent,
+  idUserRemoved,
   rule,
 }: PutMoveUserFromEventProps) =>
   apiClient
-    .put<boolean>(`/events/${idEvent}/waitlist/users/${idUser}/rule/${rule}`, {})
+  //está fora do padrão REST, depois a gente vê sso
+    .put<boolean>(`/events/${idEvent}/waitlist/move`, {
+      userFromWaitlistId: idUser,
+      userToRemoveId: idUserRemoved,
+      roleRegistrationId: rule,
+    })
     .then((response) => {
       handleResponseSuccess(
         response.data,

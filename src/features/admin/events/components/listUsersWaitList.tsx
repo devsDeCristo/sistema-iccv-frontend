@@ -30,10 +30,7 @@ import { useEffect, useMemo, useState } from 'react';
 
 import { toast } from 'react-toastify';
 import { useGetUsersWaitlist } from '../api/getUsersWaitlist';
-import { usePutMoveUserFromEvent } from '../api/putMoveUserFromEvent';
-import Swal from 'sweetalert2';
-import { queryClient } from '../../../../config/lib/react-query/query-client';
-import { GET_EVENT_USERS_WAITLIST } from '../constants';
+import { ModalSenduserEvent } from './modalSendUserEvent';
 
 const getSelectedRowsToExport = ({
   apiRef,
@@ -88,6 +85,8 @@ function ListUsersWaitList({
     }
   );
   const [panel, setPanel] = useState<string>('1');
+  const [openModalParams, setOpenModalParams] = useState<GridCellParams | null>(null);
+ 
   const theme = useTheme();
   const md = useMediaQuery(theme.breakpoints.up('md'));
 
@@ -121,24 +120,7 @@ function ListUsersWaitList({
       },
     },
   };
-  const { mutate: mutateMoveUserFromEvent } = usePutMoveUserFromEvent({
-    onSuccess: () => {
-      Swal.fire({
-        title: 'Inscrito!',
-        text: 'Usuário movido para o evento com sucesso.',
-        icon: 'success',
-      });
-      queryClient.invalidateQueries(GET_EVENT_USERS_WAITLIST);
-    },
-    onError: () => {
-      Swal.fire({
-        title: 'Erro!',
-        text: 'Ocorreu um erro ao mover o usuário para o evento, tente novamente.',
-        icon: 'error',
-        confirmButtonText: 'OK',
-      });
-    },
-  });
+ 
 
   const groupsRules = useMemo(
     () => event?.groupRoles?.map((g: any) => g.name) ?? [],
@@ -252,7 +234,7 @@ function ListUsersWaitList({
         return (
           <Stack sx={{ p: 1 }}>
             <Button
-              onClick={(event) => handleMoveUserToEvent(event, params)}
+              onClick={() => setOpenModalParams(params)}
               variant="contained"
             >
               Inscrever
@@ -262,31 +244,7 @@ function ListUsersWaitList({
       },
     },
   ];
-  const handleMoveUserToEvent = (
-    event: React.MouseEvent,
-    params: GridCellParams
-  ) => {
-    event.stopPropagation();
-    const rowSelected = params.row;
-    Swal.fire({
-      title: 'Inscrição de usuário!',
-      text: 'Deseja inscrever o usuário no evento? Essa ação irá tentar inscrevê-lo automaticamente conforme as regras de ingresso e não poderá ser desfeita.',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Sim, inscrever no evento!',
-    }).then((result) => {
-      if (result.isConfirmed) {
-        mutateMoveUserFromEvent({
-          idEvent: eventId,
-          idUser: rowSelected?.id.toString(),
-          rule: rowSelected.groupsRegistration[0].roles[0]?.id,
-        });
-      }
-    });
-  };
-
+ 
   const filteredByGroup = (usersData: User[]) => {
     if (!panel || groupsRules.length === 0) return usersData;
     return usersData.filter((user) => {
@@ -395,6 +353,13 @@ function ListUsersWaitList({
           localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
         />
       </Card>
+
+      <ModalSenduserEvent
+        eventId={eventId}
+        handleClose={() => setOpenModalParams(null)}
+        open={!!openModalParams}
+        params={openModalParams || ({} as GridCellParams)}
+        />
     </>
   );
 }
