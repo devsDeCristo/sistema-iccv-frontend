@@ -84,7 +84,7 @@ function EventsDetails() {
       },
 
       stackRight: { width: { xs: '100%', lg: '65%' } },
-      stackLeft: { width: { xs: '100%', lg: '35%' } },
+      stackLeft: { width: { xs: '100%', lg: '35%' }, gap: 4 },
 
       stackContainer: {
         position: 'relative',
@@ -220,21 +220,6 @@ function EventsDetails() {
             <Typography sx={styles.title}>Sobre o Evento</Typography>
             <ReactQuillViewer value={event?.data?.description || ''} />
           </Paper>
-
-          {havaOneFieldLocal && (
-            <Paper sx={styles.paper}>
-              <Typography sx={styles.title}>Localização</Typography>
-              <Tooltip title={stringLocal()} arrow placement="right-end">
-                <Typography sx={styles.subtitle}>{stringLocal()}</Typography>
-              </Tooltip>
-              {event?.data?.linkMaps && (
-                <GoogleMap
-                  linkMap={event?.data?.linkMaps as string}
-                  width="100%"
-                />
-              )}
-            </Paper>
-          )}
         </Stack>
 
         {/* Coluna direita */}
@@ -305,6 +290,20 @@ function EventsDetails() {
               </Button>
             )}
           </Paper>
+          {havaOneFieldLocal && (
+            <Paper sx={styles.paper}>
+              <Typography sx={styles.title}>Localização</Typography>
+              <Tooltip title={stringLocal()} arrow placement="right-end">
+                <Typography sx={styles.subtitle}>{stringLocal()}</Typography>
+              </Tooltip>
+              {event?.data?.linkMaps && (
+                <GoogleMap
+                  linkMap={event?.data?.linkMaps as string}
+                  width="100%"
+                />
+              )}
+            </Paper>
+          )}
         </Stack>
       </Stack>
     </PageStyle>

@@ -2,6 +2,10 @@ import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import CustomToolbar from './customToolbar';
 import Quill from 'quill';
+// @ts-ignore - no type declarations for 'quill-image-resize-module-react'
+import ImageResize from 'quill-image-resize-module-react';
+
+// Quill.register('modules/imageResize', ImageResize);
 // import QuillResize from 'quill-resize-module';
 
 // Quill.register('modules/resize', QuillResize);
@@ -32,6 +36,10 @@ const modules = {
   toolbar: {
     container: '#toolbar',
   },
+  // imageResizer: {
+  //   parchment: Quill.import && Quill.import('parchment'),
+  //   modules: ['Resize', 'DisplaySize'],
+  // },
 };
 
 const formats = [
@@ -53,6 +61,7 @@ const formats = [
   'align',
   'link',
   'image',
+  'bullet',
   'video',
   'formula',
 ];

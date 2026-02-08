@@ -97,7 +97,7 @@ width: 100%;
 height: 100%;
 border: none;
 }
-.ql-editor img,
+/* .ql-editor img,
 .ql-editor figure img {
   display: block;
   width: 100% !important;
@@ -107,14 +107,14 @@ border: none;
   margin: 0.5rem 0;
   margin-left: auto;
   margin-right: auto;
-}
+} */
 
 /* garantir que o container da figura também ocupe toda a largura */
-.ql-editor figure {
+/* .ql-editor figure {
   width: 100%;
   max-width: 100%;
   display: block;
-} 
+}  */
 
 .ql-toolbar.ql-snow {
   display: block;
