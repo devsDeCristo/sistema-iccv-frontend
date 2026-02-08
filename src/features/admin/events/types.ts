@@ -112,6 +112,7 @@ export interface EventDataJson {
   linkMaps?: string;
   logoUrl?: string;
   coverUrl?: string;
+  hideVacancies?: boolean;
 }
 export interface CreateEventPayload {
   name: string;

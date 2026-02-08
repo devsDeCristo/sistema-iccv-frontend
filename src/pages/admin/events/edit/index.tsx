@@ -168,7 +168,7 @@ function Edit() {
       },
     });
 
-  async function registrationSettingsSubmit(data: any) {
+  async function registrationSettingsSubmit() {
     const [
       validDateAndTime,
       validGeneralInfo,
@@ -232,6 +232,7 @@ function Edit() {
             data: {
               description: generalInfoData.description,
               shortDescription: generalInfoData.shortDescription,
+              hideVacancies: generalInfoData.hideVacancies,
               localName: dateAndTimeData.localName,
               zipCode: dateAndTimeData.zipCode,
               state: dateAndTimeData.state,
@@ -314,7 +315,7 @@ function Edit() {
       title: 'Erro ao cadastrar evento',
       text: firstError,
       icon: 'error',
-    }).then((result) => {});
+    }).then(() => {});
     // Toast('error', 'Erro!', firstError);
   }
   return (

@@ -29,7 +29,7 @@ import {
   selectedGridRowsSelector,
 } from '@mui/x-data-grid';
 import { useParams } from 'react-router-dom';
-import { Edit, MoreVert, Reply, WidthFull } from '@mui/icons-material';
+import { Edit, MoreVert, Reply } from '@mui/icons-material';
 import { PaymentResponse } from '../../../../types/user';
 import { useEffect, useMemo, useState } from 'react';
 import CustomChip from '../../../../components/customChip';
@@ -109,14 +109,13 @@ function ListPayments({
     titleCard: {
       borderRadius: '5px',
       backgroundColor: theme.palette.background.paper,
-  
     },
     subTitleCard: {
       fontSize: '1.5rem',
       fontWeight: 600,
       color: theme.palette.text.primary,
     },
-    cardMoney:{
+    cardMoney: {
       position: 'relative',
       p: 2,
       width: '100%',
@@ -315,8 +314,19 @@ function ListPayments({
 
   const CardTemplate = ({ title, value }: CardTemplateProps) => (
     <Card sx={styles.cardMoney}>
-      <Box sx={{position:'absolute', height: '100%', width: '5px', left: 0,top: 0, backgroundColor: 'primary.main'}}/>
-      <Typography sx={styles.subTitleCard}>{"R$ " + value.toFixed(2)}</Typography>
+      <Box
+        sx={{
+          position: 'absolute',
+          height: '100%',
+          width: '5px',
+          left: 0,
+          top: 0,
+          backgroundColor: 'primary.main',
+        }}
+      />
+      <Typography sx={styles.subTitleCard}>
+        {'R$ ' + value.toFixed(2)}
+      </Typography>
       <Typography sx={styles.titleCard}>{title}</Typography>
     </Card>
   );
@@ -329,7 +339,6 @@ function ListPayments({
         justifyContent="space-between"
         gap={1}
       >
-        
         <CardTemplate
           title="Montante Total"
           value={

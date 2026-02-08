@@ -1,4 +1,4 @@
-import { Grid, Typography } from '@mui/material';
+import { Box, Grid, Switch, Typography } from '@mui/material';
 import { Input } from '../../../../components/input';
 import { Controller, useFormContext } from 'react-hook-form';
 import { InputSelect } from '../../../../components/inputSelect';
@@ -51,6 +51,27 @@ function FormGeneralInfo() {
               error={!!errors.isActive}
               errorMessage={errors.isActive?.message}
             />
+          )}
+        />
+      </Grid>{' '}
+      <Grid item xs={12} md={12}>
+        <Controller
+          control={control}
+          name="hideVacancies"
+          render={({ field: { onChange, value } }) => (
+            <Box display="flex" alignItems="center" gap={1}>
+              <Switch
+                checked={value}
+                onChange={(e) => onChange(e.target.checked)}
+              />{' '}
+              <Box gap={1}>
+                <Typography>Ocultar vagas</Typography>
+                <Typography variant="body2" color="textSecondary">
+                  Oculta a quantidade de vagas restantes para cada grupo na
+                  página de detalhes do evento
+                </Typography>
+              </Box>
+            </Box>
           )}
         />
       </Grid>{' '}

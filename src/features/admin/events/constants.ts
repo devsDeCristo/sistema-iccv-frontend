@@ -70,6 +70,7 @@ export const GENERAL_INFO_SCHEMA = z.object({
       message: 'Máximo de 200 caracteres',
     })
     .optional(),
+  hideVacancies: z.boolean().optional(),
   isActive: z.boolean().optional(),
 });
 export const CATEGORY_EVENT_SCHEMA = z.object({

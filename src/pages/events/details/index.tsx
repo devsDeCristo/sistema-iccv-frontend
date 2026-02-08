@@ -75,6 +75,10 @@ function EventsDetails() {
       text: {
         fontSize: '0.9rem',
       },
+      textGroup: {
+        fontSize: '1rem',
+        fontWeight: 500,
+      },
       paper: {
         p: 3,
       },
@@ -230,33 +234,40 @@ function EventsDetails() {
               Informações sobre vagas disponíveis
             </Typography>
             <Box sx={styles.vacancyBox}>
-              {event?.groupRoles?.map((group, index) => {
-                const vagas = getVagasRestantes(group);
+              {true
+                ? event?.groupRoles?.map((group, index) => {
+                    const vagas = getVagasRestantes(group);
 
-                return (
-                  <Box key={group.id}>
-                    <Grid container sx={styles.gridRow}>
-                      <Grid item xs={5}>
-                        <Typography>{group.name}</Typography>
-                      </Grid>
+                    return (
+                      <Box key={group.id}>
+                        <Grid container sx={styles.gridRow}>
+                          <Grid item xs={!event.data?.hideVacancies ? 5 : 12}>
+                            <Typography sx={styles.textGroup}>
+                              {group.name}
+                            </Typography>
+                          </Grid>
+                          {!event.data?.hideVacancies && (
+                            <Grid item xs={7}>
+                              {vagas > 0 ? (
+                                <Typography>
+                                  {vagas} vaga(s) restante(s)
+                                </Typography>
+                              ) : (
+                                <Typography sx={styles.error}>
+                                  Lista de Espera!
+                                </Typography>
+                              )}
+                            </Grid>
+                          )}
+                        </Grid>
 
-                      <Grid item xs={7}>
-                        {vagas > 0 ? (
-                          <Typography>{vagas} vaga(s) restante(s)</Typography>
-                        ) : (
-                          <Typography sx={styles.error}>
-                            Lista de Espera!
-                          </Typography>
+                        {index < (event?.groupRoles?.length || 0) - 1 && (
+                          <Divider sx={styles.divider} />
                         )}
-                      </Grid>
-                    </Grid>
-
-                    {index < (event?.groupRoles?.length || 0) - 1 && (
-                      <Divider sx={styles.divider} />
-                    )}
-                  </Box>
-                );
-              })}
+                      </Box>
+                    );
+                  })
+                : null}
             </Box>
             <Button
               variant="contained"

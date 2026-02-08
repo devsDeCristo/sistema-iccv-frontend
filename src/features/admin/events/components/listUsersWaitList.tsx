@@ -2,7 +2,6 @@ import React from 'react';
 import {
   Avatar,
   Box,
-  Button,
   Card,
   IconButton,
   Stack,
@@ -92,47 +91,51 @@ function ListUsersWaitList({
     }
   );
   const { mutate: mutateRemoveUserFromWaitlist } = useRemoveUserFromWaitlist({
-      onSuccess: () => {
-        Swal.fire({
-          title: 'Removido!',
-          text: 'Usuário removido da lista de espera com sucesso.',
-          icon: 'success',
-        });
-        queryClient.invalidateQueries(GET_EVENT_USERS_WAITLIST);
-        ;
-      },
-      onError: () => {
-        Swal.fire({
-          title: 'Erro!',
-          text: 'Ocorreu um erro ao remover o usuário da lista de espera, tente novamente.',
-          icon: 'error',
-          confirmButtonText: 'OK',
-        });
-      },
-    });
-  const handleRemove = ({event, params}: {event: React.MouseEvent<HTMLButtonElement>, params: GridCellParams          }) => {
-    event.stopPropagation(); // Evita que o clique dispare outras ações, como abrir o modal
+    onSuccess: () => {
       Swal.fire({
-        title: 'Remover Usuário!', 
-        text: 'Deseja remover este usuário da lista de espera? Será permanentemente removido da lista de espera.',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Sim, remover da lista de espera!',
-        didOpen: () => {
-          const container = Swal.getContainer();
-          if (container) container.style.zIndex = '2000';
-        },
-      }).then((result) => {
-        if (result.isConfirmed) {
-          mutateRemoveUserFromWaitlist({
-            idEvent: eventId,
-            idUser: params.row.id,
-            roleRegistrationId: params.row.groupsRegistration[0].roles[0]?.id,
-          });
-        
-        }
+        title: 'Removido!',
+        text: 'Usuário removido da lista de espera com sucesso.',
+        icon: 'success',
       });
-    };
+      queryClient.invalidateQueries(GET_EVENT_USERS_WAITLIST);
+    },
+    onError: () => {
+      Swal.fire({
+        title: 'Erro!',
+        text: 'Ocorreu um erro ao remover o usuário da lista de espera, tente novamente.',
+        icon: 'error',
+        confirmButtonText: 'OK',
+      });
+    },
+  });
+  const handleRemove = ({
+    event,
+    params,
+  }: {
+    event: React.MouseEvent<HTMLButtonElement>;
+    params: GridCellParams;
+  }) => {
+    event.stopPropagation(); // Evita que o clique dispare outras ações, como abrir o modal
+    Swal.fire({
+      title: 'Remover Usuário!',
+      text: 'Deseja remover este usuário da lista de espera? Será permanentemente removido da lista de espera.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sim, remover da lista de espera!',
+      didOpen: () => {
+        const container = Swal.getContainer();
+        if (container) container.style.zIndex = '2000';
+      },
+    }).then((result) => {
+      if (result.isConfirmed) {
+        mutateRemoveUserFromWaitlist({
+          idEvent: eventId,
+          idUser: params.row.id,
+          roleRegistrationId: params.row.groupsRegistration[0].roles[0]?.id,
+        });
+      }
+    });
+  };
   const [panel, setPanel] = useState<string>('1');
   const [openModalParams, setOpenModalParams] = useState<GridCellParams | null>(
     null
@@ -299,7 +302,9 @@ function ListUsersWaitList({
             </Tooltip>
             <Tooltip title="Remover da Lista de Espera">
               <IconButton
-                onClick={(event: React.MouseEvent<HTMLButtonElement>)=>handleRemove({event, params})}
+                onClick={(event: React.MouseEvent<HTMLButtonElement>) =>
+                  handleRemove({ event, params })
+                }
                 color="error"
                 sx={{
                   backgroundColor: theme.palette.background.hover,
