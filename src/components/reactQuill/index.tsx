@@ -1,6 +1,9 @@
 import ReactQuill from 'react-quill';
 import Quill from 'quill';
 import 'react-quill/dist/quill.snow.css';
+// import ImageResize from "quill-image-resize-module-react";
+// Quill.register("modules/imageResize", ImageResize);
+
 // Register additional fonts for Quill
 try {
   const Font = Quill.import('formats/font');
@@ -27,6 +30,19 @@ interface ReactQuillProps {
 // viewer não precisa de toolbar custom; desabilitamos o toolbar para evitar erro
 const modules = {
   toolbar: false,
+  // imageResize: {
+  //   modules: ["Resize", "DisplaySize"],
+  //   handleStyles: {
+  //     backgroundColor: 'black',
+  //     border: 'none',
+  //     color: 'white'
+  //   },
+  //   displayStyles: {
+  //     backgroundColor: 'black',
+  //     border: 'none',
+  //     color: 'white'
+  //   }
+  // },
 };
 
 const formats = [
@@ -50,6 +66,9 @@ const formats = [
   'image',
   'video',
   'formula',
+  // 'width',
+  // 'height',
+  // 'style',
 ];
 
 function ReactQuillViewer({ value }: ReactQuillProps) {
@@ -59,10 +78,8 @@ function ReactQuillViewer({ value }: ReactQuillProps) {
         theme="snow"
         value={value}
         readOnly={true}
-        // onChange={onChange}
         modules={modules}
         formats={formats}
-        // bounds={'#viewer'}
         className="viewer-rquil"
         style={{
           minHeight: 180,

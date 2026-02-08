@@ -3,7 +3,8 @@ import 'react-quill/dist/quill.snow.css';
 import CustomToolbar from './customToolbar';
 import Quill from 'quill';
 // @ts-ignore - no type declarations for 'quill-image-resize-module-react'
-import ImageResize from 'quill-image-resize-module-react';
+// import ImageResize from "quill-image-resize-module-react";
+// Quill.register("modules/imageResize", ImageResize);
 
 // Quill.register('modules/imageResize', ImageResize);
 // import QuillResize from 'quill-resize-module';
@@ -36,9 +37,18 @@ const modules = {
   toolbar: {
     container: '#toolbar',
   },
-  // imageResizer: {
-  //   parchment: Quill.import && Quill.import('parchment'),
-  //   modules: ['Resize', 'DisplaySize'],
+  // imageResize: {
+  //   modules: ["Resize", "DisplaySize"],
+  //   handleStyles: {
+  //     backgroundColor: 'black',
+  //     border: 'none',
+  //     color: 'white'
+  //   },
+  //   displayStyles: {
+  //     backgroundColor: 'black',
+  //     border: 'none',
+  //     color: 'white'
+  //   }
   // },
 };
 
@@ -64,6 +74,9 @@ const formats = [
   'bullet',
   'video',
   'formula',
+  // 'width',
+  // 'height',
+  // 'style',
 ];
 
 function ReactQuillEditor({ value, onChange }: ReactQuillEditorProps) {
