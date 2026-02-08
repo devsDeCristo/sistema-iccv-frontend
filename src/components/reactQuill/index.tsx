@@ -62,7 +62,11 @@ function ReactQuillViewer({ value }: ReactQuillProps) {
         // onChange={onChange}
         modules={modules}
         formats={formats}
-        style={{ minHeight: 180, border: 'none' }}
+        // bounds={'#viewer'}
+        className="viewer-rquil"
+        style={{
+          minHeight: 180,
+        }}
       />
     </>
   );

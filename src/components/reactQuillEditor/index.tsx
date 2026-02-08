@@ -2,7 +2,9 @@ import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import CustomToolbar from './customToolbar';
 import Quill from 'quill';
+// import QuillResize from 'quill-resize-module';
 
+// Quill.register('modules/resize', QuillResize);
 // Register additional fonts for Quill
 try {
   const Font = Quill.import('formats/font');

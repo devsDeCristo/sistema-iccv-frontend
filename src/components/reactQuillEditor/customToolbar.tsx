@@ -1,3 +1,4 @@
+import { useTheme } from '@mui/material';
 import formats from './toolbarOptions';
 // import formats from './ToolbarOptions.js';
 interface FormatDataProps {
@@ -20,19 +21,27 @@ const renderSingle = (formatData: FormatDataProps) => {
   const { className, value } = formatData;
   return <button className={className} value={value}></button>;
 };
-const CustomToolbar = () => (
-  <div id="toolbar">
-    {formats.map((classes: FormatDataProps[]) => {
-      return (
-        <span className="ql-formats">
-          {classes.map((formatData) => {
-            return formatData.options
-              ? renderOptions(formatData)
-              : renderSingle(formatData);
-          })}
-        </span>
-      );
-    })}
-  </div>
-);
+const CustomToolbar = () => {
+  const theme = useTheme();
+  return (
+    <div
+      id="toolbar"
+      style={{
+        backgroundColor: theme.palette.background.hover,
+      }}
+    >
+      {formats.map((classes: FormatDataProps[]) => {
+        return (
+          <span className="ql-formats">
+            {classes.map((formatData) => {
+              return formatData.options
+                ? renderOptions(formatData)
+                : renderSingle(formatData);
+            })}
+          </span>
+        );
+      })}
+    </div>
+  );
+};
 export default CustomToolbar;

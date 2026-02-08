@@ -115,3 +115,19 @@ border: none;
   max-width: 100%;
   display: block;
 } 
+
+.ql-toolbar.ql-snow {
+  display: block;
+  border-bottom:none !important  ;
+  border-top-left-radius: 0.3em;
+  border-top-right-radius: 0.3em;
+}
+
+.viewer-rquil .ql-container {
+ border:none !important ;
+}
+
+.viewer-rquil .ql-editor {
+  padding: 0 !important ;
+
+}
