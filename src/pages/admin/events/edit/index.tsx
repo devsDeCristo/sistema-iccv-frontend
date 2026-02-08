@@ -39,6 +39,7 @@ import { FormGeneralInfo } from '../../../../features/admin/events/components/fo
 
 import { toast } from 'react-toastify';
 import { Check } from '@mui/icons-material';
+import Swal from 'sweetalert2';
 
 function Edit() {
   const theme = useTheme();
@@ -167,7 +168,7 @@ function Edit() {
       },
     });
 
-  async function registrationSettingsSubmit() {
+  async function registrationSettingsSubmit(data: any) {
     const [
       validDateAndTime,
       validGeneralInfo,
@@ -306,7 +307,16 @@ function Edit() {
       props: {},
     },
   ];
-
+  function onError(errors: any) {
+    const firstError = JSON.stringify(errors);
+    console.log(firstError);
+    Swal.fire({
+      title: 'Erro ao cadastrar evento',
+      text: firstError,
+      icon: 'error',
+    }).then((result) => {});
+    // Toast('error', 'Erro!', firstError);
+  }
   return (
     <PageStyle>
       <Header title="Editar evento" buttonBack />
@@ -345,7 +355,7 @@ function Edit() {
             <form
               onSubmit={(
                 panelsMethods[currentStep - 1].formMethods as any
-              ).handleSubmit(panelsMethods[currentStep - 1].onSubmit)}
+              ).handleSubmit(panelsMethods[currentStep - 1].onSubmit, onError)}
             >
               {React.createElement(
                 panelsMethods[currentStep - 1].component as any,

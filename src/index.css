@@ -1,3 +1,6 @@
+
+/* @import '~react-quill/dist /quill.snow.css'; */
+
 :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
@@ -33,3 +36,82 @@ body {
   margin-top: 20px;
   color: #28166f;
 }
+
+/* Forçar tamanhos razoáveis para os botões da toolbar */
+/* .ql-snow .ql-toolbar button,
+.ql-snow .ql-toolbar .ql-formats button {
+  width: 34px;
+  height: 34px;
+  padding: 4px;
+  line-height: 1;
+}
+
+ Ajustar os SVGs/ícones, caso fiquem gigantes por herança de font-size 
+.ql-snow .ql-toolbar button svg {
+  width: 18px;
+  height: 18px;
+}
+
+ Altura mínima do editor 
+.ql-container {
+  min-height: 180px;
+}
+
+ Se quiser remover margens estranhas do toolbar quando integrado ao MUI 
+.ql-toolbar {
+  box-sizing: border-box;
+} */
+
+/* .ql-editor iframe,
+.ql-editor video {
+display: block;
+width: 100%;
+max-width: 100%;
+height: auto;
+aspect-ratio: 16 / 9; // navegador moderno preserva proporção 
+border: none;
+} */
+
+.ql-editor iframe,
+.ql-editor video {
+display: block;
+width: 100%;
+max-width: 100%;
+height: auto;
+aspect-ratio: 16 / 9;
+border: none;
+}
+.ql-editor .video-wrapper {
+position: relative;
+width: 100%;
+padding-bottom: 56.25%;
+height: 0;
+overflow: hidden;
+}
+.ql-editor .video-wrapper iframe,
+.ql-editor .video-wrapper video {
+position: absolute;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+border: none;
+}
+.ql-editor img,
+.ql-editor figure img {
+  display: block;
+  width: 100% !important;
+  max-width: 100% !important;
+  height: auto !important;
+  object-fit: contain;
+  margin: 0.5rem 0;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* garantir que o container da figura também ocupe toda a largura */
+.ql-editor figure {
+  width: 100%;
+  max-width: 100%;
+  display: block;
+} 

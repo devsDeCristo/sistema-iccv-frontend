@@ -59,9 +59,9 @@ export const GENERAL_INFO_SCHEMA = z.object({
     .optional(),
   description: z
     .string()
-    .max(4000, {
-      message: 'Máximo de 500 caracteres',
-    })
+    // .max(4000, {
+    //   message: 'Máximo de 500 caracteres',
+    // })
     .optional(),
   // eventType: z.string().optional(),
   groupLink: z
