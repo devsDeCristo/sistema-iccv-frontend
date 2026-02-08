@@ -480,12 +480,12 @@ function Details() {
                 </Button>
                 {loadingPdfBadge && <LinearProgress />}
               </Box>
-              <Button
+              {/* <Button
                 variant="contained"
                 onClick={() => setOpenModalAddUser(true)}
               >
                 Adicionar usuário
-              </Button>
+              </Button> */}
             </Stack>
           </Paper>
 
