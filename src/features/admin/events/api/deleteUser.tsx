@@ -10,11 +10,12 @@ import { GET_EVENTS } from '../constants';
 type RemoveUserFromEventProps = {
   idEvent: string;
   idUser: string;
+  roleRegistrationId: string;
 };
 
-const removeUserFromEvent = ({ idEvent, idUser }: RemoveUserFromEventProps) =>
+const removeUserFromEvent = ({ idEvent, idUser, roleRegistrationId }: RemoveUserFromEventProps) =>
   apiClient
-    .delete<boolean>(`/events/${idEvent}/users/${idUser}`)
+    .delete<boolean>(`/events/${idEvent}/users/${idUser}/rule/${roleRegistrationId}`)
     .then((response) => {
       handleResponseSuccess(response.data, 'Usuário removido com sucesso!')();
     })

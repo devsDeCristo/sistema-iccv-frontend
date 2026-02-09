@@ -388,7 +388,7 @@ function ListUsers({
 
   const handleClickRemoveUser = () => {
     if (!rowSelected) return;
-    Swal.fire({
+      Swal.fire({
       title: 'Tem certeza que deseja desvincular o usuário do evento?',
       text: 'Esta ação não poderá ser desfeita!',
       icon: 'warning',
@@ -401,6 +401,7 @@ function ListUsers({
         mutateRemoveUserFromEvent({
           idEvent: eventId,
           idUser: rowSelected?.id.toString(),
+          roleRegistrationId: rowSelected?.groupsRegistration?.find((g: any) => g.name === panel)?.roles[0]?.id
         });
       }
     });
