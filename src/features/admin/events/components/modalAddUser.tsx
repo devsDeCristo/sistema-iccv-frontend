@@ -3,34 +3,42 @@ import {
   Backdrop,
   Box,
   Button,
+  CircularProgress,
   Fade,
-  FormControlLabel,
   Grid,
   Modal,
-  Switch,
   TextField,
   Typography,
 } from '@mui/material';
 import { Controller, useForm } from 'react-hook-form';
-import { usePostCreRelationEventToUser } from '../../users/api/postRelationEventUser';
 import { queryClient } from '../../../../config/lib/react-query/query-client';
-import { GET_EVENT_USERS, GET_EVENTS } from '../constants';
+import { GET_EVENT_USERS } from '../constants';
 import { useGetUsers } from '../../users/api/getUsers';
 import { User } from '../../../../types/user';
+import { usePostRegisterUserInEvent } from '../api/postRegisterUserInEvent';
+import Swal from 'sweetalert2';
+import { useState } from 'react';
+
 
 interface ModalAddUserProps {
   open: boolean;
   handleClose: () => void;
   eventId: string;
   usersAdded: User[];
+  roleRegistrationId?: string;
+  roleName?: string;
 }
 
 function ModalAddUserOnEvent({
   open,
   handleClose,
   eventId = '',
-  usersAdded = []
+  usersAdded = [],
+  roleRegistrationId,
+  roleName,
 }: ModalAddUserProps) {
+ 
+  const [loading, setLoading] = useState(false);
   const style = {
     position: 'absolute' as 'absolute',
     top: '50%',
@@ -51,29 +59,63 @@ function ModalAddUserOnEvent({
     }
   );
 
-  const { mutate: postCreateRelationEventToUser } =
-    usePostCreRelationEventToUser({
+  const { mutate: mutateRegisterUserInEvent } =
+    usePostRegisterUserInEvent({
       onSuccess: () => {
-        reset();
-        queryClient.refetchQueries(GET_EVENTS);
-        queryClient.refetchQueries(GET_EVENT_USERS);
-        handleClose();
+        // Caso 3: tudo ficou em lista de espera
+
+        Swal.fire({
+          title: 'Inscrição(ões) realizada(s) com sucesso!',
+          text: 'O(s) usuário(s) foram inscritos no evento com sucesso.',
+          icon: 'success',
+          confirmButtonText: 'OK',
+        });
+        queryClient.invalidateQueries([GET_EVENT_USERS, eventId]);
+      },
+
+      onError: () => {
+        Swal.fire({
+          title: 'Erro!',
+          text: 'Ocorreu um erro ao realizar a inscrição, tente novamente.',
+          icon: 'error',
+          confirmButtonText: 'OK',
+        });
       },
     });
 
   const options =
     Array.isArray(users) &&
-    users?.filter((user) => !usersAdded.some((u) => u.id === user.id))?.map((user) => ({
-      value: user.id,
-      label: user.fullName,
-    }));
+    users
+      ?.filter((user) => !usersAdded.some((u) => u.id === user.id))
+      ?.map((user) => ({
+        value: user.id,
+        label: user.fullName,
+      }));
 
-  const onSubimitAddUserOnEvent = (data: any) => {
-    postCreateRelationEventToUser({
-      idUser: data.user.value,
-      idEvent: eventId,
-      worker: data.worker,
-    });
+  const onSubimitAddUserOnEvent = async (data: any) => {
+    const users = data.user || [];
+    setLoading(true);
+
+
+    for (const user of users) {
+      await new Promise((resolve, reject) => {
+        mutateRegisterUserInEvent(
+          {
+            eventId,
+            userId: user.value,
+            data: {
+              roleId: roleRegistrationId ? [roleRegistrationId] : [],
+            },
+          },
+          {
+            onSuccess: resolve,
+            onError: reject,
+          }
+        );
+      });
+    }
+    setLoading(false);
+    handleClose();
   };
 
   return (
@@ -96,10 +138,17 @@ function ModalAddUserOnEvent({
         '& .MuiBox-root': { borderRadius: 1 },
       }}
     >
+      <>
+      {loading && (
+        <>
+        <Typography>Cadastrando usuário(s)... </Typography>
+        <CircularProgress aria-label="Loading…" /></>
+      )}
+      {!loading && (
       <Fade in={open}>
         <Box sx={style}>
           <Typography id="transition-modal-title" variant="h6" component="h2">
-            Adicionar usuário ao evento
+            Adicionar usuário(s) ao grupo: {roleName}
           </Typography>
           <form onSubmit={handleSubmit(onSubimitAddUserOnEvent)}>
             <Grid mb={2}>
@@ -118,23 +167,17 @@ function ModalAddUserOnEvent({
                     //   classNamePrefix="select"
                     // />
                     <Autocomplete
+                      multiple
                       size="small"
-                      id="tags-outlined"
                       options={options || []}
                       isOptionEqualToValue={(option, value) =>
-                        option.label == value.label
+                        option.value === value.value
                       }
                       getOptionLabel={(option) => option.label}
-                      ListboxProps={{
-                        style: {
-                          maxHeight: 200, // altura máxima
-                          overflowY: 'auto', // scroll vertical
-                        },
-                      }}
                       onChange={(_, newValue) => {
-                        onChange(newValue);
+                        onChange(newValue); // agora é um array
                       }}
-                      value={value || null}
+                      value={value || []}
                       renderInput={(params) => (
                         <TextField {...params} placeholder="Participantes" />
                       )}
@@ -142,32 +185,14 @@ function ModalAddUserOnEvent({
                   )}
                 />
               </Grid>
-
-              <Grid item xs={12} mt={2}>
-                <Controller
-                  control={control}
-                  name="worker"
-                  render={({ field: { onChange, value } }) => (
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          checked={Boolean(value)}
-                          onChange={(e) => onChange(e.target.checked)}
-                          color="primary"
-                        />
-                      }
-                      label="Vai trabalhar?"
-                    />
-                  )}
-                />
-              </Grid>
             </Grid>
             <Button type="submit" variant="contained" fullWidth>
-              Salvar
+              Cadastrar!
             </Button>
           </form>
         </Box>
       </Fade>
+      )}</>
     </Modal>
   );
 }
