@@ -14,13 +14,19 @@ import {
   Menu,
   MenuItem,
   useTheme,
+  Grid,
+  Typography,
+  FormControlLabel,
+  Checkbox,
+  Popover,
+  Divider,
 } from '@mui/material';
 
 import { useNavigate, useParams } from 'react-router-dom';
 import { ListTeams } from '../../../../features/admin/events/components/listTeams';
 import { ListBedRooms } from '../../../../features/admin/events/components/listBedRooms';
 import { ModalBedRoom } from '../../../../features/admin/events/components/modalBedRoom';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ModalTeam } from '../../../../features/admin/events/components/modalTeam';
 import { ListUsers } from '../../../../features/admin/events/components/listUsers';
 import PdfEvent from '../../../../components/pdfEvent';
@@ -75,6 +81,8 @@ function Details() {
   const [loadingPdfTeams, setLoadingPdfTeams] = useState(false);
   const [loadingPdfEvent, setLoadingPdfEvent] = useState(false);
   const [loadingPdfBadge, setLoadingPdfBadge] = useState(false);
+  const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
+  const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
   const [loadingPdfEnvelopePhoto, setLoadingPdfEnvelopePhoto] = useState(false);
   const [loadingPdfEnvelopeLetter, setLoadingPdfEnvelopeLetter] =
     useState(false);
@@ -130,7 +138,15 @@ function Details() {
   );
   const users = usersData as User[];
   const event = eventData as EventDetails;
-  console.log(event);
+
+  const groupsRulesIds = useMemo(
+    () =>
+      event?.groupRoles?.reduce((acc: any, g: any) => {
+        acc[g.name] = g.roles[0]?.id;
+        return acc;
+      }, {}) ?? {},
+    [event]
+  ) as Record<string, string>;
 
   const styles = {
     card: {
@@ -231,16 +247,27 @@ function Details() {
       setLoadingPdfEnvelopePhoto(false);
     }, 50);
   }
+
   async function generatePdfEnvelopeLetter() {
+  
+
+
+     const usersFiltered  = users.filter((user) => {
+      return user.groupsRegistration?.some(
+        (group: any) => selectedGroups.includes(group.name)
+      );
+    });
+    if (usersFiltered.length === 0) {
+      alert('Nenhum usuário encontrado para os grupos selecionados.');
+      return;
+    }
+
     setLoadingPdfEnvelopeLetter(true);
     setTimeout(async () => {
       let blob;
 
       blob = await pdf(
-        <PdfEnvelope
-          data={users?.filter(({ worker }) => !worker) || []}
-          event={event}
-        />
+        <PdfEnvelope data={usersFiltered || []} event={event} />
       ).toBlob();
       FileSaver.saveAs(blob, 'envelopes-cartas.pdf');
 
@@ -262,7 +289,9 @@ function Details() {
     setTimeout(async () => {
       let blob;
 
-      blob = await pdf(<PdfTeams data={orderUsersByRoleTeam} event={event} />).toBlob();
+      blob = await pdf(
+        <PdfTeams data={orderUsersByRoleTeam} event={event} />
+      ).toBlob();
       FileSaver.saveAs(blob, 'quadrantes.pdf');
 
       setLoadingPdfTeams(false);
@@ -289,11 +318,7 @@ function Details() {
       let blob;
 
       blob = await pdf(
-        <PdfEvent
-          data={orderUsersByRoleTeam}
-          event={eventData}
-          
-        />
+        <PdfEvent data={orderUsersByRoleTeam} event={eventData} />
       ).toBlob();
       FileSaver.saveAs(blob, 'quadrantes.pdf');
 
@@ -369,6 +394,32 @@ function Details() {
   //     // Salvar o PDF
   //     doc.save("todas-linhas.pdf");
   //   };
+
+  const handleTypeChange = (type: string) => {
+    setSelectedTypes([type]);
+  };
+
+  const handleGroupChange = (group: string) => {
+    setSelectedGroups((prev) =>
+      prev.includes(group) ? prev.filter((g) => g !== group) : [...prev, group]
+    );
+  };
+
+  const handleGenerate = () => {
+    if (selectedTypes.length === 0 || selectedGroups.length === 0) {
+      alert('Por favor, selecione pelo menos um tipo e um grupo.');
+      return;
+    }
+
+    if (selectedTypes.includes('cartas')) {
+      generatePdfEnvelopeLetter();
+    } else if (selectedTypes.includes('fotos')) {
+      generatePdfEnvelopePhoto();
+    }
+    handleCloseMenu(); // reaproveita o mesmo close
+    setSelectedTypes([]); // limpa a seleção após gerar
+    setSelectedGroups([]); // limpa a seleção de grupos também, se necessário
+  };
 
   return (
     <PageStyle>
@@ -709,7 +760,7 @@ function Details() {
         eventId={id || ''}
       />
 
-      <Menu
+      {/* <Menu
         id="basic-menu"
         anchorEl={anchorEl}
         open={openMenu}
@@ -731,7 +782,88 @@ function Details() {
         >
           Fotos (Sem nome)
         </MenuItem>
-      </Menu>
+      </Menu> */}
+
+      <Popover
+        id="gerador-popover"
+        open={openMenu}
+        anchorEl={anchorEl}
+        onClose={handleCloseMenu}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'left',
+        }}
+        PaperProps={{
+          sx: {
+            borderRadius: 2,
+            border: '1px solid #ffffff1a',
+            boxShadow: 3,
+          },
+        }}
+      >
+        <Box p={3} minWidth={400}>
+          <Grid container spacing={4}>
+            {/* Coluna esquerda */}
+            <Grid item xs={5}>
+              <Typography variant="subtitle1">Tipo</Typography>
+
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={selectedTypes.includes('cartas')}
+                    onChange={() => handleTypeChange('cartas')}
+                  />
+                }
+                label="Cartas (Com nome)"
+              />
+
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={selectedTypes.includes('fotos')}
+                    onChange={() => handleTypeChange('fotos')}
+                  />
+                }
+                label="Fotos (Sem nome)"
+              />
+            </Grid>
+            <Grid
+              item
+              xs={1}
+              display="flex"
+              justifyContent="center"
+              alignItems="center"
+            >
+              <Divider orientation="vertical" flexItem />
+            </Grid>
+            {/* Coluna direita */}
+            <Grid item xs={6}>
+              <Typography variant="subtitle1">Grupos</Typography>
+
+              <Stack sx={{ maxHeight: '100px', overflowY: 'auto' }}>
+                {groupsRulesIds &&
+                  Object.keys(groupsRulesIds).map((group) => (
+                    <FormControlLabel
+                      key={group}
+                      control={
+                        <Checkbox
+                          checked={selectedGroups.includes(group)}
+                          onChange={() => handleGroupChange(group)}
+                        />
+                      }
+                      label={group}
+                    />
+                  ))}
+              </Stack>
+            </Grid>
+          </Grid>
+
+          {/* Botão */}
+          <Box mt={3} textAlign="right" onClick={handleGenerate}>
+            <Button variant="contained">Gerar</Button>
+          </Box>
+        </Box>
+      </Popover>
 
       <ModalQrCode
         open={openModalQrCode}
