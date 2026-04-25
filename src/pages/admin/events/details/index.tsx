@@ -268,6 +268,7 @@ function Details() {
       setLoadingPdfTeams(false);
     }, 50);
   }
+
   async function generatePDFEvent() {
     if (!eventData || Array.isArray(eventData)) {
       return null;
@@ -290,7 +291,8 @@ function Details() {
       blob = await pdf(
         <PdfEvent
           data={orderUsersByRoleTeam}
-          textFooter={'05 à a 08 de setembro de 2024'}
+          event={eventData}
+          
         />
       ).toBlob();
       FileSaver.saveAs(blob, 'quadrantes.pdf');

@@ -1,18 +1,18 @@
 import {
   Image,
-  //  Text,
+  Text,
   View,
 } from '@react-pdf/renderer';
 // import { FooterProps } from './types';
 import { stylesPdf } from './styles';
 import footerImg from '../../assets/footer-6-cursilho-fem.png';
-function FooterPdf() {
+function FooterPdf({ bg, text }: { bg?: string, text: string }) {
   return (
     <View style={stylesPdf.footer} fixed>
-      {/* <Text>{'2 a 5 de Outubro de 2025'}</Text>
-      <Text>{'Igreja de Cristo no Brasil'}</Text>
-      <View wrap={false}> */}
-      <Image style={stylesPdf.imageFooter} src={footerImg} />
+      
+     
+      <Image style={stylesPdf.imageFooter} src={bg||footerImg} />
+      <Text style={stylesPdf.textFooter}>{text}</Text>
       {/* </View> */}
     </View>
   );

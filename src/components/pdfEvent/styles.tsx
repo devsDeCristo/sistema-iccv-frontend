@@ -16,7 +16,7 @@ const stylesPdf = StyleSheet.create({
     gap: '10px',
     fontSize: 12,
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     flexDirection: 'row',
     // backgroundColor: '#f8d2f8',
     // backgroundColor: '#e4e0dc',
@@ -31,7 +31,7 @@ const stylesPdf = StyleSheet.create({
     position: 'absolute',
     width: '100%',
     height: '100%',
-    objectFit: 'fill',
+    objectFit: 'cover',
     // opacity: 0.1,
     borderRadius: '8px',
   },
@@ -110,7 +110,7 @@ const stylesPdf = StyleSheet.create({
   },
 
   image: { height: 50 },
-  imageCover: { height: '100%' },
+  imageCover: { height: '100%', width: '100%', objectFit: 'cover', borderRadius: '8px' },
   imageFooter: {
     height: 40,
     width: '100%',
@@ -118,11 +118,18 @@ const stylesPdf = StyleSheet.create({
     objectFit: 'cover',
     // opacity: 0.1,
     borderRadius: '8px',
+    position: 'absolute',
+  },
+  textFooter: {
+    fontFamily: 'Helvetica',
+    fontSize: 13,
+    position: 'absolute',
+    width: '100%',
+    textAlign: 'center',
   },
   imageEvent: {
-    width: '25%',
-    objectFit: 'fill',
-  },
+    height: "80%",
+},
   imageDecuria: { height: 30 },
   columnUser: {
     flexDirection: 'column',

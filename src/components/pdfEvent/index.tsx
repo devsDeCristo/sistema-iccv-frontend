@@ -7,6 +7,7 @@ import { HeaderPdf } from './header';
 import { FooterPdf } from './footer';
 import { UserRectangle } from './userRetangle';
 import { CoverPdf } from './cover';
+import dayjs from 'dayjs';
 
 Font.register({
   family: 'Helvetica',
@@ -14,14 +15,15 @@ Font.register({
 });
 
 // Create Document Component
-function PdfEvent({ data }: PdfProps) {
+function PdfEvent({ data, event }: PdfProps) {
+  const dataEvent = event.data;
   return (
     <Document>
       <Page orientation="landscape" style={stylesPdf.bodyCover}>
-        <CoverPdf />
+        <CoverPdf  logo={dataEvent.logoBase64 as string} bg={dataEvent.coverBase64 as string} />
       </Page>
       <Page orientation="landscape" style={stylesPdf.body}>
-        <HeaderPdf />
+        <HeaderPdf logo={dataEvent.logoBase64 as string} bg={dataEvent.coverBase64 as string} />
         {data.map(({ name, users }, index) => (
           <View break={index != 0} wrap>
             <View fixed style={stylesPdf.decuria} key={'titulo-pdf' + index}>
@@ -34,7 +36,7 @@ function PdfEvent({ data }: PdfProps) {
             </View>
           </View>
         ))}
-        <FooterPdf />
+        <FooterPdf bg={dataEvent.coverBase64 as string} text={"De " + dayjs(event.startDate).format('D') + " a " + dayjs(event.endDate).format('D') + " de " + dayjs(event.endDate).format('MMMM') + " de " + dayjs(event.endDate).format('YYYY')} />
       </Page>
     </Document>
   );
