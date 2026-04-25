@@ -1,5 +1,6 @@
-import { Bedroom } from '../../features/admin/events/types';
+import { Bedroom, EventDetails } from '../../features/admin/events/types';
 
 export interface PdfRoomsProps {
   data: Bedroom[];
+  event: EventDetails;
 }

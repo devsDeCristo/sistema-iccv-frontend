@@ -83,7 +83,8 @@ const stylesPdfRooms = StyleSheet.create({
   },
   image: { height: 40 },
   imageEvent: {
-    height: '70%',
+    // height: '70%',
+    height: 60,
     objectFit: 'fill',
   },
 });

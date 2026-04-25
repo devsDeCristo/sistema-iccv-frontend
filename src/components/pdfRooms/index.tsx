@@ -2,9 +2,9 @@ import { Page, Text, View, Document, Font, Image } from '@react-pdf/renderer';
 
 import { stylesPdfRooms } from './styles';
 import type { PdfRoomsProps } from './types';
-import logoIc from '../../assets/logo-ic-vermelha.png';
+// import logoIc from '../../assets/logo-ic-vermelha.png';
 import logoEvento from '../../assets/6-curs-fem.png';
-import logoCursilho from '../../assets/logo-cursilho-verm.png';
+// import logoCursilho from '../../assets/logo-cursilho-verm.png';
 
 Font.register({
   family: 'Helvetica',
@@ -12,7 +12,9 @@ Font.register({
 });
 
 // Create Document Component
-function PdfBedRooms({ data }: PdfRoomsProps) {
+function PdfBedRooms({ data, event }: PdfRoomsProps) {
+  const dataEvent = event.data;
+
   return (
     <Document>
       {data.map(({ users, note, id, name }, index) => (
@@ -22,9 +24,12 @@ function PdfBedRooms({ data }: PdfRoomsProps) {
           style={stylesPdfRooms.body}
         >
           <View style={stylesPdfRooms.header} fixed>
-            <Image style={stylesPdfRooms.image} src={logoIc} />
-            <Image style={stylesPdfRooms.imageEvent} src={logoEvento} />
-            <Image style={stylesPdfRooms.image} src={logoCursilho} />
+            {/* <Image style={stylesPdfRooms.image} src={logoIc} /> */}
+            <Image
+              style={stylesPdfRooms.imageEvent}
+              src={dataEvent?.logoBase64 || logoEvento}
+            />
+            {/* <Image style={stylesPdfRooms.image} src={logoCursilho} /> */}
           </View>
           <View fixed style={stylesPdfRooms.decuria}>
             <Text style={stylesPdfRooms.title}>{name.toLocaleUpperCase()}</Text>

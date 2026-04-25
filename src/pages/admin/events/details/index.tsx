@@ -99,11 +99,20 @@ function Details() {
     setAnchorEl(null);
   };
   const theme = useTheme();
-  const { data: teamsData = [] } = useGetTeams({
+  const { data: teamsData = [], isLoading: loadingTeams } = useGetTeams({
     eventId,
   });
   const teams = teamsData as unknown as Team[];
-  const { data: bedroomsData = [] } = useGetBedrooms(
+  const { data: bedroomsData = [], isLoading: loadingBedrooms } =
+    useGetBedrooms(
+      {
+        eventId: eventId,
+      },
+      {
+        enabled: !!eventId,
+      }
+    );
+  const { data: eventData, isLoading: loadingEventDetails } = useGetEvents(
     {
       eventId: eventId,
     },
@@ -111,15 +120,7 @@ function Details() {
       enabled: !!eventId,
     }
   );
-  const { data: eventData } = useGetEvents(
-    {
-      eventId: eventId,
-    },
-    {
-      enabled: !!eventId,
-    }
-  );
-  const { data: usersData } = useGetUsers(
+  const { data: usersData, isLoading: loadingUsers } = useGetUsers(
     {
       eventId: eventId,
     },
@@ -129,6 +130,7 @@ function Details() {
   );
   const users = usersData as User[];
   const event = eventData as EventDetails;
+  console.log(event);
 
   const styles = {
     card: {
@@ -199,7 +201,9 @@ function Details() {
     setTimeout(async () => {
       let blob;
 
-      blob = await pdf(<PdfBedRooms data={bedroomsData} />).toBlob();
+      blob = await pdf(
+        <PdfBedRooms data={bedroomsData} event={event} />
+      ).toBlob();
       FileSaver.saveAs(blob, 'quartos.pdf');
 
       setLoadingPdfRooms(false);
@@ -210,7 +214,7 @@ function Details() {
     setTimeout(async () => {
       let blob;
 
-      blob = await pdf(<PdfBadge data={users || []} event={event}  />).toBlob();
+      blob = await pdf(<PdfBadge data={users || []} event={event} />).toBlob();
       FileSaver.saveAs(blob, 'crachas.pdf');
 
       setLoadingPdfBadge(false);
@@ -221,7 +225,7 @@ function Details() {
     setTimeout(async () => {
       let blob;
 
-      blob = await pdf(<PdfEnvelopePhoto />).toBlob();
+      blob = await pdf(<PdfEnvelopePhoto event={event} />).toBlob();
       FileSaver.saveAs(blob, 'envelopes-fotos.pdf');
 
       setLoadingPdfEnvelopePhoto(false);
@@ -233,7 +237,10 @@ function Details() {
       let blob;
 
       blob = await pdf(
-        <PdfEnvelope data={users?.filter(({ worker }) => !worker) || []} />
+        <PdfEnvelope
+          data={users?.filter(({ worker }) => !worker) || []}
+          event={event}
+        />
       ).toBlob();
       FileSaver.saveAs(blob, 'envelopes-cartas.pdf');
 
@@ -386,16 +393,19 @@ function Details() {
       />
 
       <Stack
-        sx={[styles.card, { p: 0.5, height: '50px', width: 'fit-content', maxWidth: '100%' }]}
+        sx={[
+          styles.card,
+          { p: 0.5, height: '50px', width: 'fit-content', maxWidth: '100%' },
+        ]}
       >
         <Tabs
           value={pageValue}
           sx={styles.tabs}
           onChange={handleChange}
           aria-label="basic tabs example"
-           variant="scrollable"
-           scrollButtons="auto"
-           allowScrollButtonsMobile
+          variant="scrollable"
+          scrollButtons="auto"
+          allowScrollButtonsMobile
         >
           <Tab label="Inscritos" value={'usuarios'} />
           <Tab label="Lista de Espera" value={'lista-espera'} />
@@ -453,15 +463,20 @@ function Details() {
                 startIcon={<Download />}
               >
                 Exportar
-              </Button >
-              <Box >
+              </Button>
+              <Box>
                 <Button
-                sx={{width:{xs:'100%', sm:'fit-content'}}}
+                  sx={{ width: { xs: '100%', sm: 'fit-content' } }}
                   variant="outlined"
                   onClick={handleClickOpenMenu}
                   // onClick={() => handleDownloadPDF(2)}
                   startIcon={<EmailOutlined />}
-                  disabled={loadingPdfEnvelopeLetter || loadingPdfEnvelopePhoto}
+                  disabled={
+                    loadingPdfEnvelopeLetter ||
+                    loadingPdfEnvelopePhoto ||
+                    loadingEventDetails ||
+                    loadingUsers
+                  }
                 >
                   PDF Envelopes
                 </Button>
@@ -471,9 +486,10 @@ function Details() {
               </Box>
               <Box>
                 <Button
-                sx={{width:{xs:'100%', sm:'fit-content'}}}
+                  sx={{ width: { xs: '100%', sm: 'fit-content' } }}
                   variant="outlined"
                   onClick={() => generatePdfBadge()}
+                  disabled={loadingEventDetails || loadingUsers}
                   startIcon={<BadgeOutlined />}
                 >
                   PDF Crachás
@@ -577,11 +593,13 @@ function Details() {
             <Stack sx={styles.stackButtons}>
               <Box>
                 <Button
-                sx={{width:{xs:'100%', sm:'fit-content'}}}
+                  sx={{ width: { xs: '100%', sm: 'fit-content' } }}
                   variant="outlined"
                   onClick={() => generatePdfRooms()}
                   startIcon={<BedOutlined />}
-                  disabled={loadingPdfRooms}
+                  disabled={
+                    loadingPdfRooms || loadingEventDetails || loadingBedrooms
+                  }
                 >
                   PDF quartos
                 </Button>
@@ -590,6 +608,7 @@ function Details() {
               </Box>
               <Button
                 variant="contained"
+                disabled={loadingEventDetails}
                 onClick={() => setOpenModalBedRoom(true)}
               >
                 Adicionar quarto
@@ -616,11 +635,11 @@ function Details() {
             <Stack sx={styles.stackButtons}>
               <Box>
                 <Button
-                sx={{width:{xs:'100%', sm:'fit-content'}}}
+                  sx={{ width: { xs: '100%', sm: 'fit-content' } }}
                   variant="outlined"
                   onClick={() => generatePDFTeams()}
                   startIcon={<People />}
-                  disabled={loadingPdfTeams}
+                  disabled={loadingPdfTeams || loadingEventDetails}
                 >
                   PDF Equipes
                 </Button>
@@ -628,11 +647,11 @@ function Details() {
               </Box>
               <Box>
                 <Button
-                sx={{width:{xs:'100%', sm:'fit-content'}}}
+                  sx={{ width: { xs: '100%', sm: 'fit-content' } }}
                   variant="outlined"
                   onClick={() => generatePDFEvent()}
                   startIcon={<ViewModuleOutlined />}
-                  disabled={loadingPdfEvent}
+                  disabled={loadingPdfEvent || loadingEventDetails}
                 >
                   PDF Quadrantes
                 </Button>
@@ -649,6 +668,7 @@ function Details() {
               <Button
                 variant="contained"
                 onClick={() => setOpenModalTeam(true)}
+                disabled={loadingEventDetails || loadingTeams}
               >
                 Adicionar Equipe
               </Button>

@@ -2,7 +2,7 @@ import { Page, Text, View, Document, Font, Image } from '@react-pdf/renderer';
 
 import { stylesPdfEnvelope } from './styles';
 import type { PdfProps } from './types';
-import logoIc from '../../assets/logo-ic-vermelha.png';
+// import logoIc from '../../assets/logo-ic-vermelha.png';
 import logoEvento from '../../assets/6-curs-fem.png';
 import bgbadge from '../../assets/fundo-cracha.png';
 Font.register({
@@ -11,7 +11,8 @@ Font.register({
 });
 
 // Create Document Component
-function PdfEnvelope({ data }: PdfProps) {
+function PdfEnvelope({ data, event }: PdfProps) {
+  const dataEvent = event.data;
   const filterBadgeName = data.filter(({ badgeName }) => !!badgeName);
 
   return (
@@ -25,15 +26,18 @@ function PdfEnvelope({ data }: PdfProps) {
         >
           <View style={stylesPdfEnvelope.container}>
             <View style={stylesPdfEnvelope.badge} wrap={false}>
-              <Image style={stylesPdfEnvelope.imageBackground} src={bgbadge} />
+              <Image
+                style={stylesPdfEnvelope.imageBackground}
+                src={dataEvent?.coverBase64 || bgbadge}
+              />
               <View style={stylesPdfEnvelope.headerBadge} wrap={false}>
-                <Image style={stylesPdfEnvelope.image} src={logoIc} />
+                {/* <Image style={stylesPdfEnvelope.image} src={logoIc} /> */}
                 <Image
                   style={{
                     ...stylesPdfEnvelope.imageEvent,
                     marginTop: '70px',
                   }}
-                  src={logoEvento}
+                  src={dataEvent?.logoBase64 || logoEvento}
                 />
               </View>
               <Text wrap={false} style={stylesPdfEnvelope.textName}>
