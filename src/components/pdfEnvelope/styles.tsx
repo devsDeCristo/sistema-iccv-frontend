@@ -29,7 +29,7 @@ const stylesPdfEnvelope = StyleSheet.create({
     display: 'flex',
     flexWrap: 'nowrap',
     textAlign: 'center',
-    color: '#6D1D2A',
+    color: '#383535',
     textTransform: 'capitalize',
   },
   container: {
