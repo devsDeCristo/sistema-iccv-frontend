@@ -36,16 +36,13 @@ function PdfBadge({ data, event }: PdfProps) {
                 key={`cracha-${pageIndex}-${index}`}
                 wrap={false}
               >
-                <Image style={stylesPdfBadge.imageBackground} src={bgbadge} />
+                <Image style={stylesPdfBadge.imageBackground} src={dataEvent?.coverBase64 ||bgbadge} />
                 <View style={stylesPdfBadge.headerBadge}>
                   <Image style={stylesPdfBadge.image} src={logoIc} />
                   <Image
                     style={stylesPdfBadge.imageEvent}
                     src={
-                      dataEvent?.logoBase64 ||
-                      (dataEvent?.logoUrl
-                        ? { uri: dataEvent.logoUrl }
-                        : logoEvento)
+                      dataEvent?.logoBase64 || logoEvento
                     }
                   />
                   <Image style={stylesPdfBadge.imagePaper} src={paper} />
