@@ -84,6 +84,11 @@ function ListTeams({ search }: { search: string }) {
   const filteredData = (teamsData: Team[]) =>
     teamsData.filter((team) =>
       team.name?.toLowerCase().includes(search.toLowerCase())
+    ).sort((a, b) =>
+      (a.name ?? '').localeCompare(b.name ?? '', 'pt-BR', {
+        sensitivity: 'base',
+        numeric: true,
+      })
     );
   const itemsPerPage = 8;
   const { paginatedData, totalPages } = paginateData(

@@ -1,10 +1,11 @@
-import { Grid, Typography } from '@mui/material';
+import { Box, Grid, Switch, Typography } from '@mui/material';
 import { Input } from '../../../../components/input';
 import { Controller, useFormContext } from 'react-hook-form';
 import { InputSelect } from '../../../../components/inputSelect';
 import { OPTIONS_STATUS } from '../constants';
 import { GeneralInfoFormType } from '../types';
-
+import 'react-quill/dist/quill.snow.css';
+import ReactQuillEditor from '../../../../components/reactQuillEditor';
 function FormGeneralInfo() {
   const {
     control,
@@ -52,6 +53,44 @@ function FormGeneralInfo() {
             />
           )}
         />
+      </Grid>{' '}
+      <Grid item xs={12} md={12}>
+        <Controller
+          control={control}
+          name="hideVacancies"
+          render={({ field: { onChange, value } }) => (
+            <Box display="flex" alignItems="center" gap={1}>
+              <Switch
+                checked={value}
+                onChange={(e) => onChange(e.target.checked)}
+              />{' '}
+              <Box gap={1}>
+                <Typography>Ocultar vagas</Typography>
+                <Typography variant="body2" color="textSecondary">
+                  Oculta a quantidade de vagas restantes para cada grupo na
+                  página de detalhes do evento
+                </Typography>
+              </Box>
+            </Box>
+          )}
+        />
+      </Grid>{' '}
+      <Grid item xs={12} md={12}>
+        <Controller
+          control={control}
+          name="groupLink"
+          render={({ field: { onChange, value } }) => (
+            <Input
+              size="small"
+              value={value}
+              inputProps={{ maxLength: 200 }}
+              onChange={onChange}
+              label="Link do grupo de whatsapp"
+              error={!!errors.groupLink}
+              errorMessage={errors.groupLink?.message}
+            />
+          )}
+        />
       </Grid>
       <Grid item xs={12} md={12}>
         <Controller
@@ -73,54 +112,14 @@ function FormGeneralInfo() {
         />
       </Grid>{' '}
       <Grid item xs={12} md={12}>
+        <Typography variant="subtitle1" fontSize={'16px'} mb={1}>
+          Descrição detalhada
+        </Typography>
         <Controller
           control={control}
           name="description"
           render={({ field: { onChange, value } }) => (
-            <Input
-              size="small"
-              value={value}
-              onChange={onChange}
-              inputProps={{ maxLength: 4000 }}
-              // required
-              multiline
-              rows={9}
-              helperText={`${value?.length || 0}/4000 caracteres`}
-              label="Descrição Detalhada"
-              error={!!errors.description}
-              errorMessage={errors.description?.message}
-            />
-          )}
-        />
-      </Grid>
-      {/* <Grid item xs={12} md={6}>
-        <Controller
-          control={control}
-          name="eventType"
-          render={({ field: { onChange, value } }) => (
-            <InputSelect
-              label="Categoria do evento"
-              menuOptions={OPTIONS_EVENT_TYPE}
-              value={value}
-              onChange={onChange}
-            />
-          )}
-        />
-      </Grid> */}
-      <Grid item xs={12} md={12}>
-        <Controller
-          control={control}
-          name="groupLink"
-          render={({ field: { onChange, value } }) => (
-            <Input
-              size="small"
-              value={value}
-              inputProps={{ maxLength: 200 }}
-              onChange={onChange}
-              label="Link do grupo de whatsapp"
-              error={!!errors.groupLink}
-              errorMessage={errors.groupLink?.message}
-            />
+            <ReactQuillEditor key={'quill'} value={value} onChange={onChange} />
           )}
         />
       </Grid>

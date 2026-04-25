@@ -5,36 +5,36 @@ import {
   handleResponseThrowError,
 } from '../../../../utils/service';
 import { queryClient } from '../../../../config/lib/react-query/query-client';
-import { GET_EVENTS } from '../constants';
+import { GET_EVENT_USERS_WAITLIST } from '../constants';
 
-type RemoveUserFromEventProps = {
+type RemoveUserFromWaitlistProps = {
   idEvent: string;
   idUser: string;
   roleRegistrationId: string;
 };
 
-const removeUserFromEvent = ({ idEvent, idUser, roleRegistrationId }: RemoveUserFromEventProps) =>
+const removeUserFromWaitlist = ({ idEvent, idUser, roleRegistrationId }: RemoveUserFromWaitlistProps) =>
   apiClient
-    .delete<boolean>(`/events/${idEvent}/users/${idUser}/rule/${roleRegistrationId}`)
+    .delete<boolean>(`/events/${idEvent}/waitlist/users/${idUser}/rule/${roleRegistrationId}`)
     .then((response) => {
       handleResponseSuccess(response.data, 'Usuário removido com sucesso!')();
     })
     .catch(handleResponseThrowError());
 
-type RemoveUserFromEventData = Awaited<ReturnType<typeof removeUserFromEvent>>;
+type RemoveUserFromWaitlistData = Awaited<ReturnType<typeof removeUserFromWaitlist>>;
 
-export const useRemoveUserFromEvent = ({
+export const useRemoveUserFromWaitlist = ({
   onSuccess,
   ...options
 }: MutationOptions<
-  RemoveUserFromEventData,
+  RemoveUserFromWaitlistData,
   unknown,
-  RemoveUserFromEventProps
+  RemoveUserFromWaitlistProps
 > = {}) => {
   return useMutation({
-    mutationFn: removeUserFromEvent,
+    mutationFn: removeUserFromWaitlist,
     onSuccess: (...args) => {
-      queryClient.invalidateQueries(GET_EVENTS);
+      queryClient.invalidateQueries(GET_EVENT_USERS_WAITLIST);
       onSuccess?.(...args);
     },
     ...options,

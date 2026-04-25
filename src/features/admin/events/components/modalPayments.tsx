@@ -59,7 +59,7 @@ export function ModalPayment({
       handleClose();
     },
   });
-  const {data=[]} = useGetDiscounts({
+  const { data = [] } = useGetDiscounts({
     enabled: open,
   });
   const discounts = data as discountsResponse[];
@@ -91,7 +91,7 @@ export function ModalPayment({
       data: {
         status: data.status,
         method: data.method,
-        discountsAppliedId: data.discountsAppliedId
+        discountsAppliedId: data.discountsAppliedId,
       },
       id: payment.id,
       files: {
@@ -175,47 +175,47 @@ export function ModalPayment({
               mt={1}
               sx={{ overflowY: 'auto', maxHeight: '70vh', pr: 1 }}
             >
-              {[ 'codeTransaction','fullName', 'cpf', 'amount', 'groupName'].map(
-                (field) => {
-                  const value =
-                    field === 'amount'
-                      ? 'R$' + payment?.[field]?.toFixed(2)?.replace('.', ',')
-                      : field === 'codeTransaction'
-                      ? payment?.payload?.[field]?.replace('CHAR_', '')
-                      : payment?.[field];
-                  return (
-                    <Grid
-                      key={field}
-                      item
-                      xs={12}
-                      md={
-                        field === 'codeTransaction'
-                          ? 12
-                          : 6
-                      }
-                    >
-                      <Controller
-                        name={field}
-                        control={control}
-                        render={({ field: f }) => (
-                          <>
-                            <Title title={titleMap[field]} />
+              {[
+                'codeTransaction',
+                'fullName',
+                'cpf',
+                'amount',
+                'groupName',
+              ].map((field) => {
+                const value =
+                  field === 'amount'
+                    ? 'R$' + payment?.[field]?.toFixed(2)?.replace('.', ',')
+                    : field === 'codeTransaction'
+                    ? payment?.payload?.[field]?.replace('CHAR_', '')
+                    : payment?.[field];
+                return (
+                  <Grid
+                    key={field}
+                    item
+                    xs={12}
+                    md={field === 'codeTransaction' ? 12 : 6}
+                  >
+                    <Controller
+                      name={field}
+                      control={control}
+                      render={({ field: f }) => (
+                        <>
+                          <Title title={titleMap[field]} />
 
-                            <TextField
-                              {...f}
-                              value={value}
-                              disabled
-                              fullWidth
-                              size="small"
-                              InputProps={{ readOnly: true }}
-                            />
-                          </>
-                        )}
-                      />
-                    </Grid>
-                  );
-                }
-              )}
+                          <TextField
+                            {...f}
+                            value={value}
+                            disabled
+                            fullWidth
+                            size="small"
+                            InputProps={{ readOnly: true }}
+                          />
+                        </>
+                      )}
+                    />
+                  </Grid>
+                );
+              })}
 
               {/* STATUS */}
               <Grid item xs={12} md={4}>

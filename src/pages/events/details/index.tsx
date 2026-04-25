@@ -17,12 +17,11 @@ import { PageStyle } from '../../../components/pageStyle';
 import GoogleMap from '../../../components/mapWord';
 
 import { useGetEvents } from '../../../features/admin/events/api/getEvents';
-import {
-  EventDetails,
-} from '../../../features/admin/events/types';
+import { EventDetails } from '../../../features/admin/events/types';
 import CapaLogin from '../../../assets/capaLogin2.jpg';
 import { ConfirmationNumber, WhatsApp } from '@mui/icons-material';
 import { useGetGroupsByUser } from '../../../features/admin/events/api/getGroupsByUser';
+import ReactQuillViewer from '../../../components/reactQuill';
 
 function EventsDetails() {
   const { id = '' } = useParams();
@@ -36,14 +35,13 @@ function EventsDetails() {
   const groups = groupsData?.present || [];
   const { data: eventData } = useGetEvents({ eventId: id }, { enabled: !!id });
   const event = eventData as EventDetails;
-  console.log('event', event, groups);
+
   const registeredInEvent = useMemo(() => {
     if (!event || groups.length === 0) return false;
     return groups.some((group) =>
       event.groupRoles.some((eventGroup) => eventGroup.id === group.id)
     );
   }, [event, groups]);
-
 
   const scrollToTop = () => {
     const outlet = document.getElementById('layout-scroll');
@@ -57,6 +55,7 @@ function EventsDetails() {
   useEffect(() => {
     scrollToTop();
   }, []);
+
   const styles = useMemo(
     () => ({
       title: {
@@ -76,6 +75,10 @@ function EventsDetails() {
       text: {
         fontSize: '0.9rem',
       },
+      textGroup: {
+        fontSize: '1rem',
+        fontWeight: 500,
+      },
       paper: {
         p: 3,
       },
@@ -85,7 +88,7 @@ function EventsDetails() {
       },
 
       stackRight: { width: { xs: '100%', lg: '65%' } },
-      stackLeft: { width: { xs: '100%', lg: '35%' } },
+      stackLeft: { width: { xs: '100%', lg: '35%' }, gap: 4 },
 
       stackContainer: {
         position: 'relative',
@@ -155,7 +158,25 @@ function EventsDetails() {
 
     return Math.max((group.capacity || 0) - totalRegistrados, 0);
   };
+  const havaOneFieldLocal = !!(
+    event?.data?.localName ||
+    event?.data?.address ||
+    event?.data?.neighborhood ||
+    event?.data?.city ||
+    event?.data?.state ||
+    event?.data?.zipCode
+  );
+  const stringLocal = () => {
+    let local = 'Local:';
+    if (event?.data?.localName) local += ` ${event.data.localName}`;
+    if (event?.data?.address) local += ` - ${event.data.address}`;
+    if (event?.data?.neighborhood) local += ` - ${event.data.neighborhood} `;
+    if (event?.data?.city) local += ` - ${event.data.city}  `;
+    if (event?.data?.state) local += ` - ${event.data.state} `;
+    if (event?.data?.zipCode) local += ` - ${event.data.zipCode}`;
 
+    return local;
+  };
   return (
     <PageStyle>
       <Header
@@ -199,29 +220,9 @@ function EventsDetails() {
               {event?.data?.shortDescription}
             </Typography>
           </Paper>
-
           <Paper sx={styles.paper}>
             <Typography sx={styles.title}>Sobre o Evento</Typography>
-            <Typography sx={styles.text}>{event?.data?.description}</Typography>
-          </Paper>
-
-          <Paper sx={styles.paper}>
-            <Typography sx={styles.title}>Localização</Typography>
-            <Tooltip
-              title={`Local: ${event?.data?.localName} - ${event?.data?.address}, ${event?.data?.neighborhood}, ${event?.data?.city} - ${event?.data?.state}, ${event?.data?.zipCode}`}
-              arrow
-              placement="right-end"
-            >
-              <Typography sx={styles.subtitle}>
-                {`Local: ${event?.data?.localName} - ${event?.data?.address}, ${event?.data?.neighborhood}, ${event?.data?.city} - ${event?.data?.state}, ${event?.data?.zipCode}`}
-              </Typography>
-            </Tooltip>
-            {event?.data?.linkMaps && (
-              <GoogleMap
-                linkMap={event?.data?.linkMaps as string}
-                width="100%"
-              />
-            )}
+            <ReactQuillViewer value={event?.data?.description || ''} />
           </Paper>
         </Stack>
 
@@ -233,33 +234,40 @@ function EventsDetails() {
               Informações sobre vagas disponíveis
             </Typography>
             <Box sx={styles.vacancyBox}>
-              {event?.groupRoles?.map((group, index) => {
-                const vagas = getVagasRestantes(group);
+              {true
+                ? event?.groupRoles?.map((group, index) => {
+                    const vagas = getVagasRestantes(group);
 
-                return (
-                  <Box key={group.id}>
-                    <Grid container sx={styles.gridRow}>
-                      <Grid item xs={5}>
-                        <Typography>{group.name}</Typography>
-                      </Grid>
+                    return (
+                      <Box key={group.id}>
+                        <Grid container sx={styles.gridRow}>
+                          <Grid item xs={!event.data?.hideVacancies ? 5 : 12}>
+                            <Typography sx={styles.textGroup}>
+                              {group.name}
+                            </Typography>
+                          </Grid>
+                          {!event.data?.hideVacancies && (
+                            <Grid item xs={7}>
+                              {vagas > 0 ? (
+                                <Typography>
+                                  {vagas} vaga(s) restante(s)
+                                </Typography>
+                              ) : (
+                                <Typography sx={styles.error}>
+                                  Lista de Espera!
+                                </Typography>
+                              )}
+                            </Grid>
+                          )}
+                        </Grid>
 
-                      <Grid item xs={7}>
-                        {vagas > 0 ? (
-                          <Typography>{vagas} vaga(s) restante(s)</Typography>
-                        ) : (
-                          <Typography sx={styles.error}>
-                            Lista de Espera!
-                          </Typography>
+                        {index < (event?.groupRoles?.length || 0) - 1 && (
+                          <Divider sx={styles.divider} />
                         )}
-                      </Grid>
-                    </Grid>
-
-                    {index < (event?.groupRoles?.length || 0) - 1 && (
-                      <Divider sx={styles.divider} />
-                    )}
-                  </Box>
-                );
-              })}
+                      </Box>
+                    );
+                  })
+                : null}
             </Box>
             <Button
               variant="contained"
@@ -272,27 +280,41 @@ function EventsDetails() {
             >
               Inscreva-se
             </Button>
-            
+
             {registeredInEvent && (
-            <Button
-              variant="contained"
-              fullWidth
-              startIcon={<WhatsApp />}
-              sx={{
-                ...styles.button,
-                textTransform: 'none',
-                color: 'white',
-                backgroundColor: '#25D366',
-                '&:hover': { backgroundColor: '#1ebe5d' },
-              }}
-             onClick={() => {window.open(event?.groupLink || '', '_blank');}}
-                
-            
-            >
-              Entre no Grupo do Evento!
-            </Button>
+              <Button
+                variant="contained"
+                fullWidth
+                startIcon={<WhatsApp />}
+                sx={{
+                  ...styles.button,
+                  textTransform: 'none',
+                  color: 'white',
+                  backgroundColor: '#25D366',
+                  '&:hover': { backgroundColor: '#1ebe5d' },
+                }}
+                onClick={() => {
+                  window.open(event?.groupLink || '', '_blank');
+                }}
+              >
+                Entre no Grupo do Evento!
+              </Button>
             )}
           </Paper>
+          {havaOneFieldLocal && (
+            <Paper sx={styles.paper}>
+              <Typography sx={styles.title}>Localização</Typography>
+              <Tooltip title={stringLocal()} arrow placement="right-end">
+                <Typography sx={styles.subtitle}>{stringLocal()}</Typography>
+              </Tooltip>
+              {event?.data?.linkMaps && (
+                <GoogleMap
+                  linkMap={event?.data?.linkMaps as string}
+                  width="100%"
+                />
+              )}
+            </Paper>
+          )}
         </Stack>
       </Stack>
     </PageStyle>

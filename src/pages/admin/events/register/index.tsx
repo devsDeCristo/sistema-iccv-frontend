@@ -151,6 +151,7 @@ function Register() {
             data: {
               description: generalInfoData.description,
               shortDescription: generalInfoData.shortDescription,
+              hideVacancies: generalInfoData.hideVacancies,
               localName: dateAndTimeData.localName,
               zipCode: dateAndTimeData.zipCode,
               state: dateAndTimeData.state,

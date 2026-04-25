@@ -83,6 +83,11 @@ function ListBedRooms({ search }: { search: string }) {
   const filteredData = (bedroomsData: Bedroom[]) =>
     bedroomsData.filter((bedroom) =>
       bedroom.name?.toLowerCase().includes(search.toLowerCase())
+    ).sort((a, b) =>
+      (a.name ?? '').localeCompare(b.name ?? '', 'pt-BR', {
+        sensitivity: 'base',
+        numeric: true,
+      })
     );
 
   const itemsPerPage = 8;

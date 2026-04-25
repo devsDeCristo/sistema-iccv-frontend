@@ -34,7 +34,6 @@ import Swal from 'sweetalert2';
 import { useGetGroupsByUser } from '../../../features/admin/events/api/getGroupsByUser';
 import { usePostCreateCheckoutEvent } from '../../../features/admin/events/api/postCreateCheckoutEvent';
 
-
 function Subscribe() {
   const { id } = useParams();
   const theme = useTheme();
@@ -96,17 +95,18 @@ function Subscribe() {
     });
   };
 
- const { mutate: mutateCreateCheckoutEvent } = usePostCreateCheckoutEvent({
-  onSuccess: (data: any) => {
-    const link = data.link;
+  const { mutate: mutateCreateCheckoutEvent } = usePostCreateCheckoutEvent({
+    onSuccess: (data: any) => {
+      const link = data.link;
 
-    window.open(link, '_blank', 'noopener,noreferrer');
-    setLoadingPayment(false);
-  },
-  onError: () => {
-    navigate('/eventos/' + id);
-  },
-});
+      window.open(link, '_blank', 'noopener,noreferrer');
+      setLoadingPayment(false);
+      navigate('/eventos/' + id);
+    },
+    onError: () => {
+      navigate('/eventos/' + id);
+    },
+  });
 
   const { mutate: mutateRegisterUserInEvent, isLoading: isLoadingRegister } =
     usePostRegisterUserInEvent({
@@ -128,9 +128,10 @@ function Subscribe() {
           });
           return;
         }
+        //
         // const admin = JSON.parse(localStorage.getItem('user') || '{}')?.id=='ea1c20f8-a2e1-41f4-9dd3-6e7c7a9a7666';
 
-        // if(!admin){
+        // if(true){
         //   Swal.fire({
         //     title: 'Inscrição(ões) realizada(s) com sucesso!',
         //     text: allRegistered

@@ -1,6 +1,7 @@
 import {
   Avatar,
   Box,
+  Button,
   Card,
   Divider,
   IconButton,
@@ -30,7 +31,7 @@ import {
   selectedGridRowsSelector,
 } from '@mui/x-data-grid';
 import { useParams } from 'react-router-dom';
-import { Badge, Delete, Edit, MoreVert } from '@mui/icons-material';
+import { Add, Badge, Delete, Edit, MoreVert } from '@mui/icons-material';
 import FileSaver from 'file-saver';
 import { pdf } from '@react-pdf/renderer';
 import PdfBadge from '../../../../components/pdfBadge';
@@ -46,6 +47,7 @@ import CustomChip from '../../../../components/customChip';
 import { GET_EVENT_USERS } from '../constants';
 import { queryClient } from '../../../../config/lib/react-query/query-client';
 import { toast } from 'react-toastify';
+import { ModalAddUserOnEvent } from './modalAddUser';
 const getSelectedRowsToExport = ({
   apiRef,
 }: GridGetRowsToExportParams): GridRowId[] => {
@@ -103,6 +105,7 @@ function ListUsers({
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const openMenu = Boolean(anchorEl);
+  const [openModalAddUser, setOpenModalAddUser] = useState(false);
   const [rowSelected, setRowSelected] = useState<User | null>(null);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [openModalEditWork, setOpenModalEditWork] = useState(false);
@@ -165,6 +168,14 @@ function ListUsers({
     () => event?.groupRoles?.map((g: any) => g.name) ?? [],
     [event]
   ) as string[];
+  const groupsRulesIds = useMemo(
+    () =>
+      event?.groupRoles?.reduce((acc: any, g: any) => {
+        acc[g.name] = g.roles[0]?.id;
+        return acc;
+      }, {}) ?? {},
+    [event]
+   ) as Record<string, string>;
 
   useEffect(() => {
     if (groupsRules.length > 0) {
@@ -388,7 +399,7 @@ function ListUsers({
 
   const handleClickRemoveUser = () => {
     if (!rowSelected) return;
-    Swal.fire({
+      Swal.fire({
       title: 'Tem certeza que deseja desvincular o usuário do evento?',
       text: 'Esta ação não poderá ser desfeita!',
       icon: 'warning',
@@ -401,6 +412,7 @@ function ListUsers({
         mutateRemoveUserFromEvent({
           idEvent: eventId,
           idUser: rowSelected?.id.toString(),
+          roleRegistrationId: rowSelected?.groupsRegistration?.find((g: any) => g.name === panel)?.roles[0]?.id
         });
       }
     });
@@ -495,7 +507,8 @@ function ListUsers({
         </Stack>
       )}
 
-      <Card>
+      <Card sx={{position: 'relative'}}>
+      <Button onClick={()=>setOpenModalAddUser(true)} startIcon={<Add />} variant='outlined' sx={{position:"absolute", top: 10, right: 10, zIndex: 100}}> Nova Inscrição</Button>
         <DataGrid
           // disableColumnFilter
           // disableDensitySelector
@@ -568,6 +581,14 @@ function ListUsers({
           eventId={eventId}
           handleClose={() => setOpenModalEditWork(false)}
         />
+          <ModalAddUserOnEvent
+                open={openModalAddUser}
+                handleClose={() => setOpenModalAddUser(false)}
+                eventId={eventId}
+                usersAdded={filteredByGroup(usersData)}
+                roleRegistrationId={groupsRulesIds[panel]}
+                roleName={panel}
+              />
         <Menu
           id="basic-menu"
           anchorEl={anchorEl}

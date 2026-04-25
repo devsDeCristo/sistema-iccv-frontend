@@ -95,7 +95,7 @@ function ListPayments({
       enabled: !!eventId,
     }
   );
-   const theme = useTheme();
+  const theme = useTheme();
   const payments = paymentsData as PaymentResponse[];
   const md = useMediaQuery(theme.breakpoints.up('md'));
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -104,10 +104,24 @@ function ListPayments({
     useState<PaymentResponse | null>(null);
   const [openModalPayment, setOpenModalPayment] = useState(false);
   const [panel, setPanel] = useState<string>('1');
- 
 
   const styles = {
+    titleCard: {
+      borderRadius: '5px',
+      backgroundColor: theme.palette.background.paper,
+    },
+    subTitleCard: {
+      fontSize: '1.5rem',
+      fontWeight: 600,
+      color: theme.palette.text.primary,
+    },
+    cardMoney: {
+      position: 'relative',
+      p: 2,
+      width: '100%',
+    },
     card: {
+      fontSize: '30px',
       borderRadius: '5px',
       backgroundColor: theme.palette.background.paper,
       boxShadow: '0px 0px 3px  #0000001a',
@@ -293,9 +307,70 @@ function ListPayments({
     filtered = filteredByGroup(filtered);
     return filtered;
   };
+  interface CardTemplateProps {
+    title: string;
+    value: number;
+  }
+
+  const CardTemplate = ({ title, value }: CardTemplateProps) => (
+    <Card sx={styles.cardMoney}>
+      <Box
+        sx={{
+          position: 'absolute',
+          height: '100%',
+          width: '5px',
+          left: 0,
+          top: 0,
+          backgroundColor: 'primary.main',
+        }}
+      />
+      <Typography sx={styles.subTitleCard}>
+        {'R$ ' + value.toFixed(2)}
+      </Typography>
+      <Typography sx={styles.titleCard}>{title}</Typography>
+    </Card>
+  );
 
   return (
     <>
+      <Stack
+        direction="row"
+        alignItems="center"
+        justifyContent="space-between"
+        gap={1}
+      >
+        <CardTemplate
+          title="Montante Total"
+          value={
+            payments
+              ? payments.reduce((acc, payment) => acc + payment.amount, 0)
+              : 0
+          }
+        />
+
+        <CardTemplate
+          title="Receita Realizada"
+          value={
+            payments
+              ? payments
+                  .filter((payment) => payment.status === 'PAID')
+                  .reduce((acc, payment) => acc + payment.amount, 0)
+              : 0
+          }
+        />
+
+        <CardTemplate
+          title="Receita Pendente"
+          value={
+            payments
+              ? payments
+                  .filter((payment) => payment.status !== 'PAID')
+                  .reduce((acc, payment) => acc + payment.amount, 0)
+              : 0
+          }
+        />
+      </Stack>
+
       {Array.isArray(groupsRules) && groupsRules.length > 0 && (
         <Stack sx={[styles.card, { p: 0.5, height: '50px' }]}>
           <Tabs
@@ -386,7 +461,7 @@ function ListPayments({
             </ListItemIcon>
             <ListItemText>Editar </ListItemText>
           </MenuItem>
-          
+
           <MenuItem sx={{ opacity: 0.3 }}>
             <ListItemIcon>
               <Reply fontSize="small" color="error" />
