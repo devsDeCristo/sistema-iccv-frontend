@@ -179,7 +179,7 @@ function ListUsers({
   // const { mutate: mutateDeleteEventUser } = useDeleteRelationEventUser({});
   async function handleDownloadPDF(data: User[]) {
     if (!data) return;
-    const blob = await pdf(<PdfBadge data={data || []} />).toBlob();
+    const blob = await pdf(<PdfBadge data={data || []} event={event}  />).toBlob();
     FileSaver.saveAs(blob, 'crachas.pdf');
   }
   const handleClickOptions = (

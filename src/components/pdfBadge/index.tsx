@@ -19,7 +19,11 @@ function chunkArray<T>(arr: T[], size: number): T[][] {
   return result;
 }
 
-function PdfBadge({ data }: PdfProps) {
+
+function PdfBadge({ data, event }: PdfProps) {
+  const dataEvent = event.data;
+  console.log('dataEvent', dataEvent);
+
   const filterBadgeName = data.filter(({ badgeName }) => !!badgeName);
   const pages = chunkArray(filterBadgeName, 4); // 4 crachás por página
 
@@ -37,7 +41,10 @@ function PdfBadge({ data }: PdfProps) {
                 <Image style={stylesPdfBadge.imageBackground} src={bgbadge} />
                 <View style={stylesPdfBadge.headerBadge}>
                   <Image style={stylesPdfBadge.image} src={logoIc} />
-                  <Image style={stylesPdfBadge.imageEvent} src={logoEvento} />
+                 <Image
+  style={stylesPdfBadge.imageEvent}
+  src={dataEvent?.logoUrl ? { uri: dataEvent.logoUrl } : logoEvento}
+/>
                   <Image style={stylesPdfBadge.imagePaper} src={paper} />
                 </View>
                 <Text style={stylesPdfBadge.textName}>

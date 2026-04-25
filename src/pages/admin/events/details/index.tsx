@@ -210,7 +210,7 @@ function Details() {
     setTimeout(async () => {
       let blob;
 
-      blob = await pdf(<PdfBadge data={users || []} />).toBlob();
+      blob = await pdf(<PdfBadge data={users || []} event={event}  />).toBlob();
       FileSaver.saveAs(blob, 'crachas.pdf');
 
       setLoadingPdfBadge(false);
