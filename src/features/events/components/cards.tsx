@@ -26,6 +26,8 @@ function EventCard({ event }: { event: Event }) {
   const users = event.users ?? 0;
   const percentOcupped = ((users ?? 0) / capacity) * 100;
   const type = event.type;
+  const eventLocation = event.data?.localName || 'Local não informado';
+
 
   const styles = {
     bannerLogo: {
@@ -163,7 +165,7 @@ function EventCard({ event }: { event: Event }) {
             <Stack direction="row" alignItems="center" gap={1}>
               <RoomOutlinedIcon sx={styles.icon} />
               <Typography sx={styles.infoText} color="text.secondary">
-                Chácara Moriá
+                {eventLocation}
               </Typography>
             </Stack>
 
