@@ -2,8 +2,9 @@ import { Page, Text, View, Document, Font, Image } from '@react-pdf/renderer';
 
 import { stylesPdfRooms } from './styles';
 import type { PdfRoomsProps } from './types';
+import { HeaderPdf } from '../pdfEvent/header';
 // import logoIc from '../../assets/logo-ic-vermelha.png';
-import logoEvento from '../../assets/6-curs-fem.png';
+
 // import logoCursilho from '../../assets/logo-cursilho-verm.png';
 
 Font.register({
@@ -23,14 +24,7 @@ function PdfBedRooms({ data, event }: PdfRoomsProps) {
           orientation="portrait"
           style={stylesPdfRooms.body}
         >
-          <View style={stylesPdfRooms.header} fixed>
-            {/* <Image style={stylesPdfRooms.image} src={logoIc} /> */}
-            <Image
-              style={stylesPdfRooms.imageEvent}
-              src={dataEvent?.logoBase64 || logoEvento}
-            />
-            {/* <Image style={stylesPdfRooms.image} src={logoCursilho} /> */}
-          </View>
+          <HeaderPdf logo={dataEvent.logoBase64 as string} bg={dataEvent.coverBase64 as string} />
           <View fixed style={stylesPdfRooms.decuria}>
             <Text style={stylesPdfRooms.title}>{name.toLocaleUpperCase()}</Text>
             <Text style={stylesPdfRooms.subTitle}>{note}</Text>

@@ -5,6 +5,7 @@ import type { PdfTeamsProps } from './types';
 import logoIc from '../../assets/logo-ic-vermelha.png';
 import logoEvento from '../../assets/6-curs-fem.png';
 import logoCursilho from '../../assets/logo-cursilho-verm.png';
+import { HeaderPdf } from '../pdfEvent/header';
 
 Font.register({
   family: 'Helvetica',
@@ -12,7 +13,8 @@ Font.register({
 });
 
 // Create Document Component
-function PdfTeams({ data }: PdfTeamsProps) {
+function PdfTeams({ data, event }: PdfTeamsProps) {
+  const dataEvent = event.data;
   return (
     <Document>
       {data.map(({ usersLeaders, usersMembers, note, id, name }, index) => (
@@ -21,11 +23,8 @@ function PdfTeams({ data }: PdfTeamsProps) {
           orientation="portrait"
           style={stylesPdfRooms.body}
         >
-          <View style={stylesPdfRooms.header} fixed>
-            <Image style={stylesPdfRooms.image} src={logoIc} />
-            <Image style={stylesPdfRooms.imageEvent} src={logoEvento} />
-            <Image style={stylesPdfRooms.image} src={logoCursilho} />
-          </View>
+          <HeaderPdf logo={dataEvent.logoBase64 as string} bg={dataEvent.coverBase64 as string} />
+          
           <View fixed style={stylesPdfRooms.decuria}>
             <Text style={stylesPdfRooms.title}>{name.toLocaleUpperCase()}</Text>
             <Text style={stylesPdfRooms.subTitle}>{note}</Text>

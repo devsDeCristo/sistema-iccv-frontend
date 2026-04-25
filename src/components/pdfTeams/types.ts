@@ -1,4 +1,4 @@
-import {  Team } from '../../features/admin/events/types';
+import {  EventDetails, Team } from '../../features/admin/events/types';
 import { User } from '../../types/user';
 
 export interface UserTeamPdf extends Team {
@@ -8,4 +8,5 @@ export interface UserTeamPdf extends Team {
 
 export interface PdfTeamsProps {
   data: UserTeamPdf[];
+  event: EventDetails; // Replace 'any' with the correct type for the event prop
 }

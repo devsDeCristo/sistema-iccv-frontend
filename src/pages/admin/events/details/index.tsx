@@ -262,7 +262,7 @@ function Details() {
     setTimeout(async () => {
       let blob;
 
-      blob = await pdf(<PdfTeams data={orderUsersByRoleTeam} />).toBlob();
+      blob = await pdf(<PdfTeams data={orderUsersByRoleTeam} event={event} />).toBlob();
       FileSaver.saveAs(blob, 'quadrantes.pdf');
 
       setLoadingPdfTeams(false);
