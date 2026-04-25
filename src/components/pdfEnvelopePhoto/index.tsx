@@ -2,7 +2,7 @@ import { Page, View, Document, Font, Image } from '@react-pdf/renderer';
 
 import { stylesPdfEnvelopePhoto } from './styles';
 
-import logoIc from '../../assets/logo-ic-vermelha.png';
+// import logoIc from '../../assets/logo-ic-vermelha.png';
 import logoEvento from '../../assets/6-curs-fem.png';
 import bgbadge from '../../assets/fundo-cracha.png';
 import { EventDetails } from '../../features/admin/events/types';
@@ -29,7 +29,7 @@ function PdfEnvelopePhoto({ event }: { event: EventDetails }) {
               src={dataEvent?.coverBase64 || bgbadge}
             />
             <View style={stylesPdfEnvelopePhoto.headerBadge} wrap={false}>
-              <Image style={stylesPdfEnvelopePhoto.image} src={logoIc} />
+              {/* <Image style={stylesPdfEnvelopePhoto.image} src={logoIc} /> */}
               <Image
                 style={stylesPdfEnvelopePhoto.imageEvent}
                 src={dataEvent?.logoBase64 || logoEvento}
