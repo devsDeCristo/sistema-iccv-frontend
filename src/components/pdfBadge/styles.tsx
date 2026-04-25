@@ -37,9 +37,11 @@ const stylesPdfBadge = StyleSheet.create({
   },
   image: {
     height: 30,
+
   },
   imageEvent: {
     height: 100,
+    marginTop: 5,
     objectFit: 'contain',
   },
   textName: {
@@ -59,7 +61,7 @@ const stylesPdfBadge = StyleSheet.create({
     width: '100%',
     height: 140,
     objectFit: 'cover',
-    opacity: 0.7,
+    opacity: 0.8,
   },
 });
 
