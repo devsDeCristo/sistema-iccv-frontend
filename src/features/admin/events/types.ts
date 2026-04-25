@@ -111,7 +111,9 @@ export interface EventDataJson {
   number?: string;
   linkMaps?: string;
   logoUrl?: string;
+  logoBase64?: string;
   coverUrl?: string;
+  coverBase64?: string;
   hideVacancies?: boolean;
 }
 export interface CreateEventPayload {
