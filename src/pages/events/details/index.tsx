@@ -6,6 +6,7 @@ import {
   Divider,
   Grid,
   Paper,
+  Skeleton,
   Stack,
   Tooltip,
   Typography,
@@ -33,7 +34,10 @@ function EventsDetails() {
     { enabled: !!userId }
   );
   const groups = groupsData?.present || [];
-  const { data: eventData } = useGetEvents({ eventId: id }, { enabled: !!id });
+  const { data: eventData, isLoading } = useGetEvents(
+    { eventId: id },
+    { enabled: !!id }
+  );
   const event = eventData as EventDetails;
 
   const registeredInEvent = useMemo(() => {
@@ -177,6 +181,70 @@ function EventsDetails() {
 
     return local;
   };
+
+  if (isLoading) {
+    return (
+      <PageStyle>
+        <Header title="Detalhes do Evento" buttonBack pageBack="/eventos" />
+
+        <Stack sx={styles.bannerContainer}>
+          <Skeleton
+            variant="rectangular"
+            width="100%"
+            height="100%"
+            sx={{ borderRadius: 5 }}
+          />
+        </Stack>
+
+        <Stack sx={styles.stackContainer}>
+          <Stack gap={3} sx={styles.stackRight}>
+            <Paper sx={styles.paper}>
+              <Skeleton variant="text" width="60%" height={32} />
+              <Skeleton variant="text" width="40%" />
+              <Skeleton variant="text" width="100%" />
+              <Skeleton variant="text" width="80%" />
+            </Paper>
+            <Paper sx={styles.paper}>
+              <Skeleton variant="text" width="40%" height={32} />
+              <Skeleton variant="text" width="100%" />
+              <Skeleton variant="text" width="100%" />
+              <Skeleton variant="text" width="90%" />
+              <Skeleton variant="text" width="70%" />
+            </Paper>
+          </Stack>
+
+          <Stack sx={styles.stackLeft}>
+            <Paper sx={styles.paper}>
+              <Skeleton variant="text" width="50%" height={32} />
+              <Skeleton variant="text" width="70%" />
+              <Box sx={styles.vacancyBox}>
+                {[0, 1, 2].map((item) => (
+                  <Box key={item}>
+                    <Grid container sx={styles.gridRow}>
+                      <Grid item xs={5}>
+                        <Skeleton variant="text" width="80%" />
+                      </Grid>
+                      <Grid item xs={7}>
+                        <Skeleton variant="text" width="60%" />
+                      </Grid>
+                    </Grid>
+                    {item < 2 && <Divider sx={styles.divider} />}
+                  </Box>
+                ))}
+              </Box>
+              <Skeleton
+                variant="rectangular"
+                width="100%"
+                height={40}
+                sx={{ ...styles.button, borderRadius: 1 }}
+              />
+            </Paper>
+          </Stack>
+        </Stack>
+      </PageStyle>
+    );
+  }
+
   return (
     <PageStyle>
       <Header
