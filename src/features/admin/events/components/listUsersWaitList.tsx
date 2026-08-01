@@ -279,12 +279,14 @@ function ListUsersWaitList({
     },
 
     {
-      field: 'registeredAt',
+      field: 'waitlistCreatedAt',
       headerName: 'Entrada na lista',
       type: 'dateTime',
       width: 160,
       valueGetter: (params) =>
-        params.row.registeredAt ? new Date(params.row.registeredAt) : null,
+        params.row.waitlistCreatedAt
+          ? new Date(params.row.waitlistCreatedAt)
+          : null,
       valueFormatter: (params) => formatDateTime(params.value),
     },
 
