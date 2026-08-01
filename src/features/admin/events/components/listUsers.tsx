@@ -17,7 +17,7 @@ import {
   useMediaQuery,
   useTheme,
 } from '@mui/material';
-import { formatCPF, formatDate } from '../../../../utils';
+import { formatCPF, formatDate, formatDateTime } from '../../../../utils';
 import {
   DataGrid,
   GridApi,
@@ -294,10 +294,13 @@ function ListUsers({
       flex: 1,
     },
     {
-      field: 'createdAt',
+      field: 'registeredAt',
       headerName: 'Data da inscrição',
-      flex: 1,
-      valueGetter: (params) => formatDate(params.row.createdAt),
+      type: 'dateTime',
+      width: 160,
+      valueGetter: (params) =>
+        params.row.registeredAt ? new Date(params.row.registeredAt) : null,
+      valueFormatter: (params) => formatDateTime(params.value),
     },
     {
       field: 'bedrooms',
@@ -561,7 +564,6 @@ function ListUsers({
                 hypertensive: false,
                 notes: false,
                 // leadershipPosition: false,
-                createdAt: false,
               },
             },
             pagination: { paginationModel: { pageSize: 25 } },

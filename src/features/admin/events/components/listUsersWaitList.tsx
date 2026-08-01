@@ -12,7 +12,7 @@ import {
   useMediaQuery,
   useTheme,
 } from '@mui/material';
-import { formatCPF, formatDate } from '../../../../utils';
+import { formatCPF, formatDate, formatDateTime } from '../../../../utils';
 import {
   DataGrid,
   GridApi,
@@ -279,6 +279,16 @@ function ListUsersWaitList({
     },
 
     {
+      field: 'registeredAt',
+      headerName: 'Entrada na lista',
+      type: 'dateTime',
+      width: 160,
+      valueGetter: (params) =>
+        params.row.registeredAt ? new Date(params.row.registeredAt) : null,
+      valueFormatter: (params) => formatDateTime(params.value),
+    },
+
+    {
       field: 'actions',
       headerName: '',
       sortable: false,
@@ -395,7 +405,6 @@ function ListUsersWaitList({
                 hypertensive: false,
                 notes: false,
                 // leadershipPosition: false,
-                createdAt: false,
               },
             },
             pagination: { paginationModel: { pageSize: 25 } },
