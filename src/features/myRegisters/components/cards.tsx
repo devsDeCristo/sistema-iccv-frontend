@@ -22,6 +22,7 @@ import { useGetPayments } from '../api/getPaymentByUser';
 import { ModalPayment } from './modalPayment';
 import React from 'react';
 import CapaLogin from '../../../assets/capaLogin2.jpg';
+import { MODULE_PAYMENT } from '../../../config/env';
 
 interface PaymentData {
   coverUrl: string;
@@ -155,13 +156,14 @@ function EventCard({ payment }: { payment: paymentsWithRoles & { data: PaymentDa
 
         <Stack gap={1} bottom={0}>
 
-          <Stack direction="row" alignItems="center" gap={1}>
-            <AttachMoney sx={styles.icon} />
-            <Typography sx={styles.infoText} color={fullPaid ? 'success.main' : 'warning.main'}>
-              
-              {fullPaid ?"Todas as inscrições pagas":"Inscrições aguardando pagamento"}
-            </Typography>
-          </Stack>
+          {MODULE_PAYMENT && (
+            <Stack direction="row" alignItems="center" gap={1}>
+              <AttachMoney sx={styles.icon} />
+              <Typography sx={styles.infoText} color={fullPaid ? 'success.main' : 'warning.main'}>
+                {fullPaid ?"Todas as inscrições pagas":"Inscrições aguardando pagamento"}
+              </Typography>
+            </Stack>
+          )}
           <Stack direction="row" alignItems="center" gap={1}>
             <LocalActivity sx={styles.icon} />
             <Typography sx={styles.infoText} color="text.secondary">
@@ -188,28 +190,29 @@ function EventCard({ payment }: { payment: paymentsWithRoles & { data: PaymentDa
           >
             Ver Evento
           </Button>
-           <Button
-           fullWidth
-            variant="contained"
-          
-            size="small"
-            color='success'
-
-            onClick={() => handleOpenModal(payment)}
-          >
-            Pagamentos
-          </Button>
+          {MODULE_PAYMENT && (
+            <Button
+              fullWidth
+              variant="contained"
+              size="small"
+              color='success'
+              onClick={() => handleOpenModal(payment)}
+            >
+              Pagamentos
+            </Button>
+          )}
         </Stack>
       </CardContent>
     </Paper>
-      <ModalPayment
-        open={Boolean(dataModal)}
-        handleClose={handleCloseModal}
-        payments={dataModal}
-        eventId={payment.eventId}
-        userId={JSON.parse(localStorage.getItem('user') || '{}').id}
-
-      /> </>
+      {MODULE_PAYMENT && (
+        <ModalPayment
+          open={Boolean(dataModal)}
+          handleClose={handleCloseModal}
+          payments={dataModal}
+          eventId={payment.eventId}
+          userId={JSON.parse(localStorage.getItem('user') || '{}').id}
+        />
+      )} </>
 
 
   );

@@ -21,4 +21,4 @@ export const isProd = FRONT_ENV === ENUM_NODE_ENV.ENV_PROD;
 
 // export const API_URL = getApiUrl();
 export const API_URL = import.meta.env.VITE_API_URL;
-export const MODULE_PAYMENT = import.meta.env.VITE_MODULE_PAYMENT;
+export const MODULE_PAYMENT = import.meta.env.VITE_MODULE_PAYMENT === 'true';

@@ -33,6 +33,7 @@ import { usePostRegisterUserInEvent } from '../../../features/admin/events/api/p
 import Swal from 'sweetalert2';
 import { useGetGroupsByUser } from '../../../features/admin/events/api/getGroupsByUser';
 import { usePostCreateCheckoutEvent } from '../../../features/admin/events/api/postCreateCheckoutEvent';
+import { MODULE_PAYMENT } from '../../../config/env';
 
 function Subscribe() {
   const { id } = useParams();
@@ -121,6 +122,20 @@ function Subscribe() {
           Swal.fire({
             title: 'Inscrição(ões) realizada(s) com sucesso!',
             text: 'No momento suas inscrições ficaram na lista de espera. Você será notificado caso surja vaga.',
+            icon: 'success',
+            confirmButtonText: 'OK',
+          }).then(() => {
+            navigate('/eventos/' + id);
+          });
+          return;
+        }
+
+        if (!MODULE_PAYMENT) {
+          Swal.fire({
+            title: 'Inscrição(ões) realizada(s) com sucesso!',
+            text: allRegistered
+              ? 'Suas inscrições foram confirmadas.'
+              : 'Algumas inscrições ficaram na lista de espera.',
             icon: 'success',
             confirmButtonText: 'OK',
           }).then(() => {
