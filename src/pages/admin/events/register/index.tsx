@@ -2,7 +2,7 @@ import { Header } from '../../../../components/header';
 import { useForm, FormProvider } from 'react-hook-form';
 import { PageStyle } from '../../../../components/pageStyle';
 import { FormGeneralInfo } from '../../../../features/admin/events/components/formGeneralInfo';
-import { Box, Button, Paper } from '@mui/material';
+import { Box, Button, CircularProgress, Paper } from '@mui/material';
 import {
   CategoryEventFormType,
   DateAndLocalFormType,
@@ -78,15 +78,13 @@ function Register() {
       groupRoles: defaultGroupRoles,
     });
   }, [eventTypeSelected]);
-  const { mutate: mutatePostCreateEvent } = usePostCreateEvent({
-    onSuccess: () => {
-      queryClient.invalidateQueries('GET_EVENTS');
-      navigate('/admin/eventos');
-    },
-    onError: (error) => {
-      toast.error(`Erro ao criar evento: ${error}`);
-    },
-  });
+  const { mutate: mutatePostCreateEvent, isLoading: isCreatingEvent } =
+    usePostCreateEvent({
+      onSuccess: () => {
+        queryClient.invalidateQueries('GET_EVENTS');
+        navigate('/admin/eventos');
+      },
+    });
 
   function categoryEventSubmit() {
     methodsCategoryEvent.trigger().then((isValid) => {
@@ -117,6 +115,8 @@ function Register() {
     });
   }
   function registrationSettingsSubmit() {
+    if (isCreatingEvent) return;
+
     methodsRegistrationSettings.trigger().then(async (isValid) => {
       if (isValid) {
         const generalInfoData = methodsGeneralInfo.getValues();
@@ -290,6 +290,7 @@ function Register() {
                 startIcon={currentStep === 1 ? '' : <ArrowBack />}
                 sx={{ marginTop: 2, width: '120px' }}
                 onClick={currentStep === 1 ? handleClose : handleBack}
+                disabled={isCreatingEvent}
               >
                 {currentStep === 1 ? 'Cancelar' : 'Voltar'}
               </Button>
@@ -297,9 +298,15 @@ function Register() {
                 variant="contained"
                 sx={{ marginTop: 2, width: '120px' }}
                 type="submit"
-                disabled={!canProceedToNextStep()}
+                disabled={!canProceedToNextStep() || isCreatingEvent}
                 endIcon={
-                  currentStep === STEPS.length ? <Check /> : <ArrowForward />
+                  isCreatingEvent ? (
+                    <CircularProgress size={16} color="inherit" />
+                  ) : currentStep === STEPS.length ? (
+                    <Check />
+                  ) : (
+                    <ArrowForward />
+                  )
                 }
               >
                 {currentStep === STEPS.length ? 'Finalizar' : 'Próximo'}
