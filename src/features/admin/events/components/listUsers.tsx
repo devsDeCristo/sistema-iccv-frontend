@@ -25,7 +25,11 @@ import {
   GridColDef,
   GridGetRowsToExportParams,
   GridRowId,
-  GridToolbar,
+  GridToolbarColumnsButton,
+  GridToolbarContainer,
+  GridToolbarDensitySelector,
+  GridToolbarExport,
+  GridToolbarFilterButton,
   gridFilteredSortedRowIdsSelector,
   ptBR,
   selectedGridRowsSelector,
@@ -36,7 +40,7 @@ import FileSaver from 'file-saver';
 import { pdf } from '@react-pdf/renderer';
 import PdfBadge from '../../../../components/pdfBadge';
 import { User } from '../../../../types/user';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Swal from 'sweetalert2';
 import { useRemoveUserFromEvent } from '../api/deleteUser';
 import { ModalEditWork } from './modalEditWork';
@@ -112,6 +116,43 @@ function ListUsers({
   const [panel, setPanel] = useState<string>('1');
   const theme = useTheme();
   const md = useMediaQuery(theme.breakpoints.up('md'));
+
+  /**
+   * O botão vive dentro da toolbar do DataGrid: assim ele acompanha a largura da
+   * tabela e quebra de linha em telas pequenas, em vez de flutuar sobre ela.
+   */
+  const CustomToolbar = useCallback(
+    () => (
+      <GridToolbarContainer
+        sx={{
+          gap: 1,
+          flexWrap: 'wrap',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
+      >
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+          <GridToolbarColumnsButton />
+          <GridToolbarFilterButton />
+          <GridToolbarDensitySelector />
+          <GridToolbarExport
+            printOptions={{ getRowsToExport: getSelectedRowsToExport }}
+          />
+        </Box>
+
+        <Button
+          onClick={() => setOpenModalAddUser(true)}
+          startIcon={<Add />}
+          variant="outlined"
+          size="small"
+          sx={{ ml: 'auto', whiteSpace: 'nowrap', width: {xs: '100%', sm: 'auto'} }}
+        >
+          Nova Inscrição
+        </Button>
+      </GridToolbarContainer>
+    ),
+    [],
+  );
 
   const styles = {
     card: {
@@ -507,8 +548,7 @@ function ListUsers({
         </Stack>
       )}
 
-      <Card sx={{position: 'relative'}}>
-      <Button onClick={()=>setOpenModalAddUser(true)} startIcon={<Add />} variant='outlined' sx={{position:"absolute", top: 10, right: 10, zIndex: 100}}> Nova Inscrição</Button>
+      <Card>
         <DataGrid
           // disableColumnFilter
           // disableDensitySelector
@@ -520,7 +560,7 @@ function ListUsers({
           loading={isLoading}
           autoHeight={true}
           slots={{
-            toolbar: GridToolbar,
+            toolbar: CustomToolbar,
           }}
           pageSizeOptions={[25, 50, 100]}
           checkboxSelection
@@ -545,11 +585,6 @@ function ListUsers({
               },
             },
             pagination: { paginationModel: { pageSize: 25 } },
-          }}
-          slotProps={{
-            toolbar: {
-              printOptions: { getRowsToExport: getSelectedRowsToExport },
-            },
           }}
           columnHeaderHeight={40}
           sx={{
