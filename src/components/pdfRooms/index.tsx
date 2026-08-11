@@ -1,4 +1,4 @@
-import { Page, Text, View, Document, Font, Image } from '@react-pdf/renderer';
+import { Page, Text, View, Document, Font } from '@react-pdf/renderer';
 
 import { stylesPdfRooms } from './styles';
 import type { PdfRoomsProps } from './types';

@@ -1,10 +1,7 @@
-import { Page, Text, View, Document, Font, Image } from '@react-pdf/renderer';
+import { Page, Text, View, Document, Font } from '@react-pdf/renderer';
 
 import { stylesPdfRooms } from './styles';
 import type { PdfTeamsProps } from './types';
-import logoIc from '../../assets/logo-ic-vermelha.png';
-import logoEvento from '../../assets/6-curs-fem.png';
-import logoCursilho from '../../assets/logo-cursilho-verm.png';
 import { HeaderPdf } from '../pdfEvent/header';
 
 Font.register({

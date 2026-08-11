@@ -54,7 +54,13 @@ function FormSelectRole({ groupRoles }: FormSelectRoleProps) {
             return (
               <>
                 <Grid item xs={12} md={12}>
-                  <Typography variant="h6" fontSize={'19px'}>
+                  <Typography
+                    variant="h6"
+                    sx={{
+                      fontSize: { xs: '16px', sm: '19px' },
+                      wordBreak: 'break-word',
+                    }}
+                  >
                     Grupo:{' '}
                     <span
                       style={{
@@ -135,14 +141,20 @@ function FormSelectRole({ groupRoles }: FormSelectRoleProps) {
                             >
                               {' '}
                               <Checkbox
-                                sx={{ p: 0.5 }}
+                                sx={{ p: 0.5, flexShrink: 0 }}
                                 value={role.id}
                                 checked={isSelected || false}
                                 // onChange={handleToggle}
                                 inputProps={{ 'aria-label': role.description }}
                               />
-                              <Box sx={{ ml: 2 }}>
-                                <Typography variant="h6">
+                              <Box sx={{ ml: { xs: 1, sm: 2 }, minWidth: 0 }}>
+                                <Typography
+                                  variant="h6"
+                                  sx={{
+                                    fontSize: { xs: '1rem', sm: '1.25rem' },
+                                    wordBreak: 'break-word',
+                                  }}
+                                >
                                   {role.description}
                                 </Typography>
                                 <Typography variant="body2">

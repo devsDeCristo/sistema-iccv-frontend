@@ -73,6 +73,10 @@ export interface User {
   religion?: string;
   notes?: string;
   eventId?: string;
+  /** data/hora da inscrição no evento (EventOnUsers.createdAt) */
+  registeredAt?: string;
+  /** data/hora de entrada na lista de espera (Waitlist.createdAt) */
+  waitlistCreatedAt?: string;
   bedrooms?: any[];
   teams?: any[];
   groupsRegistration?: any[];

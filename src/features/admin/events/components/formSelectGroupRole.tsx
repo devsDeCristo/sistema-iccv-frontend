@@ -19,6 +19,7 @@ function FormSelectGroupRole({ event, groups }: FormSelectGroupRoleProps) {
     formState: { errors },
   } = useFormContext<SelectGroupRoleFormType>();
   const theme = useTheme();
+  const hideVacancies = !!event?.data?.hideVacancies;
   return (
     <Grid container spacing={2}>
       <Grid item xs={12} md={12}>
@@ -105,6 +106,7 @@ function FormSelectGroupRole({ event, groups }: FormSelectGroupRoleProps) {
                       <Checkbox
                         sx={{
                           p: 0.5,
+                          flexShrink: 0,
                           opacity: disabled ? 0.6 : 1,
                         }}
                         value={group.id}
@@ -114,21 +116,36 @@ function FormSelectGroupRole({ event, groups }: FormSelectGroupRoleProps) {
                       />
                       <Box
                         sx={{
-                          ml: 2,
+                          ml: { xs: 1, sm: 2 },
+                          minWidth: 0,
                           opacity: disabled ? 0.6 : 1,
                         }}
                       >
-                        <Typography variant="h6">{group.name}</Typography>
-                        <Typography variant="body2">
-                          Vagas Disponíveis: {(capacity || 0) - subscribedCount}{' '}
-                          de {capacity || 0}
+                        <Typography
+                          variant="h6"
+                          sx={{
+                            fontSize: { xs: '1rem', sm: '1.25rem' },
+                            wordBreak: 'break-word',
+                          }}
+                        >
+                          {group.name}
                         </Typography>
+                        {!hideVacancies && (
+                          <Typography
+                            variant="body2"
+                            sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}
+                          >
+                            Vagas Disponíveis:{' '}
+                            {(capacity || 0) - subscribedCount} de{' '}
+                            {capacity || 0}
+                          </Typography>
+                        )}
                       </Box>
                       {(registeredInGroup || registeredInGroupWaitList) && (
                         <Box
                           sx={{
-                            fontSize: '15px',
-                            flexGrow: 1,
+                            fontSize: { xs: '12px', sm: '15px' },
+                            maxWidth: 'calc(100% - 20px)',
                             position: 'absolute',
                             backgroundColor: theme.palette.background.paper,
                             padding: '0.5px 5px',
@@ -152,16 +169,20 @@ function FormSelectGroupRole({ event, groups }: FormSelectGroupRoleProps) {
                           }`}
                         </Box>
                       )}
-                      {!registeredInGroup &&
+                      {!hideVacancies &&
+                        !registeredInGroup &&
                         !registeredInGroupWaitList &&
                         subscribedCount >= (capacity || 0) && (
                           <Box
                             sx={{
-                              fontSize: '17px',
-                              flexGrow: 1,
+                              fontSize: { xs: '12px', sm: '17px' },
+                              maxWidth: 'calc(100% - 20px)',
                               position: 'absolute',
+                              backgroundColor: theme.palette.background.paper,
+                              padding: { xs: '0.5px 5px', sm: 0 },
+                              borderRadius: { xs: '0px 0px 5px 5px', sm: 0 },
                               right: 10,
-                              top: 10,
+                              top: { xs: 0, sm: 10 },
                               color: theme.palette.warning.main,
                               fontWeight: 500,
                             }}

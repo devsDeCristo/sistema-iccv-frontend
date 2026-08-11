@@ -158,7 +158,7 @@ function Form() {
           control={control}
           render={({ field: { onChange, value } }) => (
             <InputSelect
-              label="Possui Hispertensão?"
+              label="Possui Hipertensão?"
               menuOptions={OPTIONS_BOOLEAN}
               value={value}
               onChange={onChange}

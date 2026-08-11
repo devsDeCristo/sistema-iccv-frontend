@@ -17,7 +17,7 @@ import {
   useMediaQuery,
   useTheme,
 } from '@mui/material';
-import { formatCPF, formatDate } from '../../../../utils';
+import { formatCPF, formatDate, formatDateTime } from '../../../../utils';
 import {
   DataGrid,
   GridApi,
@@ -187,24 +187,8 @@ function ListUsers({
   const handleClose = () => {
     setAnchorEl(null);
   };
-  const { mutate: mutateRemoveUserFromEvent } = useRemoveUserFromEvent({
-    onSuccess: () => {
-      Swal.fire({
-        title: 'Desvinculado!',
-        text: 'Usuário desvinculado do evento com sucesso.',
-        icon: 'success',
-      });
-      queryClient.invalidateQueries(GET_EVENT_USERS);
-    },
-    onError: () => {
-      Swal.fire({
-        title: 'Erro ao remover usuário do evento',
-        text: 'Ocorreu um erro ao tentar desvincular o usuário do evento. Por favor, tente novamente mais tarde.',
-        icon: 'error',
-        confirmButtonText: 'OK',
-      });
-    },
-  });
+  const { mutateAsync: mutateRemoveUserFromEvent } =
+    useRemoveUserFromEvent();
   const groupsRules = useMemo(
     () => event?.groupRoles?.map((g: any) => g.name) ?? [],
     [event]
@@ -351,10 +335,13 @@ function ListUsers({
       flex: 1,
     },
     {
-      field: 'createdAt',
+      field: 'registeredAt',
       headerName: 'Data da inscrição',
-      flex: 1,
-      valueGetter: (params) => formatDate(params.row.createdAt),
+      type: 'dateTime',
+      width: 160,
+      valueGetter: (params) =>
+        params.row.registeredAt ? new Date(params.row.registeredAt) : null,
+      valueFormatter: (params) => formatDateTime(params.value),
     },
     {
       field: 'bedrooms',
@@ -438,26 +425,62 @@ function ListUsers({
     handleClose();
   };
 
-  const handleClickRemoveUser = () => {
+  const handleClickRemoveUser = async () => {
     if (!rowSelected) return;
-      Swal.fire({
+
+    const roleRegistrationId = rowSelected.groupsRegistration?.find(
+      (group: any) => group.name === panel
+    )?.roles[0]?.id;
+
+    if (!roleRegistrationId) return;
+
+    handleClose();
+
+    const result = await Swal.fire({
       title: 'Tem certeza que deseja desvincular o usuário do evento?',
       text: 'Esta ação não poderá ser desfeita!',
       icon: 'warning',
       showCancelButton: true,
+      showLoaderOnConfirm: true,
       confirmButtonColor: '#3085d6',
       cancelButtonColor: '#d33',
       confirmButtonText: 'Sim, desvincular do evento!',
-    }).then((result) => {
-      if (result.isConfirmed) {
-        mutateRemoveUserFromEvent({
-          idEvent: eventId,
-          idUser: rowSelected?.id.toString(),
-          roleRegistrationId: rowSelected?.groupsRegistration?.find((g: any) => g.name === panel)?.roles[0]?.id
-        });
-      }
+      cancelButtonText: 'Cancelar',
+      allowOutsideClick: () => !Swal.isLoading(),
+      allowEscapeKey: () => !Swal.isLoading(),
+      preConfirm: async () => {
+        const cancelButton = Swal.getCancelButton();
+
+        if (cancelButton) cancelButton.disabled = true;
+
+        try {
+          await mutateRemoveUserFromEvent({
+            idEvent: eventId,
+            idUser: rowSelected.id.toString(),
+            roleRegistrationId,
+          });
+
+          return true;
+        } catch (error) {
+          if (cancelButton) cancelButton.disabled = false;
+
+          Swal.showValidationMessage(
+            'Não foi possível desvincular o usuário. Tente novamente.'
+          );
+
+          return false;
+        }
+      },
     });
-    handleClose();
+
+    if (result.isConfirmed && result.value) {
+      queryClient.invalidateQueries(GET_EVENT_USERS);
+      await Swal.fire({
+        title: 'Desvinculado!',
+        text: 'Usuário desvinculado do evento com sucesso.',
+        icon: 'success',
+      });
+    }
   };
 
   const filteredByGroup = (usersData: User[]) => {
@@ -581,7 +604,6 @@ function ListUsers({
                 hypertensive: false,
                 notes: false,
                 // leadershipPosition: false,
-                createdAt: false,
               },
             },
             pagination: { paginationModel: { pageSize: 25 } },

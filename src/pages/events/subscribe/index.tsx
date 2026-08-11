@@ -33,6 +33,7 @@ import { usePostRegisterUserInEvent } from '../../../features/admin/events/api/p
 import Swal from 'sweetalert2';
 import { useGetGroupsByUser } from '../../../features/admin/events/api/getGroupsByUser';
 import { usePostCreateCheckoutEvent } from '../../../features/admin/events/api/postCreateCheckoutEvent';
+import { MODULE_PAYMENT } from '../../../config/env';
 
 function Subscribe() {
   const { id } = useParams();
@@ -121,6 +122,20 @@ function Subscribe() {
           Swal.fire({
             title: 'Inscrição(ões) realizada(s) com sucesso!',
             text: 'No momento suas inscrições ficaram na lista de espera. Você será notificado caso surja vaga.',
+            icon: 'success',
+            confirmButtonText: 'OK',
+          }).then(() => {
+            navigate('/eventos/' + id);
+          });
+          return;
+        }
+
+        if (!MODULE_PAYMENT) {
+          Swal.fire({
+            title: 'Inscrição(ões) realizada(s) com sucesso!',
+            text: allRegistered
+              ? 'Suas inscrições foram confirmadas.'
+              : 'Algumas inscrições ficaram na lista de espera.',
             icon: 'success',
             confirmButtonText: 'OK',
           }).then(() => {
@@ -223,14 +238,13 @@ function Subscribe() {
     <Box
       sx={{
         zIndex: 1300,
-        position: 'absolute',
+        position: 'fixed',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        height: '100%',
-        mt: 'auto',
-        ml: 'auto',
+        p: 2,
+        textAlign: 'center',
         top: 0,
         left: 0,
         right: 0,
@@ -255,8 +269,21 @@ function Subscribe() {
       {isLoading ? (
         <Skeleton variant="rectangular" width="100%" height={200} />
       ) : (
-        <Paper sx={{ p: 3, display: 'flex', flexDirection: 'column' }}>
-          <Typography variant="h5" gutterBottom>
+        <Paper
+          sx={{
+            p: { xs: 2, sm: 3 },
+            display: 'flex',
+            flexDirection: 'column',
+          }}
+        >
+          <Typography
+            variant="h5"
+            gutterBottom
+            sx={{
+              fontSize: { xs: '1.25rem', sm: '1.5rem' },
+              wordBreak: 'break-word',
+            }}
+          >
             {event.name}
           </Typography>
           <FormProvider
@@ -275,19 +302,22 @@ function Subscribe() {
               <Box
                 sx={{
                   display: 'flex',
+                  flexDirection: { xs: 'column-reverse', sm: 'row' },
                   justifyContent: 'space-between',
+                  gap: 2,
+                  mt: 2,
                 }}
               >
                 <Button
                   variant="outlined"
-                  sx={{ marginTop: 2, width: '120px' }}
+                  sx={{ width: { xs: '100%', sm: '120px' } }}
                   onClick={currentStep === 1 ? handleClose : handleBack}
                 >
                   {currentStep === 1 ? 'Cancelar' : 'Voltar'}
                 </Button>
                 <Button
                   variant="contained"
-                  sx={{ marginTop: 2, width: '120px' }}
+                  sx={{ width: { xs: '100%', sm: '120px' } }}
                   type="submit"
                   disabled={!canProceedToNextStep() || isLoadingRegister}
                   endIcon={
