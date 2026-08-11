@@ -64,17 +64,26 @@ function ListBedRooms({ search }: { search: string }) {
   };
 
   const filteredData = (bedroomsData: Bedroom[]) =>
-    bedroomsData.filter((bedroom) =>
-      bedroom.name?.toLowerCase().includes(search.toLowerCase())
-    ).sort((a, b) =>
-      (a.name ?? '').localeCompare(b.name ?? '', 'pt-BR', {
-        sensitivity: 'base',
-        numeric: true,
-      })
-    );
+    bedroomsData
+      .filter((bedroom) =>
+        bedroom.name?.toLowerCase().includes(search.toLowerCase())
+      )
+      .sort((a, b) =>
+        (a.name ?? '').localeCompare(b.name ?? '', 'pt-BR', {
+          sensitivity: 'base',
+          numeric: true,
+        })
+      );
 
-  const { paginatedData, totalPages, page, setPage, rangeStart, rangeEnd, total } =
-    useGridPagination(filteredData(bedroomsData));
+  const {
+    paginatedData,
+    totalPages,
+    page,
+    setPage,
+    rangeStart,
+    rangeEnd,
+    total,
+  } = useGridPagination(filteredData(bedroomsData));
 
   const handleChange = (_: unknown, page: number) => {
     setPage(page);
@@ -119,7 +128,7 @@ function ListBedRooms({ search }: { search: string }) {
       textOverflow: 'ellipsis',
       overflow: 'hidden',
       whiteSpace: 'nowrap',
-       width:"fit-content",
+      width: 'fit-content',
     },
     chip: {
       margin: '2px',
@@ -154,7 +163,7 @@ function ListBedRooms({ search }: { search: string }) {
       display: '-webkit-box',
       WebkitLineClamp: 2,
       WebkitBoxOrient: 'vertical',
-      width:"fit-content",
+      width: 'fit-content',
     },
   };
 
@@ -162,41 +171,44 @@ function ListBedRooms({ search }: { search: string }) {
     <Box sx={styles.container}>
       {isLoading && <Loading />}
       <Grid container spacing={2}>
-        {paginatedData.map((bedroom) => (
-          <Grid item xs={12} md={6} xl={4} key={bedroom.id}>
-            <Card sx={styles.card}>
-              <Stack direction="row" alignItems="center" gap={1}>
-                <Box sx={styles.iconWrapper}>
-                  <Bed sx={{ fontSize: '20px' }} />
-                </Box>
-                <Stack sx={{ width: '90%' }} gap={0.5}>
-                  <Tooltip title={bedroom.name || ''} arrow>
-                    <Typography sx={styles.roomName}>
-                      {bedroom.name || 'Quarto sem nome'}
-                    </Typography>
-                  </Tooltip>
-                  {/* duas linhas no máximo para a nota do quarto */}
-                  <Tooltip title={bedroom.note || ''} arrow>
-                    <Typography
-                      variant="caption"
-                      sx={styles.twoLinesText}
-                      mt={-0.5}
-                    >
-                      {bedroom.note}
-                    </Typography>
-                  </Tooltip>
+        {paginatedData.map((bedroom) => {
+          const totalUsuarios = bedroom.users?.length || 0;
+          const capacidade = Number(bedroom.capacity) || 0;
+          const percentualOcupacao =
+            capacidade > 0
+              ? Math.min(Math.round((totalUsuarios / capacidade) * 100), 100)
+              : 0;
+
+          return (
+            <Grid item xs={12} md={6} xl={4} key={bedroom.id}>
+              <Card sx={styles.card}>
+                <Stack direction="row" alignItems="center" gap={1}>
+                  <Box sx={styles.iconWrapper}>
+                    <Bed sx={{ fontSize: '20px' }} />
+                  </Box>
+                  <Stack sx={{ width: '90%' }} gap={0.5}>
+                    <Tooltip title={bedroom.name || ''} arrow>
+                      <Typography sx={styles.roomName}>
+                        {bedroom.name || 'Quarto sem nome'}
+                      </Typography>
+                    </Tooltip>
+                    {/* duas linhas no máximo para a nota do quarto */}
+                    <Tooltip title={bedroom.note || ''} arrow>
+                      <Typography
+                        variant="caption"
+                        sx={styles.twoLinesText}
+                        mt={-0.5}
+                      >
+                        {bedroom.note}
+                      </Typography>
+                    </Tooltip>
+                  </Stack>
                 </Stack>
-              </Stack>
-              <Stack direction="row" flexWrap="wrap" gap={1}>
-                {bedroom.tag.map((tag) => (
-                  <Chip key={tag + 'chips'} label={tag} sx={styles.chip} />
-                ))}
-              </Stack>
-              {bedroom.users.length === 0 ? (
-                <Typography variant="body2" color="text.secondary">
-                  Nenhum usuário atribuído
-                </Typography>
-              ) : (
+                <Stack direction="row" flexWrap="wrap" gap={1}>
+                  {bedroom.tag.map((tag) => (
+                    <Chip key={tag + 'chips'} label={tag} sx={styles.chip} />
+                  ))}
+                </Stack>
                 <Stack direction="column" gap={1}>
                   <Stack
                     direction="row"
@@ -207,83 +219,79 @@ function ListBedRooms({ search }: { search: string }) {
                       Capacidade:
                     </Typography>
                     <Typography variant="body2">
-                      {bedroom.users.length || 0}/{bedroom.capacity || 0} (
-                      <b>
-                        {isNaN(bedroom.users.length / bedroom.capacity) ||
-                        !isFinite(bedroom.users.length / bedroom.capacity)
-                          ? 0
-                          : (
-                              (bedroom.users.length / bedroom.capacity || 0) *
-                              100
-                            ).toFixed(0)}
-                        %
-                      </b>
+                      {totalUsuarios}/{capacidade} (<b>{percentualOcupacao}%</b>
                       )
                     </Typography>
                   </Stack>
                   <LinearProgress
                     variant="determinate"
-                    value={(bedroom.users.length / bedroom.capacity) * 100}
+                    value={percentualOcupacao}
                     sx={styles.progressBar}
                   />
                   <Typography variant="body2" fontWeight={500}>
                     Participantes:
                   </Typography>
-                  <Stack direction="row" gap={1} flexWrap="wrap">
-                    {bedroom.users.map((user) => (
-                      <UserAvatar
-                        key={user.id}
-                        name={user.fullName}
-                        photoUrl={user.profilePhotoUrl}
-                        sx={styles.avatar}
-                      />
-                    ))}
-                  </Stack>
+                  {totalUsuarios === 0 ? (
+                    <Typography variant="body2" color="text.secondary">
+                      Nenhum usuário atribuído
+                    </Typography>
+                  ) : (
+                    <Stack direction="row" gap={1} flexWrap="wrap">
+                      {bedroom.users.map((user) => (
+                        <UserAvatar
+                          key={user.id}
+                          name={user.fullName}
+                          photoUrl={user.profilePhotoUrl}
+                          sx={styles.avatar}
+                        />
+                      ))}
+                    </Stack>
+                  )}
                 </Stack>
-              )}
 
-              {/* opções para edição e exclusão para mobile*/}
-              <Stack direction="row" sx={styles.actionButtonsMobile}>
-                <IconButton
-                  onClick={(e) => setAnchorElOptionsMobile(e.currentTarget)}
-                >
-                  <MoreVert />
-                </IconButton>
-                <Menu
-                  anchorEl={anchorElOptionsMobile}
-                  open={Boolean(anchorElOptionsMobile)}
-                  onClose={() => setAnchorElOptionsMobile(null)}
-                  onClick={() => setAnchorElOptionsMobile(null)}
-                >
-                  <MenuItem onClick={() => handleEditClick(bedroom)}>
-                    <Edit color="warning" sx={{ mr: 1 }} />
-                    Editar
-                  </MenuItem>
-                  <MenuItem onClick={() => handleDeleteClick(bedroom.id)}>
-                    <Delete color="error" sx={{ mr: 1 }} />
-                    Deletar
-                  </MenuItem>
-                </Menu>
-              </Stack>
+                {/* opções para edição e exclusão para mobile*/}
+                <Stack direction="row" sx={styles.actionButtonsMobile}>
+                  <IconButton
+                    onClick={(e) => setAnchorElOptionsMobile(e.currentTarget)}
+                  >
+                    <MoreVert />
+                  </IconButton>
+                  <Menu
+                    anchorEl={anchorElOptionsMobile}
+                    open={Boolean(anchorElOptionsMobile)}
+                    onClose={() => setAnchorElOptionsMobile(null)}
+                    onClick={() => setAnchorElOptionsMobile(null)}
+                  >
+                    <MenuItem onClick={() => handleEditClick(bedroom)}>
+                      <Edit color="warning" sx={{ mr: 1 }} />
+                      Editar
+                    </MenuItem>
+                    <MenuItem onClick={() => handleDeleteClick(bedroom.id)}>
+                      <Delete color="error" sx={{ mr: 1 }} />
+                      Deletar
+                    </MenuItem>
+                  </Menu>
+                </Stack>
 
-              {/* opções para edição e exclusão para md*/}
-              <Stack direction="row" sx={styles.actionButtons}>
-                <IconButton
-                  color="warning"
-                  onClick={() => handleEditClick(bedroom)}
-                >
-                  <Edit />
-                </IconButton>
-                <IconButton
-                  color="error"
-                  onClick={() => handleDeleteClick(bedroom.id)}
-                >
-                  <Delete />
-                </IconButton>
-              </Stack>
-            </Card>
-          </Grid>
-        ))}
+                {/* opções para edição e exclusão para md*/}
+                <Stack direction="row" sx={styles.actionButtons}>
+                  <IconButton
+                    color="warning"
+                    onClick={() => handleEditClick(bedroom)}
+                  >
+                    <Edit />
+                  </IconButton>
+                  <IconButton
+                    color="error"
+                    onClick={() => handleDeleteClick(bedroom.id)}
+                  >
+                    <Delete />
+                  </IconButton>
+                </Stack>
+              </Card>
+            </Grid>
+          );
+        })}
       </Grid>
       <Paper sx={styles.paperPagination}>
         <Typography variant="body2">

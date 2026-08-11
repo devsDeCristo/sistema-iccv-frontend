@@ -1,9 +1,11 @@
 import {
+  Alert,
   Autocomplete,
   Backdrop,
   Box,
   Button,
   Checkbox,
+  Chip,
   Fade,
   Grid,
   IconButton,
@@ -16,6 +18,7 @@ import {
 
 import { Controller, useForm } from 'react-hook-form';
 import { useEffect } from 'react';
+import { toast } from 'react-toastify';
 import { usePostCreateTeam } from '../api/postTeam';
 import { usePutTeam } from '../api/putTeam';
 import { CheckBox, CheckBoxOutlineBlank, Close } from '@mui/icons-material';
@@ -31,6 +34,20 @@ interface ModalTeamProps {
   team?: Team | null;
   eventId: string;
 }
+
+interface UserOption {
+  value: string;
+  label: string;
+  groupName: string;
+}
+
+const emptyForm = {
+  name: '',
+  capacity: '',
+  note: '',
+  usersId: [] as UserOption[],
+  usersLeadersId: [] as UserOption[],
+};
 
 function ModalTeam({ open, handleClose, team, eventId }: ModalTeamProps) {
   const theme = useTheme();
@@ -62,22 +79,33 @@ function ModalTeam({ open, handleClose, team, eventId }: ModalTeamProps) {
       p: { xs: 2, md: 3 },
     },
   };
-  const { control, reset, handleSubmit, watch } = useForm();
-  const { mutate: putTeam } = usePutTeam({
+  const {
+    control,
+    reset,
+    handleSubmit,
+    watch,
+    getValues,
+    trigger,
+    formState: { errors },
+  } = useForm({ defaultValues: emptyForm, mode: 'onChange' });
+
+  const { mutate: putTeam, isLoading: isUpdating } = usePutTeam({
     onSuccess: () => {
-      reset();
+      reset(emptyForm);
       handleClose();
       queryClient.invalidateQueries(GET_TEAMS);
     },
   });
-  const { mutate: postCreateTeam } = usePostCreateTeam({
+  const { mutate: postCreateTeam, isLoading: isCreating } = usePostCreateTeam({
     onSuccess: () => {
-      reset();
+      reset(emptyForm);
       handleClose();
       queryClient.invalidateQueries(GET_TEAMS);
     },
   });
-  const { data: userData } = useGetUsers(
+  const isSaving = isCreating || isUpdating;
+
+  const { data: userData, isLoading: isLoadingUsers } = useGetUsers(
     { eventId: eventId || '' },
     {
       enabled: !!eventId,
@@ -85,7 +113,7 @@ function ModalTeam({ open, handleClose, team, eventId }: ModalTeamProps) {
   );
 
   const users = userData as User[];
-  function mapUsersToOptions(users: User[]) {
+  function mapUsersToOptions(users: User[]): UserOption[] {
     return users
       .flatMap((user) =>
         user?.groupsRegistration?.map((group) => ({
@@ -94,16 +122,25 @@ function ModalTeam({ open, handleClose, team, eventId }: ModalTeamProps) {
           groupName: group.name,
         }))
       )
-      .sort((a, b) => a?.groupName.localeCompare(b?.groupName));
+      .filter((option): option is UserOption => !!option?.groupName)
+      .sort((a, b) => a.groupName.localeCompare(b.groupName));
   }
 
   const options = mapUsersToOptions(users || []);
 
+  const capacity = Number(watch('capacity') || 0);
+  const leaders = watch('usersLeadersId') || [];
+  const members = watch('usersId') || [];
+  const totalSelecionados = leaders.length + members.length;
+  const vagasRestantes = capacity - totalSelecionados;
+  const semCapacidade = capacity <= 0;
+  const equipeCheia = !semCapacidade && vagasRestantes <= 0;
+
   const onSubimitTeam = (data: any) => {
     const transoformData = {
       ...data,
-      usersId: data.usersId.map((user: any) => user.value),
-      usersLeadersId: data.usersLeadersId.map((user: any) => user.value),
+      usersId: (data.usersId || []).map((user: any) => user.value),
+      usersLeadersId: (data.usersLeadersId || []).map((user: any) => user.value),
       capacity: Number(data.capacity),
     };
 
@@ -122,35 +159,64 @@ function ModalTeam({ open, handleClose, team, eventId }: ModalTeamProps) {
     });
   };
 
-  const Title = ({ title }: { title: string }) => {
+  const onInvalid = () => {
+    toast.error(
+      'Não foi possível salvar. Verifique os campos destacados em vermelho.'
+    );
+  };
+
+  const Title = ({ title, hint }: { title: string; hint?: string }) => {
     return (
-      <Typography id="transition-modal-title" sx={styles.subTitle}>
-        {title}
-      </Typography>
+      <Stack
+        direction="row"
+        alignItems="center"
+        justifyContent="space-between"
+        spacing={1}
+      >
+        <Typography id="transition-modal-title" sx={styles.subTitle}>
+          {title}
+        </Typography>
+        {hint && (
+          <Typography variant="caption" color="text.secondary">
+            {hint}
+          </Typography>
+        )}
+      </Stack>
     );
   };
 
   useEffect(() => {
+    if (!open) return;
+
     if (team) {
       reset({
-        capacity: team.capacity || 0,
-        note: team.note,
-        name: team.name,
+        capacity: String(team.capacity || ''),
+        note: team.note || '',
+        name: team.name || '',
         usersId: team.users
           .filter((user) => user.roleTeam === 'MEMBER')
           .map((user) => ({
             value: user.id,
             label: user.fullName,
+            groupName: '',
           })),
         usersLeadersId: team.users
           .filter((user) => user.roleTeam === 'LEADER')
           .map((user) => ({
             value: user.id,
             label: user.fullName,
+            groupName: '',
           })),
       });
+      return;
     }
-  }, [team]);
+
+    reset(emptyForm);
+  }, [team, open]);
+
+  const listaDeErros = Object.values(errors)
+    .map((error: any) => error?.message)
+    .filter(Boolean) as string[];
 
   return (
     <Modal
@@ -183,24 +249,42 @@ function ModalTeam({ open, handleClose, team, eventId }: ModalTeamProps) {
               <Close />
             </IconButton>
           </Stack>
-          <form onSubmit={handleSubmit(onSubimitTeam)}>
+          <form onSubmit={handleSubmit(onSubimitTeam, onInvalid)} noValidate>
             <Box sx={styles.overflow}>
+              {listaDeErros.length > 0 && (
+                <Alert severity="error" sx={{ mb: 1.5 }}>
+                  <Typography variant="body2" fontWeight={500}>
+                    Corrija os itens abaixo para salvar:
+                  </Typography>
+                  <Box component="ul" sx={{ m: 0, pl: 2 }}>
+                    {listaDeErros.map((mensagem) => (
+                      <li key={mensagem}>
+                        <Typography variant="body2">{mensagem}</Typography>
+                      </li>
+                    ))}
+                  </Box>
+                </Alert>
+              )}
               <Grid container spacing={1.5}>
                 <Grid item xs={12} md={7}>
                   <Controller
                     control={control}
                     name="name"
-                    render={({ field: { onChange, value } }) => (
+                    rules={{
+                      required: 'Informe o nome da equipe',
+                    }}
+                    render={({ field: { onChange, value }, fieldState }) => (
                       <>
                         <Title title="Nome" />
                         <TextField
                           fullWidth
                           variant="outlined"
-                          required
                           size="small"
                           placeholder="Informe o nome da Equipe"
                           value={value}
                           onChange={onChange}
+                          error={!!fieldState.error}
+                          helperText={fieldState.error?.message}
                         />
                       </>
                     )}
@@ -210,29 +294,44 @@ function ModalTeam({ open, handleClose, team, eventId }: ModalTeamProps) {
                   <Controller
                     control={control}
                     name="capacity"
-                    render={({ field: { onChange, value } }) => {
-                      const participantes = Number(
-                        (watch('usersId')?.length || 0) +
-                          (watch('usersLeadersId')?.length || 0)
-                      );
-
-                      return (
-                        <>
-                          <Title title="Capacidade" />
-                          <TextField
-                            fullWidth
-                            inputProps={{ min: participantes }}
-                            type="number"
-                            variant="outlined"
-                            required
-                            size="small"
-                            placeholder="Informe a capacidade"
-                            value={value}
-                            onChange={onChange}
-                          />
-                        </>
-                      );
+                    rules={{
+                      required: 'Informe a capacidade da equipe',
+                      validate: (value) => {
+                        const capacidade = Number(value);
+                        if (!capacidade || capacidade < 1) {
+                          return 'A capacidade deve ser de no mínimo 1 pessoa';
+                        }
+                        const selecionados =
+                          (getValues('usersId') || []).length +
+                          (getValues('usersLeadersId') || []).length;
+                        if (capacidade < selecionados) {
+                          return `A capacidade (${capacidade}) é menor que as ${selecionados} pessoas já selecionadas. Remova pessoas ou aumente a capacidade.`;
+                        }
+                        return true;
+                      },
                     }}
+                    render={({ field: { onChange, value }, fieldState }) => (
+                      <>
+                        <Title title="Capacidade" />
+                        <TextField
+                          fullWidth
+                          inputProps={{ min: 1 }}
+                          type="number"
+                          variant="outlined"
+                          size="small"
+                          placeholder="Informe a capacidade"
+                          value={value}
+                          onChange={onChange}
+                          error={!!fieldState.error}
+                          helperText={
+                            fieldState.error?.message ||
+                            (!semCapacidade
+                              ? `${totalSelecionados} de ${capacity} vagas preenchidas`
+                              : 'Defina a capacidade para liberar a seleção')
+                          }
+                        />
+                      </>
+                    )}
                   />
                 </Grid>
                 <Grid item xs={12}>
@@ -260,26 +359,48 @@ function ModalTeam({ open, handleClose, team, eventId }: ModalTeamProps) {
                   <Controller
                     control={control}
                     name="usersLeadersId"
-                    render={({ field: { onChange, value } }) => {
-                      const capacity = Number(watch('capacity') || 0);
-                      const participantes = Number(
-                        watch('usersId')?.length || 0
+                    rules={{
+                      validate: (value) =>
+                        (value || []).length > 0 ||
+                        'Selecione ao menos um líder para a equipe',
+                    }}
+                    render={({ field: { onChange, value }, fieldState }) => {
+                      const selecionados: UserOption[] = value || [];
+                      const idsMembros = members.map(
+                        (member: UserOption) => member.value
                       );
 
                       return (
                         <>
-                          <Title title="Lideres" />
+                          <Title
+                            title="Líderes *"
+                            hint={
+                              semCapacidade
+                                ? undefined
+                                : `${selecionados.length} selecionado(s)`
+                            }
+                          />
                           <Autocomplete
                             multiple
                             size="small"
                             disableCloseOnSelect
-                            id="tags-outlined"
+                            loading={isLoadingUsers}
+                            disabled={semCapacidade}
                             options={options || []}
                             groupBy={(option) => option.groupName}
                             isOptionEqualToValue={(option, value) =>
                               option.value == value.value
                             }
                             getOptionLabel={(option) => option.label}
+                            getOptionDisabled={(option) => {
+                              const jaSelecionado = selecionados.some(
+                                (item) => item.value === option.value
+                              );
+                              if (jaSelecionado) return false;
+                              if (idsMembros.includes(option.value)) return true;
+                              return equipeCheia;
+                            }}
+                            noOptionsText="Nenhuma pessoa inscrita encontrada"
                             ListboxProps={{
                               style: {
                                 maxHeight: 200, // altura máxima
@@ -288,9 +409,8 @@ function ModalTeam({ open, handleClose, team, eventId }: ModalTeamProps) {
                             }}
                             renderOption={(props, option, { selected }) => {
                               const { ...optionProps } = props;
-                              const disabled =
-                                value?.length + participantes >= capacity &&
-                                !selected;
+                              const jaEhParticipante =
+                                !selected && idsMembros.includes(option.value);
                               return (
                                 <li key={option.label} {...optionProps}>
                                   <Checkbox
@@ -302,33 +422,52 @@ function ModalTeam({ open, handleClose, team, eventId }: ModalTeamProps) {
                                       marginLeft: '-10px',
                                       marginRight: '5px',
                                     }}
-                                    disabled={disabled}
                                     checked={selected}
                                   />
                                   {option.label}
+                                  {jaEhParticipante && (
+                                    <Chip
+                                      label="já é participante"
+                                      size="small"
+                                      sx={{ ml: 1 }}
+                                    />
+                                  )}
                                 </li>
                               );
                             }}
                             onChange={(_, newValue) => {
-                              if (
-                                newValue.length + participantes <=
-                                (value?.length || 0)
-                              ) {
-                                // Removendo alguém → sempre deixa
+                              if (newValue.length < selecionados.length) {
                                 onChange(newValue);
-                              } else if (
-                                newValue.length + participantes <=
-                                capacity
-                              ) {
-                                // Adicionando → só deixa se não passar da capacidade
-                                onChange(newValue);
+                                trigger('capacity');
+                                return;
                               }
+                              if (newValue.length + members.length > capacity) {
+                                toast.warning(
+                                  `Capacidade máxima de ${capacity} pessoas atingida. Aumente a capacidade para adicionar mais alguém.`
+                                );
+                                return;
+                              }
+                              onChange(newValue);
+                              trigger('capacity');
                             }}
-                            value={value || []}
+                            value={selecionados}
                             renderInput={(params) => (
                               <TextField
                                 {...params}
-                                placeholder="Participantes"
+                                placeholder={
+                                  semCapacidade
+                                    ? 'Informe a capacidade primeiro'
+                                    : 'Selecione os líderes'
+                                }
+                                error={!!fieldState.error}
+                                helperText={
+                                  fieldState.error?.message ||
+                                  (semCapacidade
+                                    ? 'Informe a capacidade da equipe para liberar a seleção'
+                                    : equipeCheia
+                                      ? `Equipe cheia (${totalSelecionados}/${capacity}). Aumente a capacidade para adicionar mais pessoas.`
+                                      : `${vagasRestantes} vaga(s) disponível(is)`)
+                                }
                               />
                             )}
                           />
@@ -341,25 +480,48 @@ function ModalTeam({ open, handleClose, team, eventId }: ModalTeamProps) {
                   <Controller
                     control={control}
                     name="usersId"
-                    render={({ field: { onChange, value } }) => {
-                      const capacity = Number(watch('capacity') || 0);
-                      const liders = Number(
-                        watch('usersLeadersId')?.length || 0
+                    rules={{
+                      validate: (value) =>
+                        (value || []).length > 0 ||
+                        'Selecione ao menos um participante para a equipe',
+                    }}
+                    render={({ field: { onChange, value }, fieldState }) => {
+                      const selecionados: UserOption[] = value || [];
+                      const idsLideres = leaders.map(
+                        (leader: UserOption) => leader.value
                       );
+
                       return (
                         <>
-                          <Title title="Participantes" />
+                          <Title
+                            title="Participantes *"
+                            hint={
+                              semCapacidade
+                                ? undefined
+                                : `${selecionados.length} selecionado(s)`
+                            }
+                          />
                           <Autocomplete
                             multiple
                             size="small"
                             disableCloseOnSelect
-                            id="tags-outlined"
+                            loading={isLoadingUsers}
+                            disabled={semCapacidade}
                             options={options || []}
                             groupBy={(option) => option.groupName}
                             isOptionEqualToValue={(option, value) =>
                               option.value == value.value
                             }
                             getOptionLabel={(option) => option.label}
+                            getOptionDisabled={(option) => {
+                              const jaSelecionado = selecionados.some(
+                                (item) => item.value === option.value
+                              );
+                              if (jaSelecionado) return false;
+                              if (idsLideres.includes(option.value)) return true;
+                              return equipeCheia;
+                            }}
+                            noOptionsText="Nenhuma pessoa inscrita encontrada"
                             ListboxProps={{
                               style: {
                                 maxHeight: 200, // altura máxima
@@ -368,12 +530,11 @@ function ModalTeam({ open, handleClose, team, eventId }: ModalTeamProps) {
                             }}
                             renderOption={(props, option, { selected }) => {
                               const { ...optionProps } = props;
-                              const disabled =
-                                value?.length + liders >= capacity && !selected;
+                              const jaEhLider =
+                                !selected && idsLideres.includes(option.value);
                               return (
                                 <li key={option.label} {...optionProps}>
                                   <Checkbox
-                                    disabled={disabled}
                                     icon={
                                       <CheckBoxOutlineBlank fontSize="small" />
                                     }
@@ -385,26 +546,49 @@ function ModalTeam({ open, handleClose, team, eventId }: ModalTeamProps) {
                                     checked={selected}
                                   />
                                   {option.label}
+                                  {jaEhLider && (
+                                    <Chip
+                                      label="já é líder"
+                                      size="small"
+                                      sx={{ ml: 1 }}
+                                    />
+                                  )}
                                 </li>
                               );
                             }}
                             onChange={(_, newValue) => {
-                              if (
-                                newValue.length + liders <=
-                                (value?.length || 0)
-                              ) {
-                                // Removendo alguém → sempre deixa
+                              if (newValue.length < selecionados.length) {
                                 onChange(newValue);
-                              } else if (newValue.length + liders <= capacity) {
-                                // Adicionando → só deixa se não passar da capacidade
-                                onChange(newValue);
+                                trigger('capacity');
+                                return;
                               }
+                              if (newValue.length + leaders.length > capacity) {
+                                toast.warning(
+                                  `Capacidade máxima de ${capacity} pessoas atingida. Aumente a capacidade para adicionar mais alguém.`
+                                );
+                                return;
+                              }
+                              onChange(newValue);
+                              trigger('capacity');
                             }}
-                            value={value || []}
+                            value={selecionados}
                             renderInput={(params) => (
                               <TextField
                                 {...params}
-                                placeholder="Participantes"
+                                placeholder={
+                                  semCapacidade
+                                    ? 'Informe a capacidade primeiro'
+                                    : 'Selecione os participantes'
+                                }
+                                error={!!fieldState.error}
+                                helperText={
+                                  fieldState.error?.message ||
+                                  (semCapacidade
+                                    ? 'Informe a capacidade da equipe para liberar a seleção'
+                                    : equipeCheia
+                                      ? `Equipe cheia (${totalSelecionados}/${capacity}). Aumente a capacidade para adicionar mais pessoas.`
+                                      : `${vagasRestantes} vaga(s) disponível(is)`)
+                                }
                               />
                             )}
                           />
@@ -415,8 +599,13 @@ function ModalTeam({ open, handleClose, team, eventId }: ModalTeamProps) {
                 </Grid>
               </Grid>
             </Box>
-            <Button type="submit" variant="contained" fullWidth>
-              Salvar
+            <Button
+              type="submit"
+              variant="contained"
+              fullWidth
+              disabled={isSaving}
+            >
+              {isSaving ? 'Salvando...' : 'Salvar'}
             </Button>
           </form>
         </Box>
