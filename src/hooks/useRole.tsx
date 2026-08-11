@@ -1,23 +1,37 @@
 import { User } from '../types/user';
+import { ADMIN_AREA_ROLES, ADMIN_ROLES, Role } from '../constants/roles';
 
-function useRole() {
+type RoleInfo = {
+  role: number | null;
+  /** Super admin ou admin: acesso irrestrito ao painel */
+  isAdmin: boolean;
+  isSuperAdmin: boolean;
+  isFinance: boolean;
+  /** Entra no painel administrativo (inclui o financeiro) */
+  canAccessAdminArea: boolean;
+};
+
+function getStoredUser(): User | null {
   const localStorageUser = localStorage.getItem('user');
-  // const user: User = localStorageUser ? JSON.parse(localStorageUser) : null;
-  let user: User | null = null;
+
   try {
-    user = localStorageUser ? JSON.parse(localStorageUser) : null;
+    return localStorageUser ? JSON.parse(localStorageUser) : null;
   } catch (error) {
     console.error('Erro ao parsear o JSON do usuário:', error);
-    user = null; // Define como null caso o JSON seja inválido
+    return null;
   }
+}
 
-  if (user) {
-    const { role } = user;
-    if (role && role === 1) return true;
-    return false;
-  } else {
-    return false;
-  }
+function useRole(): RoleInfo {
+  const role = getStoredUser()?.role ?? null;
+
+  return {
+    role,
+    isAdmin: role !== null && ADMIN_ROLES.includes(role),
+    isSuperAdmin: role === Role.SUPER_ADMIN,
+    isFinance: role === Role.FINANCE,
+    canAccessAdminArea: role !== null && ADMIN_AREA_ROLES.includes(role),
+  };
 }
 
 export { useRole };

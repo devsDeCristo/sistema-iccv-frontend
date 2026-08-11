@@ -21,6 +21,7 @@ import { useNavigate } from 'react-router-dom';
 import { useGetEvents } from '../api/getEvents';
 import { formatDate } from '../../../../utils';
 import { EditNoteOutlined, VisibilityOutlined } from '@mui/icons-material';
+import { useRole } from '../../../../hooks/useRole';
 import CustomChip from '../../../../components/customChip';
 import { EventStatusFilter } from '../types';
 
@@ -44,6 +45,7 @@ function List({
 }) {
   const navigate = useNavigate();
   const theme = useTheme();
+  const { isAdmin } = useRole();
   const { data: eventData, isLoading } = useGetEvents({});
   const events = Array.isArray(eventData) ? eventData : [];
   const filteredData = events.filter((event: any) => {
@@ -206,16 +208,19 @@ function List({
               <VisibilityOutlined />
             </IconButton>
           </Tooltip>
-          <Tooltip title="Editar">
-            <IconButton
-              // disabled={true}
-              onClick={() => navigate(`/admin/eventos/${params.row.id}/editar`)}
-              sx={{ color: theme.palette.text.primary }}
-              size="medium"
-            >
-              <EditNoteOutlined />
-            </IconButton>
-          </Tooltip>
+          {isAdmin && (
+            <Tooltip title="Editar">
+              <IconButton
+                onClick={() =>
+                  navigate(`/admin/eventos/${params.row.id}/editar`)
+                }
+                sx={{ color: theme.palette.text.primary }}
+                size="medium"
+              >
+                <EditNoteOutlined />
+              </IconButton>
+            </Tooltip>
+          )}
         </>
       ),
     },

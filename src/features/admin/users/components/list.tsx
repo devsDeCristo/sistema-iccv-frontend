@@ -22,6 +22,7 @@ import {
   ptBR,
 } from '@mui/x-data-grid';
 import { useGetUsers } from '../api/getUsers';
+import { Role, ROLE_LABELS } from '../../../../constants/roles';
 import { formatCPF, formatDate, formatPhoneNumber } from '../../../../utils';
 // import { useNavigate } from 'react-router-dom';
 import {
@@ -225,27 +226,30 @@ function List({ search }: { search: string }) {
       renderCell: (params: GridCellParams) => {
         return (
           <Box>
-            {params.row.role === 1 ? (
+            {params.row.role === Role.SUPER_ADMIN ? (
               <CustomChip
-                label="Super Admin"
+                label={ROLE_LABELS[Role.SUPER_ADMIN]}
                 customColor={theme.palette.chips.info}
                 size="small"
               />
-            ) : // <Chip label="Super Admin" color="primary" variant="outlined" />
-            params.row.role === 2 ? (
+            ) : params.row.role === Role.ADMIN ? (
               <CustomChip
-                label="Admin"
+                label={ROLE_LABELS[Role.ADMIN]}
                 customColor={theme.palette.chips.alert}
                 size="small"
               />
-            ) : (
-              // <Chip label="Usuário" color="success" variant="outlined" />
+            ) : params.row.role === Role.FINANCE ? (
               <CustomChip
-                label="Usuário"
+                label={ROLE_LABELS[Role.FINANCE]}
+                customColor={theme.palette.chips.pending}
+                size="small"
+              />
+            ) : (
+              <CustomChip
+                label={ROLE_LABELS[Role.USER]}
                 customColor={theme.palette.chips.success}
                 size="small"
               />
-              // <Chip label="Indefinido" variant="outlined" />
             )}
           </Box>
         );

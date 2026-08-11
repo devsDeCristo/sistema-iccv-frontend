@@ -10,6 +10,7 @@ import {
   useTheme,
 } from '@mui/material';
 import Logo from '../../assets/logo-ic.svg?react';
+import { useRole } from '../../hooks/useRole';
 
 type SideBarProps = {
   validRole?: Boolean | null;
@@ -25,17 +26,23 @@ const SideBar: React.FC<SideBarProps> = ({
   setOpenDrawer,
 }) => {
   const theme = useTheme();
+  const { isAdmin: isAdminRole } = useRole();
 
   // const image =
   // ('https://www.holiness.org.br/wp-content/uploads/2021/04/cruz.jpg');
   const optionsPages = isAdmin
     ? [
-        {
-          itemId: '1',
-          link: '/admin/usuarios',
-          icon: <People />,
-          title: 'Usuários',
-        },
+        // o financeiro não gerencia usuários
+        ...(isAdminRole
+          ? [
+              {
+                itemId: '1',
+                link: '/admin/usuarios',
+                icon: <People />,
+                title: 'Usuários',
+              },
+            ]
+          : []),
         {
           itemId: '2',
           link: '/admin/eventos',

@@ -17,6 +17,7 @@ import { GET_USERS } from '../constants';
 import { usePutUser } from '../api/putUser';
 import { useEffect, useState } from 'react';
 import { User } from '../../../../types/user';
+import { Role } from '../../../../constants/roles';
 
 interface ModalAddUserProps {
   open: boolean;
@@ -111,12 +112,22 @@ function ModalEditRole({
                 onChange={handleChange}
               >
                 <FormControlLabel
-                  value={1}
+                  value={Role.SUPER_ADMIN}
                   control={<Radio />}
                   label="Super Admin"
                 />
                 <FormControlLabel
-                  value={5}
+                  value={Role.ADMIN}
+                  control={<Radio />}
+                  label="Admin"
+                />
+                <FormControlLabel
+                  value={Role.FINANCE}
+                  control={<Radio />}
+                  label="Financeiro"
+                />
+                <FormControlLabel
+                  value={Role.USER}
                   control={<Radio />}
                   label="Usuário"
                 />

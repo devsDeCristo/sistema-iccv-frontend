@@ -7,6 +7,7 @@ import { CardsInsights } from '../../../features/admin/events/components/cardsIn
 import { useState } from 'react';
 import { Add } from '@mui/icons-material';
 import { EventStatusFilter } from '../../../features/admin/events/types';
+import { useRole } from '../../../hooks/useRole';
 
 const STATUS_OPTIONS: { value: EventStatusFilter; label: string }[] = [
   { value: 'active', label: 'Ativos' },
@@ -16,6 +17,7 @@ const STATUS_OPTIONS: { value: EventStatusFilter; label: string }[] = [
 
 function Events() {
   const navigate = useNavigate();
+  const { isAdmin } = useRole();
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState<EventStatusFilter>('active');
   const styles = {
@@ -77,13 +79,15 @@ function Events() {
             </TextField>
           </Stack>
 
-          <Button
-            variant="contained"
-            onClick={() => navigate('/admin/eventos/cadastro')}
-            startIcon={<Add />}
-          >
-            Novo Evento
-          </Button>
+          {isAdmin && (
+            <Button
+              variant="contained"
+              onClick={() => navigate('/admin/eventos/cadastro')}
+              startIcon={<Add />}
+            >
+              Novo Evento
+            </Button>
+          )}
         </Paper>
         <List search={search} status={status} />
       </Stack>

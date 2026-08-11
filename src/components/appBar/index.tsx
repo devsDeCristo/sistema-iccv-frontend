@@ -15,6 +15,7 @@ import { useUser } from '../../contexts/userContext';
 import { useNavigate } from 'react-router-dom';
 import Logo from '../../assets/logo-ic.svg?react';
 import { useThemeContext } from '../../contexts/themeContext';
+import { useRole } from '../../hooks/useRole';
 
 export default function MenuAppBar({
   setOpenDrawer,
@@ -25,6 +26,7 @@ export default function MenuAppBar({
 }) {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const { user, logout } = useUser();
+  const { canAccessAdminArea } = useRole();
   const { colorMode, toggleColorMode } = useThemeContext();
   const navigate = useNavigate();
   const [isAdminRoute, setIsAdminRoute] = React.useState(false);
@@ -153,7 +155,7 @@ export default function MenuAppBar({
                 </ListItemIcon>
                 Perfil
               </MenuItem> */}
-              {user?.role === 1 && !isAdminRoute && (
+              {canAccessAdminArea && !isAdminRoute && (
                 <MenuItem
                   onClick={() => {
                     navigate('/admin/eventos');
@@ -166,7 +168,7 @@ export default function MenuAppBar({
                   Área do Administrador
                 </MenuItem>
               )}
-              {user?.role === 1 && isAdminRoute && (
+              {canAccessAdminArea && isAdminRoute && (
                 <MenuItem
                   onClick={() => {
                     navigate('/eventos');

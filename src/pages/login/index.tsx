@@ -19,6 +19,7 @@ import { usePermission } from '../../hooks/usePermission';
 import { usePostLogin } from '../../features/login/api/postLogin';
 import Swal from 'sweetalert2';
 import { useRole } from '../../hooks/useRole';
+import { ADMIN_AREA_ROLES } from '../../constants/roles';
 import { LoginFormType } from '../../features/login/types';
 //images
 import CapaLogin from '../../assets/capaLogin2.jpg';
@@ -41,13 +42,13 @@ function Login() {
 
   useEffect(() => {
     const permission = usePermission();
-    const role = useRole();
-    if (permission && role) {
-      navigate('/admin/eventos');
-    }
-    if (permission) {
-      navigate('/eventos');
-    }
+    const { canAccessAdminArea } = useRole();
+
+    if (!permission) return;
+
+    // os dois ifs eram independentes, então o segundo sempre vencia
+    // e mandava o admin para a área de usuário
+    navigate(canAccessAdminArea ? '/admin/eventos' : '/eventos');
   }, []);
 
   const { mutate: mutatePostLogin, isLoading } = usePostLogin({
@@ -55,7 +56,7 @@ function Login() {
       localStorage.setItem('access_token', response.access_token);
       localStorage.setItem('user', JSON.stringify(response.user));
 
-      if (response.user.role === 1) {
+      if (ADMIN_AREA_ROLES.includes(response.user.role)) {
         navigate('/admin/eventos');
       } else {
         navigate('/eventos');

@@ -15,7 +15,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 }) => {
   // const pageName = useLocation().pathname;
   const permission = usePermission();
-  const validRole = useRole();
+  const { canAccessAdminArea: validRole } = useRole();
 
   if (permission === null) {
     return <Loading />;

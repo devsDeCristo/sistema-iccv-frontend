@@ -64,9 +64,20 @@ import { User } from '../../../../types/user';
 import { ListUsersWaitList } from '../../../../features/admin/events/components/listUsersWaitList';
 import { ListPayments } from '../../../../features/admin/events/components/listPayments';
 import { toast } from 'react-toastify';
+import { useRole } from '../../../../hooks/useRole';
+import { FINANCE_EVENT_TABS } from '../../../../constants/roles';
+
+const EVENT_TABS = [
+  { label: 'Inscritos', value: 'usuarios' },
+  { label: 'Lista de Espera', value: 'lista-espera' },
+  { label: 'Pagamentos', value: 'pagamentos' },
+  { label: 'Quartos', value: 'quartos' },
+  { label: 'Equipes', value: 'equipes' },
+];
 
 function Details() {
   const { id, subPage } = useParams();
+  const { isAdmin, isFinance } = useRole();
   const navigate = useNavigate();
   const apiRefUsers = useGridApiRef();
   const [openModalBedRoom, setOpenModalBedRoom] = useState(false);
@@ -106,9 +117,18 @@ function Details() {
     setAnchorEl(null);
   };
   const theme = useTheme();
-  const { data: teamsData = [], isLoading: loadingTeams } = useGetTeams({
-    eventId,
-  });
+  // quartos e equipes são carregados aqui só para os PDFs dessas abas.
+  // O financeiro não tem acesso a esses endpoints: sem o `enabled` a página
+  // dispararia as duas queries no mount e ele veria vários toasts de 403
+  // sem ter clicado em nada.
+  const { data: teamsData = [], isLoading: loadingTeams } = useGetTeams(
+    {
+      eventId,
+    },
+    {
+      enabled: !!eventId && isAdmin,
+    }
+  );
   const teams = teamsData as unknown as Team[];
   const { data: bedroomsData = [], isLoading: loadingBedrooms } =
     useGetBedrooms(
@@ -116,7 +136,7 @@ function Details() {
         eventId: eventId,
       },
       {
-        enabled: !!eventId,
+        enabled: !!eventId && isAdmin,
       }
     );
   const { data: eventData, isLoading: loadingEventDetails } = useGetEvents(
@@ -340,6 +360,24 @@ function Details() {
     setPageValue(newValue);
     navigate(`/admin/eventos/${id}/detalhes/${newValue}`);
   };
+
+  // o financeiro só enxerga Inscritos e Pagamentos
+  const visibleTabs = useMemo(
+    () =>
+      isFinance
+        ? EVENT_TABS.filter((tab) => FINANCE_EVENT_TABS.includes(tab.value))
+        : EVENT_TABS,
+    [isFinance]
+  );
+
+  // acesso direto pela URL a uma aba bloqueada volta para a primeira liberada
+  useEffect(() => {
+    if (!visibleTabs.some((tab) => tab.value === pageValue)) {
+      const fallback = visibleTabs[0].value;
+      setPageValue(fallback);
+      navigate(`/admin/eventos/${id}/detalhes/${fallback}`, { replace: true });
+    }
+  }, [visibleTabs, pageValue, id, navigate]);
   const handleExport = (apiRef: React.MutableRefObject<GridApi>) => {
     apiRef.current.exportDataAsCsv(); // Exportação nativa do DataGrid
   };
@@ -470,11 +508,9 @@ function Details() {
           scrollButtons="auto"
           allowScrollButtonsMobile
         >
-          <Tab label="Inscritos" value={'usuarios'} />
-          <Tab label="Lista de Espera" value={'lista-espera'} />
-          <Tab label="Pagamentos" value={'pagamentos'} />
-          <Tab label="Quartos" value={'quartos'} />
-          <Tab label="Equipes" value={'equipes'} />
+          {visibleTabs.map((tab) => (
+            <Tab key={tab.value} label={tab.label} value={tab.value} />
+          ))}
         </Tabs>
       </Stack>
 

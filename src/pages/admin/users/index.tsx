@@ -12,7 +12,7 @@ function Users() {
   const navigate = useNavigate();
   const [searchUser, setSearchUser] = useState('');
 
-  const isAdmin = useRole();
+  const { isAdmin } = useRole();
   const styles = {
     boxFilterAndButton: {
       display: 'flex',

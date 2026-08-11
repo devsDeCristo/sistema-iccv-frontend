@@ -44,6 +44,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import Swal from 'sweetalert2';
 import { useRemoveUserFromEvent } from '../api/deleteUser';
 import { ModalEditWork } from './modalEditWork';
+import { useRole } from '../../../../hooks/useRole';
 import { useGetUsers } from '../api/getUsers';
 import { filterUsers } from '../types';
 import dayjs from 'dayjs';
@@ -98,6 +99,7 @@ function ListUsers({
   event: any;
 }) {
   const { id: eventId = '' } = useParams();
+  const { isAdmin } = useRole();
   const { data: usersData, isLoading } = useGetUsers(
     {
       eventId: eventId,
@@ -140,18 +142,24 @@ function ListUsers({
           />
         </Box>
 
-        <Button
-          onClick={() => setOpenModalAddUser(true)}
-          startIcon={<Add />}
-          variant="outlined"
-          size="small"
-          sx={{ ml: 'auto', whiteSpace: 'nowrap', width: {xs: '100%', sm: 'auto'} }}
-        >
-          Nova Inscrição
-        </Button>
+        {isAdmin && (
+          <Button
+            onClick={() => setOpenModalAddUser(true)}
+            startIcon={<Add />}
+            variant="outlined"
+            size="small"
+            sx={{
+              ml: 'auto',
+              whiteSpace: 'nowrap',
+              width: { xs: '100%', sm: 'auto' },
+            }}
+          >
+            Nova Inscrição
+          </Button>
+        )}
       </GridToolbarContainer>
     ),
-    [],
+    [isAdmin],
   );
 
   const styles = {
@@ -655,12 +663,14 @@ function ListUsers({
             'aria-labelledby': 'options-button',
           }}
         >
-          <MenuItem onClick={handleClickEdit}>
-            <ListItemIcon>
-              <Edit fontSize="small" color="primary" />
-            </ListItemIcon>
-            <ListItemText>Editar Usuário</ListItemText>
-          </MenuItem>
+          {isAdmin && (
+            <MenuItem onClick={handleClickEdit}>
+              <ListItemIcon>
+                <Edit fontSize="small" color="primary" />
+              </ListItemIcon>
+              <ListItemText>Editar Usuário</ListItemText>
+            </MenuItem>
+          )}
 
           <MenuItem onClick={handleClickDownloadBadge}>
             <ListItemIcon>
@@ -668,13 +678,15 @@ function ListUsers({
             </ListItemIcon>
             <ListItemText>Baixar Crachá</ListItemText>
           </MenuItem>
-          <Divider />
-          <MenuItem onClick={handleClickRemoveUser}>
-            <ListItemIcon>
-              <Delete fontSize="small" color="error" />
-            </ListItemIcon>
-            <ListItemText>Remover do evento</ListItemText>
-          </MenuItem>
+          {isAdmin && <Divider />}
+          {isAdmin && (
+            <MenuItem onClick={handleClickRemoveUser}>
+              <ListItemIcon>
+                <Delete fontSize="small" color="error" />
+              </ListItemIcon>
+              <ListItemText>Remover do evento</ListItemText>
+            </MenuItem>
+          )}
         </Menu>
       </Card>
     </>
