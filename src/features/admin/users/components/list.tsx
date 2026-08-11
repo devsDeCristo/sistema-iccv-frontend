@@ -290,8 +290,7 @@ function List({ search }: { search: string }) {
   // };
   const handleClickEdit = (event: React.MouseEvent) => {
     event.stopPropagation();
-    const link = `${window.location.origin}/admin/usuario/${rowSelected?.id}/editar`;
-    window.open(link, '_blank');
+    navigate(`/admin/usuario/${rowSelected?.id}/editar`);
     handleClose();
   };
   const handleClickEditRole = (event: React.MouseEvent) => {

@@ -33,8 +33,14 @@ import {
   ptBR,
   selectedGridRowsSelector,
 } from '@mui/x-data-grid';
-import { useParams } from 'react-router-dom';
-import { Add, Badge, Delete, Edit, MoreVert } from '@mui/icons-material';
+import { useNavigate, useParams } from 'react-router-dom';
+import {
+  Add,
+  Badge,
+  Delete,
+  MoreVert,
+  VisibilityOutlined,
+} from '@mui/icons-material';
 import FileSaver from 'file-saver';
 import { pdf } from '@react-pdf/renderer';
 import PdfBadge from '../../../../components/pdfBadge';
@@ -99,6 +105,7 @@ function ListUsers({
   event: any;
 }) {
   const { id: eventId = '' } = useParams();
+  const navigate = useNavigate();
   const { isAdmin } = useRole();
   const { data: usersData, isLoading } = useGetUsers(
     {
@@ -115,7 +122,10 @@ function ListUsers({
   const [rowSelected, setRowSelected] = useState<User | null>(null);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [openModalEditWork, setOpenModalEditWork] = useState(false);
-  const [panel, setPanel] = useState<string>('1');
+  // já inicia no primeiro grupo: com '1' nenhuma aba casa no primeiro render
+  const [panel, setPanel] = useState<string>(
+    () => event?.groupRoles?.[0]?.name ?? '1'
+  );
   const theme = useTheme();
   const md = useMediaQuery(theme.breakpoints.up('md'));
 
@@ -422,8 +432,7 @@ function ListUsers({
 
   const handleClickEdit = (event: React.MouseEvent) => {
     event.stopPropagation();
-    const link = `${window.location.origin}/admin/usuario/${rowSelected?.id}/editar`;
-    window.open(link, '_blank');
+    navigate(`/admin/usuario/${rowSelected?.id}/editar`);
     handleClose();
   };
   const handleClickDownloadBadge = (event: React.MouseEvent) => {
@@ -666,9 +675,9 @@ function ListUsers({
           {isAdmin && (
             <MenuItem onClick={handleClickEdit}>
               <ListItemIcon>
-                <Edit fontSize="small" color="primary" />
+                <VisibilityOutlined fontSize="small" color="primary" />
               </ListItemIcon>
-              <ListItemText>Editar Usuário</ListItemText>
+              <ListItemText>Ver detalhes do usuário</ListItemText>
             </MenuItem>
           )}
 

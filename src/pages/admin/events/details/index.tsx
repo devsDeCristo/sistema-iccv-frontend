@@ -604,12 +604,18 @@ function Details() {
             </Stack>
           </Paper>
 
-          <ListUsers
-            apiRef={apiRefUsers}
-            search={searchUser}
-            filters={filtersUsers}
-            event={event}
-          />
+          {/* grupos e grade vêm de queries diferentes: só monta com as duas
+              prontas, senão uma aparece antes da outra */}
+          {loadingEventDetails || loadingUsers ? (
+            <LinearProgress />
+          ) : (
+            <ListUsers
+              apiRef={apiRefUsers}
+              search={searchUser}
+              filters={filtersUsers}
+              event={event}
+            />
+          )}
         </Stack>
       )}
       {pageValue === 'lista-espera' && (

@@ -96,6 +96,9 @@ function EditUser() {
     onCloseWebcamModal();
   }
 
+  // react-router guarda o índice da entrada atual no history state
+  const hasHistoryToGoBack = (window.history.state?.idx ?? 0) > 0;
+
   function onCancelEdit() {
     methods.reset(DEFAULT_VALUES);
     setPhotoFile(null);
@@ -151,7 +154,9 @@ function EditUser() {
       <Header
         title="Detalhes"
         buttonBack={permission}
-        pageBack={'/admin/usuarios'}
+        // sem pageBack o Header volta pelo histórico (evento ou lista de
+        // usuários); só cai na listagem quando a tela foi aberta direto pela URL
+        pageBack={hasHistoryToGoBack ? undefined : '/admin/usuarios'}
       >
         {!isEditing && !isLoadingUser && (
           <Button
