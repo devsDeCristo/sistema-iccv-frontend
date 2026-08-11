@@ -236,7 +236,7 @@ export const GROUP_ROLE_CURSILHO: GroupRole[] = [
   {
     name: 'Cursilhista',
     capacity: 100,
-    roles: [{ price: 220, description: 'Paricipar a primeira vez' }],
+    roles: [{ price: 220, description: 'Participar a primeira vez' }],
   },
   {
     name: 'Cursilheiro(a)',

@@ -22,6 +22,7 @@ import { useGetEvents } from '../api/getEvents';
 import { formatDate } from '../../../../utils';
 import { EditNoteOutlined, VisibilityOutlined } from '@mui/icons-material';
 import CustomChip from '../../../../components/customChip';
+import { EventStatusFilter } from '../types';
 
 const getSelectedRowsToExport = ({
   apiRef,
@@ -34,14 +35,24 @@ const getSelectedRowsToExport = ({
 
   return gridFilteredSortedRowIdsSelector(apiRef);
 };
-function List({ search }: { search: string }) {
+function List({
+  search,
+  status = 'active',
+}: {
+  search: string;
+  status?: EventStatusFilter;
+}) {
   const navigate = useNavigate();
   const theme = useTheme();
   const { data: eventData, isLoading } = useGetEvents({});
   const events = Array.isArray(eventData) ? eventData : [];
   const filteredData = events.filter((event: any) => {
     const searchLower = search.toLowerCase();
-    return event.name.toLowerCase().includes(searchLower);
+    const matchesSearch = event.name.toLowerCase().includes(searchLower);
+    const matchesStatus =
+      status === 'all' ? true : status === 'active' ? !!event.isActive : !event.isActive;
+
+    return matchesSearch && matchesStatus;
   });
   const columns: GridColDef[] = [
     { field: 'name', headerName: 'Nome', flex: 2,   minWidth: 180, },

@@ -70,7 +70,7 @@ function ModalAddUserOnEvent({
           icon: 'success',
           confirmButtonText: 'OK',
         });
-        queryClient.invalidateQueries([GET_EVENT_USERS, eventId]);
+        queryClient.invalidateQueries([GET_EVENT_USERS, { eventId }]);
       },
 
       onError: () => {

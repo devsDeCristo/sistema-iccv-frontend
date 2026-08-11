@@ -11,6 +11,7 @@ import {
   ROLE_SELECT_SCHEMA,
 } from './constants';
 export type EventType = 'CURSILHO' | 'RETIRO';
+export type EventStatusFilter = 'active' | 'inactive' | 'all';
 export interface EventDetails {
   id: string;
   name: string;
