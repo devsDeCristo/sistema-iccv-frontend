@@ -1,6 +1,5 @@
 import { Avatar, Box, Button, Stack } from '@mui/material';
-import { CameraAlt, Save } from '@mui/icons-material';
-import { useState } from 'react';
+import { CameraAlt, UploadFile } from '@mui/icons-material';
 const stylesInput = {
   button: {
     position: 'relative',
@@ -42,32 +41,43 @@ const stylesInput = {
 };
 interface InputPhotoProps {
   profilePhoto: string | undefined;
-  onSavePhoto: (data: File | null) => void;
+  /** Preview da foto escolhida e ainda não enviada ao servidor */
+  previewPhoto?: string;
+  onSelectPhoto: (data: File) => void;
+  onOpenWebcam: () => void;
+  /** Só exibe a foto, sem permitir troca */
+  readOnly?: boolean;
 }
-function InputPhoto({ profilePhoto, onSavePhoto }: InputPhotoProps) {
-  const [file, setFile] = useState<File | null>(null);
-  const [photo, setPhoto] = useState<string | undefined>(undefined);
-
+function InputPhoto({
+  profilePhoto,
+  previewPhoto,
+  onSelectPhoto,
+  onOpenWebcam,
+  readOnly = false,
+}: InputPhotoProps) {
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPhoto(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+      onSelectPhoto(file);
     }
+    // permite escolher o mesmo arquivo novamente
+    e.target.value = '';
   };
 
+  if (readOnly) {
+    return (
+      <Stack direction="row" alignItems="center" marginY={2}>
+        <Avatar
+          variant="rounded"
+          src={previewPhoto || profilePhoto || undefined}
+          sx={stylesInput.avatar}
+        />
+      </Stack>
+    );
+  }
+
   return (
-    <Stack
-      justifyContent={'center'}
-      alignItems={'center'}
-      margin={2}
-      gap={4}
-      direction={'row'}
-    >
+    <Stack direction="row" alignItems="center" gap={3} marginY={2}>
       <Button
         focusRipple
         key={'random'}
@@ -76,7 +86,7 @@ function InputPhoto({ profilePhoto, onSavePhoto }: InputPhotoProps) {
       >
         <Avatar
           variant="rounded"
-          src={photo || profilePhoto || undefined}
+          src={previewPhoto || profilePhoto || undefined}
           sx={stylesInput.avatar}
         />
         <Box sx={stylesInput.box}>
@@ -99,14 +109,25 @@ function InputPhoto({ profilePhoto, onSavePhoto }: InputPhotoProps) {
           onChange={handleFileInputChange}
         />
       </Button>
-      <Button
-        variant="contained"
-        component="label"
-        endIcon={<Save />}
-        onClick={() => onSavePhoto(file)}
-      >
-        Salvar
-      </Button>
+
+      <Stack gap={1} alignItems="stretch">
+        <Button
+          variant="contained"
+          startIcon={<CameraAlt />}
+          onClick={onOpenWebcam}
+        >
+          Abrir webcam
+        </Button>
+        <Button variant="outlined" component="label" startIcon={<UploadFile />}>
+          Selecionar arquivo
+          <input
+            hidden
+            accept=".png, .jpg, .jpeg"
+            type="file"
+            onChange={handleFileInputChange}
+          />
+        </Button>
+      </Stack>
     </Stack>
   );
 }

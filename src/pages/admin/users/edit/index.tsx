@@ -2,7 +2,8 @@ import { Header } from '../../../../components/header';
 import { useForm, FormProvider } from 'react-hook-form';
 import { PageStyle } from '../../../../components/pageStyle';
 import { Form } from '../../../../features/admin/users/components/form';
-import { Box, Button, Paper } from '@mui/material';
+import { Box, Button, LinearProgress, Paper, Stack } from '@mui/material';
+import { Edit } from '@mui/icons-material';
 import { usePermission } from '../../../../hooks/usePermission';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -11,7 +12,7 @@ import {
 } from '../../../../features/admin/users/constants';
 import { RegisterUsersFormType, User } from '../../../../types/user';
 import { formatCPF, formatPhoneNumber, removeMask } from '../../../../utils';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { useGetUsers } from '../../../../features/admin/users/api/getUsers';
 import { useEffect, useState } from 'react';
 import { usePutUser } from '../../../../features/admin/users/api/putUser';
@@ -22,9 +23,19 @@ import { WebcamModal } from '../../../../features/admin/users/components/webcamM
 
 function EditUser() {
   const { id = '' } = useParams();
-  const navigate = useNavigate();
   const [isOpenWebcamModal, setIsOpenWebcamModal] = useState(false);
-  const { data, refetch } = useGetUsers({ userId: id });
+  // a tela abre em leitura; "Editar" libera os inputs
+  const [isEditing, setIsEditing] = useState(false);
+  // foto fica pendente até o submit — quem envia é o botão "Salvar"
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | undefined>(
+    undefined
+  );
+  const {
+    data,
+    refetch,
+    isLoading: isLoadingUser,
+  } = useGetUsers({ userId: id });
   const userData = data as User;
 
   const DEFAULT_VALUES: RegisterUsersFormType = {
@@ -62,25 +73,37 @@ function EditUser() {
     methods.reset(DEFAULT_VALUES);
   }, [data]);
 
+  useEffect(() => {
+    if (!photoPreview) return;
+    return () => URL.revokeObjectURL(photoPreview);
+  }, [photoPreview]);
+
   const permission = usePermission();
 
-  const { mutate: mutatePutUser } = usePutUser({
-    onSuccess: () => {
-      navigate('/admin/usuarios');
-    },
-  });
-  const { mutate: mutatePostProfilePhotoUser } = usePostProfilePhotoUser({
-    onSuccess: () => {
-      refetch();
-      onCloseWebcamModal();
-    },
-  });
+  const { mutateAsync: mutatePutUser, isLoading: isSavingUser } = usePutUser();
+  const {
+    mutateAsync: mutatePostProfilePhotoUser,
+    isLoading: isSavingPhoto,
+  } = usePostProfilePhotoUser();
 
   function onCloseWebcamModal() {
     setIsOpenWebcamModal(false);
   }
 
-  function onSubmitForm(data: RegisterUsersFormType) {
+  function onSelectPhoto(file: File) {
+    setPhotoFile(file);
+    setPhotoPreview(URL.createObjectURL(file));
+    onCloseWebcamModal();
+  }
+
+  function onCancelEdit() {
+    methods.reset(DEFAULT_VALUES);
+    setPhotoFile(null);
+    setPhotoPreview(undefined);
+    setIsEditing(false);
+  }
+
+  async function onSubmitForm(data: RegisterUsersFormType) {
     const formatData = {
       ...data,
       worker: !!data.worker,
@@ -102,56 +125,86 @@ function EditUser() {
           ? undefined
           : data.leadershipPosition,
     };
-    mutatePutUser({
-      userId: id,
-      data: formatData,
-    });
-  }
 
-  function onSavePhoto(file: File | null) {
-    if (userData?.id && file) {
-      const formData = new FormData();
-      formData.append('photo', file);
-      mutatePostProfilePhotoUser({ userId: userData.id, data: formData });
+    try {
+      await mutatePutUser({
+        userId: id,
+        data: formatData,
+      });
+
+      if (photoFile) {
+        const formData = new FormData();
+        formData.append('photo', photoFile);
+        await mutatePostProfilePhotoUser({ userId: id, data: formData });
+      }
+
+      setPhotoFile(null);
+      setIsEditing(false);
+      await refetch();
+    } catch {
+      // erros já são exibidos por handleResponseThrowError
     }
   }
 
   return (
     <PageStyle>
       <Header
-        title="Editar usuário"
+        title="Detalhes"
         buttonBack={permission}
         pageBack={'/admin/usuarios'}
-      />
-      <Paper sx={{ padding: 3 }}>
-        <Box display="flex" justifyContent="center" alignItems="center">
+      >
+        {!isEditing && !isLoadingUser && (
           <Button
             variant="contained"
-            onClick={() => setIsOpenWebcamModal(true)}
+            startIcon={<Edit />}
+            onClick={() => setIsEditing(true)}
           >
-            Abrir webcam
+            Editar
           </Button>
+        )}
+      </Header>
+      {isLoadingUser && <LinearProgress />}
+      <Paper sx={{ padding: 3, display: isLoadingUser ? 'none' : 'block' }}>
+        <Box display="flex" justifyContent="flex-start" alignItems="center">
           <WebcamModal
             isOpen={isOpenWebcamModal}
             onClose={onCloseWebcamModal}
-            onSavePhoto={onSavePhoto}
+            onSelectPhoto={onSelectPhoto}
           />
           <InputPhoto
             profilePhoto={userData?.profilePhotoUrl}
-            onSavePhoto={onSavePhoto}
+            previewPhoto={photoPreview}
+            onSelectPhoto={onSelectPhoto}
+            onOpenWebcam={() => setIsOpenWebcamModal(true)}
+            readOnly={!isEditing}
           />
         </Box>
         <FormProvider {...methods}>
           <form onSubmit={methods.handleSubmit(onSubmitForm)}>
-            <Form />
-            <Button
-              variant="contained"
-              fullWidth
-              sx={{ marginTop: 2 }}
-              type="submit"
-            >
-              Salvar
-            </Button>
+            <Form readOnly={!isEditing} />
+            {isEditing && (
+              <Stack
+                direction="row"
+                justifyContent="flex-end"
+                gap={2}
+                sx={{ marginTop: 2 }}
+              >
+                <Button
+                  variant="outlined"
+                  onClick={onCancelEdit}
+                  disabled={isSavingUser || isSavingPhoto}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  variant="contained"
+                  type="submit"
+                  disabled={isSavingUser || isSavingPhoto}
+                >
+                  {isSavingUser || isSavingPhoto ? 'Salvando...' : 'Salvar'}
+                </Button>
+              </Stack>
+            )}
           </form>
         </FormProvider>
       </Paper>

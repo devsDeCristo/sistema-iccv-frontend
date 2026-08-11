@@ -1,13 +1,13 @@
-import { Save } from '@mui/icons-material';
+import { Check } from '@mui/icons-material';
 import { Button } from '@mui/material';
 import { useRef, useState, useCallback } from 'react';
 import Webcam from 'react-webcam';
 
 interface WebCamUploadProps {
-  onSavePhoto: (data: File | null) => void;
+  onSelectPhoto: (data: File) => void;
 }
 
-function WebcamUpload({ onSavePhoto }: WebCamUploadProps) {
+function WebcamUpload({ onSelectPhoto }: WebCamUploadProps) {
   const [capturedImage, setCapturedImage] = useState<File | null>(null);
   const webcamRef = useRef(null);
 
@@ -54,10 +54,10 @@ function WebcamUpload({ onSavePhoto }: WebCamUploadProps) {
           <Button
             variant="contained"
             component="label"
-            endIcon={<Save />}
-            onClick={() => onSavePhoto(capturedImage)}
+            endIcon={<Check />}
+            onClick={() => onSelectPhoto(capturedImage)}
           >
-            Salvar
+            Usar foto
           </Button>
         </>
       ) : (

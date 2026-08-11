@@ -24,7 +24,12 @@ function EditUser() {
   const { id = '' } = useParams();
   const navigate = useNavigate();
   const [isOpenWebcamModal, setIsOpenWebcamModal] = useState(false);
-  const { data, refetch } = useGetUsers({ userId: id });
+  // foto fica pendente até o submit — quem envia é o botão "Salvar"
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | undefined>(
+    undefined
+  );
+  const { data } = useGetUsers({ userId: id });
   const userData = data as User;
 
   const DEFAULT_VALUES: RegisterUsersFormType = {
@@ -62,25 +67,30 @@ function EditUser() {
     methods.reset(DEFAULT_VALUES);
   }, [data]);
 
+  useEffect(() => {
+    if (!photoPreview) return;
+    return () => URL.revokeObjectURL(photoPreview);
+  }, [photoPreview]);
+
   const permission = usePermission();
 
-  const { mutate: mutatePutUser } = usePutUser({
-    onSuccess: () => {
-      navigate('/admin/usuarios');
-    },
-  });
-  const { mutate: mutatePostProfilePhotoUser } = usePostProfilePhotoUser({
-    onSuccess: () => {
-      refetch();
-      onCloseWebcamModal();
-    },
-  });
+  const { mutateAsync: mutatePutUser, isLoading: isSavingUser } = usePutUser();
+  const {
+    mutateAsync: mutatePostProfilePhotoUser,
+    isLoading: isSavingPhoto,
+  } = usePostProfilePhotoUser();
 
   function onCloseWebcamModal() {
     setIsOpenWebcamModal(false);
   }
 
-  function onSubmitForm(data: RegisterUsersFormType) {
+  function onSelectPhoto(file: File) {
+    setPhotoFile(file);
+    setPhotoPreview(URL.createObjectURL(file));
+    onCloseWebcamModal();
+  }
+
+  async function onSubmitForm(data: RegisterUsersFormType) {
     const formatData = {
       ...data,
       worker: !!data.worker,
@@ -103,17 +113,22 @@ function EditUser() {
           : data.leadershipPosition,
       role: 5,
     };
-    mutatePutUser({
-      userId: id,
-      data: formatData,
-    });
-  }
 
-  function onSavePhoto(file: File | null) {
-    if (userData?.id && file) {
-      const formData = new FormData();
-      formData.append('photo', file);
-      mutatePostProfilePhotoUser({ userId: userData.id, data: formData });
+    try {
+      await mutatePutUser({
+        userId: id,
+        data: formatData,
+      });
+
+      if (photoFile) {
+        const formData = new FormData();
+        formData.append('photo', photoFile);
+        await mutatePostProfilePhotoUser({ userId: id, data: formData });
+      }
+
+      navigate('/admin/usuarios');
+    } catch {
+      // erros já são exibidos por handleResponseThrowError
     }
   }
 
@@ -124,18 +139,17 @@ function EditUser() {
         buttonBack={permission}
         pageBack={'/admin/usuarios'}
       />
-      <Box display="flex" justifyContent="center" alignItems="center">
-        <Button variant="contained" onClick={() => setIsOpenWebcamModal(true)}>
-          Abrir webcam
-        </Button>
+      <Box display="flex" justifyContent="flex-start" alignItems="center">
         <WebcamModal
           isOpen={isOpenWebcamModal}
           onClose={onCloseWebcamModal}
-          onSavePhoto={onSavePhoto}
+          onSelectPhoto={onSelectPhoto}
         />
         <InputPhoto
           profilePhoto={userData?.profilePhotoUrl}
-          onSavePhoto={onSavePhoto}
+          previewPhoto={photoPreview}
+          onSelectPhoto={onSelectPhoto}
+          onOpenWebcam={() => setIsOpenWebcamModal(true)}
         />
       </Box>
       <FormProvider {...methods}>
@@ -146,8 +160,9 @@ function EditUser() {
             fullWidth
             sx={{ marginTop: 2 }}
             type="submit"
+            disabled={isSavingUser || isSavingPhoto}
           >
-            Salvar
+            {isSavingUser || isSavingPhoto ? 'Salvando...' : 'Salvar'}
           </Button>
         </form>
       </FormProvider>

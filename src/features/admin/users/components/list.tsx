@@ -25,11 +25,11 @@ import { Role, ROLE_LABELS } from '../../../../constants/roles';
 import { formatCPF, formatDate, formatPhoneNumber } from '../../../../utils';
 // import { useNavigate } from 'react-router-dom';
 import {
-  Edit,
   Key,
   MailOutline,
   MoreVert,
   SmartphoneOutlined,
+  VisibilityOutlined,
 } from '@mui/icons-material';
 import { useState } from 'react';
 import { User } from '../../../../types/user';
@@ -390,9 +390,9 @@ function List({ search }: { search: string }) {
       >
         <MenuItem onClick={handleClickEdit}>
           <ListItemIcon>
-            <Edit fontSize="small" color="primary" />
+            <VisibilityOutlined fontSize="small" color="primary" />
           </ListItemIcon>
-          <ListItemText>Editar Usuário</ListItemText>
+          <ListItemText>Ver detalhes do usuário</ListItemText>
         </MenuItem>
         <MenuItem onClick={handleClickEditRole}>
           <ListItemIcon>

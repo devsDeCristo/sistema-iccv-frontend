@@ -4,10 +4,10 @@ import { WebcamUpload } from './webcamUpload';
 interface WebcamModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSavePhoto: (data: File | null) => void;
+  onSelectPhoto: (data: File) => void;
 }
 
-function WebcamModal({ isOpen, onClose, onSavePhoto }: WebcamModalProps) {
+function WebcamModal({ isOpen, onClose, onSelectPhoto }: WebcamModalProps) {
   const style = {
     position: 'absolute' as 'absolute',
     top: '50%',
@@ -36,7 +36,7 @@ function WebcamModal({ isOpen, onClose, onSavePhoto }: WebcamModalProps) {
     >
       <Fade in={isOpen}>
         <Box sx={style}>
-          <WebcamUpload onSavePhoto={onSavePhoto} />
+          <WebcamUpload onSelectPhoto={onSelectPhoto} />
         </Box>
       </Fade>
     </Modal>
