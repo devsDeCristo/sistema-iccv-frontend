@@ -5,6 +5,7 @@ import { Details } from '../details';
 import { Edit } from '../edit';
 import { RequireRole } from '../../../../components/requireRole';
 import { ADMIN_ROLES } from '../../../../constants/roles';
+import { Checkin } from '../../checkin';
 
 function RoutesEventsAdmin() {
   return (
@@ -30,6 +31,15 @@ function RoutesEventsAdmin() {
       <Route
         path="/admin/eventos/:id/detalhes/:subPage"
         element={<Details />}
+      />
+      {/* o financeiro não opera o check-in */}
+      <Route
+        path="/admin/eventos/:id/checkin"
+        element={
+          <RequireRole allowedRoles={ADMIN_ROLES}>
+            <Checkin />
+          </RequireRole>
+        }
       />
     </>
   );
