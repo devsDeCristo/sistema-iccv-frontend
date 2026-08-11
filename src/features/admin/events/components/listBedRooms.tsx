@@ -1,5 +1,4 @@
 import {
-  Avatar,
   Box,
   Card,
   Grid,
@@ -24,6 +23,7 @@ import { useState } from 'react';
 import { ModalBedRoom } from './modalBedRoom';
 import { Bedroom } from '../types';
 import { useDeleteBedroom } from '../api/deleteBedroom';
+import { UserAvatar } from '../../../../components/userAvatar';
 import { ConfirmModal } from '../../../../components/ConfirmModal';
 import { useGridPagination } from '../../../../hooks/useGridPagination';
 
@@ -231,13 +231,12 @@ function ListBedRooms({ search }: { search: string }) {
                   </Typography>
                   <Stack direction="row" gap={1} flexWrap="wrap">
                     {bedroom.users.map((user) => (
-                      <Tooltip title={user.fullName} arrow key={user.id}>
-                        <Avatar
-                          alt={user.fullName}
-                          src={user.profilePhotoUrl}
-                          sx={styles.avatar}
-                        />
-                      </Tooltip>
+                      <UserAvatar
+                        key={user.id}
+                        name={user.fullName}
+                        photoUrl={user.profilePhotoUrl}
+                        sx={styles.avatar}
+                      />
                     ))}
                   </Stack>
                 </Stack>

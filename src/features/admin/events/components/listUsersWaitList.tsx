@@ -1,6 +1,5 @@
 import React from 'react';
 import {
-  Avatar,
   Box,
   Card,
   IconButton,
@@ -37,6 +36,7 @@ import { useRemoveUserFromWaitlist } from '../api/deleteUserWaitList';
 import Swal from 'sweetalert2';
 import { GET_EVENT_USERS_WAITLIST } from '../constants';
 import { queryClient } from '../../../../config/lib/react-query/query-client';
+import { UserAvatar } from '../../../../components/userAvatar';
 
 const getSelectedRowsToExport = ({
   apiRef,
@@ -198,9 +198,9 @@ function ListUsersWaitList({
       width: 60,
       renderCell: (params) => {
         return (
-          <Avatar
-            alt={params?.row?.fullName}
-            src={params?.row?.profilePhotoUrl || '/'}
+          <UserAvatar
+            name={params?.row?.fullName}
+            photoUrl={params?.row?.profilePhotoUrl}
             sx={{
               width: '30px',
               height: '30px',

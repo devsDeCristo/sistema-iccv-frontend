@@ -1,5 +1,4 @@
 import {
-  Avatar,
   Box,
   Card,
   IconButton,
@@ -43,6 +42,7 @@ import {
 import { toast } from 'react-toastify';
 import { useGetPayments } from '../api/getPayments';
 import { ModalPayment } from './modalPayments';
+import { UserAvatar } from '../../../../components/userAvatar';
 const getSelectedRowsToExport = ({
   apiRef,
 }: GridGetRowsToExportParams): GridRowId[] => {
@@ -181,9 +181,9 @@ function ListPayments({
       width: 60,
       renderCell: (params) => {
         return (
-          <Avatar
-            alt={params?.row?.fullName}
-            src={params?.row?.profilePhotoUrl || '/'}
+          <UserAvatar
+            name={params?.row?.fullName}
+            photoUrl={params?.row?.profilePhotoUrl}
             sx={{
               width: '30px',
               height: '30px',

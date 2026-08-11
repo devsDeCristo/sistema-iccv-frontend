@@ -1,5 +1,4 @@
 import {
-  Avatar,
   Box,
   Button,
   Card,
@@ -53,6 +52,7 @@ import { GET_EVENT_USERS } from '../constants';
 import { queryClient } from '../../../../config/lib/react-query/query-client';
 import { toast } from 'react-toastify';
 import { ModalAddUserOnEvent } from './modalAddUser';
+import { UserAvatar } from '../../../../components/userAvatar';
 const getSelectedRowsToExport = ({
   apiRef,
 }: GridGetRowsToExportParams): GridRowId[] => {
@@ -243,9 +243,9 @@ function ListUsers({
       width: 60,
       renderCell: (params) => {
         return (
-          <Avatar
-            alt={params?.row?.fullName}
-            src={params?.row?.profilePhotoUrl || '/'}
+          <UserAvatar
+            name={params?.row?.fullName}
+            photoUrl={params?.row?.profilePhotoUrl}
             sx={{
               width: '30px',
               height: '30px',

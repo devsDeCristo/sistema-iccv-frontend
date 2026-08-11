@@ -1,5 +1,4 @@
 import {
-  Avatar,
   Box,
   Card,
   Grid,
@@ -24,6 +23,7 @@ import { Delete, Diversity3, Edit, MoreVert } from '@mui/icons-material';
 import { ConfirmModal } from '../../../../components/ConfirmModal';
 import { ModalTeam } from './modalTeam';
 import { useDeleteTeam } from '../api/deleteTeam';
+import { UserAvatar } from '../../../../components/userAvatar';
 import { useGridPagination } from '../../../../hooks/useGridPagination';
 
 function ListTeams({ search }: { search: string }) {
@@ -243,13 +243,12 @@ function ListTeams({ search }: { search: string }) {
                     {team.users
                       .filter((user) => user.roleTeam === 'LEADER')
                       .map((user) => (
-                        <Tooltip title={user.fullName} arrow key={user.id}>
-                          <Avatar
-                            alt={user.fullName}
-                            src={user.profilePhotoUrl}
-                            sx={styles.avatar}
-                          />
-                        </Tooltip>
+                        <UserAvatar
+                          key={user.id}
+                          name={user.fullName}
+                          photoUrl={user.profilePhotoUrl}
+                          sx={styles.avatar}
+                        />
                       ))}
                   </Stack>
                   <Typography variant="body2" fontWeight={500}>
@@ -259,13 +258,12 @@ function ListTeams({ search }: { search: string }) {
                     {team.users
                       .filter((user) => user.roleTeam === 'MEMBER')
                       .map((user) => (
-                        <Tooltip title={user.fullName} arrow key={user.id}>
-                          <Avatar
-                            alt={user.fullName}
-                            src={user.profilePhotoUrl}
-                            sx={styles.avatar}
-                          />
-                        </Tooltip>
+                        <UserAvatar
+                          key={user.id}
+                          name={user.fullName}
+                          photoUrl={user.profilePhotoUrl}
+                          sx={styles.avatar}
+                        />
                       ))}
                   </Stack>
                 </Stack>
