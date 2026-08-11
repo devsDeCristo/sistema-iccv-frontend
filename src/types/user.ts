@@ -31,6 +31,7 @@ export interface PaymentResponse {
   fullName: string;
   email: string;
   cpf: string;
+  profilePhotoUrl?: string;
 
   // dados do pagamento
   method: PaymentMethod;
