@@ -11,8 +11,6 @@ import {
   InputAdornment,
   Chip,
   LinearProgress,
-  Menu,
-  MenuItem,
   useTheme,
   Grid,
   Typography,
@@ -65,6 +63,7 @@ import PdfEnvelopePhoto from '../../../../components/pdfEnvelopePhoto';
 import { User } from '../../../../types/user';
 import { ListUsersWaitList } from '../../../../features/admin/events/components/listUsersWaitList';
 import { ListPayments } from '../../../../features/admin/events/components/listPayments';
+import { toast } from 'react-toastify';
 
 function Details() {
   const { id, subPage } = useParams();
@@ -249,12 +248,9 @@ function Details() {
   }
 
   async function generatePdfEnvelopeLetter() {
-  
-
-
-     const usersFiltered  = users.filter((user) => {
-      return user.groupsRegistration?.some(
-        (group: any) => selectedGroups.includes(group.name)
+    const usersFiltered = users.filter((user) => {
+      return user.groupsRegistration?.some((group: any) =>
+        selectedGroups.includes(group.name)
       );
     });
     if (usersFiltered.length === 0) {
@@ -275,6 +271,13 @@ function Details() {
     }, 50);
   }
   async function generatePDFTeams() {
+    if (!teams?.length) {
+      toast.error(
+        'Não é possível gerar o PDF: este evento ainda não possui equipes cadastradas.'
+      );
+      return;
+    }
+
     setLoadingPdfTeams(true);
     const orderUsersByRoleTeam = teams?.map((team) => ({
       ...team,
@@ -302,6 +305,13 @@ function Details() {
     if (!eventData || Array.isArray(eventData)) {
       return null;
     }
+    if (!teams?.length) {
+      toast.error(
+        'Não é possível gerar o PDF: este evento ainda não possui equipes cadastradas.'
+      );
+      return;
+    }
+
     setLoadingPdfEvent(true);
     const orderUsersByRoleTeam = teams?.map((team) => ({
       ...team,
@@ -692,7 +702,9 @@ function Details() {
                   variant="outlined"
                   onClick={() => generatePDFTeams()}
                   startIcon={<People />}
-                  disabled={loadingPdfTeams || loadingEventDetails}
+                  disabled={
+                    loadingPdfTeams || loadingEventDetails || loadingTeams
+                  }
                 >
                   PDF Equipes
                 </Button>
@@ -704,7 +716,9 @@ function Details() {
                   variant="outlined"
                   onClick={() => generatePDFEvent()}
                   startIcon={<ViewModuleOutlined />}
-                  disabled={loadingPdfEvent || loadingEventDetails}
+                  disabled={
+                    loadingPdfEvent || loadingEventDetails || loadingTeams
+                  }
                 >
                   PDF Quadrantes
                 </Button>
