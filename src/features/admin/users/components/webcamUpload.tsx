@@ -1,15 +1,48 @@
 import { Check } from '@mui/icons-material';
-import { Button } from '@mui/material';
-import { useRef, useState, useCallback } from 'react';
+import { Box, Button, Stack } from '@mui/material';
+import { useRef, useState, useCallback, useEffect, useMemo } from 'react';
 import Webcam from 'react-webcam';
 
 interface WebCamUploadProps {
   onSelectPhoto: (data: File) => void;
 }
 
+/**
+ * A mídia é 16:9 e maior que o modal. Limitar só a largura deixava a altura
+ * estourar, então ela é limitada pelas duas dimensões e se ajusta à menor.
+ */
+const mediaStyle = {
+  display: 'block',
+  width: 'auto',
+  height: 'auto',
+  maxWidth: '100%',
+  maxHeight: '100%',
+  objectFit: 'contain',
+  borderRadius: 4,
+} as const;
+
+/** Ocupa toda a altura livre do modal e centraliza a mídia dentro dela */
+const mediaAreaSx = {
+  flex: 1,
+  minHeight: 0,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+};
+
 function WebcamUpload({ onSelectPhoto }: WebCamUploadProps) {
   const [capturedImage, setCapturedImage] = useState<File | null>(null);
   const webcamRef = useRef(null);
+
+  const capturedImageUrl = useMemo(
+    () => (capturedImage ? URL.createObjectURL(capturedImage) : null),
+    [capturedImage]
+  );
+
+  useEffect(() => {
+    if (!capturedImageUrl) return;
+    return () => URL.revokeObjectURL(capturedImageUrl);
+  }, [capturedImageUrl]);
 
   const generateRandomFileName = () => {
     const randomString = Math.random().toString(36).substring(2, 8);
@@ -38,44 +71,54 @@ function WebcamUpload({ onSelectPhoto }: WebCamUploadProps) {
   };
 
   return (
-    <div>
-      {capturedImage ? (
+    <Stack gap={2} sx={{ flex: 1, minHeight: 0 }}>
+      {capturedImage && capturedImageUrl ? (
         <>
-          <img src={URL.createObjectURL(capturedImage)} alt="Captured" />
-          <Button
-            variant="contained"
-            component="label"
-            onClick={() => {
-              setCapturedImage(null);
-            }}
-          >
-            Nova foto
-          </Button>
-          <Button
-            variant="contained"
-            component="label"
-            endIcon={<Check />}
-            onClick={() => onSelectPhoto(capturedImage)}
-          >
-            Usar foto
-          </Button>
+          <Box sx={mediaAreaSx}>
+            <Box
+              component="img"
+              src={capturedImageUrl}
+              alt="Foto capturada"
+              sx={mediaStyle}
+            />
+          </Box>
+          <Stack direction="row" justifyContent="flex-end" gap={2}>
+            <Button
+              variant="outlined"
+              onClick={() => {
+                setCapturedImage(null);
+              }}
+            >
+              Nova foto
+            </Button>
+            <Button
+              variant="contained"
+              endIcon={<Check />}
+              onClick={() => onSelectPhoto(capturedImage)}
+            >
+              Usar foto
+            </Button>
+          </Stack>
         </>
       ) : (
         <>
-          <Webcam
-            audio={false}
-            height={450}
-            ref={webcamRef}
-            screenshotFormat="image/jpeg"
-            width={730}
-            videoConstraints={videoConstraints}
-          />
-          <Button variant="contained" component="label" onClick={capturePhoto}>
-            Capturar foto
-          </Button>
+          <Box sx={mediaAreaSx}>
+            <Webcam
+              audio={false}
+              ref={webcamRef}
+              screenshotFormat="image/jpeg"
+              videoConstraints={videoConstraints}
+              style={mediaStyle}
+            />
+          </Box>
+          <Stack direction="row" justifyContent="flex-end">
+            <Button variant="contained" onClick={capturePhoto}>
+              Capturar foto
+            </Button>
+          </Stack>
         </>
       )}
-    </div>
+    </Stack>
   );
 }
 

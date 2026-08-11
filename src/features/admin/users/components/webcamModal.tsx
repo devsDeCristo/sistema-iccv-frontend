@@ -13,11 +13,16 @@ function WebcamModal({ isOpen, onClose, onSelectPhoto }: WebcamModalProps) {
     top: '50%',
     left: '50%',
     transform: 'translate(-50%, -50%)',
-    width: 750,
+    width: '80%',
+    height: '90%',
+    // coluna flex: a área da câmera fica com toda a altura que sobra
+    display: 'flex',
+    flexDirection: 'column',
+    overflow: 'hidden',
     color: '#000',
     bgcolor: 'background.paper',
     boxShadow: 14,
-    p: 4,
+    p: { xs: 2, sm: 4 },
   };
 
   return (
