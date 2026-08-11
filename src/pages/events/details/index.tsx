@@ -36,10 +36,18 @@ function EventsDetails() {
   const { data: eventData } = useGetEvents({ eventId: id }, { enabled: !!id });
   const event = eventData as EventDetails;
 
-  const registeredInEvent = useMemo(() => {
-    if (!event || groups.length === 0) return false;
-    return groups.some((group) =>
-      event.groupRoles.some((eventGroup) => eventGroup.id === group.id)
+  /**
+   * Grupos deste evento em que o usuário está inscrito e que possuem link.
+   * O link deixou de ser por evento e passou a ser por grupo, então quem está
+   * em mais de um grupo vê um botão para cada.
+   */
+  const registeredGroupsWithLink = useMemo(() => {
+    if (!event || groups.length === 0) return [];
+
+    return groups.filter(
+      (group) =>
+        !!group.link?.trim() &&
+        event.groupRoles?.some((eventGroup) => eventGroup.id === group.id)
     );
   }, [event, groups]);
 
@@ -281,8 +289,9 @@ function EventsDetails() {
               Inscreva-se
             </Button>
 
-            {registeredInEvent && (
+            {registeredGroupsWithLink.map((group) => (
               <Button
+                key={group.id}
                 variant="contained"
                 fullWidth
                 startIcon={<WhatsApp />}
@@ -294,12 +303,14 @@ function EventsDetails() {
                   '&:hover': { backgroundColor: '#1ebe5d' },
                 }}
                 onClick={() => {
-                  window.open(event?.groupLink || '', '_blank');
+                  window.open(group.link || '', '_blank', 'noopener,noreferrer');
                 }}
               >
-                Entre no Grupo do Evento!
+                {registeredGroupsWithLink.length > 1
+                  ? `Entre no Grupo: ${group.name}`
+                  : 'Entre no Grupo do Evento!'}
               </Button>
-            )}
+            ))}
           </Paper>
           {havaOneFieldLocal && (
             <Paper sx={styles.paper}>

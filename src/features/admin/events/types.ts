@@ -34,6 +34,7 @@ export interface Group {
   name: string;
   capacity: number;
   eventId: string;
+  link?: string | null;
 }
 export interface Event {
   id: string;
@@ -89,6 +90,8 @@ export interface GroupRole {
   id?: string;
   name: string;
   capacity: number;
+  /** link do grupo (ex: whatsapp) — visível para quem está inscrito nele */
+  link?: string | null;
   // expanded: boolean;
   roles: {
     id?: string;

@@ -93,6 +93,7 @@ function FormRegistrationSettings() {
             updatedGroupRoles.push({
               name: '',
               capacity: null,
+              link: '',
               roles: [],
             });
 
@@ -290,6 +291,30 @@ function FormRegistrationSettings() {
                       />
                     </Grid>
                   </Box>
+                  <Grid item xs={12} md={12} sx={{ mt: 2 }}>
+                    <Controller
+                      control={control}
+                      name={`groupRoles.${index}.link`}
+                      render={({ field: { onChange, value } }) => (
+                        <Input
+                          size="small"
+                          sx={{ width: '100%' }}
+                          value={value ?? ''}
+                          onChange={onChange}
+                          placeholder="Ex: https://chat.whatsapp.com/xxxxxxxx"
+                          label="Link do grupo (opcional)"
+                          errorMessage={
+                            errors.groupRoles?.[index]?.link?.message ??
+                            'Aparece apenas para quem está inscrito neste grupo'
+                          }
+                          error={Boolean(errors.groupRoles?.[index]?.link)}
+                          InputLabelProps={{
+                            shrink: true,
+                          }}
+                        />
+                      )}
+                    />
+                  </Grid>
                   {expanded ? (
                     <Divider sx={{ marginY: 2 }}>
                       <Chip

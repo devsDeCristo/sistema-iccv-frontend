@@ -111,6 +111,13 @@ export const REGISTRATION_SETTINGS_SCHEMA = z.object({
         value =>!!value
       ),
       capacity: z.number({ required_error: DEFAULT_MESSAGE }),
+      link: z
+        .string()
+        .max(255, {
+          message: 'Máximo de 255 caracteres',
+        })
+        .optional()
+        .nullable(),
       roles: z.array(
         z.object({
           price: z.number({ required_error: DEFAULT_MESSAGE }),
