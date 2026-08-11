@@ -25,6 +25,7 @@ import { ModalBedRoom } from './modalBedRoom';
 import { Bedroom } from '../types';
 import { useDeleteBedroom } from '../api/deleteBedroom';
 import { ConfirmModal } from '../../../../components/ConfirmModal';
+import { useGridPagination } from '../../../../hooks/useGridPagination';
 
 function ListBedRooms({ search }: { search: string }) {
   const { id: eventId = '' } = useParams();
@@ -36,7 +37,6 @@ function ListBedRooms({ search }: { search: string }) {
 
   const [openModalBedRoom, setOpenModalBedRoom] = useState(false);
   const [selectBedRoom, setSelectBedRoom] = useState<Bedroom | null>(null);
-  const [page, setPage] = useState(1);
   const [openModalDeleteBedRoom, setOpenModalDeleteBedRoom] = useState(false);
   const [anchorElOptionsMobile, setAnchorElOptionsMobile] =
     useState<null | HTMLElement>(null);
@@ -63,23 +63,6 @@ function ListBedRooms({ search }: { search: string }) {
     }
   };
 
-  const handleChange = (_: unknown, page: number) => {
-    setPage(page);
-  };
-
-  const paginateData = (
-    data: Bedroom[],
-    page: number,
-    itemsPerPage: number
-  ) => {
-    const startIndex = (page - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    return {
-      paginatedData: data.slice(startIndex, endIndex),
-      totalPages: Math.ceil(data.length / itemsPerPage),
-    };
-  };
-
   const filteredData = (bedroomsData: Bedroom[]) =>
     bedroomsData.filter((bedroom) =>
       bedroom.name?.toLowerCase().includes(search.toLowerCase())
@@ -90,12 +73,12 @@ function ListBedRooms({ search }: { search: string }) {
       })
     );
 
-  const itemsPerPage = 8;
-  const { paginatedData, totalPages } = paginateData(
-    filteredData(bedroomsData),
-    page,
-    itemsPerPage
-  );
+  const { paginatedData, totalPages, page, setPage, rangeStart, rangeEnd, total } =
+    useGridPagination(filteredData(bedroomsData));
+
+  const handleChange = (_: unknown, page: number) => {
+    setPage(page);
+  };
 
   const styles = {
     container: {
@@ -305,7 +288,7 @@ function ListBedRooms({ search }: { search: string }) {
       </Grid>
       <Paper sx={styles.paperPagination}>
         <Typography variant="body2">
-          Total de Quartos: {bedroomsData.length}
+          Exibindo {rangeStart}–{rangeEnd} de {total} quartos
         </Typography>
         <Pagination count={totalPages} page={page} onChange={handleChange} />
       </Paper>

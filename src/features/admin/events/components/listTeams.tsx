@@ -24,6 +24,7 @@ import { Delete, Diversity3, Edit, MoreVert } from '@mui/icons-material';
 import { ConfirmModal } from '../../../../components/ConfirmModal';
 import { ModalTeam } from './modalTeam';
 import { useDeleteTeam } from '../api/deleteTeam';
+import { useGridPagination } from '../../../../hooks/useGridPagination';
 
 function ListTeams({ search }: { search: string }) {
   const { id: eventId = '' } = useParams();
@@ -39,7 +40,6 @@ function ListTeams({ search }: { search: string }) {
   const teams = teamsData as Team[];
   const [openModalTeam, setOpenModalTeam] = useState(false);
   const [selectTeam, setSelectTeam] = useState<Team | null>(null);
-  const [page, setPage] = useState(1);
   const [anchorElOptionsMobile, setAnchorElOptionsMobile] =
     useState<null | HTMLElement>(null);
   const [dataOptionsMobile, setDataOptionsMobile] = useState<Team | null>(null);
@@ -70,17 +70,6 @@ function ListTeams({ search }: { search: string }) {
       setOpenModalDeleteTeam(false);
     }
   };
-  const handleChange = (_: unknown, value: number) => {
-    setPage(value);
-  };
-  const paginateData = (data: Team[], page: number, itemsPerPage: number) => {
-    const startIndex = (page - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    return {
-      paginatedData: data.slice(startIndex, endIndex),
-      totalPages: Math.ceil(data.length / itemsPerPage),
-    };
-  };
   const filteredData = (teamsData: Team[]) =>
     teamsData.filter((team) =>
       team.name?.toLowerCase().includes(search.toLowerCase())
@@ -90,12 +79,13 @@ function ListTeams({ search }: { search: string }) {
         numeric: true,
       })
     );
-  const itemsPerPage = 8;
-  const { paginatedData, totalPages } = paginateData(
-    filteredData(teams),
-    page,
-    itemsPerPage
-  );
+
+  const { paginatedData, totalPages, page, setPage, rangeStart, rangeEnd, total } =
+    useGridPagination(filteredData(teams));
+
+  const handleChange = (_: unknown, value: number) => {
+    setPage(value);
+  };
 
   const styles = {
     container: {
@@ -318,7 +308,7 @@ function ListTeams({ search }: { search: string }) {
       </Grid>
       <Paper sx={styles.paperPagination}>
         <Typography variant="body2">
-          Total de Equipes: {teams.length}
+          Exibindo {rangeStart}–{rangeEnd} de {total} equipes
         </Typography>
         <Pagination count={totalPages} page={page} onChange={handleChange} />
       </Paper>
