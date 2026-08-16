@@ -18,6 +18,8 @@ import {
   Checkbox,
   Popover,
   Divider,
+  Menu,
+  MenuItem,
 } from '@mui/material';
 
 import { useNavigate, useParams } from 'react-router-dom';
@@ -47,13 +49,20 @@ import {
   BedOutlined,
   Download,
   EmailOutlined,
+  ExpandMore,
   FilterAltOutlined,
   People,
   QrCode2Outlined,
   Search,
   ViewModuleOutlined,
 } from '@mui/icons-material';
-import { GridApi, useGridApiRef } from '@mui/x-data-grid';
+import {
+  gridFilteredSortedRowIdsSelector,
+  selectedGridRowsSelector,
+  useGridApiRef,
+} from '@mui/x-data-grid';
+import { ModalExportUsers } from '../../../../features/admin/events/components/exportUsers/modalExportUsers';
+import { ExportFormat } from '../../../../features/admin/events/components/exportUsers/types';
 import { useGetUsers } from '../../../../features/admin/events/api/getUsers';
 import FilterModal from '../../../../features/admin/events/components/filtersUserModal';
 import PdfTeams from '../../../../components/pdfTeams';
@@ -106,6 +115,13 @@ function Details() {
   const [filtersUsersSelected, setFiltersUsersSelected] = useState<number>(0);
   const { id: eventId = '' } = useParams();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  // exportação: formato escolhido no dropdown + fotografia da grade no clique
+  const [anchorElExport, setAnchorElExport] = useState<null | HTMLElement>(
+    null
+  );
+  const [exportFormat, setExportFormat] = useState<ExportFormat | null>(null);
+  const [exportFilteredUsers, setExportFilteredUsers] = useState<User[]>([]);
+  const [exportSelectedUsers, setExportSelectedUsers] = useState<User[]>([]);
   const [openModalQrCode, setOpenModalQrCode] = useState(false);
   const openMenu = Boolean(anchorEl);
 
@@ -378,8 +394,36 @@ function Details() {
       navigate(`/admin/eventos/${id}/detalhes/${fallback}`, { replace: true });
     }
   }, [visibleTabs, pageValue, id, navigate]);
-  const handleExport = (apiRef: React.MutableRefObject<GridApi>) => {
-    apiRef.current.exportDataAsCsv(); // Exportação nativa do DataGrid
+  /**
+   * Lê da grade o que o usuário vê e o que marcou. `gridFilteredSortedRowIds`
+   * já reflete busca, filtros e aba de grupo; `selectedGridRows` traz as linhas
+   * marcadas no checkbox.
+   */
+  const readGridSelection = () => {
+    const api = apiRefUsers.current;
+    if (!api) return { filtered: [], selected: [] };
+
+    const filtered = gridFilteredSortedRowIdsSelector(apiRefUsers)
+      .map((rowId) => api.getRow(rowId) as User)
+      .filter(Boolean);
+    const selected = Array.from(
+      selectedGridRowsSelector(apiRefUsers).values()
+    ) as User[];
+
+    return { filtered, selected };
+  };
+
+  /** Aba de pagamentos: outro conjunto de dados, segue no CSV nativo da grade */
+  const handleExportPayments = () => {
+    apiRefUsers.current?.exportDataAsCsv();
+  };
+
+  const handleOpenExport = (format: ExportFormat) => {
+    const { filtered, selected } = readGridSelection();
+    setExportFilteredUsers(filtered);
+    setExportSelectedUsers(selected);
+    setExportFormat(format);
+    setAnchorElExport(null);
   };
   // const handlePrint = ({ apiRef, columns }) => {
   //     // Obter TODAS as linhas diretamente do estado do grid
@@ -558,8 +602,9 @@ function Details() {
               </Stack>
               <Button
                 variant="outlined"
-                onClick={() => handleExport(apiRefUsers)}
+                onClick={(e) => setAnchorElExport(e.currentTarget)}
                 startIcon={<Download />}
+                endIcon={<ExpandMore />}
               >
                 Exportar
               </Button>
@@ -667,7 +712,7 @@ function Details() {
             <Stack sx={styles.stackButtons}>
               <Button
                 variant="outlined"
-                onClick={() => handleExport(apiRefUsers)}
+                onClick={handleExportPayments}
                 startIcon={<Download />}
               >
                 Exportar
@@ -924,6 +969,29 @@ function Details() {
       <ModalQrCode
         open={openModalQrCode}
         handleClose={handleCloseModalQrCode}
+      />
+
+      <Menu
+        anchorEl={anchorElExport}
+        open={Boolean(anchorElExport)}
+        onClose={() => setAnchorElExport(null)}
+      >
+        <MenuItem onClick={() => handleOpenExport('csv')}>.csv</MenuItem>
+        <MenuItem onClick={() => handleOpenExport('xlsx')}>
+          .xlsx (planilha Excel)
+        </MenuItem>
+        <MenuItem onClick={() => handleOpenExport('pdf')}>.pdf</MenuItem>
+      </Menu>
+
+      <ModalExportUsers
+        open={Boolean(exportFormat)}
+        format={exportFormat}
+        onClose={() => setExportFormat(null)}
+        event={event}
+        teams={teams}
+        allUsers={users || []}
+        filteredUsers={exportFilteredUsers}
+        selectedUsers={exportSelectedUsers}
       />
     </PageStyle>
   );
