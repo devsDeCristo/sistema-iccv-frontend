@@ -216,6 +216,7 @@ function ModalExportUsers({
             columns={columns}
             markLeaders={grouping === 'team'}
             orientation={orientation}
+            logo={event?.data?.logoBase64}
           />
         ).toBlob();
 

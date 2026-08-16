@@ -1,4 +1,11 @@
-import { Document, Page, StyleSheet, Text, View } from '@react-pdf/renderer';
+import {
+  Document,
+  Image,
+  Page,
+  StyleSheet,
+  Text,
+  View,
+} from '@react-pdf/renderer';
 import { ExportColumn, ExportGroup, ExportOrientation } from './types';
 
 const styles = StyleSheet.create({
@@ -9,8 +16,15 @@ const styles = StyleSheet.create({
     fontSize: 9,
     color: '#111',
   },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 12,
+  },
+  logo: { width: 48, height: 48, objectFit: 'contain' },
   title: { fontSize: 15, marginBottom: 2 },
-  subtitle: { fontSize: 9, color: '#555', marginBottom: 12 },
+  subtitle: { fontSize: 9, color: '#555' },
   groupTitle: {
     fontSize: 11,
     marginTop: 10,
@@ -74,6 +88,8 @@ interface PdfUsersExportProps {
   /** marca o líder ao lado do nome, usado no agrupamento por equipe */
   markLeaders: boolean;
   orientation: ExportOrientation;
+  /** data URI da logo do evento (event.data.logoBase64); opcional */
+  logo?: string;
 }
 
 function PdfUsersExport({
@@ -83,14 +99,21 @@ function PdfUsersExport({
   columns,
   markLeaders,
   orientation,
+  logo,
 }: PdfUsersExportProps) {
   const total = groups.reduce((acc, group) => acc + group.users.length, 0);
 
   return (
     <Document>
       <Page size="A4" orientation={orientation} style={styles.page}>
-        <Text style={styles.title}>{eventName}</Text>
-        <Text style={styles.subtitle}>{subtitle}</Text>
+        <View style={styles.header} fixed>
+          {/* sem src o react-pdf quebra, então a logo só entra se existir */}
+          {logo ? <Image style={styles.logo} src={logo} /> : null}
+          <View>
+            <Text style={styles.title}>{eventName}</Text>
+            <Text style={styles.subtitle}>{subtitle}</Text>
+          </View>
+        </View>
 
         {total === 0 && (
           <Text style={styles.empty}>
