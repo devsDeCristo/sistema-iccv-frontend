@@ -1,5 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import {
+  useParams,
+  useNavigate,
+  unstable_useBlocker as useBlocker,
+} from 'react-router-dom';
 import {
   Box,
   Chip,
@@ -17,6 +21,7 @@ import {
   HowToReg,
   PhotoCamera,
 } from '@mui/icons-material';
+import { ConfirmModal } from '../../../components/ConfirmModal';
 import { CheckinStats } from '../../../features/admin/checkin/components/checkinStats';
 import { ReceptionStation } from '../../../features/admin/checkin/components/receptionStation';
 import { PhotoStation } from '../../../features/admin/checkin/components/photoStation';
@@ -38,6 +43,9 @@ function Checkin() {
   const navigate = useNavigate();
   const [posto, setPosto] = useState<Posto>('recepcao');
   const [grupo, setGrupo] = useState(TODOS_OS_GRUPOS);
+  const [painelAberto, setPainelAberto] = useState(false);
+  // trocar de aba não é navegação, então tem estado próprio
+  const [abaPendente, setAbaPendente] = useState<Posto | null>(null);
 
   const { connected } = useCheckinSocket(eventId);
 
@@ -69,6 +77,50 @@ function Checkin() {
     }
   }, [grupos, grupo]);
 
+  /**
+   * Sair desta tela desmonta o posto de foto, e a janela do participante fecha
+   * junto. Com ela aberta tem gente do outro lado olhando para a própria ficha,
+   * então qualquer saída é confirmada antes de acontecer.
+   *
+   * O bloqueador cobre toda navegação — menu lateral, voltar, link solto —, de
+   * modo que só a troca de aba, que não muda de rota, precisa ser tratada à
+   * parte.
+   */
+  const bloqueioDeRota = useBlocker(
+    ({ currentLocation, nextLocation }) =>
+      painelAberto && currentLocation.pathname !== nextLocation.pathname
+  );
+
+  const trocarPosto = (destino: Posto) => {
+    if (destino === posto) return;
+
+    if (posto === 'foto' && painelAberto) {
+      setAbaPendente(destino);
+      return;
+    }
+
+    setPosto(destino);
+  };
+
+  const avisandoDaSaida =
+    !!abaPendente || bloqueioDeRota.state === 'blocked';
+
+  const cancelarSaida = () => {
+    setAbaPendente(null);
+    if (bloqueioDeRota.state === 'blocked') bloqueioDeRota.reset();
+  };
+
+  const confirmarSaida = () => {
+    setPainelAberto(false);
+
+    if (abaPendente) {
+      setPosto(abaPendente);
+      setAbaPendente(null);
+    }
+
+    if (bloqueioDeRota.state === 'blocked') bloqueioDeRota.proceed();
+  };
+
   return (
     <Box sx={{ p: { xs: 1.5, md: 3 } }}>
       <Stack
@@ -82,7 +134,9 @@ function Checkin() {
       >
         <Stack direction="row" alignItems="center" spacing={1}>
           <IconButton
-            onClick={() => navigate(`/admin/eventos/${eventId}/detalhes/geral`)}
+            onClick={() =>
+              navigate(`/admin/eventos/${eventId}/detalhes/geral`)
+            }
           >
             <ArrowBack />
           </IconButton>
@@ -130,7 +184,7 @@ function Checkin() {
 
       <Tabs
         value={posto}
-        onChange={(_, value: Posto) => setPosto(value)}
+        onChange={(_, value: Posto) => trocarPosto(value)}
         sx={{ mb: 2 }}
       >
         <Tab
@@ -150,8 +204,22 @@ function Checkin() {
       {posto === 'recepcao' ? (
         <ReceptionStation eventId={eventId} grupo={grupo} />
       ) : (
-        <PhotoStation eventId={eventId} />
+        <PhotoStation
+          eventId={eventId}
+          painelAberto={painelAberto}
+          onPainelAbertoChange={setPainelAberto}
+        />
       )}
+
+      <ConfirmModal
+        open={avisandoDaSaida}
+        title="Fechar a tela do participante?"
+        message="A tela do participante está aberta e será fechada ao sair daqui. O atendimento em andamento continua na fila e pode ser retomado depois."
+        confirmLabel="Sair e fechar"
+        cancelLabel="Ficar na aba"
+        onClose={cancelarSaida}
+        onConfirm={confirmarSaida}
+      />
     </Box>
   );
 }

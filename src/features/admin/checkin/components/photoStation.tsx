@@ -42,6 +42,12 @@ import { CheckinParticipant } from '../types';
 
 interface PhotoStationProps {
   eventId: string;
+  /**
+   * A janela do participante é controlada pela página: sair desta aba desmonta
+   * o posto e leva a janela junto, e é a página que avisa antes disso.
+   */
+  painelAberto: boolean;
+  onPainelAbertoChange: (aberto: boolean) => void;
 }
 
 const TAMANHO_MAXIMO_FOTO = 5 * 1024 * 1024;
@@ -202,7 +208,11 @@ function ItemDaFila({
  * próprios dados, o operador corrige o que estiver errado e só então a foto é
  * tirada, na mesma webcam usada no cadastro de usuário.
  */
-function PhotoStation({ eventId }: PhotoStationProps) {
+function PhotoStation({
+  eventId,
+  painelAberto,
+  onPainelAbertoChange,
+}: PhotoStationProps) {
   const [emAtendimento, setEmAtendimento] = useState<CheckinParticipant | null>(
     null
   );
@@ -211,10 +221,9 @@ function PhotoStation({ eventId }: PhotoStationProps) {
   const [previewFoto, setPreviewFoto] = useState<string | null>(null);
   const [webcamAberta, setWebcamAberta] = useState(false);
   const [salvando, setSalvando] = useState(false);
-  // janela do participante: vive na mesma árvore React, então acompanha o
+  // a janela do participante vive na mesma árvore React, então acompanha o
   // atendimento sozinha e usa o mesmo stream da webcam, sem abrir a câmera duas
   // vezes
-  const [painelAberto, setPainelAberto] = useState(false);
   const [streamCamera, setStreamCamera] = useState<MediaStream | null>(null);
   const [capturaCamera, setCapturaCamera] = useState<File | null>(null);
   const theme = useTheme();
@@ -347,7 +356,7 @@ function PhotoStation({ eventId }: PhotoStationProps) {
         <Button
           variant={painelAberto ? 'contained' : 'outlined'}
           startIcon={painelAberto ? <Monitor /> : <MonitorOutlined />}
-          onClick={() => setPainelAberto((aberto) => !aberto)}
+          onClick={() => onPainelAbertoChange(!painelAberto)}
         >
           {painelAberto ? 'Fechar tela do participante' : 'Tela do participante'}
         </Button>
@@ -611,7 +620,7 @@ function PhotoStation({ eventId }: PhotoStationProps) {
         open={painelAberto}
         title="Check-in — participante"
         name="checkin-participante"
-        onClose={() => setPainelAberto(false)}
+        onClose={() => onPainelAbertoChange(false)}
         onBlocked={() =>
           toast.error(
             'O navegador bloqueou a janela. Libere pop-ups para este endereço e tente de novo.'

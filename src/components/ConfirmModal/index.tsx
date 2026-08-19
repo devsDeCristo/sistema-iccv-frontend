@@ -13,6 +13,9 @@ type ConfirmModalProps = {
   title: string;
   message: string;
   onConfirm: () => void;
+  /** Rótulos para quando "Confirmar" e "Cancelar" não dizem o que acontece */
+  confirmLabel?: string;
+  cancelLabel?: string;
 };
 
 function ConfirmModal({
@@ -21,6 +24,8 @@ function ConfirmModal({
   title,
   message,
   onConfirm,
+  confirmLabel = 'Confirmar',
+  cancelLabel = 'Cancelar',
 }: ConfirmModalProps) {
   return (
     <Dialog open={open} onClose={onClose}>
@@ -30,10 +35,10 @@ function ConfirmModal({
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose} color="primary">
-          Cancelar
+          {cancelLabel}
         </Button>
         <Button onClick={onConfirm} color="primary" autoFocus>
-          Confirmar
+          {confirmLabel}
         </Button>
       </DialogActions>
     </Dialog>
