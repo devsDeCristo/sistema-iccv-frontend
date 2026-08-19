@@ -74,6 +74,8 @@ export interface User {
   religion?: string;
   notes?: string;
   eventId?: string;
+  /** data/hora do cadastro do usuário no sistema (User.createdAt) */
+  createdAt?: string;
   /** data/hora da inscrição no evento (EventOnUsers.createdAt) */
   registeredAt?: string;
   /** data/hora de entrada na lista de espera (Waitlist.createdAt) */
