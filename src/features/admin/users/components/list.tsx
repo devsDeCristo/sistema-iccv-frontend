@@ -22,7 +22,12 @@ import {
 } from '@mui/x-data-grid';
 import { useGetUsers } from '../api/getUsers';
 import { Role, ROLE_LABELS } from '../../../../constants/roles';
-import { formatCPF, formatDate, formatPhoneNumber } from '../../../../utils';
+import {
+  formatCPF,
+  formatDate,
+  formatDateTime,
+  formatPhoneNumber,
+} from '../../../../utils';
 // import { useNavigate } from 'react-router-dom';
 import {
   Key,
@@ -200,19 +205,21 @@ function List({ search }: { search: string }) {
       renderCell: (params) => {
         return (
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-            {(params.row.events || []).map((event: any) => (
-              <Button
-                onClick={() => onClickEvent(event.event.id)}
-                sx={{ borderRadius: 5, p: 0, minWidth: 'auto' }}
-              >
-                <CustomChip
-                  customColor={theme.palette.chips.default}
+            {(params.row.events || [])
+              .filter((event: any) => event?.event?.isActive)
+              .map((event: any) => (
+                <Button
                   key={event.event.id}
-                  label={event.event.name}
-                  size="small"
-                />
-              </Button>
-            ))}
+                  onClick={() => onClickEvent(event.event.id)}
+                  sx={{ borderRadius: 5, p: 0, minWidth: 'auto' }}
+                >
+                  <CustomChip
+                    customColor={theme.palette.chips.default}
+                    label={event.event.name}
+                    size="small"
+                  />
+                </Button>
+              ))}
           </Box>
         );
       },
@@ -254,6 +261,16 @@ function List({ search }: { search: string }) {
           </Box>
         );
       },
+    },
+    {
+      field: 'createdAt',
+      headerName: 'Cadastrado em',
+      type: 'dateTime',
+      flex: 1,
+      minWidth: 160,
+      valueGetter: (params) =>
+        params.row.createdAt ? new Date(params.row.createdAt) : null,
+      renderCell: (params) => formatDateTime(params.row.createdAt),
     },
     {
       field: 'actions',
