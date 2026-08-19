@@ -1,6 +1,5 @@
 import { ReactNode, useEffect, useState } from 'react';
 import {
-  Alert,
   Avatar,
   Box,
   Button,
@@ -33,6 +32,7 @@ import {
 } from '../api/postCheckin';
 import { ParticipantSummary } from './participantSummary';
 import { ParticipantDisplay } from './participantDisplay';
+import { UserAvatar } from '../../../../components/userAvatar';
 import { ExternalWindow } from '../../../../components/externalWindow';
 import { InputPhoto } from '../../users/components/inputPhoto';
 import { UserDataForm } from '../../users/components/userDataForm';
@@ -45,6 +45,9 @@ interface PhotoStationProps {
 }
 
 const TAMANHO_MAXIMO_FOTO = 5 * 1024 * 1024;
+
+/** A partir daqui a espera vira alerta na fila: é gente em pé, de crachá. */
+const ESPERA_LONGA_MIN = 15;
 
 /** Passo numerado do atendimento, na ordem em que o operador executa. */
 function Etapa({
@@ -84,6 +87,104 @@ function Etapa({
         </Box>
       </Stack>
       <Box sx={{ pl: { xs: 0, md: 5.5 } }}>{children}</Box>
+    </Stack>
+  );
+}
+
+/**
+ * Uma linha da fila: posição, quem é e há quanto tempo espera. O primeiro fica
+ * destacado porque é sempre ele que o "Chamar próximo" leva — e quem espera
+ * demais ganha cor, para não passar batido numa lista longa.
+ */
+function ItemDaFila({
+  participante,
+  posicao,
+  espera,
+  legenda,
+  acao,
+}: {
+  participante: CheckinParticipant;
+  posicao?: number;
+  espera?: number | null;
+  /** Substitui a linha de apoio (crachá e nº de inscrição) */
+  legenda?: string;
+  acao: ReactNode;
+}) {
+  const theme = useTheme();
+  const primeiro = posicao === 1;
+  const esperaLonga = (espera || 0) >= ESPERA_LONGA_MIN;
+
+  const realce = (opacidade: number) =>
+    alpha(theme.palette.primary.main, opacidade);
+
+  return (
+    <Stack
+      direction="row"
+      alignItems="center"
+      spacing={1.5}
+      sx={{
+        p: 1,
+        borderRadius: 2,
+        border: 1,
+        borderColor: primeiro ? realce(0.3) : 'transparent',
+        bgcolor: primeiro ? realce(0.06) : 'transparent',
+        '&:hover': { bgcolor: primeiro ? realce(0.1) : 'action.hover' },
+      }}
+    >
+      {posicao !== undefined && (
+        <Box
+          sx={{
+            flexShrink: 0,
+            width: 26,
+            height: 26,
+            borderRadius: '50%',
+            display: 'grid',
+            placeItems: 'center',
+            fontSize: 13,
+            fontWeight: 700,
+            bgcolor: primeiro ? 'primary.main' : 'action.selected',
+            color: primeiro ? 'primary.contrastText' : 'text.secondary',
+          }}
+        >
+          {posicao}
+        </Box>
+      )}
+
+      <UserAvatar
+        name={participante.fullName}
+        photoUrl={participante.profilePhotoUrl}
+        sx={{ width: 40, height: 40 }}
+      />
+
+      <Box sx={{ flex: 1, minWidth: 0 }}>
+        <Typography variant="body2" fontWeight={600} noWrap>
+          {participante.fullName}
+        </Typography>
+        <Typography
+          variant="caption"
+          color="text.secondary"
+          noWrap
+          sx={{ display: 'block' }}
+        >
+          {legenda ||
+            [participante.badgeName, `nº ${participante.registrationNumber}`]
+              .filter(Boolean)
+              .join(' · ')}
+        </Typography>
+      </Box>
+
+      <Stack alignItems="flex-end" spacing={0.25} sx={{ flexShrink: 0 }}>
+        {espera !== null && espera !== undefined && (
+          <Typography
+            variant="caption"
+            fontWeight={esperaLonga ? 600 : 400}
+            color={esperaLonga ? 'warning.main' : 'text.secondary'}
+          >
+            {espera} min
+          </Typography>
+        )}
+        {acao}
+      </Stack>
     </Stack>
   );
 }
@@ -261,11 +362,18 @@ function PhotoStation({ eventId }: PhotoStationProps) {
               alignItems={{ xs: 'stretch', sm: 'center' }}
               justifyContent="space-between"
               spacing={1}
-              sx={{ mb: 1.5 }}
             >
-              <Typography variant="h6" fontWeight={600}>
-                Fila da foto ({aguardando.length})
-              </Typography>
+              <Stack direction="row" alignItems="center" spacing={1}>
+                <Typography variant="h6" fontWeight={600}>
+                  Fila da foto
+                </Typography>
+                <Chip
+                  size="small"
+                  label={aguardando.length}
+                  color={aguardando.length > 0 ? 'primary' : 'default'}
+                />
+              </Stack>
+
               <Button
                 variant="contained"
                 startIcon={<PlayArrow />}
@@ -277,74 +385,70 @@ function PhotoStation({ eventId }: PhotoStationProps) {
             </Stack>
 
             {!!emAtendimento && aguardando.length > 0 && (
-              <Alert severity="info" sx={{ mb: 1.5 }}>
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                sx={{ display: 'block', mt: 1 }}
+              >
                 Conclua o atendimento atual para chamar o próximo.
-              </Alert>
+              </Typography>
             )}
 
             {aguardando.length === 0 ? (
-              <Stack alignItems="center" spacing={1} sx={{ py: 4 }}>
-                <HourglassEmpty color="disabled" />
-                <Typography variant="body2" color="text.secondary">
-                  Ninguém aguardando. A fila enche conforme a recepção entrega os
-                  crachás.
+              <Stack alignItems="center" spacing={1.5} sx={{ py: 5 }}>
+                <Avatar
+                  sx={{
+                    width: 56,
+                    height: 56,
+                    bgcolor: 'action.hover',
+                    color: 'text.disabled',
+                  }}
+                >
+                  <HourglassEmpty />
+                </Avatar>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  textAlign="center"
+                  sx={{ maxWidth: 260 }}
+                >
+                  Ninguém aguardando. A fila enche conforme a recepção entrega
+                  os crachás.
                 </Typography>
               </Stack>
             ) : (
               <Stack
-                divider={<Divider />}
-                spacing={1}
+                spacing={0.5}
                 sx={{
+                  mt: 1.5,
                   // com o atendimento aberto a fila é coadjuvante: rola sozinha
                   // em vez de empurrar o participante para fora da tela
                   maxHeight: emAtendimento ? 520 : 'none',
                   overflowY: emAtendimento ? 'auto' : 'visible',
                 }}
               >
-                {aguardando.map((participante, indice) => {
-                  const espera = esperaEmMinutos(participante.badgeDeliveredAt);
-
-                  return (
-                    <Stack
-                      key={participante.userId}
-                      direction="row"
-                      alignItems="center"
-                      spacing={1}
-                      sx={{ pt: indice === 0 ? 0 : 1 }}
-                    >
-                      <Chip
-                        label={indice + 1}
+                {aguardando.map((participante, indice) => (
+                  <ItemDaFila
+                    key={participante.userId}
+                    participante={participante}
+                    posicao={indice + 1}
+                    espera={esperaEmMinutos(participante.badgeDeliveredAt)}
+                    acao={
+                      <Button
                         size="small"
-                        color={indice === 0 ? 'primary' : 'default'}
-                      />
-                      <Box sx={{ flex: 1, minWidth: 0 }}>
-                        <ParticipantSummary
-                          participant={participante}
-                          variant="dense"
-                        />
-                      </Box>
-                      <Stack alignItems="flex-end" spacing={0.5}>
-                        {espera !== null && (
-                          <Typography variant="caption" color="text.secondary">
-                            {espera} min
-                          </Typography>
-                        )}
-                        <Button
-                          size="small"
-                          disabled={chamandoEspecifico || !!emAtendimento}
-                          onClick={() =>
-                            chamarParticipante({
-                              eventId,
-                              userId: participante.userId,
-                            })
-                          }
-                        >
-                          Chamar
-                        </Button>
-                      </Stack>
-                    </Stack>
-                  );
-                })}
+                        disabled={chamandoEspecifico || !!emAtendimento}
+                        onClick={() =>
+                          chamarParticipante({
+                            eventId,
+                            userId: participante.userId,
+                          })
+                        }
+                      >
+                        Chamar
+                      </Button>
+                    }
+                  />
+                ))}
               </Stack>
             )}
 
@@ -354,47 +458,30 @@ function PhotoStation({ eventId }: PhotoStationProps) {
                 <Typography variant="subtitle2" sx={{ mb: 1 }}>
                   Em atendimento agora
                 </Typography>
-                <Stack spacing={1}>
+                <Stack spacing={0.5}>
                   {emAtendimentoNoEvento.map((participante) => (
-                    <Stack
+                    <ItemDaFila
                       key={participante.userId}
-                      direction="row"
-                      alignItems="center"
-                      spacing={1}
-                    >
-                      <Box sx={{ flex: 1, minWidth: 0 }}>
-                        <ParticipantSummary
-                          participant={participante}
-                          variant="dense"
-                        />
-                      </Box>
-                      <Stack alignItems="flex-end">
-                        <Typography variant="caption" color="text.secondary">
-                          {participante.calledBy
-                            ? `com ${participante.calledBy}`
-                            : ''}
-                          {participante.calledAt
-                            ? ` às ${horaCurta(participante.calledAt)}`
-                            : ''}
-                        </Typography>
+                      participante={participante}
+                      legenda={[
+                        participante.calledBy && `com ${participante.calledBy}`,
+                        participante.calledAt &&
+                          `às ${horaCurta(participante.calledAt)}`,
+                      ]
+                        .filter(Boolean)
+                        .join(' ')}
+                      acao={
                         <Button
                           size="small"
                           onClick={() => iniciarAtendimento(participante)}
                         >
                           Retomar
                         </Button>
-                      </Stack>
-                    </Stack>
+                      }
+                    />
                   ))}
                 </Stack>
               </>
-            )}
-
-            {!emAtendimento && (
-              <Alert severity="info" sx={{ mt: 2 }}>
-                Chame alguém da fila para abrir o atendimento: os dados aparecem
-                em tamanho grande no monitor virado para o inscrito.
-              </Alert>
             )}
           </Card>
         </Grid>
@@ -413,7 +500,6 @@ function PhotoStation({ eventId }: PhotoStationProps) {
               >
                 <ParticipantSummary
                   participant={emAtendimento}
-                  variant="display"
                   previewPhotoUrl={previewFoto}
                 />
               </Box>
