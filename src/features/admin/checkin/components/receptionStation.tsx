@@ -21,10 +21,13 @@ import {
   CHECKIN_STATUS_COLOR,
   CHECKIN_STATUS_LABEL,
 } from '../constants';
+import { TODOS_OS_GRUPOS, filtrarPorGrupo } from '../utils';
 import { CheckinParticipant } from '../types';
 
 interface ReceptionStationProps {
   eventId: string;
+  /** Recorte escolhido pelo operador; vazio mostra o evento inteiro */
+  grupo: string;
 }
 
 /** Ignora acento e caixa: "jose" encontra "José". */
@@ -41,7 +44,7 @@ const normalizar = (valor?: string | null) =>
  * do sistema: a recepção precisa enxergar quem ainda não chegou sem depender de
  * lembrar o nome exato de quem está no balcão.
  */
-function ReceptionStation({ eventId }: ReceptionStationProps) {
+function ReceptionStation({ eventId, grupo }: ReceptionStationProps) {
   const [filtro, setFiltro] = useState('');
   const campoFiltro = useRef<HTMLInputElement>(null);
   const theme = useTheme();
@@ -53,7 +56,10 @@ function ReceptionStation({ eventId }: ReceptionStationProps) {
     refetchInterval: CHECKIN_REFETCH_MS,
   });
 
-  const todos = useMemo(() => inscritos || [], [inscritos]);
+  const todos = useMemo(
+    () => filtrarPorGrupo(inscritos || [], grupo),
+    [inscritos, grupo]
+  );
 
   const lista = useMemo(() => {
     const termo = normalizar(filtro.trim());
@@ -225,7 +231,9 @@ function ReceptionStation({ eventId }: ReceptionStationProps) {
         helperText={
           filtro
             ? `${lista.length} de ${todos.length} inscritos`
-            : `${todos.length} inscritos no evento — o participante é encaminhado ao posto de foto após a entrega`
+            : `${todos.length} inscritos ${
+                grupo === TODOS_OS_GRUPOS ? 'no evento' : `em ${grupo}`
+              } — o participante é encaminhado ao posto de foto após a entrega`
         }
       />
 

@@ -1,3 +1,4 @@
+import { useId } from 'react';
 import {
   FormControl,
   FormHelperText,
@@ -21,15 +22,22 @@ const InputSelect = ({
   errorMessage,
   ...rest
 }: InputSelectProps & SelectProps) => {
+  // um id por instância: com o id fixo, clicar no rótulo de um select abria o
+  // primeiro da tela
+  const labelId = useId();
+
   return (
     <div>
       <FormControl fullWidth>
-        <InputLabel id="select-label">{label}</InputLabel>
+        {/* sem repassar o tamanho, o rótulo do select pequeno fica desalinhado */}
+        <InputLabel id={labelId} size={rest.size === 'small' ? 'small' : 'normal'}>
+          {label}
+        </InputLabel>
         <Select
           sx={{
             width: '100%',
           }}
-          labelId="select-label"
+          labelId={labelId}
           label={label}
           displayEmpty
           {...rest}
