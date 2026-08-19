@@ -17,7 +17,9 @@ import { OPTIONS_BOOLEAN, OPTIONS_LEADERSHIP } from '../constants';
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <Paper component="section" sx={{ p: 0 }}>
-      <Typography variant="h6" fontSize={'18px'}>
+      {/* em rem para acompanhar quem redimensiona a raiz — na tela de
+          detalhes continua nos mesmos 18px */}
+      <Typography variant="h6" fontSize="1.125rem">
         {title}
       </Typography>
       <Divider sx={{ mt: 0.5, mb: 2 }} />

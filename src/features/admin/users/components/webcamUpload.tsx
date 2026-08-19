@@ -5,6 +5,10 @@ import Webcam from 'react-webcam';
 
 interface WebCamUploadProps {
   onSelectPhoto: (data: File) => void;
+  /** Stream ao vivo da câmera, para espelhar a captura em outra tela */
+  onStream?: (stream: MediaStream | null) => void;
+  /** Foto congelada entre o "Capturar" e o "Usar foto" */
+  onCapture?: (file: File | null) => void;
 }
 
 /**
@@ -30,7 +34,11 @@ const mediaAreaSx = {
   justifyContent: 'center',
 };
 
-function WebcamUpload({ onSelectPhoto }: WebCamUploadProps) {
+function WebcamUpload({
+  onSelectPhoto,
+  onStream,
+  onCapture,
+}: WebCamUploadProps) {
   const [capturedImage, setCapturedImage] = useState<File | null>(null);
   const webcamRef = useRef(null);
 
@@ -43,6 +51,12 @@ function WebcamUpload({ onSelectPhoto }: WebCamUploadProps) {
     if (!capturedImageUrl) return;
     return () => URL.revokeObjectURL(capturedImageUrl);
   }, [capturedImageUrl]);
+
+  // quem embute o componente reflete a captura em outra tela; o arquivo é o
+  // mesmo, então lá a URL é recriada sem depender desta, que é revogada aqui
+  useEffect(() => {
+    onCapture?.(capturedImage);
+  }, [capturedImage]);
 
   const generateRandomFileName = () => {
     const randomString = Math.random().toString(36).substring(2, 8);
@@ -109,6 +123,8 @@ function WebcamUpload({ onSelectPhoto }: WebCamUploadProps) {
               screenshotFormat="image/jpeg"
               videoConstraints={videoConstraints}
               style={mediaStyle}
+              onUserMedia={(stream) => onStream?.(stream)}
+              onUserMediaError={() => onStream?.(null)}
             />
           </Box>
           <Stack direction="row" justifyContent="flex-end">

@@ -5,9 +5,19 @@ interface WebcamModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSelectPhoto: (data: File) => void;
+  /** Stream ao vivo da câmera, para espelhar a captura em outra tela */
+  onStream?: (stream: MediaStream | null) => void;
+  /** Foto congelada entre o "Capturar" e o "Usar foto" */
+  onCapture?: (file: File | null) => void;
 }
 
-function WebcamModal({ isOpen, onClose, onSelectPhoto }: WebcamModalProps) {
+function WebcamModal({
+  isOpen,
+  onClose,
+  onSelectPhoto,
+  onStream,
+  onCapture,
+}: WebcamModalProps) {
   const style = {
     position: 'absolute' as 'absolute',
     top: '50%',
@@ -41,7 +51,11 @@ function WebcamModal({ isOpen, onClose, onSelectPhoto }: WebcamModalProps) {
     >
       <Fade in={isOpen}>
         <Box sx={style}>
-          <WebcamUpload onSelectPhoto={onSelectPhoto} />
+          <WebcamUpload
+            onSelectPhoto={onSelectPhoto}
+            onStream={onStream}
+            onCapture={onCapture}
+          />
         </Box>
       </Fade>
     </Modal>
