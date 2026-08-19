@@ -1,59 +1,87 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import {
-  Alert,
-  Box,
   Button,
   Card,
-  CircularProgress,
+  Chip,
   InputAdornment,
   Stack,
   TextField,
   Typography,
+  useTheme,
 } from '@mui/material';
-import { Search, HowToReg, Undo } from '@mui/icons-material';
+import { DataGrid, GridColDef, ptBR } from '@mui/x-data-grid';
+import { HowToReg, Search, Undo } from '@mui/icons-material';
 import { toast } from 'react-toastify';
 import { useSearchCheckin } from '../api/getCheckin';
 import { useDeliverBadge, useUndoCheckin } from '../api/postCheckin';
-import { ParticipantSummary } from './participantSummary';
+import { UserAvatar } from '../../../../components/userAvatar';
+import { formatCPF } from '../../../../utils';
+import {
+  CHECKIN_REFETCH_MS,
+  CHECKIN_STATUS_COLOR,
+  CHECKIN_STATUS_LABEL,
+} from '../constants';
 import { CheckinParticipant } from '../types';
 
 interface ReceptionStationProps {
   eventId: string;
 }
 
+/** Ignora acento e caixa: "jose" encontra "José". */
+const normalizar = (valor?: string | null) =>
+  (valor || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+
 /**
  * Posto 1 — reconhecimento e entrega do crachá.
  *
- * A busca só dispara a partir de 2 caracteres: com a lista inteira do evento na
- * tela, é fácil entregar o crachá para o homônimo errado.
+ * A lista inteira do evento fica na tela e o campo apenas filtra, como no resto
+ * do sistema: a recepção precisa enxergar quem ainda não chegou sem depender de
+ * lembrar o nome exato de quem está no balcão.
  */
 function ReceptionStation({ eventId }: ReceptionStationProps) {
-  const [termo, setTermo] = useState('');
-  const [termoBuscado, setTermoBuscado] = useState('');
-  const campoBusca = useRef<HTMLInputElement>(null);
+  const [filtro, setFiltro] = useState('');
+  const campoFiltro = useRef<HTMLInputElement>(null);
+  const theme = useTheme();
 
-  // espera a digitação parar antes de consultar
-  useEffect(() => {
-    const timer = setTimeout(() => setTermoBuscado(termo.trim()), 350);
-    return () => clearTimeout(timer);
-  }, [termo]);
+  // a lista vem inteira de uma vez e o filtro roda no cliente — sem ida ao
+  // servidor a cada tecla, o resultado aparece instantâneo no balcão
+  const { data: inscritos, isLoading } = useSearchCheckin(eventId, '', {
+    enabled: !!eventId,
+    refetchInterval: CHECKIN_REFETCH_MS,
+  });
 
-  const buscaValida = termoBuscado.length >= 2;
+  const todos = useMemo(() => inscritos || [], [inscritos]);
 
-  const { data: resultados, isFetching } = useSearchCheckin(
-    eventId,
-    termoBuscado,
-    { enabled: !!eventId && buscaValida, keepPreviousData: true }
-  );
+  const lista = useMemo(() => {
+    const termo = normalizar(filtro.trim());
+    if (!termo) return todos;
+
+    const digitos = filtro.replace(/\D/g, '');
+
+    return todos.filter((participante) => {
+      const nome = `${normalizar(participante.fullName)} ${normalizar(
+        participante.badgeName
+      )}`;
+      if (nome.includes(termo)) return true;
+      if (!digitos) return false;
+
+      return (
+        (participante.cpf || '').includes(digitos) ||
+        String(participante.registrationNumber).includes(digitos)
+      );
+    });
+  }, [todos, filtro]);
 
   const { mutate: entregarCracha, isLoading: entregando } = useDeliverBadge({
     onSuccess: (participante) => {
       toast.success(
         `${participante.fullName} entrou na fila da foto. Encaminhe ao posto.`
       );
-      setTermo('');
-      setTermoBuscado('');
-      campoBusca.current?.focus();
+      setFiltro('');
+      campoFiltro.current?.focus();
     },
   });
 
@@ -63,18 +91,11 @@ function ReceptionStation({ eventId }: ReceptionStationProps) {
     },
   });
 
-  // `keepPreviousData` mantém o resultado anterior enquanto a consulta muda —
-  // sem esta guarda, a lista continuaria na tela depois de limpar a busca e o
-  // operador poderia entregar o crachá para o participante errado.
-  const lista = useMemo(
-    () => (buscaValida ? resultados || [] : []),
-    [resultados, buscaValida]
-  );
-
   const acaoDoParticipante = (participante: CheckinParticipant) => {
     if (participante.status === 'PENDING') {
       return (
         <Button
+          size="small"
           variant="contained"
           startIcon={<HowToReg />}
           disabled={entregando}
@@ -85,89 +106,167 @@ function ReceptionStation({ eventId }: ReceptionStationProps) {
       );
     }
 
-    return (
-      <Stack spacing={1} alignItems="flex-end">
-        <Typography variant="body2" color="success.main" fontWeight={500}>
-          Crachá já entregue
-        </Typography>
-        {/* só desfaz quem ainda não foi chamado; depois disso é o outro posto */}
-        {participante.status === 'QUEUED' && (
-          <Button
-            size="small"
-            color="warning"
-            startIcon={<Undo />}
-            disabled={desfazendo}
-            onClick={() => desfazer({ eventId, userId: participante.userId })}
-          >
-            Desfazer
-          </Button>
-        )}
-      </Stack>
-    );
+    // só desfaz quem ainda não foi chamado; depois disso é o outro posto
+    if (participante.status === 'QUEUED') {
+      return (
+        <Button
+          size="small"
+          color="warning"
+          startIcon={<Undo />}
+          disabled={desfazendo}
+          onClick={() => desfazer({ eventId, userId: participante.userId })}
+        >
+          Desfazer
+        </Button>
+      );
+    }
+
+    return null;
   };
+
+  const colunas: GridColDef[] = [
+    {
+      field: 'foto',
+      headerName: '',
+      width: 60,
+      sortable: false,
+      filterable: false,
+      renderCell: (params) => (
+        <UserAvatar
+          name={params.row.fullName}
+          photoUrl={params.row.profilePhotoUrl}
+          sx={{ width: 34, height: 34 }}
+        />
+      ),
+    },
+    {
+      field: 'fullName',
+      headerName: 'Nome / crachá',
+      flex: 2,
+      minWidth: 200,
+      renderCell: (params) => (
+        <Stack sx={{ py: 0.5, minWidth: 0 }}>
+          <Typography variant="body2" fontWeight={600} noWrap>
+            {params.row.fullName}
+          </Typography>
+          {params.row.badgeName && (
+            <Typography variant="caption" color="text.secondary" noWrap>
+              {params.row.badgeName}
+            </Typography>
+          )}
+        </Stack>
+      ),
+    },
+    {
+      field: 'registrationNumber',
+      headerName: 'Inscrição',
+      width: 100,
+    },
+    {
+      field: 'cpf',
+      headerName: 'CPF',
+      width: 140,
+      valueGetter: (params) => formatCPF(params.row.cpf || ''),
+    },
+    {
+      field: 'bedroom',
+      headerName: 'Quarto',
+      width: 130,
+      valueGetter: (params) => params.row.bedroom || '—',
+    },
+    {
+      field: 'teams',
+      headerName: 'Equipe',
+      width: 170,
+      sortable: false,
+      valueGetter: (params) =>
+        params.row.teams.map((team: { name: string }) => team.name).join(', ') ||
+        '—',
+    },
+    {
+      field: 'status',
+      headerName: 'Situação',
+      width: 160,
+      renderCell: (params) => (
+        <Chip
+          size="small"
+          label={CHECKIN_STATUS_LABEL[params.row.status as CheckinParticipant['status']]}
+          color={CHECKIN_STATUS_COLOR[params.row.status as CheckinParticipant['status']]}
+        />
+      ),
+    },
+    {
+      field: 'acao',
+      headerName: '',
+      width: 190,
+      sortable: false,
+      filterable: false,
+      renderCell: (params) => acaoDoParticipante(params.row),
+    },
+  ];
 
   return (
     <Stack spacing={2}>
       <TextField
-        inputRef={campoBusca}
+        inputRef={campoFiltro}
         autoFocus
         fullWidth
         size="medium"
-        placeholder="Buscar por nome, CPF ou número de inscrição"
-        value={termo}
-        onChange={(event) => setTermo(event.target.value)}
+        placeholder="Filtrar por nome, crachá, CPF ou número de inscrição"
+        value={filtro}
+        onChange={(event) => setFiltro(event.target.value)}
         InputProps={{
           startAdornment: (
             <InputAdornment position="start">
               <Search />
             </InputAdornment>
           ),
-          endAdornment: isFetching ? (
-            <InputAdornment position="end">
-              <CircularProgress size={18} />
-            </InputAdornment>
-          ) : null,
         }}
         helperText={
-          termo.length > 0 && !buscaValida
-            ? 'Digite ao menos 2 caracteres'
-            : 'O participante é encaminhado ao posto de foto após a entrega'
+          filtro
+            ? `${lista.length} de ${todos.length} inscritos`
+            : `${todos.length} inscritos no evento — o participante é encaminhado ao posto de foto após a entrega`
         }
       />
 
-      {buscaValida && !isFetching && lista.length === 0 && (
-        <Alert severity="warning">
-          Ninguém encontrado com "{termoBuscado}". Confira a grafia do nome ou
-          use o CPF — a busca cobre apenas os inscritos deste evento.
-        </Alert>
-      )}
-
-      {!buscaValida && (
-        <Alert severity="info">
-          Busque o participante para conferir os dados e liberar a entrega do
-          crachá.
-        </Alert>
-      )}
-
-      <Stack spacing={1.5}>
-        {lista.map((participante) => (
-          <Card key={participante.userId} sx={{ p: 2 }}>
-            <Stack
-              direction={{ xs: 'column', md: 'row' }}
-              spacing={2}
-              alignItems={{ xs: 'stretch', md: 'center' }}
-              justifyContent="space-between"
-            >
-              <Box sx={{ flex: 1, minWidth: 0 }}>
-                <ParticipantSummary participant={participante} />
-              </Box>
-              <Box sx={{ flexShrink: 0 }}>
-                {acaoDoParticipante(participante)}
-              </Box>
-            </Stack>
-          </Card>
-        ))}
-      </Stack>
+      <Card>
+        <DataGrid
+          rows={lista}
+          columns={colunas}
+          getRowId={(row) => row.userId}
+          loading={isLoading}
+          autoHeight
+          rowHeight={56}
+          columnHeaderHeight={40}
+          disableRowSelectionOnClick
+          pageSizeOptions={[25, 50, 100]}
+          initialState={{
+            pagination: { paginationModel: { pageSize: 25 } },
+          }}
+          sx={{
+            p: 1,
+            '& .MuiDataGrid-row': {
+              borderTop: '1px solid ' + theme.palette.divider,
+              borderBottom: 'none',
+            },
+            '& .MuiDataGrid-footerContainer': {
+              backgroundColor: 'transparent',
+              border: 0,
+              borderTop: `1px solid ${theme.palette.divider}`,
+              height: '40px !important',
+              minHeight: '40px !important',
+            },
+            '& .MuiDataGrid-cell:focus, & .MuiDataGrid-cell:focus-within': {
+              outline: 'none',
+            },
+            '& .MuiDataGrid-columnHeader:focus, & .MuiDataGrid-columnHeader:focus-within':
+              {
+                outline: 'none',
+              },
+          }}
+          localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
+        />
+      </Card>
     </Stack>
   );
 }

@@ -8,11 +8,37 @@ import {
 } from '../constants';
 import { CheckinParticipant } from '../types';
 
+/**
+ * `display` existe por causa do segundo monitor, espelhado e virado para o
+ * inscrito: ele confere os próprios dados a mais de um braço de distância da
+ * tela, então nome e detalhes precisam ser bem maiores que no uso do operador.
+ */
+type ParticipantSummaryVariant = 'dense' | 'default' | 'display';
+
 interface ParticipantSummaryProps {
   participant: CheckinParticipant;
-  /** Versão compacta usada nos itens da fila */
-  dense?: boolean;
+  variant?: ParticipantSummaryVariant;
+  /** Foto recém-tirada, ainda não salva, para o inscrito já se ver nela */
+  previewPhotoUrl?: string | null;
 }
+
+const TAMANHO_AVATAR: Record<ParticipantSummaryVariant, number> = {
+  dense: 44,
+  default: 72,
+  display: 128,
+};
+
+const VARIANTE_NOME = {
+  dense: 'body1',
+  default: 'h6',
+  display: 'h4',
+} as const;
+
+const VARIANTE_DETALHE = {
+  dense: 'body2',
+  default: 'body2',
+  display: 'h6',
+} as const;
 
 /** Mostra o CPF só com os dígitos do meio, o suficiente para conferência. */
 function cpfParcial(cpf?: string | null) {
@@ -22,19 +48,29 @@ function cpfParcial(cpf?: string | null) {
   return `***.${digitos.slice(3, 6)}.${digitos.slice(6, 9)}-**`;
 }
 
-function ParticipantSummary({ participant, dense }: ParticipantSummaryProps) {
-  const tamanhoAvatar = dense ? 44 : 72;
+function ParticipantSummary({
+  participant,
+  variant = 'default',
+  previewPhotoUrl,
+}: ParticipantSummaryProps) {
+  const dense = variant === 'dense';
+  const display = variant === 'display';
+  const detalhe = VARIANTE_DETALHE[variant];
+  const tamanhoChip = display ? 'medium' : 'small';
 
   return (
-    <Stack direction="row" spacing={2} alignItems="flex-start">
+    <Stack direction="row" spacing={display ? 3 : 2} alignItems="flex-start">
       <UserAvatar
         name={participant.fullName}
-        photoUrl={participant.profilePhotoUrl}
-        sx={{ width: tamanhoAvatar, height: tamanhoAvatar }}
+        photoUrl={previewPhotoUrl || participant.profilePhotoUrl}
+        sx={{
+          width: TAMANHO_AVATAR[variant],
+          height: TAMANHO_AVATAR[variant],
+        }}
       />
       <Box sx={{ minWidth: 0, flex: 1 }}>
         <Typography
-          variant={dense ? 'body1' : 'h6'}
+          variant={VARIANTE_NOME[variant]}
           fontWeight={600}
           sx={{ lineHeight: 1.2 }}
         >
@@ -47,45 +83,54 @@ function ParticipantSummary({ participant, dense }: ParticipantSummaryProps) {
           alignItems="center"
           flexWrap="wrap"
           useFlexGap
-          sx={{ mt: 0.5 }}
+          sx={{ mt: display ? 1 : 0.5 }}
         >
           <Chip
-            size="small"
+            size={tamanhoChip}
             label={CHECKIN_STATUS_LABEL[participant.status]}
             color={CHECKIN_STATUS_COLOR[participant.status]}
           />
-          <Typography variant="caption" color="text.secondary">
+          <Typography
+            variant={display ? 'body1' : 'caption'}
+            color="text.secondary"
+          >
             Inscrição nº {participant.registrationNumber}
           </Typography>
           {!dense && (
-            <Typography variant="caption" color="text.secondary">
+            <Typography
+              variant={display ? 'body1' : 'caption'}
+              color="text.secondary"
+            >
               CPF {cpfParcial(participant.cpf)}
             </Typography>
           )}
         </Stack>
 
         {!dense && (
-          <Stack spacing={0.5} sx={{ mt: 1 }}>
+          <Stack spacing={display ? 1 : 0.5} sx={{ mt: 1 }}>
             {participant.badgeName && (
               <Stack direction="row" spacing={1} alignItems="center">
-                <BadgeIcon fontSize="small" color="action" />
-                <Typography variant="body2">
+                <BadgeIcon
+                  fontSize={display ? 'medium' : 'small'}
+                  color="action"
+                />
+                <Typography variant={detalhe} fontWeight={400}>
                   Crachá: <b>{participant.badgeName}</b>
                 </Typography>
               </Stack>
             )}
             {participant.bedroom && (
               <Stack direction="row" spacing={1} alignItems="center">
-                <Bed fontSize="small" color="action" />
-                <Typography variant="body2">
+                <Bed fontSize={display ? 'medium' : 'small'} color="action" />
+                <Typography variant={detalhe} fontWeight={400}>
                   Quarto: <b>{participant.bedroom}</b>
                 </Typography>
               </Stack>
             )}
             {participant.teams.length > 0 && (
               <Stack direction="row" spacing={1} alignItems="center">
-                <Groups fontSize="small" color="action" />
-                <Typography variant="body2">
+                <Groups fontSize={display ? 'medium' : 'small'} color="action" />
+                <Typography variant={detalhe} fontWeight={400}>
                   Equipe:{' '}
                   <b>
                     {participant.teams
@@ -103,7 +148,12 @@ function ParticipantSummary({ participant, dense }: ParticipantSummaryProps) {
             {participant.groups.length > 0 && (
               <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
                 {participant.groups.map((group) => (
-                  <Chip key={group} size="small" variant="outlined" label={group} />
+                  <Chip
+                    key={group}
+                    size={tamanhoChip}
+                    variant="outlined"
+                    label={group}
+                  />
                 ))}
               </Stack>
             )}
@@ -113,7 +163,7 @@ function ParticipantSummary({ participant, dense }: ParticipantSummaryProps) {
         {/* rastro de quem fez o quê: resolve discussão de balcão na hora */}
         {participant.badgeDeliveredAt && (
           <Typography
-            variant="caption"
+            variant={display ? 'body2' : 'caption'}
             color="text.secondary"
             sx={{ display: 'block', mt: dense ? 0.5 : 1 }}
           >
@@ -125,7 +175,7 @@ function ParticipantSummary({ participant, dense }: ParticipantSummaryProps) {
         )}
         {participant.doneAt && (
           <Typography
-            variant="caption"
+            variant={display ? 'body2' : 'caption'}
             color="text.secondary"
             sx={{ display: 'block' }}
           >

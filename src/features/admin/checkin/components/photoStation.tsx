@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import {
   Alert,
   Avatar,
@@ -11,9 +11,10 @@ import {
   Stack,
   TextField,
   Typography,
+  useTheme,
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import {
-  CameraAlt,
   CheckCircle,
   PlayArrow,
   Undo,
@@ -29,6 +30,9 @@ import {
   useUploadProfilePhoto,
 } from '../api/postCheckin';
 import { ParticipantSummary } from './participantSummary';
+import { InputPhoto } from '../../users/components/inputPhoto';
+import { UserDataForm } from '../../users/components/userDataForm';
+import { WebcamModal } from '../../users/components/webcamModal';
 import { CHECKIN_REFETCH_MS, esperaEmMinutos, horaCurta } from '../constants';
 import { CheckinParticipant } from '../types';
 
@@ -38,13 +42,60 @@ interface PhotoStationProps {
 
 const TAMANHO_MAXIMO_FOTO = 5 * 1024 * 1024;
 
+/** Passo numerado do atendimento, na ordem em que o operador executa. */
+function Etapa({
+  numero,
+  titulo,
+  descricao,
+  children,
+}: {
+  numero: number;
+  titulo: string;
+  descricao?: string;
+  children: ReactNode;
+}) {
+  return (
+    <Stack spacing={1.5}>
+      <Stack direction="row" spacing={1.5} alignItems="center">
+        <Avatar
+          sx={{
+            width: 30,
+            height: 30,
+            fontSize: 15,
+            fontWeight: 600,
+            bgcolor: 'primary.main',
+          }}
+        >
+          {numero}
+        </Avatar>
+        <Box>
+          <Typography variant="subtitle1" fontWeight={600} lineHeight={1.2}>
+            {titulo}
+          </Typography>
+          {descricao && (
+            <Typography variant="caption" color="text.secondary">
+              {descricao}
+            </Typography>
+          )}
+        </Box>
+      </Stack>
+      <Box sx={{ pl: { xs: 0, md: 5.5 } }}>{children}</Box>
+    </Stack>
+  );
+}
+
 /**
- * Posto 2 — foto e conferência dos dados.
+ * Posto 2 — conferência dos dados e foto.
  *
  * Quem está sendo atendido fica em estado local, não derivado da fila: com dois
  * operadores no mesmo posto, cada tela precisa lembrar do participante que ela
  * chamou. A lista de "em atendimento" do servidor serve para os dois se
  * enxergarem e para retomar um atendimento depois de recarregar a página.
+ *
+ * O atendimento ocupa a tela inteira quando começa, porque o segundo monitor —
+ * espelhado e virado para o inscrito — mostra exatamente isto: ele confere os
+ * próprios dados, o operador corrige o que estiver errado e só então a foto é
+ * tirada, na mesma webcam usada no cadastro de usuário.
  */
 function PhotoStation({ eventId }: PhotoStationProps) {
   const [emAtendimento, setEmAtendimento] = useState<CheckinParticipant | null>(
@@ -53,8 +104,9 @@ function PhotoStation({ eventId }: PhotoStationProps) {
   const [observacoes, setObservacoes] = useState('');
   const [foto, setFoto] = useState<File | null>(null);
   const [previewFoto, setPreviewFoto] = useState<string | null>(null);
+  const [webcamAberta, setWebcamAberta] = useState(false);
   const [salvando, setSalvando] = useState(false);
-  const inputFoto = useRef<HTMLInputElement>(null);
+  const theme = useTheme();
 
   const { data: fila } = useGetCheckinQueue(eventId, {
     enabled: !!eventId,
@@ -81,14 +133,13 @@ function PhotoStation({ eventId }: PhotoStationProps) {
     setEmAtendimento(null);
     setObservacoes('');
     setFoto(null);
-    if (inputFoto.current) inputFoto.current.value = '';
+    setWebcamAberta(false);
   };
 
   const iniciarAtendimento = (participante: CheckinParticipant) => {
     setEmAtendimento(participante);
     setObservacoes(participante.notes || '');
     setFoto(null);
-    if (inputFoto.current) inputFoto.current.value = '';
   };
 
   const { mutate: chamarProximo, isLoading: chamando } = useCallNext({
@@ -115,20 +166,22 @@ function PhotoStation({ eventId }: PhotoStationProps) {
     },
   });
 
+  /** Devolve se a foto foi aceita — a webcam só fecha quando foi. */
   const selecionarFoto = (arquivo?: File | null) => {
-    if (!arquivo) return;
+    if (!arquivo) return false;
 
     if (!arquivo.type.startsWith('image/')) {
       toast.error('Selecione um arquivo de imagem válido.');
-      return;
+      return false;
     }
 
     if (arquivo.size > TAMANHO_MAXIMO_FOTO) {
       toast.error('A foto deve ter no máximo 5MB.');
-      return;
+      return false;
     }
 
     setFoto(arquivo);
+    return true;
   };
 
   const concluirCheckin = async () => {
@@ -162,16 +215,17 @@ function PhotoStation({ eventId }: PhotoStationProps) {
   return (
     <Grid container spacing={2}>
       {/* ---------------- fila ---------------- */}
-      <Grid item xs={12} md={5}>
-        <Card sx={{ p: 2 }}>
+      <Grid item xs={12} md={emAtendimento ? 4 : 12}>
+        <Card sx={{ p: 2, height: '100%' }}>
           <Stack
-            direction="row"
-            alignItems="center"
+            direction={{ xs: 'column', sm: 'row' }}
+            alignItems={{ xs: 'stretch', sm: 'center' }}
             justifyContent="space-between"
+            spacing={1}
             sx={{ mb: 1.5 }}
           >
             <Typography variant="h6" fontWeight={600}>
-              Fila ({aguardando.length})
+              Fila da foto ({aguardando.length})
             </Typography>
             <Button
               variant="contained"
@@ -198,7 +252,16 @@ function PhotoStation({ eventId }: PhotoStationProps) {
               </Typography>
             </Stack>
           ) : (
-            <Stack divider={<Divider />} spacing={1}>
+            <Stack
+              divider={<Divider />}
+              spacing={1}
+              sx={{
+                // com o atendimento aberto a fila é coadjuvante: rola sozinha
+                // em vez de empurrar o participante para fora da tela
+                maxHeight: emAtendimento ? 520 : 'none',
+                overflowY: emAtendimento ? 'auto' : 'visible',
+              }}
+            >
               {aguardando.map((participante, indice) => {
                 const espera = esperaEmMinutos(participante.badgeDeliveredAt);
 
@@ -216,7 +279,10 @@ function PhotoStation({ eventId }: PhotoStationProps) {
                       color={indice === 0 ? 'primary' : 'default'}
                     />
                     <Box sx={{ flex: 1, minWidth: 0 }}>
-                      <ParticipantSummary participant={participante} dense />
+                      <ParticipantSummary
+                        participant={participante}
+                        variant="dense"
+                      />
                     </Box>
                     <Stack alignItems="flex-end" spacing={0.5}>
                       {espera !== null && (
@@ -242,160 +308,174 @@ function PhotoStation({ eventId }: PhotoStationProps) {
               })}
             </Stack>
           )}
+
+          {!emAtendimento && emAtendimentoNoEvento.length > 0 && (
+            <>
+              <Divider sx={{ my: 2 }} />
+              <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                Em atendimento agora
+              </Typography>
+              <Stack spacing={1}>
+                {emAtendimentoNoEvento.map((participante) => (
+                  <Stack
+                    key={participante.userId}
+                    direction="row"
+                    alignItems="center"
+                    spacing={1}
+                  >
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                      <ParticipantSummary
+                        participant={participante}
+                        variant="dense"
+                      />
+                    </Box>
+                    <Stack alignItems="flex-end">
+                      <Typography variant="caption" color="text.secondary">
+                        {participante.calledBy
+                          ? `com ${participante.calledBy}`
+                          : ''}
+                        {participante.calledAt
+                          ? ` às ${horaCurta(participante.calledAt)}`
+                          : ''}
+                      </Typography>
+                      <Button
+                        size="small"
+                        onClick={() => iniciarAtendimento(participante)}
+                      >
+                        Retomar
+                      </Button>
+                    </Stack>
+                  </Stack>
+                ))}
+              </Stack>
+            </>
+          )}
+
+          {!emAtendimento && (
+            <Alert severity="info" sx={{ mt: 2 }}>
+              Chame alguém da fila para abrir o atendimento: os dados aparecem
+              em tamanho grande no monitor virado para o inscrito.
+            </Alert>
+          )}
         </Card>
       </Grid>
 
       {/* ---------------- atendimento ---------------- */}
-      <Grid item xs={12} md={7}>
-        <Card sx={{ p: 2 }}>
-          {!emAtendimento ? (
-            <Stack spacing={2}>
-              <Typography variant="h6" fontWeight={600}>
-                Nenhum atendimento aberto
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Use "Chamar próximo" para iniciar. Se você recarregou a página no
-                meio de um atendimento, retome abaixo.
-              </Typography>
+      {emAtendimento && (
+        <Grid item xs={12} md={8}>
+          <Card sx={{ overflow: 'hidden' }}>
+            {/* faixa de identificação: é o que o inscrito lê no monitor */}
+            <Box
+              sx={{
+                p: { xs: 2, md: 3 },
+                bgcolor: alpha(theme.palette.primary.main, 0.08),
+                borderBottom: `1px solid ${theme.palette.divider}`,
+              }}
+            >
+              <ParticipantSummary
+                participant={emAtendimento}
+                variant="display"
+                previewPhotoUrl={previewFoto}
+              />
+            </Box>
 
-              {emAtendimentoNoEvento.length > 0 && (
-                <Stack spacing={1}>
-                  <Typography variant="subtitle2">
-                    Em atendimento agora
-                  </Typography>
-                  {emAtendimentoNoEvento.map((participante) => (
-                    <Stack
-                      key={participante.userId}
-                      direction="row"
-                      alignItems="center"
-                      spacing={1}
-                    >
-                      <Box sx={{ flex: 1, minWidth: 0 }}>
-                        <ParticipantSummary participant={participante} dense />
-                      </Box>
-                      <Stack alignItems="flex-end">
-                        <Typography variant="caption" color="text.secondary">
-                          {participante.calledBy
-                            ? `com ${participante.calledBy}`
-                            : ''}
-                          {participante.calledAt
-                            ? ` às ${horaCurta(participante.calledAt)}`
-                            : ''}
-                        </Typography>
-                        <Button
-                          size="small"
-                          onClick={() => iniciarAtendimento(participante)}
-                        >
-                          Retomar
-                        </Button>
-                      </Stack>
-                    </Stack>
-                  ))}
-                </Stack>
-              )}
-            </Stack>
-          ) : (
-            <Stack spacing={2}>
-              <ParticipantSummary participant={emAtendimento} />
+            <Stack spacing={3} sx={{ p: { xs: 2, md: 3 } }}>
+              <Etapa
+                numero={1}
+                titulo="Confira os dados com o participante"
+                descricao="Algo errado? Corrija agora, antes da foto."
+              >
+                <UserDataForm userId={emAtendimento.userId} />
+              </Etapa>
 
               <Divider />
 
-              <Stack
-                direction={{ xs: 'column', sm: 'row' }}
-                spacing={2}
-                alignItems="center"
+              <Etapa
+                numero={2}
+                titulo="Tire a foto"
+                descricao="Mesma webcam do cadastro; a foto é salva ao concluir."
               >
-                <Avatar
-                  src={previewFoto || emAtendimento.profilePhotoUrl || undefined}
-                  sx={{ width: 110, height: 110 }}
-                />
-                <Stack spacing={1} sx={{ flex: 1 }}>
-                  <Button
-                    variant="outlined"
-                    startIcon={<CameraAlt />}
-                    onClick={() => inputFoto.current?.click()}
-                  >
-                    {foto ? 'Trocar foto' : 'Tirar / escolher foto'}
-                  </Button>
-                  <input
-                    ref={inputFoto}
-                    type="file"
-                    accept="image/*"
-                    // no tablet/celular abre a câmera direto
-                    capture="user"
-                    hidden
-                    onChange={(event) =>
-                      selecionarFoto(event.target.files?.[0])
-                    }
+                <Stack spacing={1}>
+                  <InputPhoto
+                    profilePhoto={emAtendimento.profilePhotoUrl || undefined}
+                    previewPhoto={previewFoto || undefined}
+                    onSelectPhoto={(arquivo) => selecionarFoto(arquivo)}
+                    onOpenWebcam={() => setWebcamAberta(true)}
                   />
+
                   {foto ? (
-                    <Typography variant="caption" color="success.main">
-                      Foto nova selecionada — será salva ao concluir.
+                    <Typography variant="body2" color="success.main">
+                      Foto nova capturada — será salva ao concluir o check-in.
                     </Typography>
                   ) : semFotoCadastrada ? (
-                    <Typography variant="caption" color="warning.main">
+                    <Typography variant="body2" color="warning.main">
                       Este participante ainda não tem foto cadastrada.
                     </Typography>
                   ) : (
-                    <Typography variant="caption" color="text.secondary">
-                      Já existe foto cadastrada. Tire outra apenas se necessário.
+                    <Typography variant="body2" color="text.secondary">
+                      Já existe foto cadastrada. Tire outra apenas se
+                      necessário.
                     </Typography>
                   )}
                 </Stack>
-              </Stack>
+              </Etapa>
 
-              <Stack spacing={0.5}>
-                <Typography variant="body2">
-                  Telefone: <b>{emAtendimento.cellphone || '—'}</b>
-                </Typography>
-                <Typography variant="body2">
-                  Cidade: <b>{emAtendimento.city || '—'}</b>
-                </Typography>
-                {emAtendimento.roles.length > 0 && (
-                  <Typography variant="body2">
-                    Inscrição: <b>{emAtendimento.roles.join(', ')}</b>
-                  </Typography>
-                )}
-              </Stack>
+              <Divider />
 
-              <TextField
-                label="Observações do atendimento"
-                placeholder="Ex.: chegou sem documento, conferido pelo padrinho"
-                multiline
-                rows={2}
-                fullWidth
-                size="small"
-                value={observacoes}
-                onChange={(event) => setObservacoes(event.target.value)}
-              />
+              <Etapa
+                numero={3}
+                titulo="Conclua o atendimento"
+                descricao="O participante sai da fila e o crachá está liberado."
+              >
+                <Stack spacing={2}>
+                  <TextField
+                    label="Observações do atendimento"
+                    placeholder="Ex.: chegou sem documento, conferido pelo padrinho"
+                    multiline
+                    rows={2}
+                    fullWidth
+                    size="small"
+                    value={observacoes}
+                    onChange={(event) => setObservacoes(event.target.value)}
+                  />
 
-              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
-                <Button
-                  fullWidth
-                  variant="contained"
-                  color="success"
-                  size="large"
-                  startIcon={<CheckCircle />}
-                  disabled={salvando}
-                  onClick={concluirCheckin}
-                >
-                  {salvando ? 'Salvando...' : 'Concluir check-in'}
-                </Button>
-                <Button
-                  color="warning"
-                  startIcon={<Undo />}
-                  disabled={salvando || desfazendo}
-                  onClick={() =>
-                    desfazer({ eventId, userId: emAtendimento.userId })
-                  }
-                >
-                  Devolver à fila
-                </Button>
-              </Stack>
+                  <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
+                    <Button
+                      fullWidth
+                      variant="contained"
+                      color="success"
+                      size="large"
+                      startIcon={<CheckCircle />}
+                      disabled={salvando}
+                      onClick={concluirCheckin}
+                    >
+                      {salvando ? 'Salvando...' : 'Concluir check-in'}
+                    </Button>
+                    <Button
+                      color="warning"
+                      startIcon={<Undo />}
+                      disabled={salvando || desfazendo}
+                      onClick={() =>
+                        desfazer({ eventId, userId: emAtendimento.userId })
+                      }
+                    >
+                      Devolver à fila
+                    </Button>
+                  </Stack>
+                </Stack>
+              </Etapa>
             </Stack>
-          )}
-        </Card>
-      </Grid>
+
+            <WebcamModal
+              isOpen={webcamAberta}
+              onClose={() => setWebcamAberta(false)}
+              onSelectPhoto={(arquivo) => {
+                if (selecionarFoto(arquivo)) setWebcamAberta(false);
+              }}
+            />
+          </Card>
+        </Grid>
+      )}
     </Grid>
   );
 }

@@ -6,12 +6,12 @@ import { Box, Button, LinearProgress, Paper, Stack } from '@mui/material';
 import { Edit } from '@mui/icons-material';
 import { usePermission } from '../../../../hooks/usePermission';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { REGISTER_USERS_SCHEMA } from '../../../../features/admin/users/constants';
 import {
-  ENUM_OPTION_LEADERSHIP_POSITION,
-  REGISTER_USERS_SCHEMA,
-} from '../../../../features/admin/users/constants';
+  formValuesToUserPayload,
+  userToFormValues,
+} from '../../../../features/admin/users/utils';
 import { RegisterUsersFormType, User } from '../../../../types/user';
-import { formatCPF, formatPhoneNumber, removeMask } from '../../../../utils';
 import { useParams } from 'react-router-dom';
 import { useGetUsers } from '../../../../features/admin/users/api/getUsers';
 import { useEffect, useState } from 'react';
@@ -38,31 +38,7 @@ function EditUser() {
   } = useGetUsers({ userId: id });
   const userData = data as User;
 
-  const DEFAULT_VALUES: RegisterUsersFormType = {
-    fullName: userData?.fullName || '',
-    cpf: userData?.cpf ? formatCPF(userData?.cpf) : '',
-    birthday: userData?.birthday ? new Date(userData?.birthday) : null,
-    cellphone: userData?.cellphone
-      ? formatPhoneNumber(userData?.cellphone)
-      : '',
-    emergencyContact: userData?.emergencyContact
-      ? formatPhoneNumber(userData?.emergencyContact)
-      : '',
-    email: userData?.email || '',
-    worker: userData?.worker ? 1 : 0,
-    profession: userData?.profession || '',
-    neighborhood: userData?.neighborhood || '',
-    city: userData?.city || '',
-    state: userData?.state || '',
-    hypertensive: userData?.hypertensive ? 1 : 0,
-    diabetes: userData?.diabetes ? 1 : 0,
-    indicatedBy: userData?.indicatedBy || '',
-    religion: userData?.religion || '',
-    badgeName: userData?.badgeName || '',
-    notes: userData?.notes || '',
-    leadershipPosition: userData?.leadershipPosition || '',
-    role: userData?.role || 5,
-  };
+  const DEFAULT_VALUES: RegisterUsersFormType = userToFormValues(userData);
 
   const methods = useForm<RegisterUsersFormType>({
     resolver: zodResolver(REGISTER_USERS_SCHEMA),
@@ -107,27 +83,7 @@ function EditUser() {
   }
 
   async function onSubmitForm(data: RegisterUsersFormType) {
-    const formatData = {
-      ...data,
-      worker: !!data.worker,
-      hypertensive: !!data.hypertensive,
-      diabetes: !!data.diabetes,
-      cellphone: removeMask(data.cellphone),
-      cpf: removeMask(data.cpf),
-      emergencyContact: data.emergencyContact
-        ? removeMask(data.emergencyContact)
-        : undefined,
-      profession: data.profession,
-      indicatedBy: data.indicatedBy === '' ? undefined : data.indicatedBy,
-      religion: data.religion === '' ? undefined : data.religion,
-      notes: data.notes === '' ? undefined : data.notes,
-      leadershipPosition:
-        data.leadershipPosition ===
-          ENUM_OPTION_LEADERSHIP_POSITION.NOT_POSITION ||
-        data.leadershipPosition === ''
-          ? undefined
-          : data.leadershipPosition,
-    };
+    const formatData = formValuesToUserPayload(data);
 
     try {
       await mutatePutUser({
