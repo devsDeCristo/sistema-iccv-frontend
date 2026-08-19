@@ -6,7 +6,6 @@ import {
   Card,
   Chip,
   Divider,
-  Grid,
   Stack,
   TextField,
   Typography,
@@ -92,7 +91,9 @@ function Etapa({
           )}
         </Box>
       </Stack>
-      <Box sx={{ pl: { xs: 0, md: 5.5 } }}>{children}</Box>
+      {/* sem recuo sob o número: o conteúdo é de largura inteira — formulário,
+          foto, botões — e um recuo só de um lado desalinha o cartão todo */}
+      {children}
     </Stack>
   );
 }
@@ -362,9 +363,20 @@ function PhotoStation({
         </Button>
       </Stack>
 
-      <Grid container spacing={2}>
+      {/* colunas com gap: o Grid do MUI monta o vão com margem negativa, e
+          isso desalinhava o conteúdo da aba em relação ao resto da página */}
+      <Stack
+        direction={{ xs: 'column', md: 'row' }}
+        alignItems="stretch"
+        spacing={2}
+      >
         {/* ---------------- fila ---------------- */}
-        <Grid item xs={12} md={emAtendimento ? 4 : 12}>
+        <Box
+          sx={{
+            flexShrink: 0,
+            width: { xs: '100%', md: emAtendimento ? '34%' : '100%' },
+          }}
+        >
           <Card sx={{ p: 2, height: '100%' }}>
             <Stack
               direction={{ xs: 'column', sm: 'row' }}
@@ -493,11 +505,11 @@ function PhotoStation({
               </>
             )}
           </Card>
-        </Grid>
+        </Box>
 
         {/* ---------------- atendimento ---------------- */}
         {emAtendimento && (
-          <Grid item xs={12} md={8}>
+          <Box sx={{ flex: 1, minWidth: 0 }}>
             <Card sx={{ overflow: 'hidden' }}>
               {/* faixa de identificação: é o que o inscrito lê no monitor */}
               <Box
@@ -610,9 +622,9 @@ function PhotoStation({
                 onCapture={setCapturaCamera}
               />
             </Card>
-          </Grid>
+          </Box>
         )}
-      </Grid>
+      </Stack>
 
       {/* o participante vê só o que lhe diz respeito: seus dados, e a câmera
           no lugar deles enquanto a foto é tirada — nunca a fila */}
