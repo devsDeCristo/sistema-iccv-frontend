@@ -27,15 +27,19 @@ function Header({
   const style = {
     boxContainer: {
       display: 'flex',
-      flexDirection: 'row',
-      alignItems: 'start',
+      // no celular a ação desce para baixo do título: lado a lado, um nome
+      // comprido espremia o botão e estourava a linha
+      flexDirection: { xs: 'column', sm: 'row' },
+      alignItems: { xs: 'flex-start', sm: 'start' },
       justifyContent: 'space-between',
+      gap: 1.5,
       mb: 2,
     },
     boxInner: {
       gap: 2,
       display: 'flex',
       alignItems: 'center',
+      minWidth: 0,
     },
     boxColumn: {
       display: 'flex',
@@ -44,9 +48,10 @@ function Header({
     },
     title: {
       lineHeight: 1.2,
-      fontSize: 24,
+      fontSize: { xs: 20, sm: 24 },
       color: theme.palette.text.primary,
       fontWeight: 500,
+      wordBreak: 'break-word',
     },
     description: {
       fontSize: 16,

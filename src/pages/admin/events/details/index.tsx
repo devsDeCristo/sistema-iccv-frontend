@@ -536,19 +536,20 @@ function Details() {
         }
         buttonBack
         pageBack="/admin/eventos"
-      />
-
-      {/* o check-in é operado em tela cheia, fora das abas de detalhe */}
-      {!isFinance && (
-        <Button
-          variant="contained"
-          startIcon={<HowToReg />}
-          sx={{ width: 'fit-content' }}
-          onClick={() => navigate(`/admin/eventos/${id}/checkin`)}
-        >
-          Abrir check-in
-        </Button>
-      )}
+      >
+        {/* ação da tela inteira, ao lado do título: o check-in é operado em
+            tela cheia, fora das abas de detalhe */}
+        {!isFinance && (
+          <Button
+            variant="contained"
+            startIcon={<HowToReg />}
+            sx={{ flexShrink: 0 }}
+            onClick={() => navigate(`/admin/eventos/${id}/checkin`)}
+          >
+            Abrir check-in
+          </Button>
+        )}
+      </Header>
 
       <Stack
         sx={[
