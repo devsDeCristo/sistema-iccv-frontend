@@ -1,0 +1,28 @@
+.git
+.gitignore
+
+# node_modules do host é macOS/arm64; o yarn install do Dockerfile refaz
+node_modules
+
+# dist é recompilado no stage de build
+dist
+dist-ssr
+*.tsbuildinfo
+
+# o valor real de VITE_API_URL entra como build-arg, não pelo arquivo
+.env
+.env.*
+!.env.example
+
+*.log
+*.local
+.DS_Store
+.vscode
+.idea
+
+# nginx.conf NÃO entra aqui: o Dockerfile faz COPY dele no stage runtime
+Dockerfile
+.dockerignore
+docker-compose.yml
+netlify.toml
+ic.code-workspace

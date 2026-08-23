@@ -1,0 +1,12 @@
+# Uso:  VITE_API_URL=http://localhost:5000 docker compose up --build
+# Mudou a URL da API? Precisa rebuildar — o Vite embute o valor no bundle.
+
+services:
+  web:
+    build:
+      context: .
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:5000}
+    restart: unless-stopped
+    ports:
+      - '8080:80'
