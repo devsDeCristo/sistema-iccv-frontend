@@ -46,6 +46,22 @@ export function formatDateTime(date?: Date | string | null) {
   });
 }
 
+/** Aplica no nome a formatação escolhida na hora de gerar crachás/envelopes */
+export function formatNameCase(
+  value: string,
+  nameCase: 'upper' | 'lower' | 'capitalize'
+): string {
+  const name = (value ?? '').trim();
+  if (!name) return '';
+
+  if (nameCase === 'upper') return name.toUpperCase();
+  if (nameCase === 'lower') return name.toLowerCase();
+
+  return name
+    .toLowerCase()
+    .replace(/(^|\s|')([a-zà-ú])/g, (_, prefix, letter) => prefix + letter.toUpperCase());
+}
+
 export const removeMask = (value: string): string => {
   return value.replace(/\D/g, '');
 };

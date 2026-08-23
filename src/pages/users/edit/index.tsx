@@ -7,7 +7,6 @@ import { usePermission } from '../../../hooks/usePermission';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { REGISTER_USERS_SCHEMA } from '../../../features/admin/users/constants';
 import {
-  DEFAULT_USER_ROLE,
   formValuesToUserPayload,
   userToFormValues,
 } from '../../../features/admin/users/utils';
@@ -33,10 +32,7 @@ function EditUser() {
   const { data } = useGetUsers({ userId: id });
   const userData = data as User;
 
-  const DEFAULT_VALUES: RegisterUsersFormType = {
-    ...userToFormValues(userData),
-    role: DEFAULT_USER_ROLE,
-  };
+  const DEFAULT_VALUES: RegisterUsersFormType = userToFormValues(userData);
 
   const methods = useForm<RegisterUsersFormType>({
     resolver: zodResolver(REGISTER_USERS_SCHEMA),
@@ -71,10 +67,9 @@ function EditUser() {
   }
 
   async function onSubmitForm(data: RegisterUsersFormType) {
-    const formatData = {
-      ...formValuesToUserPayload(data),
-      role: DEFAULT_USER_ROLE,
-    };
+    // sem `role` no corpo: esta tela edita dados pessoais, e um admin que
+    // salvasse o próprio perfil aqui era rebaixado para usuário comum
+    const formatData = formValuesToUserPayload(data);
 
     try {
       await mutatePutUser({

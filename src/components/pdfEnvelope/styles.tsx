@@ -30,7 +30,7 @@ const stylesPdfEnvelope = StyleSheet.create({
     flexWrap: 'nowrap',
     textAlign: 'center',
     color: '#383535',
-    textTransform: 'capitalize',
+    // a formatação do nome já vem resolvida do modal
   },
   container: {
     width: '100%',

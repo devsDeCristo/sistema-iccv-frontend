@@ -19,6 +19,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { usePostCreateBedroom } from '../api/postBedroom';
 import { useEffect } from 'react';
 import { toast } from 'react-toastify';
+import { ResponsiveAutocomplete } from '../../../../components/responsiveAutocomplete';
 import { usePutBedroom } from '../api/putBedroom';
 import { CheckBox, CheckBoxOutlineBlank, Close } from '@mui/icons-material';
 import { useGetUsers } from '../api/getUsers';
@@ -65,20 +66,34 @@ function ModalBedRoom({
     },
     overflow: {
       overflow: 'auto',
-      maxHeight: '75vh',
+      flex: 1,
+      minHeight: 0,
+      maxHeight: { xs: 'none', sm: '75vh' },
       p: 1,
       mb: 2,
     },
     container: {
+      // no celular o modal toma a tela inteira; no desktop segue centralizado
       position: 'absolute' as 'absolute',
-      top: '50%',
-      left: '50%',
-      transform: 'translate(-50%, -50%)',
-      width: { xs: '90%', sm: 600 },
+      top: { xs: 0, sm: '50%' },
+      left: { xs: 0, sm: '50%' },
+      transform: { xs: 'none', sm: 'translate(-50%, -50%)' },
+      width: { xs: '100%', sm: 600 },
+      height: { xs: '100%', sm: 'auto' },
+      maxHeight: { xs: '100%', sm: '90vh' },
+      display: 'flex',
+      flexDirection: 'column',
       color: '#000',
       backgroundColor: theme.palette.background.paperSecondary,
       boxShadow: 14,
       p: { xs: 2, md: 3 },
+    },
+    // o corpo rola e o botão de salvar fica sempre à vista
+    form: {
+      display: 'flex',
+      flexDirection: 'column',
+      flex: 1,
+      minHeight: 0,
     },
   };
   const {
@@ -230,7 +245,7 @@ function ModalBedRoom({
         },
       }}
       sx={{
-        '& .MuiBox-root': { borderRadius: 1 },
+        '& .MuiBox-root': { borderRadius: { xs: 0, sm: 1 } },
       }}
     >
       <Fade in={open}>
@@ -247,7 +262,12 @@ function ModalBedRoom({
               <Close />
             </IconButton>
           </Stack>
-          <form onSubmit={handleSubmit(onSubimitBedroom, onInvalid)} noValidate>
+          <Box
+            component="form"
+            onSubmit={handleSubmit(onSubimitBedroom, onInvalid)}
+            noValidate
+            sx={styles.form}
+          >
             <Box sx={styles.overflow}>
               {listaDeErros.length > 0 && (
                 <Alert severity="error" sx={{ mb: 1.5 }}>
@@ -439,7 +459,13 @@ function ModalBedRoom({
                                 : `${selecionados.length} selecionado(s)`
                             }
                           />
-                          <Autocomplete
+                          <ResponsiveAutocomplete
+                            mobileTitle="Participantes"
+                            mobileNotice={
+                              quartoCheio
+                                ? `Capacidade máxima atingida: ${ocupantes} de ${capacity} vagas preenchidas. Aumente a capacidade do quarto para alocar mais pessoas.`
+                                : undefined
+                            }
                             multiple
                             size="small"
                             disableCloseOnSelect
@@ -533,7 +559,7 @@ function ModalBedRoom({
             >
               {isSaving ? 'Salvando...' : 'Salvar'}
             </Button>
-          </form>
+          </Box>
         </Box>
       </Fade>
     </Modal>

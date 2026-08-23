@@ -39,12 +39,19 @@ export function userToFormValues(user?: User | null): RegisterUsersFormType {
 /**
  * Valores do formulário -> corpo do PUT: tira as máscaras e troca "" por
  * undefined, senão o servidor grava string vazia em campo opcional.
+ *
+ * A permissão fica fora do payload de propósito. Quem altera acesso é o modal
+ * de permissão, que envia só o campo `role`; um formulário de dados pessoais
+ * não deveria mexer em acesso nem por acidente. Além disso, devolver o valor
+ * do próprio cadastro derrubava a edição de quem tem `role` legado fora da
+ * lista aceita pelo servidor (1, 2, 3, 5) — mesmo mudando só o nome.
  */
 export function formValuesToUserPayload(data: RegisterUsersFormType) {
   const semValor = (valor?: string) => (valor === '' ? undefined : valor);
+  const { role: _permissao, ...valores } = data;
 
   return {
-    ...data,
+    ...valores,
     worker: !!data.worker,
     hypertensive: !!data.hypertensive,
     diabetes: !!data.diabetes,

@@ -1,7 +1,9 @@
 import { Page, Text, View, Document, Font, Image } from '@react-pdf/renderer';
 
 import { stylesPdfEnvelope } from './styles';
-import type { PdfProps } from './types';
+import type { EnvelopePage, PdfProps } from './types';
+import { PdfNameCase, PdfSection } from '../../types/pdf';
+import { formatNameCase } from '../../utils';
 // import logoIc from '../../assets/logo-ic-vermelha.png';
 import logoEvento from '../../assets/6-curs-fem.png';
 import bgbadge from '../../assets/fundo-cracha.png';
@@ -10,14 +12,49 @@ Font.register({
   src: 'http://fonts.gstatic.com/s/amethysta/v4/uuO0VFu8kdKx34ju6adj-KCWcynf_cDxXwCLxiixG1c.ttf',
 });
 
+/**
+ * Um envelope por folha, na ordem dos blocos; os em branco vão para o fim.
+ * O envelope não leva o nome da equipe/grupo: a arte ocupa a folha inteira e
+ * qualquer texto acabaria por cima dela.
+ */
+function buildPages(
+  sections: PdfSection[],
+  blankCount: number,
+  nameCase: PdfNameCase
+): EnvelopePage[] {
+  const pages: EnvelopePage[] = sections.flatMap((section) =>
+    section.users
+      .filter(({ badgeName }) => !!badgeName)
+      .map(({ fullName }) => ({
+        name: formatNameCase(fullName || '', nameCase),
+      }))
+  );
+
+  for (let i = 0; i < blankCount; i += 1) {
+    pages.push({ name: '' });
+  }
+
+  return pages;
+}
+
 // Create Document Component
-function PdfEnvelope({ data, event }: PdfProps) {
+function PdfEnvelope({
+  data,
+  event,
+  sections,
+  nameCase = 'capitalize',
+  blankCount = 0,
+}: PdfProps) {
   const dataEvent = event.data;
-  const filterBadgeName = data.filter(({ badgeName }) => !!badgeName);
+
+  const resolvedSections: PdfSection[] = sections?.length
+    ? sections
+    : [{ title: null, users: data || [] }];
+  const pages = buildPages(resolvedSections, blankCount, nameCase);
 
   return (
     <Document>
-      {filterBadgeName.map(({ fullName }, index) => (
+      {pages.map((page, index) => (
         <Page
           key={index}
           orientation="portrait"
@@ -41,7 +78,7 @@ function PdfEnvelope({ data, event }: PdfProps) {
                 />
               </View>
               <Text wrap={false} style={stylesPdfEnvelope.textName}>
-                {fullName?.toLowerCase()}
+                {page.name}
               </Text>
             </View>
           </View>
