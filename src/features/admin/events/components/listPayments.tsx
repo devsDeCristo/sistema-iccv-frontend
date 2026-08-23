@@ -109,16 +109,22 @@ function ListPayments({
     titleCard: {
       borderRadius: '5px',
       backgroundColor: theme.palette.background.paper,
+      fontSize: { xs: '0.8rem', sm: '0.875rem' },
     },
     subTitleCard: {
-      fontSize: '1.5rem',
+      // no celular o valor cheio não cabe em 1.5rem sem quebrar a linha
+      fontSize: { xs: '1.15rem', sm: '1.35rem', md: '1.5rem' },
       fontWeight: 600,
       color: theme.palette.text.primary,
+      whiteSpace: 'nowrap',
     },
     cardMoney: {
       position: 'relative',
       p: 2,
       width: '100%',
+      // os três dividem a linha em partes iguais e empilham no celular
+      flex: 1,
+      minWidth: 0,
     },
     card: {
       fontSize: '30px',
@@ -334,8 +340,8 @@ function ListPayments({
   return (
     <>
       <Stack
-        direction="row"
-        alignItems="center"
+        direction={{ xs: 'column', sm: 'row' }}
+        alignItems="stretch"
         justifyContent="space-between"
         gap={1}
       >

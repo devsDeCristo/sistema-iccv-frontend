@@ -1,6 +1,5 @@
 import {
   Alert,
-  Autocomplete,
   Backdrop,
   Box,
   Button,
@@ -19,6 +18,7 @@ import {
 import { Controller, useForm } from 'react-hook-form';
 import { useEffect } from 'react';
 import { toast } from 'react-toastify';
+import { ResponsiveAutocomplete } from '../../../../components/responsiveAutocomplete';
 import { usePostCreateTeam } from '../api/postTeam';
 import { usePutTeam } from '../api/putTeam';
 import { CheckBox, CheckBoxOutlineBlank, Close } from '@mui/icons-material';
@@ -64,19 +64,33 @@ function ModalTeam({ open, handleClose, team, eventId }: ModalTeamProps) {
     },
     overflow: {
       overflow: 'auto',
-      maxHeight: '75vh',
+      flex: 1,
+      minHeight: 0,
+      maxHeight: { xs: 'none', sm: '75vh' },
       mb: 2,
     },
     container: {
+      // no celular o modal toma a tela inteira; no desktop segue centralizado
       position: 'absolute' as 'absolute',
-      top: '50%',
-      left: '50%',
-      transform: 'translate(-50%, -50%)',
-      width: { xs: '90%', sm: 600 },
+      top: { xs: 0, sm: '50%' },
+      left: { xs: 0, sm: '50%' },
+      transform: { xs: 'none', sm: 'translate(-50%, -50%)' },
+      width: { xs: '100%', sm: 600 },
+      height: { xs: '100%', sm: 'auto' },
+      maxHeight: { xs: '100%', sm: '90vh' },
+      display: 'flex',
+      flexDirection: 'column',
       color: '#000',
       backgroundColor: theme.palette.background.paperSecondary,
       boxShadow: 14,
       p: { xs: 2, md: 3 },
+    },
+    // o corpo rola e o botão de salvar fica sempre à vista
+    form: {
+      display: 'flex',
+      flexDirection: 'column',
+      flex: 1,
+      minHeight: 0,
     },
   };
   const {
@@ -140,7 +154,9 @@ function ModalTeam({ open, handleClose, team, eventId }: ModalTeamProps) {
     const transoformData = {
       ...data,
       usersId: (data.usersId || []).map((user: any) => user.value),
-      usersLeadersId: (data.usersLeadersId || []).map((user: any) => user.value),
+      usersLeadersId: (data.usersLeadersId || []).map(
+        (user: any) => user.value
+      ),
       capacity: Number(data.capacity),
     };
 
@@ -232,7 +248,7 @@ function ModalTeam({ open, handleClose, team, eventId }: ModalTeamProps) {
         },
       }}
       sx={{
-        '& .MuiBox-root': { borderRadius: 1 },
+        '& .MuiBox-root': { borderRadius: { xs: 0, sm: 1 } },
       }}
     >
       <Fade in={open}>
@@ -249,7 +265,12 @@ function ModalTeam({ open, handleClose, team, eventId }: ModalTeamProps) {
               <Close />
             </IconButton>
           </Stack>
-          <form onSubmit={handleSubmit(onSubimitTeam, onInvalid)} noValidate>
+          <Box
+            component="form"
+            onSubmit={handleSubmit(onSubimitTeam, onInvalid)}
+            noValidate
+            sx={styles.form}
+          >
             <Box sx={styles.overflow}>
               {listaDeErros.length > 0 && (
                 <Alert severity="error" sx={{ mb: 1.5 }}>
@@ -380,7 +401,13 @@ function ModalTeam({ open, handleClose, team, eventId }: ModalTeamProps) {
                                 : `${selecionados.length} selecionado(s)`
                             }
                           />
-                          <Autocomplete
+                          <ResponsiveAutocomplete
+                            mobileTitle="Líderes"
+                            mobileNotice={
+                              equipeCheia
+                                ? `Capacidade máxima atingida: ${totalSelecionados} de ${capacity} vagas preenchidas. Aumente a capacidade da equipe para adicionar mais pessoas.`
+                                : undefined
+                            }
                             multiple
                             size="small"
                             disableCloseOnSelect
@@ -397,7 +424,8 @@ function ModalTeam({ open, handleClose, team, eventId }: ModalTeamProps) {
                                 (item) => item.value === option.value
                               );
                               if (jaSelecionado) return false;
-                              if (idsMembros.includes(option.value)) return true;
+                              if (idsMembros.includes(option.value))
+                                return true;
                               return equipeCheia;
                             }}
                             noOptionsText="Nenhuma pessoa inscrita encontrada"
@@ -465,8 +493,8 @@ function ModalTeam({ open, handleClose, team, eventId }: ModalTeamProps) {
                                   (semCapacidade
                                     ? 'Informe a capacidade da equipe para liberar a seleção'
                                     : equipeCheia
-                                      ? `Equipe cheia (${totalSelecionados}/${capacity}). Aumente a capacidade para adicionar mais pessoas.`
-                                      : `${vagasRestantes} vaga(s) disponível(is)`)
+                                    ? `Equipe cheia (${totalSelecionados}/${capacity}). Aumente a capacidade para adicionar mais pessoas.`
+                                    : `${vagasRestantes} vaga(s) disponível(is)`)
                                 }
                               />
                             )}
@@ -501,7 +529,13 @@ function ModalTeam({ open, handleClose, team, eventId }: ModalTeamProps) {
                                 : `${selecionados.length} selecionado(s)`
                             }
                           />
-                          <Autocomplete
+                          <ResponsiveAutocomplete
+                            mobileTitle="Participantes"
+                            mobileNotice={
+                              equipeCheia
+                                ? `Capacidade máxima atingida: ${totalSelecionados} de ${capacity} vagas preenchidas. Aumente a capacidade da equipe para adicionar mais pessoas.`
+                                : undefined
+                            }
                             multiple
                             size="small"
                             disableCloseOnSelect
@@ -518,7 +552,8 @@ function ModalTeam({ open, handleClose, team, eventId }: ModalTeamProps) {
                                 (item) => item.value === option.value
                               );
                               if (jaSelecionado) return false;
-                              if (idsLideres.includes(option.value)) return true;
+                              if (idsLideres.includes(option.value))
+                                return true;
                               return equipeCheia;
                             }}
                             noOptionsText="Nenhuma pessoa inscrita encontrada"
@@ -586,8 +621,8 @@ function ModalTeam({ open, handleClose, team, eventId }: ModalTeamProps) {
                                   (semCapacidade
                                     ? 'Informe a capacidade da equipe para liberar a seleção'
                                     : equipeCheia
-                                      ? `Equipe cheia (${totalSelecionados}/${capacity}). Aumente a capacidade para adicionar mais pessoas.`
-                                      : `${vagasRestantes} vaga(s) disponível(is)`)
+                                    ? `Equipe cheia (${totalSelecionados}/${capacity}). Aumente a capacidade para adicionar mais pessoas.`
+                                    : `${vagasRestantes} vaga(s) disponível(is)`)
                                 }
                               />
                             )}
@@ -607,7 +642,7 @@ function ModalTeam({ open, handleClose, team, eventId }: ModalTeamProps) {
             >
               {isSaving ? 'Salvando...' : 'Salvar'}
             </Button>
-          </form>
+          </Box>
         </Box>
       </Fade>
     </Modal>

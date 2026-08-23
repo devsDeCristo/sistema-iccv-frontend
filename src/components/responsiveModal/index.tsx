@@ -7,6 +7,8 @@ import {
   Drawer,
   IconButton,
   Stack,
+  SxProps,
+  Theme,
   Typography,
   useMediaQuery,
   useTheme,
@@ -32,6 +34,14 @@ interface ResponsiveModalProps {
   fullWidth?: boolean;
   /** Trava o fechar enquanto algo está rodando (ex.: gerando o PDF) */
   disableClose?: boolean;
+  /** Repassado ao Dialog/Drawer — serve para empilhar sobre outro modal */
+  sx?: SxProps<Theme>;
+  /**
+   * A folha abre já na altura máxima em vez de acompanhar o conteúdo. Serve
+   * para conteúdo que rola (uma lista longa), que fica apertado numa folha
+   * do tamanho do que coube.
+   */
+  fullHeight?: boolean;
 }
 
 /** Arraste (em px) a partir do qual soltar a alcinha fecha a folha */
@@ -49,6 +59,8 @@ function ResponsiveModal({
   maxWidth = 'md',
   fullWidth = true,
   disableClose = false,
+  sx,
+  fullHeight = false,
 }: ResponsiveModalProps) {
   const theme = useTheme();
   // sem `noSsr` o primeiro render sai como desktop e o modal abre duas vezes:
@@ -149,6 +161,7 @@ function ResponsiveModal({
         anchor="bottom"
         open={open}
         onClose={handleClose}
+        sx={sx}
         PaperProps={{
           // fora do gesto o transform fica com o Slide do MUI: um transform
           // nosso aqui faz a folha descer animada antes de subir, e a abertura
@@ -162,6 +175,7 @@ function ResponsiveModal({
               }
             : undefined,
           sx: {
+            height: fullHeight ? '92vh' : 'auto',
             maxHeight: '92vh',
             borderTopLeftRadius: 16,
             borderTopRightRadius: 16,
@@ -196,7 +210,11 @@ function ResponsiveModal({
 
         {header}
         <Divider />
-        <Box sx={{ px: 3, py: 2, overflowY: 'auto', flex: 1 }}>{children}</Box>
+        <Box
+          sx={{ px: 3, py: 2, overflowY: 'auto', overflowX: 'hidden', flex: 1 }}
+        >
+          {children}
+        </Box>
         {footer}
       </Drawer>
     );
@@ -209,11 +227,16 @@ function ResponsiveModal({
       maxWidth={maxWidth}
       fullWidth={fullWidth}
       fullScreen={isMobile}
+      sx={sx}
       PaperProps={{ sx: { backgroundImage: 'none' } }}
     >
       {header}
       <Divider />
-      <Box sx={{ px: 3, py: 2, overflowY: 'auto', flex: 1 }}>{children}</Box>
+      <Box
+          sx={{ px: 3, py: 2, overflowY: 'auto', overflowX: 'hidden', flex: 1 }}
+        >
+          {children}
+        </Box>
       {footer}
     </Dialog>
   );
