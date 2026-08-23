@@ -4,6 +4,14 @@ const stylesPdfBadge = StyleSheet.create({
   body: {
     padding: 15,
   },
+  sectionTitle: {
+    fontSize: 11,
+    fontFamily: 'Helvetica',
+    color: '#555555',
+    textTransform: 'lowercase',
+    marginBottom: 6,
+    paddingLeft: 2,
+  },
   container: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -48,7 +56,7 @@ const stylesPdfBadge = StyleSheet.create({
     fontSize: 20,
     fontFamily: 'Helvetica-Bold',
     textAlign: 'center',
-    textTransform: 'capitalize',
+    // a formatação do nome já vem resolvida do modal
     // marginTop: 20,
     top: 210,
     position: 'absolute',

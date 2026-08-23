@@ -12,12 +12,6 @@ import {
   Chip,
   LinearProgress,
   useTheme,
-  Grid,
-  Typography,
-  FormControlLabel,
-  Checkbox,
-  Popover,
-  Divider,
   Menu,
   MenuItem,
 } from '@mui/material';
@@ -41,9 +35,7 @@ import { useGetTeams } from '../../../../features/admin/events/api/getTeams';
 import { useGetBedrooms } from '../../../../features/admin/events/api/getBedrooms';
 import PdfBedRooms from '../../../../components/pdfRooms';
 import { useGetEvents } from '../../../../features/admin/events/api/getEvents';
-import PdfBadge from '../../../../components/pdfBadge';
 import { ModalAddUserOnEvent } from '../../../../features/admin/events/components/modalAddUser';
-import PdfEnvelope from '../../../../components/pdfEnvelope';
 import {
   BadgeOutlined,
   BedOutlined,
@@ -63,13 +55,14 @@ import {
   useGridApiRef,
 } from '@mui/x-data-grid';
 import { ModalExportUsers } from '../../../../features/admin/events/components/exportUsers/modalExportUsers';
+import { ModalGeneratePdf } from '../../../../features/admin/events/components/pdfGenerator/modalGeneratePdf';
+import { PdfDocType } from '../../../../features/admin/events/components/pdfGenerator/types';
 import { ExportFormat } from '../../../../features/admin/events/components/exportUsers/types';
 import { useGetUsers } from '../../../../features/admin/events/api/getUsers';
 import FilterModal from '../../../../features/admin/events/components/filtersUserModal';
 import PdfTeams from '../../../../components/pdfTeams';
 
 import ModalQrCode from '../../../../features/admin/events/components/modalQrCode';
-import PdfEnvelopePhoto from '../../../../components/pdfEnvelopePhoto';
 import { User } from '../../../../types/user';
 import { ListUsersWaitList } from '../../../../features/admin/events/components/listUsersWaitList';
 import { ListPayments } from '../../../../features/admin/events/components/listPayments';
@@ -100,12 +93,6 @@ function Details() {
   const [openModalFilter, setOpenModalFilter] = useState(false);
   const [loadingPdfTeams, setLoadingPdfTeams] = useState(false);
   const [loadingPdfEvent, setLoadingPdfEvent] = useState(false);
-  const [loadingPdfBadge, setLoadingPdfBadge] = useState(false);
-  const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
-  const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
-  const [loadingPdfEnvelopePhoto, setLoadingPdfEnvelopePhoto] = useState(false);
-  const [loadingPdfEnvelopeLetter, setLoadingPdfEnvelopeLetter] =
-    useState(false);
   const [loadingPdfRooms, setLoadingPdfRooms] = useState(false);
   const [filtersUsers, setFiltersUsers] = useState<filterUsers>({
     birthday: { startDate: '', endDate: '' },
@@ -115,24 +102,17 @@ function Details() {
   });
   const [filtersUsersSelected, setFiltersUsersSelected] = useState<number>(0);
   const { id: eventId = '' } = useParams();
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  // exportação: formato escolhido no dropdown + fotografia da grade no clique
+  // exportação e PDFs: escolha do dropdown + fotografia da grade no clique
   const [anchorElExport, setAnchorElExport] = useState<null | HTMLElement>(
     null
   );
   const [exportFormat, setExportFormat] = useState<ExportFormat | null>(null);
-  const [exportFilteredUsers, setExportFilteredUsers] = useState<User[]>([]);
-  const [exportSelectedUsers, setExportSelectedUsers] = useState<User[]>([]);
+  const [pdfType, setPdfType] = useState<PdfDocType | null>(null);
+  const [gridFilteredUsers, setGridFilteredUsers] = useState<User[]>([]);
+  const [gridSelectedUsers, setGridSelectedUsers] = useState<User[]>([]);
   const [openModalQrCode, setOpenModalQrCode] = useState(false);
-  const openMenu = Boolean(anchorEl);
 
-  const handleClickOpenMenu = (event: React.MouseEvent<HTMLButtonElement>) => {
-    setAnchorEl(event.currentTarget);
-  };
   const handleCloseModalQrCode = () => setOpenModalQrCode(false);
-  const handleCloseMenu = () => {
-    setAnchorEl(null);
-  };
   const theme = useTheme();
   // quartos e equipes são carregados aqui só para os PDFs dessas abas.
   // O financeiro não tem acesso a esses endpoints: sem o `enabled` a página
@@ -174,15 +154,6 @@ function Details() {
   );
   const users = usersData as User[];
   const event = eventData as EventDetails;
-
-  const groupsRulesIds = useMemo(
-    () =>
-      event?.groupRoles?.reduce((acc: any, g: any) => {
-        acc[g.name] = g.roles[0]?.id;
-        return acc;
-      }, {}) ?? {},
-    [event]
-  ) as Record<string, string>;
 
   const styles = {
     card: {
@@ -259,52 +230,6 @@ function Details() {
       FileSaver.saveAs(blob, 'quartos.pdf');
 
       setLoadingPdfRooms(false);
-    }, 50);
-  }
-  async function generatePdfBadge() {
-    setLoadingPdfBadge(true);
-    setTimeout(async () => {
-      let blob;
-
-      blob = await pdf(<PdfBadge data={users || []} event={event} />).toBlob();
-      FileSaver.saveAs(blob, 'crachas.pdf');
-
-      setLoadingPdfBadge(false);
-    }, 50);
-  }
-  async function generatePdfEnvelopePhoto() {
-    setLoadingPdfEnvelopePhoto(true);
-    setTimeout(async () => {
-      let blob;
-
-      blob = await pdf(<PdfEnvelopePhoto event={event} />).toBlob();
-      FileSaver.saveAs(blob, 'envelopes-fotos.pdf');
-
-      setLoadingPdfEnvelopePhoto(false);
-    }, 50);
-  }
-
-  async function generatePdfEnvelopeLetter() {
-    const usersFiltered = users.filter((user) => {
-      return user.groupsRegistration?.some((group: any) =>
-        selectedGroups.includes(group.name)
-      );
-    });
-    if (usersFiltered.length === 0) {
-      alert('Nenhum usuário encontrado para os grupos selecionados.');
-      return;
-    }
-
-    setLoadingPdfEnvelopeLetter(true);
-    setTimeout(async () => {
-      let blob;
-
-      blob = await pdf(
-        <PdfEnvelope data={usersFiltered || []} event={event} />
-      ).toBlob();
-      FileSaver.saveAs(blob, 'envelopes-cartas.pdf');
-
-      setLoadingPdfEnvelopeLetter(false);
     }, 50);
   }
   async function generatePDFTeams() {
@@ -421,10 +346,18 @@ function Details() {
 
   const handleOpenExport = (format: ExportFormat) => {
     const { filtered, selected } = readGridSelection();
-    setExportFilteredUsers(filtered);
-    setExportSelectedUsers(selected);
+    setGridFilteredUsers(filtered);
+    setGridSelectedUsers(selected);
     setExportFormat(format);
     setAnchorElExport(null);
+  };
+
+  /** Crachás e envelopes: a mesma fotografia da grade, escolhas no modal */
+  const handleOpenPdf = (type: PdfDocType) => {
+    const { filtered, selected } = readGridSelection();
+    setGridFilteredUsers(filtered);
+    setGridSelectedUsers(selected);
+    setPdfType(type);
   };
   // const handlePrint = ({ apiRef, columns }) => {
   //     // Obter TODAS as linhas diretamente do estado do grid
@@ -487,32 +420,6 @@ function Details() {
   //     // Salvar o PDF
   //     doc.save("todas-linhas.pdf");
   //   };
-
-  const handleTypeChange = (type: string) => {
-    setSelectedTypes([type]);
-  };
-
-  const handleGroupChange = (group: string) => {
-    setSelectedGroups((prev) =>
-      prev.includes(group) ? prev.filter((g) => g !== group) : [...prev, group]
-    );
-  };
-
-  const handleGenerate = () => {
-    if (selectedTypes.length === 0 || selectedGroups.length === 0) {
-      alert('Por favor, selecione pelo menos um tipo e um grupo.');
-      return;
-    }
-
-    if (selectedTypes.includes('cartas')) {
-      generatePdfEnvelopeLetter();
-    } else if (selectedTypes.includes('fotos')) {
-      generatePdfEnvelopePhoto();
-    }
-    handleCloseMenu(); // reaproveita o mesmo close
-    setSelectedTypes([]); // limpa a seleção após gerar
-    setSelectedGroups([]); // limpa a seleção de grupos também, se necessário
-  };
 
   return (
     <PageStyle>
@@ -622,38 +529,32 @@ function Details() {
               >
                 Exportar
               </Button>
-              <Box>
-                <Button
-                  sx={{ width: { xs: '100%', sm: 'fit-content' } }}
-                  variant="outlined"
-                  onClick={handleClickOpenMenu}
-                  // onClick={() => handleDownloadPDF(2)}
-                  startIcon={<EmailOutlined />}
-                  disabled={
-                    loadingPdfEnvelopeLetter ||
-                    loadingPdfEnvelopePhoto ||
-                    loadingEventDetails ||
-                    loadingUsers
-                  }
-                >
-                  PDF Envelopes
-                </Button>
-                {(loadingPdfEnvelopeLetter || loadingPdfEnvelopePhoto) && (
-                  <LinearProgress />
-                )}
-              </Box>
-              <Box>
-                <Button
-                  sx={{ width: { xs: '100%', sm: 'fit-content' } }}
-                  variant="outlined"
-                  onClick={() => generatePdfBadge()}
-                  disabled={loadingEventDetails || loadingUsers}
-                  startIcon={<BadgeOutlined />}
-                >
-                  PDF Crachás
-                </Button>
-                {loadingPdfBadge && <LinearProgress />}
-              </Box>
+              <Button
+                sx={{ width: { xs: '100%', sm: 'fit-content' } }}
+                variant="outlined"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleOpenPdf('envelope');
+                }}
+                startIcon={<EmailOutlined />}
+                disabled={loadingEventDetails || loadingUsers}
+              >
+                PDF Envelopes
+              </Button>
+              <Button
+                sx={{ width: { xs: '100%', sm: 'fit-content' } }}
+                variant="outlined"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleOpenPdf('badge');
+                }}
+                disabled={loadingEventDetails || loadingUsers}
+                startIcon={<BadgeOutlined />}
+              >
+                PDF Crachás
+              </Button>
               {/* <Button
                 variant="contained"
                 onClick={() => setOpenModalAddUser(true)}
@@ -875,111 +776,6 @@ function Details() {
         eventId={id || ''}
       />
 
-      {/* <Menu
-        id="basic-menu"
-        anchorEl={anchorEl}
-        open={openMenu}
-        onClose={handleCloseMenu}
-      >
-        <MenuItem
-          onClick={() => {
-            generatePdfEnvelopeLetter();
-            handleCloseMenu();
-          }}
-        >
-          Cartas (Com nome)
-        </MenuItem>
-        <MenuItem
-          onClick={() => {
-            generatePdfEnvelopePhoto();
-            handleCloseMenu();
-          }}
-        >
-          Fotos (Sem nome)
-        </MenuItem>
-      </Menu> */}
-
-      <Popover
-        id="gerador-popover"
-        open={openMenu}
-        anchorEl={anchorEl}
-        onClose={handleCloseMenu}
-        anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'left',
-        }}
-        PaperProps={{
-          sx: {
-            borderRadius: 2,
-            border: '1px solid #ffffff1a',
-            boxShadow: 3,
-          },
-        }}
-      >
-        <Box p={3} minWidth={400}>
-          <Grid container spacing={4}>
-            {/* Coluna esquerda */}
-            <Grid item xs={5}>
-              <Typography variant="subtitle1">Tipo</Typography>
-
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={selectedTypes.includes('cartas')}
-                    onChange={() => handleTypeChange('cartas')}
-                  />
-                }
-                label="Cartas (Com nome)"
-              />
-
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={selectedTypes.includes('fotos')}
-                    onChange={() => handleTypeChange('fotos')}
-                  />
-                }
-                label="Fotos (Sem nome)"
-              />
-            </Grid>
-            <Grid
-              item
-              xs={1}
-              display="flex"
-              justifyContent="center"
-              alignItems="center"
-            >
-              <Divider orientation="vertical" flexItem />
-            </Grid>
-            {/* Coluna direita */}
-            <Grid item xs={6}>
-              <Typography variant="subtitle1">Grupos</Typography>
-
-              <Stack sx={{ maxHeight: '100px', overflowY: 'auto' }}>
-                {groupsRulesIds &&
-                  Object.keys(groupsRulesIds).map((group) => (
-                    <FormControlLabel
-                      key={group}
-                      control={
-                        <Checkbox
-                          checked={selectedGroups.includes(group)}
-                          onChange={() => handleGroupChange(group)}
-                        />
-                      }
-                      label={group}
-                    />
-                  ))}
-              </Stack>
-            </Grid>
-          </Grid>
-
-          {/* Botão */}
-          <Box mt={3} textAlign="right" onClick={handleGenerate}>
-            <Button variant="contained">Gerar</Button>
-          </Box>
-        </Box>
-      </Popover>
-
       <ModalQrCode
         open={openModalQrCode}
         handleClose={handleCloseModalQrCode}
@@ -1004,8 +800,19 @@ function Details() {
         event={event}
         teams={teams}
         allUsers={users || []}
-        filteredUsers={exportFilteredUsers}
-        selectedUsers={exportSelectedUsers}
+        filteredUsers={gridFilteredUsers}
+        selectedUsers={gridSelectedUsers}
+      />
+
+      <ModalGeneratePdf
+        open={Boolean(pdfType)}
+        type={pdfType}
+        onClose={() => setPdfType(null)}
+        event={event}
+        teams={teams}
+        allUsers={users || []}
+        filteredUsers={gridFilteredUsers}
+        selectedUsers={gridSelectedUsers}
       />
     </PageStyle>
   );

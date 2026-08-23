@@ -2,22 +2,17 @@ import {
   Box,
   Button,
   Checkbox,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
   Divider,
   FormControl,
   FormControlLabel,
   FormLabel,
   Grid,
-  InputLabel,
-  MenuItem,
   Radio,
   RadioGroup,
-  Select,
   Stack,
   Typography,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
 import { pdf } from '@react-pdf/renderer';
 import FileSaver from 'file-saver';
@@ -36,6 +31,8 @@ import {
   SORT_OPTIONS,
 } from './constants';
 import { buildFileName, exportCsv, exportXlsx } from './exportFile';
+import { ResponsiveModal } from '../../../../../components/responsiveModal';
+import { SelectField } from '../../../../../components/selectField';
 import { PdfUsersExport } from './pdfUsersExport';
 import {
   ExportFormat,
@@ -85,6 +82,10 @@ function ModalExportUsers({
   filteredUsers,
   selectedUsers,
 }: ModalExportUsersProps) {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'), {
+    noSsr: true,
+  });
   const isPdf = format === 'pdf';
 
   const [scope, setScope] = useState<ExportScope>('filtered');
@@ -240,13 +241,29 @@ function ModalExportUsers({
   }
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-      <DialogTitle>
-        {`Exportar ${format ? FORMAT_LABEL[format] : ''}`}
-      </DialogTitle>
-
-      <DialogContent dividers>
-        <Stack gap={3}>
+    <ResponsiveModal
+      open={open}
+      onClose={onClose}
+      disableClose={isExporting}
+      mobileMode="bottomSheet"
+      title={`Exportar ${format ? FORMAT_LABEL[format] : ''}`}
+      actions={
+        <>
+          <Button onClick={onClose} disabled={isExporting} fullWidth={isMobile}>
+            Cancelar
+          </Button>
+          <Button
+            variant="contained"
+            onClick={onExport}
+            disabled={isExporting}
+            fullWidth={isMobile}
+          >
+            {isExporting ? 'Gerando...' : 'Exportar'}
+          </Button>
+        </>
+      }
+    >
+      <Stack gap={3}>
           {isPdf && (
             <FormControl>
               <FormLabel>Modelo</FormLabel>
@@ -317,82 +334,51 @@ function ModalExportUsers({
               <Divider />
               <Grid container spacing={2}>
                 <Grid item xs={12} md={4}>
-                  <FormControl fullWidth size="small">
-                    <InputLabel id="export-grouping">Agrupamento</InputLabel>
-                    <Select
-                      labelId="export-grouping"
-                      label="Agrupamento"
-                      value={grouping}
-                      onChange={(e) =>
-                        setGrouping(e.target.value as ExportGrouping)
-                      }
-                    >
-                      {GROUPING_OPTIONS.map((option) => (
-                        <MenuItem key={option.value} value={option.value}>
-                          {option.label}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
+                  <SelectField
+                    label="Agrupamento"
+                    native={isMobile}
+                    value={grouping}
+                    onChange={(value) => setGrouping(value as ExportGrouping)}
+                    options={GROUPING_OPTIONS}
+                  />
                 </Grid>
 
                 <Grid item xs={12} md={4}>
-                  <FormControl fullWidth size="small">
-                    <InputLabel id="export-group">
-                      Grupo de inscrição
-                    </InputLabel>
-                    <Select
-                      labelId="export-group"
-                      label="Grupo de inscrição"
-                      value={registrationGroup}
-                      onChange={(e) => setRegistrationGroup(e.target.value)}
-                    >
-                      <MenuItem value={ALL_GROUPS}>Todos</MenuItem>
-                      {groupNames.map((name) => (
-                        <MenuItem key={name} value={name}>
-                          {name}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
+                  <SelectField
+                    label="Grupo de inscrição"
+                    native={isMobile}
+                    value={registrationGroup}
+                    onChange={setRegistrationGroup}
+                    options={[
+                      { value: ALL_GROUPS, label: 'Todos' },
+                      ...groupNames.map((name) => ({
+                        value: name,
+                        label: name,
+                      })),
+                    ]}
+                  />
                 </Grid>
 
                 <Grid item xs={12} md={4}>
-                  <FormControl fullWidth size="small">
-                    <InputLabel id="export-sort">Ordenação</InputLabel>
-                    <Select
-                      labelId="export-sort"
-                      label="Ordenação"
-                      value={sort}
-                      onChange={(e) => setSort(e.target.value as ExportSort)}
-                    >
-                      {SORT_OPTIONS.map((option) => (
-                        <MenuItem key={option.value} value={option.value}>
-                          {option.label}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
+                  <SelectField
+                    label="Ordenação"
+                    native={isMobile}
+                    value={sort}
+                    onChange={(value) => setSort(value as ExportSort)}
+                    options={SORT_OPTIONS}
+                  />
                 </Grid>
 
                 <Grid item xs={12} md={4}>
-                  <FormControl fullWidth size="small">
-                    <InputLabel id="export-orientation">Orientação</InputLabel>
-                    <Select
-                      labelId="export-orientation"
-                      label="Orientação"
-                      value={orientation}
-                      onChange={(e) =>
-                        setOrientation(e.target.value as ExportOrientation)
-                      }
-                    >
-                      {ORIENTATION_OPTIONS.map((option) => (
-                        <MenuItem key={option.value} value={option.value}>
-                          {option.label}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
+                  <SelectField
+                    label="Orientação"
+                    native={isMobile}
+                    value={orientation}
+                    onChange={(value) =>
+                      setOrientation(value as ExportOrientation)
+                    }
+                    options={ORIENTATION_OPTIONS}
+                  />
                 </Grid>
 
                 {grouping === 'team' && (
@@ -460,18 +446,8 @@ function ModalExportUsers({
               ))}
             </Grid>
           </FormControl>
-        </Stack>
-      </DialogContent>
-
-      <DialogActions>
-        <Button onClick={onClose} disabled={isExporting}>
-          Cancelar
-        </Button>
-        <Button variant="contained" onClick={onExport} disabled={isExporting}>
-          {isExporting ? 'Gerando...' : 'Exportar'}
-        </Button>
-      </DialogActions>
-    </Dialog>
+      </Stack>
+    </ResponsiveModal>
   );
 }
 
