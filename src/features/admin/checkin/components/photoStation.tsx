@@ -8,7 +8,9 @@ import {
   Divider,
   Stack,
   TextField,
+  Tooltip,
   Typography,
+  useMediaQuery,
   useTheme,
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
@@ -339,6 +341,18 @@ function PhotoStation({
 
   const semFotoCadastrada = !emAtendimento?.profilePhotoUrl && !foto;
 
+  /**
+   * A tela do participante é uma segunda janela do navegador. No celular o
+   * `window.open` vira uma aba que cobre a tela do operador, então não há como
+   * ter as duas ao mesmo tempo: o botão fica visível, mas desligado.
+   *
+   * Se a janela já estiver aberta o botão continua ativo mesmo em tela
+   * estreita — quem diminuiu a janela do navegador precisa conseguir fechá-la.
+   */
+  const semSuporteAoPainel =
+    useMediaQuery(theme.breakpoints.down('md'), { noSsr: true }) &&
+    !painelAberto;
+
   return (
     <Stack spacing={2}>
       <Stack
@@ -354,13 +368,28 @@ function PhotoStation({
         >
           Arraste para o segundo monitor e deixe em tela cheia
         </Typography>
-        <Button
-          variant={painelAberto ? 'contained' : 'outlined'}
-          startIcon={painelAberto ? <Monitor /> : <MonitorOutlined />}
-          onClick={() => onPainelAbertoChange(!painelAberto)}
+        <Tooltip
+          title={
+            semSuporteAoPainel
+              ? 'Sem suporte no celular: a tela do participante abre em uma segunda janela, e o navegador do celular não consegue manter as duas ao mesmo tempo. Use um computador.'
+              : ''
+          }
         >
-          {painelAberto ? 'Fechar tela do participante' : 'Tela do participante'}
-        </Button>
+          {/* o botão desligado não dispara evento de mouse; sem o span em volta
+              o tooltip nunca apareceria justamente no caso que ele explica */}
+          <span>
+            <Button
+              variant={painelAberto ? 'contained' : 'outlined'}
+              startIcon={painelAberto ? <Monitor /> : <MonitorOutlined />}
+              disabled={semSuporteAoPainel}
+              onClick={() => onPainelAbertoChange(!painelAberto)}
+            >
+              {painelAberto
+                ? 'Fechar tela do participante'
+                : 'Tela do participante'}
+            </Button>
+          </span>
+        </Tooltip>
       </Stack>
 
       {/* colunas com gap: o Grid do MUI monta o vão com margem negativa, e
