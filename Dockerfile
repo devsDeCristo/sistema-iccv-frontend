@@ -17,7 +17,9 @@ COPY . .
 # O Vite substitui as VITE_* no bundle em BUILD TIME — passar em runtime não
 # tem efeito. Por isso vem como ARG: cada ambiente gera sua própria imagem.
 ARG VITE_API_URL
+ARG VITE_MODULE_PAYMENT
 ENV VITE_API_URL=$VITE_API_URL
+ENV VITE_MODULE_PAYMENT=$VITE_MODULE_PAYMENT
 RUN yarn build
 
 # ------------------------------------------------------------------ runtime
