@@ -96,6 +96,27 @@ export const useCompleteCheckin = ({
     ...options,
   });
 
+/**
+ * Reverte a entrega do crachá — o participante volta para "não chegou".
+ *
+ * Separado do `useUndoCheckin`, que volta só uma etapa: na recepção o erro é
+ * ter entregado o crachá, e desfazer isso não pode depender de quantas etapas
+ * o posto de foto andou depois.
+ */
+export const useUndoBadgeDelivery = ({
+  onSuccess,
+  ...options
+}: MutationConfig<CheckinParticipant, StepParams> = {}) =>
+  useMutation({
+    mutationFn: ({ eventId, userId }: StepParams) =>
+      post<CheckinParticipant>(`/events/${eventId}/checkin/${userId}/undo-badge`),
+    onSuccess: (...args) => {
+      invalidateCheckin();
+      onSuccess?.(...args);
+    },
+    ...options,
+  });
+
 /** Volta uma etapa — erro de balcão acontece */
 export const useUndoCheckin = ({
   onSuccess,

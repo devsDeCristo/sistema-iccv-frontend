@@ -11,6 +11,14 @@ export const GET_CHECKIN_STATS = 'GET_CHECKIN_STATS';
  */
 export const CHECKIN_REFETCH_MS = 15000;
 
+/** As situações na ordem em que a pessoa passa por elas no evento. */
+export const CHECKIN_STATUS_ORDER: CheckinStatus[] = [
+  'PENDING',
+  'QUEUED',
+  'IN_PROGRESS',
+  'DONE',
+];
+
 export const CHECKIN_STATUS_LABEL: Record<CheckinStatus, string> = {
   PENDING: 'Não chegou',
   QUEUED: 'Na fila da foto',

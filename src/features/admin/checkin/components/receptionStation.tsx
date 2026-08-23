@@ -1,11 +1,13 @@
 import { useMemo, useRef, useState } from 'react';
 import {
+  Box,
   Button,
   Card,
   Chip,
   InputAdornment,
   Stack,
   TextField,
+  Tooltip,
   Typography,
   useTheme,
 } from '@mui/material';
@@ -13,15 +15,23 @@ import { DataGrid, GridColDef, ptBR } from '@mui/x-data-grid';
 import { HowToReg, Search, Undo } from '@mui/icons-material';
 import { toast } from 'react-toastify';
 import { useSearchCheckin } from '../api/getCheckin';
-import { useDeliverBadge, useUndoCheckin } from '../api/postCheckin';
+import { useDeliverBadge, useUndoBadgeDelivery } from '../api/postCheckin';
 import { UserAvatar } from '../../../../components/userAvatar';
+import { InputSelect } from '../../../../components/inputSelect';
+import { ConfirmModal } from '../../../../components/ConfirmModal';
 import { formatCPF } from '../../../../utils';
 import {
   CHECKIN_REFETCH_MS,
   CHECKIN_STATUS_COLOR,
   CHECKIN_STATUS_LABEL,
+  CHECKIN_STATUS_ORDER,
 } from '../constants';
-import { TODOS_OS_GRUPOS, filtrarPorGrupo } from '../utils';
+import {
+  TODAS_AS_SITUACOES,
+  TODOS_OS_GRUPOS,
+  filtrarPorGrupo,
+  filtrarPorSituacao,
+} from '../utils';
 import { CheckinParticipant } from '../types';
 
 interface ReceptionStationProps {
@@ -46,6 +56,9 @@ const normalizar = (valor?: string | null) =>
  */
 function ReceptionStation({ eventId, grupo }: ReceptionStationProps) {
   const [filtro, setFiltro] = useState('');
+  const [situacao, setSituacao] = useState(TODAS_AS_SITUACOES);
+  /** Participante aguardando confirmação para ter o check-in revertido */
+  const [revertendo, setRevertendo] = useState<CheckinParticipant | null>(null);
   const campoFiltro = useRef<HTMLInputElement>(null);
   const theme = useTheme();
 
@@ -61,13 +74,18 @@ function ReceptionStation({ eventId, grupo }: ReceptionStationProps) {
     [inscritos, grupo]
   );
 
+  const porSituacao = useMemo(
+    () => filtrarPorSituacao(todos, situacao),
+    [todos, situacao]
+  );
+
   const lista = useMemo(() => {
     const termo = normalizar(filtro.trim());
-    if (!termo) return todos;
+    if (!termo) return porSituacao;
 
     const digitos = filtro.replace(/\D/g, '');
 
-    return todos.filter((participante) => {
+    return porSituacao.filter((participante) => {
       const nome = `${normalizar(participante.fullName)} ${normalizar(
         participante.badgeName
       )}`;
@@ -79,7 +97,11 @@ function ReceptionStation({ eventId, grupo }: ReceptionStationProps) {
         String(participante.registrationNumber).includes(digitos)
       );
     });
-  }, [todos, filtro]);
+  }, [porSituacao, filtro]);
+
+  // com qualquer recorte ligado o rodapé mostra o quanto sobrou, para ninguém
+  // achar que o evento tem menos gente do que tem
+  const recortando = !!filtro.trim() || situacao !== TODAS_AS_SITUACOES;
 
   const { mutate: entregarCracha, isLoading: entregando } = useDeliverBadge({
     onSuccess: (participante) => {
@@ -91,12 +113,23 @@ function ReceptionStation({ eventId, grupo }: ReceptionStationProps) {
     },
   });
 
-  const { mutate: desfazer, isLoading: desfazendo } = useUndoCheckin({
-    onSuccess: (participante) => {
-      toast.success(`Entrega de crachá desfeita para ${participante.fullName}`);
-    },
-  });
+  const { mutate: reverterEntrega, isLoading: revertendoEntrega } =
+    useUndoBadgeDelivery({
+      onSuccess: (participante) => {
+        toast.success(
+          `${participante.fullName} voltou para "não chegou". O crachá pode ser entregue de novo.`
+        );
+        setRevertendo(null);
+        campoFiltro.current?.focus();
+      },
+      onError: () => setRevertendo(null),
+    });
 
+  /**
+   * Entregou por engano? A mesma linha que entregou o crachá reverte. Quem já
+   * passou da fila da foto pede confirmação antes: reverter ali descarta o
+   * atendimento que o outro posto já fez.
+   */
   const acaoDoParticipante = (participante: CheckinParticipant) => {
     if (participante.status === 'PENDING') {
       return (
@@ -112,22 +145,32 @@ function ReceptionStation({ eventId, grupo }: ReceptionStationProps) {
       );
     }
 
-    // só desfaz quem ainda não foi chamado; depois disso é o outro posto
-    if (participante.status === 'QUEUED') {
-      return (
+    const naFila = participante.status === 'QUEUED';
+
+    return (
+      <Tooltip
+        title={
+          naFila
+            ? 'Reverte a entrega do crachá e volta o participante para "não chegou"'
+            : 'Reverte a entrega do crachá; o atendimento já feito no posto de foto é descartado'
+        }
+      >
         <Button
           size="small"
           color="warning"
+          variant="outlined"
           startIcon={<Undo />}
-          disabled={desfazendo}
-          onClick={() => desfazer({ eventId, userId: participante.userId })}
+          disabled={revertendoEntrega}
+          onClick={() =>
+            naFila
+              ? reverterEntrega({ eventId, userId: participante.userId })
+              : setRevertendo(participante)
+          }
         >
-          Desfazer
+          Reverter
         </Button>
-      );
-    }
-
-    return null;
+      </Tooltip>
+    );
   };
 
   const colunas: GridColDef[] = [
@@ -213,29 +256,51 @@ function ReceptionStation({ eventId, grupo }: ReceptionStationProps) {
 
   return (
     <Stack spacing={2}>
-      <TextField
-        inputRef={campoFiltro}
-        autoFocus
-        fullWidth
-        size="medium"
-        placeholder="Filtrar por nome, crachá, CPF ou número de inscrição"
-        value={filtro}
-        onChange={(event) => setFiltro(event.target.value)}
-        InputProps={{
-          startAdornment: (
-            <InputAdornment position="start">
-              <Search />
-            </InputAdornment>
-          ),
-        }}
-        helperText={
-          filtro
-            ? `${lista.length} de ${todos.length} inscritos`
-            : `${todos.length} inscritos ${
-                grupo === TODOS_OS_GRUPOS ? 'no evento' : `em ${grupo}`
-              } — o participante é encaminhado ao posto de foto após a entrega`
-        }
-      />
+      <Stack
+        direction={{ xs: 'column', sm: 'row' }}
+        spacing={1.5}
+        alignItems="flex-start"
+      >
+        <TextField
+          inputRef={campoFiltro}
+          autoFocus
+          fullWidth
+          size="medium"
+          placeholder="Filtrar por nome, crachá, CPF ou número de inscrição"
+          value={filtro}
+          onChange={(event) => setFiltro(event.target.value)}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <Search />
+              </InputAdornment>
+            ),
+          }}
+          helperText={
+            recortando
+              ? `${lista.length} de ${todos.length} inscritos`
+              : `${todos.length} inscritos ${
+                  grupo === TODOS_OS_GRUPOS ? 'no evento' : `em ${grupo}`
+                } — o participante é encaminhado ao posto de foto após a entrega`
+          }
+          sx={{ flex: 1 }}
+        />
+
+        <Box sx={{ width: { xs: '100%', sm: 260 } }}>
+          <InputSelect
+            label="Situação"
+            value={situacao}
+            onChange={(event) => setSituacao(String(event.target.value))}
+            menuOptions={[
+              { value: TODAS_AS_SITUACOES, name: 'Todas as situações' },
+              ...CHECKIN_STATUS_ORDER.map((status) => ({
+                value: status,
+                name: CHECKIN_STATUS_LABEL[status],
+              })),
+            ]}
+          />
+        </Box>
+      </Stack>
 
       <Card>
         <DataGrid
@@ -275,6 +340,23 @@ function ReceptionStation({ eventId, grupo }: ReceptionStationProps) {
           localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
         />
       </Card>
+
+      <ConfirmModal
+        open={!!revertendo}
+        title="Reverter a entrega do crachá?"
+        message={
+          revertendo
+            ? `${revertendo.fullName} já passou da fila da foto. Reverter apaga o atendimento registrado no posto de foto e devolve o participante para "não chegou".`
+            : ''
+        }
+        confirmLabel="Reverter"
+        cancelLabel="Manter"
+        onClose={() => setRevertendo(null)}
+        onConfirm={() =>
+          revertendo &&
+          reverterEntrega({ eventId, userId: revertendo.userId })
+        }
+      />
     </Stack>
   );
 }
