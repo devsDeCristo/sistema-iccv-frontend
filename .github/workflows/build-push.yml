@@ -6,7 +6,8 @@ on:
   workflow_dispatch:
 
 env:
-  # GHCR do próprio repo (ghcr.io/felipeqq/ic-front) — autentica com GITHUB_TOKEN
+  # GHCR do próprio repo (ghcr.io/devsdecristo/sistema-iccv-frontend) — autentica
+  # com o GITHUB_TOKEN do job
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 
@@ -67,6 +68,9 @@ jobs:
       # storage do package cresce indefinidamente — mantém só as 10 mais recentes.
       - name: Prune old package versions
         uses: actions/delete-package-versions@v5
+        # No primeiro push de um repo novo o package ainda não existe e a action
+        # retorna erro — isso não pode marcar o job como falho.
+        continue-on-error: true
         with:
           package-name: ${{ github.event.repository.name }}
           package-type: container

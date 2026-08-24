@@ -24,5 +24,4 @@ dist-ssr
 Dockerfile
 .dockerignore
 docker-compose.yml
-netlify.toml
 ic.code-workspace
