@@ -360,7 +360,7 @@ function Login() {
           </Box>
 
           <Typography sx={styles.copyright}>
-            © 2025 Igreja de Cristo Cidade Verde.
+            © 2026 Igreja de Cristo Cidade Verde.
             <br /> Todos os direitos reservados.
           </Typography>
         </Box>

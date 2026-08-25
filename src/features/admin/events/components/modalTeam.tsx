@@ -436,11 +436,11 @@ function ModalTeam({ open, handleClose, team, eventId }: ModalTeamProps) {
                               },
                             }}
                             renderOption={(props, option, { selected }) => {
-                              const { ...optionProps } = props;
+                              const { key, ...optionProps } = props;
                               const jaEhParticipante =
                                 !selected && idsMembros.includes(option.value);
                               return (
-                                <li key={option.label} {...optionProps}>
+                                <li key={key} {...optionProps}>
                                   <Checkbox
                                     icon={
                                       <CheckBoxOutlineBlank fontSize="small" />
@@ -564,11 +564,11 @@ function ModalTeam({ open, handleClose, team, eventId }: ModalTeamProps) {
                               },
                             }}
                             renderOption={(props, option, { selected }) => {
-                              const { ...optionProps } = props;
+                              const { key, ...optionProps } = props;
                               const jaEhLider =
                                 !selected && idsLideres.includes(option.value);
                               return (
-                                <li key={option.label} {...optionProps}>
+                                <li key={key} {...optionProps}>
                                   <Checkbox
                                     icon={
                                       <CheckBoxOutlineBlank fontSize="small" />

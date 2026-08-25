@@ -1,9 +1,9 @@
 # syntax=docker/dockerfile:1
 
-# Fixado em 18.x porque o package.json declara engines.node = "18.x" e o
-# yarn 1 aborta o install quando a versão não bate (não é só warning).
-# Para subir pra 20: atualize o engines primeiro, depois este ARG.
-ARG NODE_VERSION=18.20.5
+# Node 24 (Krypton) = LTS atual. O engines do package.json exige >=22.12
+# porque é o piso do Vite 7 — o yarn 1 aborta o install se a versão não bate
+# (não é só warning). Mudou o ARG? confira o engines antes.
+ARG NODE_VERSION=24.19.0
 
 # -------------------------------------------------------------------- build
 FROM node:${NODE_VERSION}-slim AS build
@@ -24,7 +24,7 @@ RUN yarn build
 
 # ------------------------------------------------------------------ runtime
 # Só o dist estático + nginx: a imagem final não carrega Node nem node_modules.
-FROM nginx:1.27-alpine AS runtime
+FROM nginx:1.29-alpine AS runtime
 
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /app/dist /usr/share/nginx/html

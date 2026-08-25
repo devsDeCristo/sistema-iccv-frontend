@@ -386,9 +386,9 @@ function ModalBedRoom({
                             },
                           }}
                           renderOption={(props, option, { selected }) => {
-                            const { ...optionProps } = props;
+                            const { key, ...optionProps } = props;
                             return (
-                              <li key={option.label} {...optionProps}>
+                              <li key={key} {...optionProps}>
                                 <Checkbox
                                   icon={
                                     <CheckBoxOutlineBlank fontSize="small" />
@@ -492,9 +492,9 @@ function ModalBedRoom({
                               },
                             }}
                             renderOption={(props, option, { selected }) => {
-                              const { ...optionProps } = props;
+                              const { key, ...optionProps } = props;
                               return (
-                                <li key={option.label} {...optionProps}>
+                                <li key={key} {...optionProps}>
                                   <Checkbox
                                     icon={
                                       <CheckBoxOutlineBlank fontSize="small" />

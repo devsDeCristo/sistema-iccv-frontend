@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import {
   useParams,
   useNavigate,
-  unstable_useBlocker as useBlocker,
+  useBlocker,
 } from 'react-router-dom';
 import {
   Box,
