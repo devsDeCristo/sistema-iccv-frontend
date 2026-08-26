@@ -1,5 +1,11 @@
 import { Sidebar, Menu, MenuItem, sidebarClasses } from 'react-pro-sidebar';
-import { People, Event, Logout, ConfirmationNumber } from '@mui/icons-material';
+import {
+  People,
+  Event,
+  Logout,
+  ConfirmationNumber,
+  Campaign,
+} from '@mui/icons-material';
 import { Link, NavLink } from 'react-router-dom';
 import {
   Box,
@@ -49,6 +55,17 @@ const SideBar: React.FC<SideBarProps> = ({
           icon: <Event />,
           title: 'Eventos',
         },
+        // publicar notícia é do admin; o financeiro não entra aqui
+        ...(isAdminRole
+          ? [
+              {
+                itemId: '3',
+                link: '/admin/noticias',
+                icon: <Campaign />,
+                title: 'Notícias',
+              },
+            ]
+          : []),
       ]
     : [
         {
