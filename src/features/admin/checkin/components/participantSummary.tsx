@@ -1,12 +1,13 @@
-import { Box, Chip, Stack, Typography } from '@mui/material';
+import { Box, Chip, Stack, Typography, useTheme } from '@mui/material';
 import { Bed, Groups, Badge as BadgeIcon } from '@mui/icons-material';
 import { UserAvatar } from '../../../../components/userAvatar';
 import {
-  CHECKIN_STATUS_COLOR,
+  corDoStatusCheckin,
   CHECKIN_STATUS_LABEL,
   horaCurta,
 } from '../constants';
 import { CheckinParticipant } from '../types';
+import CustomChip from '../../../../components/customChip';
 
 interface ParticipantSummaryProps {
   participant: CheckinParticipant;
@@ -32,6 +33,7 @@ function ParticipantSummary({
   participant,
   previewPhotoUrl,
 }: ParticipantSummaryProps) {
+  const theme = useTheme();
   return (
     <Stack direction="row" spacing={3} alignItems="flex-start">
       <UserAvatar
@@ -52,9 +54,9 @@ function ParticipantSummary({
           useFlexGap
           sx={{ mt: 1 }}
         >
-          <Chip
+          <CustomChip
             label={CHECKIN_STATUS_LABEL[participant.status]}
-            color={CHECKIN_STATUS_COLOR[participant.status]}
+            customColor={corDoStatusCheckin(theme)[participant.status]}
           />
           <Typography variant="body1" color="text.secondary">
             Inscrição nº {participant.registrationNumber}

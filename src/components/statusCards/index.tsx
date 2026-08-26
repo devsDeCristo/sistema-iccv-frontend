@@ -14,13 +14,16 @@ import { sombraSuperficie } from '../../themes';
 
 export interface StatusCard {
   title: string;
-  value: number;
+  /** Número ou valor já formatado (dinheiro, por exemplo) */
+  value: ReactNode;
   subtitle: string;
   icon: ReactNode;
   /** Cor de destaque do card — sempre um token do tema */
   color: string;
   /** Pinta o ponto de status como sinal vivo, pulsando */
   live?: boolean;
+  /** Valor menor, para texto longo como dinheiro não estourar a largura */
+  compact?: boolean;
 }
 
 interface StatusCardsProps {
@@ -38,10 +41,14 @@ interface StatusCardsProps {
 export function StatusCards({ cards, isLoading }: StatusCardsProps) {
   const theme = useTheme();
 
+  // a régua divide a linha pelo número de cards: 4 em quatro colunas, 3 em três
+  const colunas =
+    cards.length === 1 ? 12 : cards.length === 2 ? 6 : cards.length === 3 ? 4 : 3;
+
   return (
     <Grid container spacing={2} sx={{ mb: 2 }}>
       {cards.map((card) => (
-        <Grid item xs={12} sm={6} md={3} key={card.title}>
+        <Grid item xs={12} sm={6} md={colunas} key={card.title}>
           <Card
             elevation={0}
             sx={{
@@ -134,8 +141,11 @@ export function StatusCards({ cards, isLoading }: StatusCardsProps) {
                   <Skeleton variant="rounded" width={64} height={44} />
                 ) : (
                   <Typography
+                    noWrap
                     sx={{
-                      fontSize: { xs: '40px', sm: '44px' },
+                      fontSize: card.compact
+                        ? { xs: '26px', sm: '30px' }
+                        : { xs: '40px', sm: '44px' },
                       fontWeight: 800,
                       lineHeight: 1,
                       letterSpacing: '-0.03em',

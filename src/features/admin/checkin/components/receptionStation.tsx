@@ -3,7 +3,6 @@ import {
   Box,
   Button,
   Card,
-  Chip,
   InputAdornment,
   Stack,
   TextField,
@@ -20,10 +19,11 @@ import { UserAvatar } from '../../../../components/userAvatar';
 import { InputSelect } from '../../../../components/inputSelect';
 import { ConfirmModal } from '../../../../components/ConfirmModal';
 import { BadgeDeliveredModal } from './badgeDeliveredModal';
+import CustomChip from '../../../../components/customChip';
 import { formatCPF } from '../../../../utils';
 import {
   CHECKIN_REFETCH_MS,
-  CHECKIN_STATUS_COLOR,
+  corDoStatusCheckin,
   CHECKIN_STATUS_LABEL,
   CHECKIN_STATUS_ORDER,
 } from '../constants';
@@ -65,6 +65,7 @@ function ReceptionStation({ eventId, grupo }: ReceptionStationProps) {
   const [entregue, setEntregue] = useState<CheckinParticipant | null>(null);
   const campoFiltro = useRef<HTMLInputElement>(null);
   const theme = useTheme();
+  const coresDeStatus = corDoStatusCheckin(theme);
 
   // a lista vem inteira de uma vez e o filtro roda no cliente — sem ida ao
   // servidor a cada tecla, o resultado aparece instantâneo no balcão
@@ -247,10 +248,16 @@ function ReceptionStation({ eventId, grupo }: ReceptionStationProps) {
       headerName: 'Situação',
       width: 160,
       renderCell: (params) => (
-        <Chip
+        <CustomChip
           size="small"
-          label={CHECKIN_STATUS_LABEL[params.row.status as CheckinParticipant['status']]}
-          color={CHECKIN_STATUS_COLOR[params.row.status as CheckinParticipant['status']]}
+          label={
+            CHECKIN_STATUS_LABEL[
+              params.row.status as CheckinParticipant['status']
+            ]
+          }
+          customColor={
+            coresDeStatus[params.row.status as CheckinParticipant['status']]
+          }
         />
       ),
     },

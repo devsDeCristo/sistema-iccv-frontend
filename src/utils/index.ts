@@ -121,6 +121,18 @@ export function formatNameCase(
     .join(' ');
 }
 
+/**
+ * Valor em reais no padrão brasileiro: `R$ 1.234,50`.
+ *
+ * Existia em três formatos diferentes na tela de pagamentos — `R$ 1234.50`,
+ * `R$1234,50` e sem separador de milhar —, nenhum deles o do país.
+ */
+export const formatCurrency = (value?: number | null): string =>
+  new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+  }).format(value || 0);
+
 export const removeMask = (value: string): string => {
   return value.replace(/\D/g, '');
 };

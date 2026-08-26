@@ -1,3 +1,4 @@
+import { Theme } from '@mui/material';
 import { CheckinStatus } from './types';
 
 export const GET_CHECKIN_SEARCH = 'GET_CHECKIN_SEARCH';
@@ -26,15 +27,22 @@ export const CHECKIN_STATUS_LABEL: Record<CheckinStatus, string> = {
   DONE: 'Check-in concluído',
 };
 
-export const CHECKIN_STATUS_COLOR: Record<
-  CheckinStatus,
-  'default' | 'info' | 'warning' | 'success'
-> = {
-  PENDING: 'default',
-  QUEUED: 'info',
-  IN_PROGRESS: 'warning',
-  DONE: 'success',
-};
+/**
+ * Cor de cada etapa, na paleta de chips do tema — a mesma que os chips do resto
+ * do sistema usam.
+ *
+ * Antes eram as cores nomeadas do MUI (`success`, `warning`) em chip preenchido,
+ * o que dava ao check-in um chip visualmente diferente de todas as outras telas.
+ */
+export const corDoStatusCheckin = (
+  theme: Theme
+): Record<CheckinStatus, string> => ({
+  // pendente é estado desligado, não alerta
+  PENDING: theme.palette.text.disabled,
+  QUEUED: theme.palette.chips.info,
+  IN_PROGRESS: theme.palette.chips.alert,
+  DONE: theme.palette.chips.success,
+});
 
 /** "há 3 min" a partir do horário em que a pessoa entrou na fila */
 export function esperaEmMinutos(desde?: string | null): number | null {

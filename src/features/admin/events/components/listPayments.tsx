@@ -14,7 +14,7 @@ import {
   useMediaQuery,
   useTheme,
 } from '@mui/material';
-import { formatCPF } from '../../../../utils';
+import { formatCPF, formatCurrency } from '../../../../utils';
 import {
   DataGrid,
   GridApi,
@@ -28,8 +28,19 @@ import {
   selectedGridRowsSelector,
 } from '@mui/x-data-grid';
 import { useParams } from 'react-router-dom';
-import { Edit, MoreVert, Reply } from '@mui/icons-material';
+import {
+  AccountBalanceWallet,
+  Edit,
+  MoreVert,
+  Paid,
+  PendingActions,
+  Reply,
+} from '@mui/icons-material';
 import { PaymentResponse } from '../../../../types/user';
+import {
+  StatusCard,
+  StatusCards,
+} from '../../../../components/statusCards';
 import { useEffect, useMemo, useState } from 'react';
 import CustomChip from '../../../../components/customChip';
 import {
@@ -107,26 +118,6 @@ function ListPayments({
   const [panel, setPanel] = useState<string>('1');
 
   const styles = {
-    titleCard: {
-      borderRadius: '5px',
-      backgroundColor: theme.palette.background.paper,
-      fontSize: { xs: '0.8rem', sm: '0.875rem' },
-    },
-    subTitleCard: {
-      // no celular o valor cheio não cabe em 1.5rem sem quebrar a linha
-      fontSize: { xs: '1.15rem', sm: '1.35rem', md: '1.5rem' },
-      fontWeight: 600,
-      color: theme.palette.text.primary,
-      whiteSpace: 'nowrap',
-    },
-    cardMoney: {
-      position: 'relative',
-      p: 2,
-      width: '100%',
-      // os três dividem a linha em partes iguais e empilham no celular
-      flex: 1,
-      minWidth: 0,
-    },
     card: {
       fontSize: '30px',
       borderRadius: '5px',
@@ -257,7 +248,7 @@ function ListPayments({
       headerName: 'Valor',
       width: 100,
       renderCell: (params) =>
-        renderCellWithCopy(`R$ ${params.value.toFixed(2)}`),
+        renderCellWithCopy(formatCurrency(params.value as number)),
     },
 
     {
@@ -317,69 +308,45 @@ function ListPayments({
     filtered = filteredByGroup(filtered);
     return filtered;
   };
-  interface CardTemplateProps {
-    title: string;
-    value: number;
-  }
+  const soma = (filtro?: (payment: PaymentResponse) => boolean) =>
+    (payments || [])
+      .filter((payment) => (filtro ? filtro(payment) : true))
+      .reduce((acc, payment) => acc + payment.amount, 0);
 
-  const CardTemplate = ({ title, value }: CardTemplateProps) => (
-    <Card sx={styles.cardMoney}>
-      <Box
-        sx={{
-          position: 'absolute',
-          height: '100%',
-          width: '5px',
-          left: 0,
-          top: 0,
-          backgroundColor: 'primary.main',
-        }}
-      />
-      <Typography sx={styles.subTitleCard}>
-        {'R$ ' + value.toFixed(2)}
-      </Typography>
-      <Typography sx={styles.titleCard}>{title}</Typography>
-    </Card>
-  );
+  /**
+   * Mesma régua de cards do resto do sistema. `compact` porque valor em reais é
+   * texto longo e no tamanho dos contadores estouraria a largura do card.
+   */
+  const cardsResumo: StatusCard[] = [
+    {
+      title: 'Montante total',
+      value: formatCurrency(soma()),
+      subtitle: 'Somando todas as inscrições',
+      icon: <AccountBalanceWallet sx={{ fontSize: 20 }} />,
+      color: theme.palette.primary.main,
+      compact: true,
+    },
+    {
+      title: 'Receita realizada',
+      value: formatCurrency(soma((payment) => payment.status === 'PAID')),
+      subtitle: 'Pagamentos confirmados',
+      icon: <Paid sx={{ fontSize: 20 }} />,
+      color: theme.palette.chips.success,
+      compact: true,
+    },
+    {
+      title: 'Receita pendente',
+      value: formatCurrency(soma((payment) => payment.status !== 'PAID')),
+      subtitle: 'Ainda não confirmados',
+      icon: <PendingActions sx={{ fontSize: 20 }} />,
+      color: theme.palette.chips.alert,
+      compact: true,
+    },
+  ];
 
   return (
     <>
-      <Stack
-        direction={{ xs: 'column', sm: 'row' }}
-        alignItems="stretch"
-        justifyContent="space-between"
-        gap={1}
-      >
-        <CardTemplate
-          title="Montante Total"
-          value={
-            payments
-              ? payments.reduce((acc, payment) => acc + payment.amount, 0)
-              : 0
-          }
-        />
-
-        <CardTemplate
-          title="Receita Realizada"
-          value={
-            payments
-              ? payments
-                  .filter((payment) => payment.status === 'PAID')
-                  .reduce((acc, payment) => acc + payment.amount, 0)
-              : 0
-          }
-        />
-
-        <CardTemplate
-          title="Receita Pendente"
-          value={
-            payments
-              ? payments
-                  .filter((payment) => payment.status !== 'PAID')
-                  .reduce((acc, payment) => acc + payment.amount, 0)
-              : 0
-          }
-        />
-      </Stack>
+      <StatusCards cards={cardsResumo} isLoading={isLoading} />
 
       {Array.isArray(groupsRules) && groupsRules.length > 0 && (
         <Stack sx={[styles.card, { p: 0.5, height: '50px' }]}>

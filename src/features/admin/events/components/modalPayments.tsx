@@ -20,6 +20,7 @@ import { methodPaymentOptions, statusPaymentOptions } from '../constants';
 import { usePutUpdatePayment } from '../api/putPayment';
 import { useGetDiscounts } from '../api/getDiscounts';
 import { discountsResponse } from '../../../../types/user';
+import { formatCurrency } from '../../../../utils';
 
 interface ModalPaymentProps {
   open: boolean;
@@ -184,7 +185,7 @@ export function ModalPayment({
               ].map((field) => {
                 const value =
                   field === 'amount'
-                    ? 'R$' + payment?.[field]?.toFixed(2)?.replace('.', ',')
+                    ? formatCurrency(payment?.[field])
                     : field === 'codeTransaction'
                     ? payment?.payload?.[field]?.replace('CHAR_', '')
                     : payment?.[field];

@@ -8,7 +8,6 @@ import {
   Stack,
   Paper,
   useTheme,
-  Chip,
   LinearProgress,
   IconButton,
   Menu,
@@ -22,6 +21,7 @@ import { Edit, Delete, Bed, MoreVert, Lock } from '@mui/icons-material';
 import { useState } from 'react';
 import { ModalBedRoom } from './modalBedRoom';
 import { Bedroom } from '../types';
+import CustomChip from '../../../../components/customChip';
 import { useDeleteBedroom } from '../api/deleteBedroom';
 import { UserAvatar } from '../../../../components/userAvatar';
 import { ConfirmModal } from '../../../../components/ConfirmModal';
@@ -137,12 +137,6 @@ function ListBedRooms({
       whiteSpace: 'nowrap',
       width: 'fit-content',
     },
-    chip: {
-      margin: '2px',
-      height: '24px',
-      //color: 'white',
-      fontSize: '0.9rem',
-    },
     progressBar: {
       width: '100%',
       height: '8px',
@@ -213,18 +207,30 @@ function ListBedRooms({
                 </Stack>
                 <Stack direction="row" flexWrap="wrap" gap={1}>
                   {bedroom.tag.map((tag) => (
-                    <Chip key={tag + 'chips'} label={tag} sx={styles.chip} />
+                    <CustomChip
+                      key={tag + 'chips'}
+                      label={tag}
+                      size="small"
+                      customColor={theme.palette.text.secondary}
+                    />
                   ))}
                   {/* quarto restrito precisa se anunciar na lista: é o que
                       explica por que o check-in não aloca todo mundo nele */}
                   {(bedroom.groupTags || []).map((grupo) => (
-                    <Chip
+                    <CustomChip
                       key={grupo + 'grupo'}
                       label={grupo}
                       size="small"
-                      color="primary"
-                      variant="outlined"
-                      icon={<Lock sx={{ fontSize: 14 }} />}
+                      customColor={theme.palette.primary.main}
+                      icon={
+                        <Lock
+                          sx={{
+                            fontSize: 13,
+                            // o ícone herda a cor do texto do chip
+                            color: 'inherit !important',
+                          }}
+                        />
+                      }
                     />
                   ))}
                 </Stack>

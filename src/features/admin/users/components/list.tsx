@@ -253,17 +253,7 @@ function List({ search }: { search: string }) {
         const label = ROLE_LABELS[role] || ROLE_LABELS[Role.USER];
 
         return (
-          <CustomChip
-            label={label}
-            customColor={cor}
-            size="small"
-            // a borda na cor é o que amarra o chip aos cards do topo
-            sx={{
-              fontWeight: 600,
-              fontSize: '11px',
-              border: `1px solid ${alpha(cor, 0.28)}`,
-            }}
-          />
+          <CustomChip label={label} customColor={cor} size="small" />
         );
       },
     },
