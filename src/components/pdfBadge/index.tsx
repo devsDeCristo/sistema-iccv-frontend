@@ -1,8 +1,18 @@
-import { Page, Text, View, Document, Font, Image } from '@react-pdf/renderer';
+import {
+  Page,
+  Text,
+  View,
+  Document,
+  Font,
+  Image,
+  Svg,
+  Path,
+} from '@react-pdf/renderer';
 import { stylesPdfBadge } from './styles';
-import type { BadgePage, PdfProps } from './types';
+import type { BadgeEntry, BadgePage, PdfProps } from './types';
 import { PdfNameCase, PdfSection } from '../../types/pdf';
 import { formatNameCase } from '../../utils';
+import { buildBadgeCode, buildQrCodePath } from '../../utils/qrcode';
 import logoIc from '../../assets/logo-ic-preta.png';
 import logoEvento from '../../assets/6-curs-fem.png';
 import bgbadge from '../../assets/fundo-cracha.png';
@@ -35,19 +45,26 @@ function buildPages(
   const pages: BadgePage[] = [];
 
   for (const section of sections) {
-    const names = section.users
+    const badges: BadgeEntry[] = section.users
       .filter(({ badgeName }) => !!badgeName)
-      .map(({ badgeName }) => formatNameCase(badgeName || '', nameCase));
+      .map((user) => ({
+        name: formatNameCase(user.badgeName || '', nameCase),
+        // sem id não há inscrição para apontar: o crachá sai só com o nome
+        qr: buildQrCodePath(buildBadgeCode(user.id)),
+      }));
 
-    for (const chunk of chunkArray(names, BADGES_PER_PAGE)) {
-      pages.push({ title: section.title, names: chunk });
+    for (const chunk of chunkArray(badges, BADGES_PER_PAGE)) {
+      pages.push({ title: section.title, badges: chunk });
     }
   }
 
   if (blankCount > 0) {
-    const blanks = Array.from({ length: blankCount }, () => '');
+    const blanks: BadgeEntry[] = Array.from({ length: blankCount }, () => ({
+      name: '',
+      qr: null,
+    }));
     for (const chunk of chunkArray(blanks, BADGES_PER_PAGE)) {
-      pages.push({ title: null, names: chunk });
+      pages.push({ title: null, badges: chunk });
     }
   }
 
@@ -78,7 +95,7 @@ function PdfBadge({
             </Text>
           )}
           <View style={stylesPdfBadge.container}>
-            {page.names.map((name, index) => (
+            {page.badges.map((badge, index) => (
               <View
                 style={stylesPdfBadge.badge}
                 key={`cracha-${pageIndex}-${index}`}
@@ -95,11 +112,23 @@ function PdfBadge({
                   />
                   <Image style={stylesPdfBadge.imagePaper} src={paper} />
                 </View>
-                <Text style={stylesPdfBadge.textName}>{name}</Text>
+                <View style={stylesPdfBadge.nameArea}>
+                  <Text style={stylesPdfBadge.textName}>{badge.name}</Text>
+                  {badge.qr && (
+                    <View style={stylesPdfBadge.qrBox}>
+                      <Svg
+                        style={stylesPdfBadge.qrCode}
+                        viewBox={`0 0 ${badge.qr.cells} ${badge.qr.cells}`}
+                      >
+                        <Path d={badge.qr.path} fill="#000000" />
+                      </Svg>
+                    </View>
+                  )}
+                </View>
               </View>
             ))}
-            {page.names.length < BADGES_PER_PAGE &&
-              Array.from({ length: BADGES_PER_PAGE - page.names.length }).map(
+            {page.badges.length < BADGES_PER_PAGE &&
+              Array.from({ length: BADGES_PER_PAGE - page.badges.length }).map(
                 (_, i) => (
                   <View
                     key={`empty-${pageIndex}-${i}`}

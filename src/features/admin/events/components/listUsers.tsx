@@ -514,7 +514,9 @@ function ListUsers({
       (user) =>
         user.fullName?.toLowerCase().includes(search.toLowerCase()) ||
         user.cpf?.includes(search) ||
-        user.badgeName?.toLowerCase().includes(search.toLowerCase())
+        user.badgeName?.toLowerCase().includes(search.toLowerCase()) ||
+        // id exato: é o que a bipagem do QR do crachá joga no campo de busca
+        user.id?.toLowerCase() === search.toLowerCase()
     );
     filtered = filterUsers(filtered, filters);
     filtered = filteredByGroup(filtered);

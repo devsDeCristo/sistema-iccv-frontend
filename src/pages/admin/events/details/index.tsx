@@ -14,6 +14,8 @@ import {
   useTheme,
   Menu,
   MenuItem,
+  IconButton,
+  Tooltip,
 } from '@mui/material';
 
 import { useNavigate, useParams } from 'react-router-dom';
@@ -46,6 +48,7 @@ import {
   HowToReg,
   People,
   QrCode2Outlined,
+  QrCodeScannerOutlined,
   Search,
   ViewModuleOutlined,
 } from '@mui/icons-material';
@@ -63,6 +66,8 @@ import FilterModal from '../../../../features/admin/events/components/filtersUse
 import PdfTeams from '../../../../components/pdfTeams';
 
 import ModalQrCode from '../../../../features/admin/events/components/modalQrCode';
+import { QrScannerModal } from '../../../../components/qrScanner';
+import { parseBadgeCode } from '../../../../utils/qrcode';
 import { User } from '../../../../types/user';
 import { ListUsersWaitList } from '../../../../features/admin/events/components/listUsersWaitList';
 import { ListPayments } from '../../../../features/admin/events/components/listPayments';
@@ -111,6 +116,7 @@ function Details() {
   const [gridFilteredUsers, setGridFilteredUsers] = useState<User[]>([]);
   const [gridSelectedUsers, setGridSelectedUsers] = useState<User[]>([]);
   const [openModalQrCode, setOpenModalQrCode] = useState(false);
+  const [openQrScanner, setOpenQrScanner] = useState(false);
 
   const handleCloseModalQrCode = () => setOpenModalQrCode(false);
   const theme = useTheme();
@@ -154,6 +160,50 @@ function Details() {
   );
   const users = usersData as User[];
   const event = eventData as EventDetails;
+
+  /**
+   * Bipagem do QR do crachá: o código traz o id do inscrito, que vai para o
+   * mesmo campo de busca que o operador digita — a grade filtra por ele e sobra
+   * exatamente uma linha.
+   *
+   * Quem confere se a inscrição pertence a este evento é a própria lista: id de
+   * outro evento não aparece nela e cai no aviso.
+   */
+  const handleQrRead = (raw: string) => {
+    // fecha em qualquer leitura, inclusive na recusada: o leitor trava no
+    // primeiro código lido e reabrir é um toque
+    setOpenQrScanner(false);
+
+    const userId = parseBadgeCode(raw);
+    if (!userId) {
+      toast.error('QR Code não reconhecido.');
+      return;
+    }
+
+    setSearchUser(userId);
+
+    const inscrito = users?.find((user) => user.id === userId);
+    if (inscrito) {
+      toast.success(`${inscrito.fullName} encontrado.`);
+    } else {
+      toast.warning('Crachá lido, mas essa inscrição não está nesta lista.');
+    }
+  };
+
+  /** Adorno do campo de busca: bipar sai de dentro da própria busca */
+  const qrSearchAdornment = (
+    <InputAdornment position="end">
+      <Tooltip title="Buscar pelo QR Code do crachá">
+        <IconButton
+          size="small"
+          edge="end"
+          onClick={() => setOpenQrScanner(true)}
+        >
+          <QrCodeScannerOutlined />
+        </IconButton>
+      </Tooltip>
+    </InputAdornment>
+  );
 
   const styles = {
     card: {
@@ -495,6 +545,7 @@ function Details() {
                     <Search />
                   </InputAdornment>
                 ),
+                endAdornment: qrSearchAdornment,
               }}
             />
             {/* <Typography color="#000">Usuários</Typography> */}
@@ -621,6 +672,7 @@ function Details() {
                     <Search />
                   </InputAdornment>
                 ),
+                endAdornment: qrSearchAdornment,
               }}
             />
             {/* <Typography color="#000">Usuários</Typography> */}
@@ -779,6 +831,12 @@ function Details() {
       <ModalQrCode
         open={openModalQrCode}
         handleClose={handleCloseModalQrCode}
+      />
+
+      <QrScannerModal
+        open={openQrScanner}
+        onClose={() => setOpenQrScanner(false)}
+        onRead={handleQrRead}
       />
 
       <Menu

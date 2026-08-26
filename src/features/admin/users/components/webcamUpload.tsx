@@ -1,7 +1,11 @@
 import { Check } from '@mui/icons-material';
-import { Box, Button, Stack } from '@mui/material';
+import { Alert, Box, Button, Stack } from '@mui/material';
 import { useRef, useState, useCallback, useEffect, useMemo } from 'react';
 import Webcam from 'react-webcam';
+import {
+  describeCameraError,
+  isSecureCameraContext,
+} from '../../../../utils/camera';
 
 interface WebCamUploadProps {
   onSelectPhoto: (data: File) => void;
@@ -41,6 +45,14 @@ function WebcamUpload({
 }: WebCamUploadProps) {
   const [capturedImage, setCapturedImage] = useState<File | null>(null);
   const webcamRef = useRef(null);
+  /**
+   * Antes esta falha era silenciosa — só um retângulo preto. Servindo o sistema
+   * por IP em HTTP o navegador não expõe a câmera e nem pede permissão, então a
+   * tela precisa dizer isso em vez de deixar o operador tentando de novo.
+   */
+  const [erroCamera, setErroCamera] = useState<string | null>(
+    isSecureCameraContext() ? null : describeCameraError()
+  );
 
   const capturedImageUrl = useMemo(
     () => (capturedImage ? URL.createObjectURL(capturedImage) : null),
@@ -117,18 +129,29 @@ function WebcamUpload({
       ) : (
         <>
           <Box sx={mediaAreaSx}>
-            <Webcam
-              audio={false}
-              ref={webcamRef}
-              screenshotFormat="image/jpeg"
-              videoConstraints={videoConstraints}
-              style={mediaStyle}
-              onUserMedia={(stream) => onStream?.(stream)}
-              onUserMediaError={() => onStream?.(null)}
-            />
+            {erroCamera ? (
+              <Alert severity="error">{erroCamera}</Alert>
+            ) : (
+              <Webcam
+                audio={false}
+                ref={webcamRef}
+                screenshotFormat="image/jpeg"
+                videoConstraints={videoConstraints}
+                style={mediaStyle}
+                onUserMedia={(stream) => onStream?.(stream)}
+                onUserMediaError={(erro) => {
+                  setErroCamera(describeCameraError(erro));
+                  onStream?.(null);
+                }}
+              />
+            )}
           </Box>
           <Stack direction="row" justifyContent="flex-end">
-            <Button variant="contained" onClick={capturePhoto}>
+            <Button
+              variant="contained"
+              onClick={capturePhoto}
+              disabled={!!erroCamera}
+            >
               Capturar foto
             </Button>
           </Stack>

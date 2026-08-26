@@ -1,6 +1,7 @@
 //import { Event } from "../../features/events/types";
 import { EventDetails } from '../../features/admin/events/types';
 import { PdfNameCase, PdfSection } from '../../types/pdf';
+import { QrCodePath } from '../../utils/qrcode';
 import { User } from '../../types/user';
 
 export interface PdfProps {
@@ -16,8 +17,14 @@ export interface PdfProps {
   blankCount?: number;
 }
 
+/** Um crachá: o nome impresso e o QR da inscrição (ausente no crachá em branco) */
+export interface BadgeEntry {
+  name: string;
+  qr: QrCodePath | null;
+}
+
 /** Uma folha: o cabeçalho do bloco e os até 4 crachás dela */
 export interface BadgePage {
   title: string | null;
-  names: string[];
+  badges: BadgeEntry[];
 }

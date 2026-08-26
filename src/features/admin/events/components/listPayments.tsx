@@ -308,7 +308,10 @@ function ListPayments({
       (payment) =>
         payment.fullName?.toLowerCase().includes(search.toLowerCase()) ||
         payment.cpf?.includes(search) ||
-        payment.email?.toLowerCase().includes(search.toLowerCase())
+        payment.email?.toLowerCase().includes(search.toLowerCase()) ||
+        // id exato do usuário: é o que a bipagem do QR do crachá joga no campo
+        // de busca (aqui `id` é o do pagamento, não o da inscrição)
+        payment.userId?.toLowerCase() === search.toLowerCase()
     );
     filtered = filteredByGroup(filtered);
     return filtered;
