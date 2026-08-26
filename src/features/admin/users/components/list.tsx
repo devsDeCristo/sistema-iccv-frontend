@@ -332,10 +332,9 @@ function List({ search }: { search: string }) {
     <Card
       elevation={0}
       sx={{
-        // mesma casca dos cards do topo: borda fina, raio de 12px e nada de
-        // sombra. O overflow é o que faz a linha do cabeçalho respeitar o canto
+        // sem borda: a separação do fundo vem da sombra do tema. O overflow é o
+        // que faz a linha do cabeçalho respeitar o canto arredondado
         borderRadius: 3,
-        border: `1px solid ${theme.palette.divider}`,
         overflow: 'hidden',
       }}
     >
@@ -389,7 +388,9 @@ function List({ search }: { search: string }) {
            * família sem precisar de cor nenhuma.
            */
           '& .MuiDataGrid-columnHeaders': {
-            backgroundColor: alpha(theme.palette.primary.main, 0.05),
+            // mesmo tom do resto da tabela: quem separa o cabeçalho é a linha
+            // de baixo e a tipografia, não um fundo de cor
+            backgroundColor: 'transparent',
             borderBottom: `1px solid ${theme.palette.divider}`,
             borderRadius: 0,
           },
@@ -418,7 +419,7 @@ function List({ search }: { search: string }) {
           },
 
           '& .MuiDataGrid-footerContainer': {
-            backgroundColor: alpha(theme.palette.primary.main, 0.04),
+            backgroundColor: 'transparent',
             border: 0,
             borderTop: `1px solid ${theme.palette.divider}`,
             minHeight: '44px !important',

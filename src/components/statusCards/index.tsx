@@ -10,6 +10,7 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
+import { sombraSuperficie } from '../../themes';
 
 export interface StatusCard {
   title: string;
@@ -45,10 +46,17 @@ export function StatusCards({ cards, isLoading }: StatusCardsProps) {
             elevation={0}
             sx={{
               height: '100%',
-              // 12px: o raio padrão do tema é 4px e deixava o card duro perto
-              // do número em 44px
+              // 12px: o raio padrão do Paper no tema é 8px e deixava o card
+              // duro perto do número em 44px
               borderRadius: 3,
-              border: `1px solid ${alpha(card.color, 0.28)}`,
+              /**
+               * Aro na cor do card em vez de `border`: mesma leitura, mas feito
+               * com box-shadow, então empilha com a sombra da superfície e não
+               * volta a ser borda.
+               */
+              boxShadow: `0 0 0 1px ${alpha(card.color, 0.28)}, ${sombraSuperficie(
+                theme.palette.mode === 'dark'
+              )}`,
               /**
                * A tinta da cor entra como gradiente sobre o paper do tema, em
                * vez de cor cheia: o card ganha identidade sem virar um bloco
@@ -64,7 +72,11 @@ export function StatusCards({ cards, isLoading }: StatusCardsProps) {
               ),
               '&:hover': {
                 transform: 'translateY(-3px)',
-                boxShadow: `0 6px 20px ${alpha(card.color, 0.22)}`,
+                // o aro se mantém no hover; só a sombra cresce na cor do card
+                boxShadow: `0 0 0 1px ${alpha(
+                  card.color,
+                  0.4
+                )}, 0 10px 26px -6px ${alpha(card.color, 0.3)}`,
               },
             }}
           >

@@ -1,11 +1,19 @@
-import { Button, InputAdornment, Paper, TextField } from '@mui/material';
+import {
+  Button,
+  IconButton,
+  InputAdornment,
+  Paper,
+  TextField,
+  Tooltip,
+  useTheme,
+} from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { PageStyle } from '../../../components/pageStyle';
 import { Header } from '../../../components/header';
 import { List } from '../../../features/admin/users/components/list';
 import { useRole } from '../../../hooks/useRole';
 import { useState } from 'react';
-import { Add, Search } from '@mui/icons-material';
+import { Add, Close, Search } from '@mui/icons-material';
 import { CardsStatus } from '../../../features/admin/users/components/cardsStatus';
 
 function Users() {
@@ -13,6 +21,7 @@ function Users() {
   const [searchUser, setSearchUser] = useState('');
 
   const { isAdmin } = useRole();
+  const theme = useTheme();
   const styles = {
     boxFilterAndButton: {
       display: 'flex',
@@ -24,12 +33,33 @@ function Users() {
       gap: 2,
       marginY: 2,
       padding: 2,
+      // mesmo raio dos cards e da tabela; a sombra vem do tema
+      borderRadius: 3,
     },
     button: {
       width: { xs: '100%', sm: 'fit-content' },
+      // casa com o campo de busca ao lado; o raio padrão do tema é 4px e
+      // destoava dos 8px do campo na mesma linha
+      borderRadius: 2,
     },
     textField: {
-      width: { xs: '100%', sm: '350px' },
+      width: { xs: '100%', sm: '380px' },
+      '& .MuiOutlinedInput-root': {
+        borderRadius: 2,
+        // o campo se destaca do paper por tom, não por sombra
+        backgroundColor: theme.palette.background.input,
+        '& fieldset': {
+          borderColor: theme.palette.divider,
+        },
+        '&:hover fieldset': {
+          borderColor: theme.palette.border,
+        },
+        // foco na cor primária, sem engrossar a borda e empurrar o texto
+        '&.Mui-focused fieldset': {
+          borderWidth: 1,
+          borderColor: theme.palette.primary.main,
+        },
+      },
     },
   };
   return (
@@ -46,9 +76,24 @@ function Users() {
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
-                <Search />
+                <Search sx={{ fontSize: 20, color: 'text.secondary' }} />
               </InputAdornment>
             ),
+            // aparece só com texto digitado: em campo vazio seria um botão
+            // morto ocupando espaço
+            endAdornment: searchUser ? (
+              <InputAdornment position="end">
+                <Tooltip title="Limpar busca">
+                  <IconButton
+                    size="small"
+                    edge="end"
+                    onClick={() => setSearchUser('')}
+                  >
+                    <Close sx={{ fontSize: 16 }} />
+                  </IconButton>
+                </Tooltip>
+              </InputAdornment>
+            ) : undefined,
           }}
           onChange={(e) => setSearchUser(e.target.value)}
         />
@@ -62,7 +107,7 @@ function Users() {
           }
           startIcon={<Add />}
         >
-          Novo usuario
+          Novo usuário
         </Button>
       </Paper>
 

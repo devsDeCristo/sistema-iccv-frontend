@@ -1,5 +1,19 @@
 import { alpha, createTheme } from '@mui/material/styles';
 
+/**
+ * Sombra das superfícies (Paper, Card, tabela). Substitui a borda de 1px: é uma
+ * sombra só, sem `border` em lugar nenhum.
+ *
+ * No claro, sombra escura difusa basta. No escuro ela não aparece — preto sobre
+ * quase-preto não separa nada —, então a primeira camada é um aro branco de 1px
+ * feito com `box-shadow`, que dá o recorte que a borda dava, e as outras duas
+ * dão a profundidade.
+ */
+export const sombraSuperficie = (colorMode: boolean) =>
+  colorMode
+    ? '0 0 0 1px rgba(255,255,255,.07), 0 2px 4px rgba(0,0,0,.4), 0 12px 28px -8px rgba(0,0,0,.55)'
+    : '0 1px 2px rgba(16,24,40,.05), 0 8px 20px -6px rgba(16,24,40,.12)';
+
 declare module '@mui/material/styles' {
   interface BreakpointOverrides {
     xs: true;
@@ -120,11 +134,10 @@ export const myTheme = (colorMode: boolean) =>
         },
         styleOverrides: {
           root: {
-            // borderRadius:8,
             elevation: 0,
             border: 'none',
             borderRadius: 8,
-            boxShadow: '0px 0px 6px  #0000000a',
+            boxShadow: sombraSuperficie(colorMode),
           },
         },
       },
