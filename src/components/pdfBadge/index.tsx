@@ -11,7 +11,7 @@ import {
 import { stylesPdfBadge } from './styles';
 import type { BadgeEntry, BadgePage, PdfProps } from './types';
 import { PdfNameCase, PdfSection } from '../../types/pdf';
-import { formatNameCase } from '../../utils';
+import { formatNameCase, limitToTwoNames } from '../../utils';
 import { buildBadgeCode, buildQrCodePath } from '../../utils/qrcode';
 import logoIc from '../../assets/logo-ic-preta.png';
 import logoEvento from '../../assets/6-curs-fem.png';
@@ -48,7 +48,9 @@ function buildPages(
     const badges: BadgeEntry[] = section.users
       .filter(({ badgeName }) => !!badgeName)
       .map((user) => ({
-        name: formatNameCase(user.badgeName || '', nameCase),
+        // só o crachá corta o nome em duas palavras; o envelope tem a folha
+        // inteira e imprime o que veio
+        name: formatNameCase(limitToTwoNames(user.badgeName || ''), nameCase),
         // sem id não há inscrição para apontar: o crachá sai só com o nome
         qr: buildQrCodePath(buildBadgeCode(user.id)),
       }));

@@ -46,6 +46,56 @@ export function formatDateTime(date?: Date | string | null) {
   });
 }
 
+/**
+ * Conectores de nome brasileiro. Não contam como palavra na regra das duas
+ * palavras do crachá, mas continuam impressos: "Maria de Fatima" sai inteiro, e
+ * as duas palavras são "Maria" e "Fatima".
+ */
+const NAME_CONNECTORS = new Set(['de', 'da', 'do', 'das', 'dos', 'e']);
+
+const isConnector = (word: string) => NAME_CONNECTORS.has(word.toLowerCase());
+
+/**
+ * Reduz o nome às duas primeiras palavras de verdade, para o crachá.
+ *
+ * Percorre o nome até fechar a segunda palavra que não é conector e corta ali,
+ * levando junto o que estava no meio. Por isso "Jose da Silva" sai completo e
+ * "Joao Pedro da Silva Santos" sai só "Joao Pedro".
+ *
+ * Conector sobrando no fim é descartado, senão "Maria de" fica pendurado. Nome
+ * feito só de conectores devolve as duas primeiras palavras como vieram, para
+ * sobrar algo impresso em vez de crachá vazio.
+ */
+export function limitToTwoNames(value: string): string {
+  const words = (value ?? '').trim().split(/\s+/).filter(Boolean);
+
+  let nomes = 0;
+  let corte = 0;
+  for (let i = 0; i < words.length; i++) {
+    if (!isConnector(words[i])) nomes += 1;
+    if (nomes === 2) {
+      corte = i + 1;
+      break;
+    }
+  }
+  // não fechou duas: sem nome nenhum fica com as duas primeiras palavras, com
+  // uma só fica com o nome todo e a poda abaixo tira o conector pendurado
+  if (corte === 0) corte = nomes === 0 ? 2 : words.length;
+
+  const escolhidas = words.slice(0, corte);
+  // a poda não vale quando não há nome nenhum: aí sobraria só um conector
+  const temNome = escolhidas.some((word) => !isConnector(word));
+  while (
+    temNome &&
+    escolhidas.length > 1 &&
+    isConnector(escolhidas[escolhidas.length - 1])
+  ) {
+    escolhidas.pop();
+  }
+
+  return escolhidas.join(' ');
+}
+
 /** Aplica no nome a formatação escolhida na hora de gerar crachás/envelopes */
 export function formatNameCase(
   value: string,
@@ -57,9 +107,18 @@ export function formatNameCase(
   if (nameCase === 'upper') return name.toUpperCase();
   if (nameCase === 'lower') return name.toLowerCase();
 
-  return name
+  const capitalizado = name
     .toLowerCase()
     .replace(/(^|\s|')([a-zà-ú])/g, (_, prefix, letter) => prefix + letter.toUpperCase());
+
+  // em português o conector fica minúsculo: "Maria de Fatima", não
+  // "Maria De Fatima". No começo do nome ele é maiúsculo como qualquer palavra
+  return capitalizado
+    .split(' ')
+    .map((word, index) =>
+      index > 0 && isConnector(word) ? word.toLowerCase() : word
+    )
+    .join(' ');
 }
 
 export const removeMask = (value: string): string => {
