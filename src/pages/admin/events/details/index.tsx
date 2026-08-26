@@ -4,8 +4,6 @@ import {
   Box,
   Button,
   Stack,
-  Tabs,
-  Tab,
   TextField,
   Paper,
   InputAdornment,
@@ -69,11 +67,10 @@ import ModalQrCode from '../../../../features/admin/events/components/modalQrCod
 import { QrScannerModal } from '../../../../components/qrScanner';
 import { parseBadgeCode } from '../../../../utils/qrcode';
 import {
-  abasSx,
   campoBuscaSx,
-  superficieAbasSx,
   superficieSx,
 } from '../../../../components/listPageStyles';
+import { NavTabs } from '../../../../components/navTabs';
 import { User } from '../../../../types/user';
 import { ListUsersWaitList } from '../../../../features/admin/events/components/listUsersWaitList';
 import { ListPayments } from '../../../../features/admin/events/components/listPayments';
@@ -328,7 +325,7 @@ function Details() {
     }, 50);
   }
 
-  const handleChange = (_: unknown, newValue: string) => {
+  const handleChange = (newValue: string) => {
     setPageValue(newValue);
     navigate(`/admin/eventos/${id}/detalhes/${newValue}`);
   };
@@ -488,23 +485,12 @@ function Details() {
         )}
       </Header>
 
-      {/* Paper e não Stack: o fundo e a sombra da superfície vêm do MuiPaper do
-          tema, e um Stack não tem fundo próprio */}
-      <Paper sx={superficieAbasSx}>
-        <Tabs
-          value={pageValue}
-          sx={abasSx(theme)}
-          onChange={handleChange}
-          aria-label="basic tabs example"
-          variant="scrollable"
-          scrollButtons="auto"
-          allowScrollButtonsMobile
-        >
-          {visibleTabs.map((tab) => (
-            <Tab key={tab.value} label={tab.label} value={tab.value} />
-          ))}
-        </Tabs>
-      </Paper>
+      {/* sem `mb`: o Paper de filtros logo abaixo já traz `mt: 2` */}
+      <NavTabs
+        value={pageValue}
+        onChange={handleChange}
+        options={visibleTabs}
+      />
 
       {pageValue === 'usuarios' && (
         <Stack gap={2}>

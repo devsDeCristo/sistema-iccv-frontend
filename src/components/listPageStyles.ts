@@ -132,34 +132,3 @@ export const campoBuscaSx = (theme: Theme) => {
     '&.MuiOutlinedInput-root': raizDoCampo,
   };
 };
-
-/**
- * Abas em pílula, o padrão do sistema: o indicador sublinhado do MUI sai e quem
- * marca a aba ativa é o fundo. Vive aqui porque as telas de evento e de check-in
- * usam as mesmas.
- */
-export const abasSx = (theme: Theme) => ({
-  minHeight: 40,
-  '& button': {
-    color: theme.palette.text.disabled,
-    textTransform: 'capitalize' as const,
-    minHeight: 36,
-    borderRadius: 2,
-    paddingX: 1.5,
-  },
-  '& .MuiTab-icon': { marginRight: '4px' },
-  '& button.Mui-selected': {
-    // a aba ativa também muda de cor: só o fundo deixava o texto apagado
-    color: theme.palette.text.primary,
-    backgroundColor: theme.palette.background.hover,
-  },
-  '& .MuiTabs-indicator': { display: 'none' },
-});
-
-/** Casca das abas: superfície estreita, do tamanho das abas e nada mais */
-export const superficieAbasSx = {
-  ...superficieSx,
-  p: 0.5,
-  width: 'fit-content',
-  maxWidth: '100%',
-};

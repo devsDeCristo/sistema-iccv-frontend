@@ -9,11 +9,8 @@ import {
   Menu,
   MenuItem,
   Stack,
-  Tab,
-  Tabs,
   Tooltip,
   Typography,
-  useMediaQuery,
   useTheme,
 } from '@mui/material';
 import { formatCPF, formatDate, formatDateTime } from '../../../../utils';
@@ -60,6 +57,7 @@ import { toast } from 'react-toastify';
 import { ModalAddUserOnEvent } from './modalAddUser';
 import { UserAvatar } from '../../../../components/userAvatar';
 import { cardTabelaSx, dataGridSx } from '../../../../components/listPageStyles';
+import { NavTabs } from '../../../../components/navTabs';
 const getSelectedRowsToExport = ({
   apiRef,
 }: GridGetRowsToExportParams): GridRowId[] => {
@@ -67,10 +65,8 @@ const getSelectedRowsToExport = ({
   if (selectedRowIds.size > 0) {
     return Array.from(selectedRowIds.keys());
   }
-
   return gridFilteredSortedRowIdsSelector(apiRef);
 };
-
 const renderCellWithCopy = (value: string | number) => {
   const handleCopy = () => {
     navigator.clipboard.writeText(String(value));
@@ -93,7 +89,6 @@ const renderCellWithCopy = (value: string | number) => {
     </Tooltip>
   );
 };
-
 function ListUsers({
   search,
   apiRef,
@@ -116,7 +111,6 @@ function ListUsers({
       enabled: !!eventId,
     }
   );
-
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const openMenu = Boolean(anchorEl);
   const [openModalAddUser, setOpenModalAddUser] = useState(false);
@@ -128,8 +122,6 @@ function ListUsers({
     () => event?.groupRoles?.[0]?.name ?? '1'
   );
   const theme = useTheme();
-  const md = useMediaQuery(theme.breakpoints.up('md'));
-
   /**
    * O botão vive dentro da toolbar do DataGrid: assim ele acompanha a largura da
    * tabela e quebra de linha em telas pequenas, em vez de flutuar sobre ela.
@@ -152,7 +144,6 @@ function ListUsers({
             printOptions={{ getRowsToExport: getSelectedRowsToExport }}
           />
         </Box>
-
         {isAdmin && (
           <Button
             onClick={() => setOpenModalAddUser(true)}
@@ -172,37 +163,6 @@ function ListUsers({
     ),
     [isAdmin],
   );
-
-  const styles = {
-    card: {
-      borderRadius: '5px',
-      backgroundColor: theme.palette.background.paper,
-      boxShadow: '0px 0px 3px  #0000001a',
-      border: 'none',
-      '&::before': {
-        display: 'none',
-      },
-    },
-    tabs: {
-      '& button': {
-        color: theme.palette.text.disabled,
-        textTransform: 'capitalize',
-        minHeight: '20px',
-        Height: '100%',
-        borderRadius: '5px',
-        paddingX: '10px',
-      },
-      '& .MuiTab-icon': { marginRight: '2px' },
-
-      '& button.Mui-selected': {
-        backgroundColor: theme.palette.background.hover,
-      },
-      '& .MuiTabs-indicator': {
-        backgroundColor: 'transparent',
-        border: 'none',
-      },
-    },
-  };
   const handleClose = () => {
     setAnchorEl(null);
   };
@@ -220,17 +180,14 @@ function ListUsers({
       }, {}) ?? {},
     [event]
    ) as Record<string, string>;
-
   useEffect(() => {
     if (groupsRules.length > 0) {
       setPanel(groupsRules[0]);
     }
   }, [groupsRules]);
-
   if (!usersData || !Array.isArray(usersData)) {
     return null;
   }
-
   // const { mutate: mutateDeleteEventUser } = useDeleteRelationEventUser({});
   async function handleDownloadPDF(data: User[]) {
     if (!data) return;
@@ -245,7 +202,6 @@ function ListUsers({
     setSelectedUser(params.row as User);
     setAnchorEl(event.currentTarget);
   };
-
   const columns: GridColDef[] = [
     {
       sortable: false,
@@ -280,7 +236,6 @@ function ListUsers({
         </Stack>
       ),
     },
-
     {
       field: 'cpf',
       headerName: 'CPF',
@@ -293,11 +248,9 @@ function ListUsers({
       width: 130,
       valueGetter: (params) => formatDate(params.row.birthday),
     },
-
     {
       field: 'city',
       headerName: 'Endereço',
-
       width: 170,
       renderCell: (params) => (
         <Stack direction="column" gap={1} sx={{ p: 0.5 }}>
@@ -322,7 +275,6 @@ function ListUsers({
       valueGetter: (params) => (params.row.diabetes ? 'Sim' : 'Não'),
     },
     { field: 'notes', headerName: 'Observações', flex: 1, minWidth: 80 },
-
     {
       field: 'cellphone',
       headerName: 'Telefone',
@@ -365,7 +317,6 @@ function ListUsers({
     {
       field: 'bedrooms',
       headerName: 'Quartos',
-
       width: 200,
       renderCell: (params) => (
         <Stack
@@ -388,7 +339,6 @@ function ListUsers({
     {
       field: 'teams',
       headerName: 'Equipes',
-
       width: 200,
       renderCell: (params) => (
         <Stack
@@ -430,7 +380,6 @@ function ListUsers({
       },
     },
   ];
-
   const handleClickEdit = (event: React.MouseEvent) => {
     event.stopPropagation();
     navigate(`/admin/usuario/${rowSelected?.id}/editar`);
@@ -442,18 +391,13 @@ function ListUsers({
     handleDownloadPDF([rowSelected]);
     handleClose();
   };
-
   const handleClickRemoveUser = async () => {
     if (!rowSelected) return;
-
     const roleRegistrationId = rowSelected.groupsRegistration?.find(
       (group: any) => group.name === panel
     )?.roles[0]?.id;
-
     if (!roleRegistrationId) return;
-
     handleClose();
-
     const result = await Swal.fire({
       title: 'Tem certeza que deseja desvincular o usuário do evento?',
       text: 'Esta ação não poderá ser desfeita!',
@@ -468,29 +412,23 @@ function ListUsers({
       allowEscapeKey: () => !Swal.isLoading(),
       preConfirm: async () => {
         const cancelButton = Swal.getCancelButton();
-
         if (cancelButton) cancelButton.disabled = true;
-
         try {
           await mutateRemoveUserFromEvent({
             idEvent: eventId,
             idUser: rowSelected.id.toString(),
             roleRegistrationId,
           });
-
           return true;
         } catch (error) {
           if (cancelButton) cancelButton.disabled = false;
-
           Swal.showValidationMessage(
             'Não foi possível desvincular o usuário. Tente novamente.'
           );
-
           return false;
         }
       },
     });
-
     if (result.isConfirmed && result.value) {
       queryClient.invalidateQueries(GET_EVENT_USERS);
       await Swal.fire({
@@ -500,7 +438,6 @@ function ListUsers({
       });
     }
   };
-
   const filteredByGroup = (usersData: User[]) => {
     if (!panel || groupsRules.length === 0) return usersData;
     return usersData.filter((user) => {
@@ -509,7 +446,6 @@ function ListUsers({
       );
     });
   };
-
   const filteredData = (usersData: User[]) => {
     let filtered = usersData.filter(
       (user) =>
@@ -524,22 +460,18 @@ function ListUsers({
     return filtered;
   };
   const normalize = (str: string) => str?.trim().normalize('NFC').toLowerCase();
-
   const filterUsers = (users: User[], filters: filterUsers) => {
     return users.filter((user) => {
       const { birthday, city, neighborhood } = filters;
-
       let isBirthdayMatch = true;
       if (birthday.startDate && birthday.endDate) {
         const userBD = dayjs(user.birthday);
         const start = dayjs(birthday.startDate);
         const end = dayjs(birthday.endDate);
-
         // Transformar em número "MMDD" para comparar intervalos
         const userNum = userBD.month() * 100 + userBD.date();
         const startNum = start.month() * 100 + start.date();
         const endNum = end.month() * 100 + end.date();
-
         if (startNum <= endNum) {
           // intervalo normal
           isBirthdayMatch = userNum >= startNum && userNum <= endNum;
@@ -548,7 +480,6 @@ function ListUsers({
           isBirthdayMatch = userNum >= startNum || userNum <= endNum;
         }
       }
-
       const isCityMatch = city
         ? normalize(user.city) === normalize(city)
         : true;
@@ -562,35 +493,25 @@ function ListUsers({
       );
     });
   };
-
   // const handleClickEditWork = (event: React.MouseEvent) => {
   //   event.stopPropagation();
   //   if (!rowSelected) return;
   //   setOpenModalEditWork(true);
   //   handleClose();
   // };
-
   return (
     <>
       {Array.isArray(groupsRules) && groupsRules.length > 0 && (
-        <Stack sx={[styles.card, { p: 0.5, height: '50px' }]}>
-          <Tabs
-            variant={md ? 'fullWidth' : 'scrollable'}
-            scrollButtons={md ? false : 'auto'}
-            allowScrollButtonsMobile
-            value={panel}
-            sx={styles.tabs}
-            key={'table_' + md}
-            onChange={(_, newValue) => setPanel(newValue)}
-          >
-            {Array.isArray(groupsRules) &&
-              groupsRules.map((groupName) => (
-                <Tab key={groupName} label={groupName} value={groupName} />
-              ))}
-          </Tabs>
-        </Stack>
+        <NavTabs
+          fullWidth
+          value={panel}
+          onChange={setPanel}
+          options={groupsRules.map((groupName) => ({
+            value: groupName,
+            label: groupName,
+          }))}
+        />
       )}
-
       <Card sx={cardTabelaSx}>
         <DataGrid
           // disableColumnFilter
@@ -616,7 +537,6 @@ function ListUsers({
                 emergencyContact: false,
                 email: false,
                 leadershipPosition: false,
-
                 // cpf: false,
                 cellphone: false,
                 // badgeName: false,
@@ -663,7 +583,6 @@ function ListUsers({
               <ListItemText>Ver detalhes do usuário</ListItemText>
             </MenuItem>
           )}
-
           <MenuItem onClick={handleClickDownloadBadge}>
             <ListItemIcon>
               <Badge fontSize="small" color="primary" />

@@ -1,16 +1,13 @@
 import { Header } from '../../../../components/header';
 import { useForm, FormProvider } from 'react-hook-form';
 import { PageStyle } from '../../../../components/pageStyle';
+import { NavTabs } from '../../../../components/navTabs';
 // import { Form } from '../../../../features/admin/events/components/formGeneralInfo';
 import {
   Box,
   Button,
   Paper,
   Skeleton,
-  Stack,
-  Tab,
-  Tabs,
-  useTheme,
 } from '@mui/material';
 import { EventDetails } from '../../../../features/admin/events/types';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -42,7 +39,6 @@ import { Check } from '@mui/icons-material';
 import Swal from 'sweetalert2';
 
 function Edit() {
-  const theme = useTheme();
   const { id } = useParams();
   const navigate = useNavigate();
   const { data: eventData, isLoading } = useGetEvents(
@@ -141,27 +137,6 @@ function Edit() {
       methodsEventLogo.reset(getDefaultEventLogoValues(event));
     }
   }, [event]);
-  const styles = {
-    tabs: {
-      '& button': {
-        color: theme.palette.text.disabled,
-        textTransform: 'capitalize',
-        minHeight: '20px',
-        Height: '100%',
-        borderRadius: '5px',
-        paddingX: '10px',
-      },
-      '& .MuiTab-icon': { marginRight: '2px' },
-
-      '& button.Mui-selected': {
-        backgroundColor: theme.palette.background.hover,
-      },
-      '& .MuiTabs-indicator': {
-        backgroundColor: 'transparent',
-        border: 'none',
-      },
-    },
-  };
   const { mutate: mutatePutUpdateEvent, isLoading: isLoadingEdit } =
     usePutUpdateEvent({
       onSuccess: () => {
@@ -328,28 +303,16 @@ function Edit() {
         <Paper
           sx={{ padding: 3, gap: 3, display: 'flex', flexDirection: 'column' }}
         >
-          <Stack>
-            <Tabs
-              variant="scrollable"
-              scrollButtons="auto"
-              allowScrollButtonsMobile
-              value={currentStep}
-              sx={styles.tabs}
-              onChange={(_, newValue) => {
-                setCurrentStep(newValue);
-              }}
-            >
-              {PANELS.map(({ label, id, icon: Icon }) => (
-                <Tab
-                  key={id}
-                  label={label}
-                  value={id}
-                  icon={<Icon />}
-                  iconPosition="start"
-                />
-              ))}
-            </Tabs>
-          </Stack>
+          <NavTabs
+            bare
+            value={currentStep}
+            onChange={setCurrentStep}
+            options={PANELS.map(({ label, id, icon: Icon }) => ({
+              value: id,
+              label,
+              icon: <Icon />,
+            }))}
+          />
           <FormProvider
             {...(panelsMethods[currentStep - 1].formMethods as any)}
             key={currentStep - 1}

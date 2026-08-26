@@ -4,11 +4,8 @@ import {
   Card,
   IconButton,
   Stack,
-  Tab,
-  Tabs,
   Tooltip,
   Typography,
-  useMediaQuery,
   useTheme,
 } from '@mui/material';
 import { formatCPF, formatDate, formatDateTime } from '../../../../utils';
@@ -27,7 +24,6 @@ import {
 import { useParams } from 'react-router-dom';
 import { User } from '../../../../types/user';
 import { useEffect, useMemo, useState } from 'react';
-
 import { toast } from 'react-toastify';
 import { useGetUsersWaitlist } from '../api/getUsersWaitlist';
 import { ModalSenduserEvent } from './modalSendUserEvent';
@@ -38,7 +34,7 @@ import { GET_EVENT_USERS_WAITLIST } from '../constants';
 import { queryClient } from '../../../../config/lib/react-query/query-client';
 import { UserAvatar } from '../../../../components/userAvatar';
 import { cardTabelaSx, dataGridSx } from '../../../../components/listPageStyles';
-
+import { NavTabs } from '../../../../components/navTabs';
 const getSelectedRowsToExport = ({
   apiRef,
 }: GridGetRowsToExportParams): GridRowId[] => {
@@ -46,10 +42,8 @@ const getSelectedRowsToExport = ({
   if (selectedRowIds.size > 0) {
     return Array.from(selectedRowIds.keys());
   }
-
   return gridFilteredSortedRowIdsSelector(apiRef);
 };
-
 const renderCellWithCopy = (value: string | number) => {
   const handleCopy = () => {
     navigator.clipboard.writeText(String(value));
@@ -72,7 +66,6 @@ const renderCellWithCopy = (value: string | number) => {
     </Tooltip>
   );
 };
-
 function ListUsersWaitList({
   search,
   apiRef,
@@ -141,56 +134,19 @@ function ListUsersWaitList({
   const [openModalParams, setOpenModalParams] = useState<GridCellParams | null>(
     null
   );
-
   const theme = useTheme();
-  const md = useMediaQuery(theme.breakpoints.up('md'));
-
-  const styles = {
-    card: {
-      borderRadius: '5px',
-      backgroundColor: theme.palette.background.paper,
-      boxShadow: '0px 0px 3px  #0000001a',
-      border: 'none',
-      '&::before': {
-        display: 'none',
-      },
-    },
-    tabs: {
-      '& button': {
-        color: theme.palette.text.disabled,
-        textTransform: 'capitalize',
-        minHeight: '20px',
-        Height: '100%',
-        borderRadius: '5px',
-        paddingX: '10px',
-      },
-      '& .MuiTab-icon': { marginRight: '2px' },
-
-      '& button.Mui-selected': {
-        backgroundColor: theme.palette.background.hover,
-      },
-      '& .MuiTabs-indicator': {
-        backgroundColor: 'transparent',
-        border: 'none',
-      },
-    },
-  };
-
   const groupsRules = useMemo(
     () => event?.groupRoles?.map((g: any) => g.name) ?? [],
     [event]
   ) as string[];
-
   useEffect(() => {
     if (groupsRules.length > 0) {
       setPanel(groupsRules[0]);
     }
   }, [groupsRules]);
-
   if (!usersData || !Array.isArray(usersData)) {
     return null;
   }
-
   const columns: GridColDef[] = [
     {
       sortable: false,
@@ -225,7 +181,6 @@ function ListUsersWaitList({
         </Stack>
       ),
     },
-
     {
       field: 'cpf',
       headerName: 'CPF',
@@ -238,11 +193,9 @@ function ListUsersWaitList({
       width: 130,
       valueGetter: (params) => formatDate(params.row.birthday),
     },
-
     {
       field: 'city',
       headerName: 'Endereço',
-
       width: 170,
       renderCell: (params) => (
         <Stack direction="column" gap={1} sx={{ p: 0.5 }}>
@@ -278,7 +231,6 @@ function ListUsersWaitList({
         </Stack>
       ),
     },
-
     {
       field: 'waitlistCreatedAt',
       headerName: 'Entrada na lista',
@@ -290,7 +242,6 @@ function ListUsersWaitList({
           : null,
       valueFormatter: (params) => formatDateTime(params.value),
     },
-
     {
       field: 'actions',
       headerName: '',
@@ -334,7 +285,6 @@ function ListUsersWaitList({
       },
     },
   ];
-
   const filteredByGroup = (usersData: User[]) => {
     if (!panel || groupsRules.length === 0) return usersData;
     return usersData.filter((user) => {
@@ -343,7 +293,6 @@ function ListUsersWaitList({
       );
     });
   };
-
   const filteredData = (usersData: User[]) => {
     let filtered = usersData.filter(
       (user) =>
@@ -354,27 +303,19 @@ function ListUsersWaitList({
     filtered = filteredByGroup(filtered);
     return filtered;
   };
-
   return (
     <>
       {Array.isArray(groupsRules) && groupsRules.length > 0 && (
-        <Stack sx={[styles.card, { p: 0.5, height: '50px' }]}>
-          <Tabs
-            variant={md ? 'fullWidth' : 'scrollable'}
-            scrollButtons={md ? false : 'auto'}
-            allowScrollButtonsMobile
-            value={panel}
-            sx={styles.tabs}
-            onChange={(_, newValue) => setPanel(newValue)}
-          >
-            {Array.isArray(groupsRules) &&
-              groupsRules.map((groupName) => (
-                <Tab key={groupName} label={groupName} value={groupName} />
-              ))}
-          </Tabs>
-        </Stack>
+        <NavTabs
+          fullWidth
+          value={panel}
+          onChange={setPanel}
+          options={groupsRules.map((groupName) => ({
+            value: groupName,
+            label: groupName,
+          }))}
+        />
       )}
-
       <Card sx={cardTabelaSx}>
         <DataGrid
           // disableColumnFilter
@@ -400,9 +341,7 @@ function ListUsersWaitList({
                 emergencyContact: false,
                 email: false,
                 leadershipPosition: false,
-
                 // cpf: false,
-
                 // badgeName: false,
                 diabetes: false,
                 hypertensive: false,
@@ -422,7 +361,6 @@ function ListUsersWaitList({
           localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
         />
       </Card>
-
       <ModalSenduserEvent
         eventId={eventId}
         handleClose={() => setOpenModalParams(null)}

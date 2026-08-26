@@ -10,8 +10,6 @@ import {
   IconButton,
   Paper,
   Stack,
-  Tab,
-  Tabs,
   Tooltip,
   Typography,
   useTheme,
@@ -29,11 +27,10 @@ import { ReceptionStation } from '../../../features/admin/checkin/components/rec
 import { PhotoStation } from '../../../features/admin/checkin/components/photoStation';
 import { InputSelect } from '../../../components/inputSelect';
 import {
-  abasSx,
   campoBuscaSx,
-  superficieAbasSx,
   superficieSx,
 } from '../../../components/listPageStyles';
+import { NavTabs } from '../../../components/navTabs';
 import { useSearchCheckin } from '../../../features/admin/checkin/api/getCheckin';
 import { useCheckinSocket } from '../../../features/admin/checkin/hooks/useCheckinSocket';
 import { CHECKIN_REFETCH_MS } from '../../../features/admin/checkin/constants';
@@ -200,26 +197,19 @@ function Checkin() {
         <CheckinStats stats={stats} />
       </Box>
 
-      <Paper sx={{ ...superficieAbasSx, mb: 2 }}>
-        <Tabs
-          value={posto}
-          onChange={(_, value: Posto) => trocarPosto(value)}
-          sx={abasSx(theme)}
-        >
-          <Tab
-            value="recepcao"
-            label="Recepção e crachá"
-            icon={<HowToReg />}
-            iconPosition="start"
-          />
-          <Tab
-            value="foto"
-            label="Foto e conferência"
-            icon={<PhotoCamera />}
-            iconPosition="start"
-          />
-        </Tabs>
-      </Paper>
+      <NavTabs
+        value={posto}
+        onChange={(valor) => trocarPosto(valor as Posto)}
+        options={[
+          {
+            value: 'recepcao',
+            label: 'Recepção e crachá',
+            icon: <HowToReg />,
+          },
+          { value: 'foto', label: 'Foto e conferência', icon: <PhotoCamera /> },
+        ]}
+        sx={{ mb: 2 }}
+      />
 
       {posto === 'recepcao' ? (
         <ReceptionStation eventId={eventId} grupo={grupo} />

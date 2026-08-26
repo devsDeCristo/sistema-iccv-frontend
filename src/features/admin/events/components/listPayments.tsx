@@ -7,11 +7,8 @@ import {
   Menu,
   MenuItem,
   Stack,
-  Tab,
-  Tabs,
   Tooltip,
   Typography,
-  useMediaQuery,
   useTheme,
 } from '@mui/material';
 import { formatCPF, formatCurrency } from '../../../../utils';
@@ -49,12 +46,12 @@ import {
   PAYMENT_STATUS,
   PAYMENT_STATUS_COLOR,
 } from '../constants';
-
 import { toast } from 'react-toastify';
 import { useGetPayments } from '../api/getPayments';
 import { ModalPayment } from './modalPayments';
 import { UserAvatar } from '../../../../components/userAvatar';
 import { cardTabelaSx, dataGridSx } from '../../../../components/listPageStyles';
+import { NavTabs } from '../../../../components/navTabs';
 const getSelectedRowsToExport = ({
   apiRef,
 }: GridGetRowsToExportParams): GridRowId[] => {
@@ -62,10 +59,8 @@ const getSelectedRowsToExport = ({
   if (selectedRowIds.size > 0) {
     return Array.from(selectedRowIds.keys());
   }
-
   return gridFilteredSortedRowIdsSelector(apiRef);
 };
-
 const renderCellWithCopy = (value: string | number) => {
   const handleCopy = () => {
     navigator.clipboard.writeText(String(value));
@@ -88,7 +83,6 @@ const renderCellWithCopy = (value: string | number) => {
     </Tooltip>
   );
 };
-
 function ListPayments({
   search,
   apiRef,
@@ -109,60 +103,24 @@ function ListPayments({
   );
   const theme = useTheme();
   const payments = paymentsData as PaymentResponse[];
-  const md = useMediaQuery(theme.breakpoints.up('md'));
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const openMenu = Boolean(anchorEl);
   const [selectedPayment, setSelectedPayment] =
     useState<PaymentResponse | null>(null);
   const [openModalPayment, setOpenModalPayment] = useState(false);
   const [panel, setPanel] = useState<string>('1');
-
-  const styles = {
-    card: {
-      fontSize: '30px',
-      borderRadius: '5px',
-      backgroundColor: theme.palette.background.paper,
-      boxShadow: '0px 0px 3px  #0000001a',
-      border: 'none',
-      '&::before': {
-        display: 'none',
-      },
-    },
-    tabs: {
-      '& button': {
-        color: theme.palette.text.disabled,
-        textTransform: 'capitalize',
-        minHeight: '20px',
-        Height: '100%',
-        borderRadius: '5px',
-        paddingX: '10px',
-      },
-      '& .MuiTab-icon': { marginRight: '2px' },
-
-      '& button.Mui-selected': {
-        backgroundColor: theme.palette.background.hover,
-      },
-      '& .MuiTabs-indicator': {
-        backgroundColor: 'transparent',
-        border: 'none',
-      },
-    },
-  };
   const handleClose = () => {
     setAnchorEl(null);
   };
-
   const groupsRules = useMemo(
     () => event?.groupRoles?.map((g: any) => g.name) ?? [],
     [event]
   ) as string[];
-
   useEffect(() => {
     if (groupsRules.length > 0) {
       setPanel(groupsRules[0]);
     }
   }, [groupsRules]);
-
   const handleClickOptions = (
     event: React.MouseEvent<HTMLElement>,
     params: GridCellParams
@@ -170,7 +128,6 @@ function ListPayments({
     setSelectedPayment(params.row as PaymentResponse);
     setAnchorEl(event.currentTarget);
   };
-
   const columns: GridColDef[] = [
     {
       sortable: false,
@@ -250,7 +207,6 @@ function ListPayments({
       renderCell: (params) =>
         renderCellWithCopy(formatCurrency(params.value as number)),
     },
-
     {
       field: 'groupName',
       headerName: 'Ingresso',
@@ -264,7 +220,6 @@ function ListPayments({
         </Stack>
       ),
     },
-
     {
       field: 'actions',
       headerName: '',
@@ -287,14 +242,12 @@ function ListPayments({
       },
     },
   ];
-
   const filteredByGroup = (payments: PaymentResponse[]) => {
     if (!panel || groupsRules.length === 0) return payments;
     return payments.filter((payment) => {
       return payment.groupName === panel;
     });
   };
-
   const filteredData = (paymentsData: PaymentResponse[]) => {
     let filtered = paymentsData.filter(
       (payment) =>
@@ -312,7 +265,6 @@ function ListPayments({
     (payments || [])
       .filter((payment) => (filtro ? filtro(payment) : true))
       .reduce((acc, payment) => acc + payment.amount, 0);
-
   /**
    * Mesma régua de cards do resto do sistema. `compact` porque valor em reais é
    * texto longo e no tamanho dos contadores estouraria a largura do card.
@@ -343,29 +295,20 @@ function ListPayments({
       compact: true,
     },
   ];
-
   return (
     <>
       <StatusCards cards={cardsResumo} isLoading={isLoading} />
-
       {Array.isArray(groupsRules) && groupsRules.length > 0 && (
-        <Stack sx={[styles.card, { p: 0.5, height: '50px' }]}>
-          <Tabs
-            variant={md ? 'fullWidth' : 'scrollable'}
-            scrollButtons={md ? false : 'auto'}
-            allowScrollButtonsMobile
-            value={panel}
-            sx={styles.tabs}
-            onChange={(_, newValue) => setPanel(newValue)}
-          >
-            {Array.isArray(groupsRules) &&
-              groupsRules.map((groupName) => (
-                <Tab key={groupName} label={groupName} value={groupName} />
-              ))}
-          </Tabs>
-        </Stack>
+        <NavTabs
+          fullWidth
+          value={panel}
+          onChange={setPanel}
+          options={groupsRules.map((groupName) => ({
+            value: groupName,
+            label: groupName,
+          }))}
+        />
       )}
-
       <Card sx={cardTabelaSx}>
         <DataGrid
           // disableColumnFilter
@@ -418,7 +361,6 @@ function ListPayments({
             </ListItemIcon>
             <ListItemText>Editar </ListItemText>
           </MenuItem>
-
           <MenuItem sx={{ opacity: 0.3 }}>
             <ListItemIcon>
               <Reply fontSize="small" color="error" />
