@@ -53,13 +53,23 @@ const stylesPdfBadge = StyleSheet.create({
     objectFit: 'contain',
   },
   /**
-   * Nome e QR num bloco só, ancorado onde o nome ficava. Posicionar os dois de
-   * forma independente colocava o QR sobre a segunda linha de nome comprido —
-   * em fluxo, o QR desce junto.
+   * Nome e QR centralizados dentro do rasgo do papel.
+   *
+   * Os números vêm de medição, não de estimativa: renderizando um crachá só com
+   * a arte e lendo o brilho médio linha por linha, a faixa clara do rasgo vai de
+   * 177,1pt a 273,6pt — centro em 225,4pt.
+   *
+   * O 184 é esse centro menos metade do conjunto de uma linha
+   * (24 do nome + 6 + 52 do QR = 82pt): 225,4 - 41 = 184,4.
+   *
+   * Sem `height` de propósito. Container de altura fixa faz o react-pdf medir o
+   * texto pela altura que sobra em vez de pelo conteúdo: o nome de três linhas
+   * era desenhado inteiro mas ocupava a caixa de uma linha e meia, e o QR subia
+   * para dentro dele. Sem altura, nome comprido só empurra o QR para baixo.
    */
   nameArea: {
     position: 'absolute',
-    top: 210,
+    top: 190,
     left: 0,
     right: 0,
     alignItems: 'center',
@@ -68,24 +78,22 @@ const stylesPdfBadge = StyleSheet.create({
     fontSize: 20,
     fontFamily: 'Helvetica-Bold',
     textAlign: 'center',
-    // a formatação do nome já vem resolvida do modal
+    // a formatação do nome já vem resolvida do modal.
+    // largura cheia é o que faz o nome comprido quebrar dentro do crachá em vez
+    // de vazar pelas laterais
     width: '100%',
   },
-  /**
-   * Sem moldura branca: o QR fica direto sobre a arte, e a zona de silêncio é a
-   * margem de 2 módulos do próprio código.
-   *
-   * Isso vale enquanto a arte atrás do código for clara e lisa, como a padrão.
-   * A capa é configurável por evento (`coverBase64`) — subindo uma foto ali, o
-   * código para de ser lido e a moldura branca precisa voltar.
-   */
   qrBox: {
-    marginTop: 8,
+    marginTop: 6,
   },
   /**
    * 52pt para 29 células (25 módulos + margem 2 de cada lado) dá ~0,63mm por
-   * módulo. Aumentar o quadro em vez do módulo não ajudaria: o bloco nome+QR
-   * passa do rodapé quando o nome ocupa duas linhas.
+   * módulo, o piso para leitura confiável por câmera.
+   *
+   * Sem moldura branca: a zona de silêncio é a margem de 2 módulos do próprio
+   * código, sobre a arte. Isso vale enquanto a arte atrás dele for clara; a
+   * capa é configurável por evento (`coverBase64`) e, subindo uma foto ali, o
+   * código para de ser lido e a moldura branca precisa voltar.
    */
   qrCode: {
     width: 52,
