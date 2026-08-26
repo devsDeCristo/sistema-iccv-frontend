@@ -44,6 +44,7 @@ import CustomChip from '../../../../components/customChip';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import { UserAvatar } from '../../../../components/userAvatar';
+import { cardTabelaSx, dataGridSx } from '../../../../components/listPageStyles';
 // const getSelectedRowsToExport = ({
 //   apiRef,
 // }: GridGetRowsToExportParams): GridRowId[] => {
@@ -329,15 +330,7 @@ function List({ search }: { search: string }) {
     );
 
   return (
-    <Card
-      elevation={0}
-      sx={{
-        // sem borda: a separação do fundo vem da sombra do tema. O overflow é o
-        // que faz a linha do cabeçalho respeitar o canto arredondado
-        borderRadius: 3,
-        overflow: 'hidden',
-      }}
-    >
+    <Card elevation={0} sx={cardTabelaSx}>
       <DataGrid
         rows={filteredData(data || [])}
         // onRowClick={handleRowClick}
@@ -378,70 +371,7 @@ function List({ search }: { search: string }) {
             },
           },
         }}
-        sx={{
-          // a borda é do Card; o grid vai de ponta a ponta dentro dele
-          border: 0,
-
-          /**
-           * Cabeçalho no mesmo tratamento do rótulo dos cards: caixa alta,
-           * 11px, espaçado. É o que faz a lista e os cards parecerem da mesma
-           * família sem precisar de cor nenhuma.
-           */
-          '& .MuiDataGrid-columnHeaders': {
-            // mesmo tom do resto da tabela: quem separa o cabeçalho é a linha
-            // de baixo e a tipografia, não um fundo de cor
-            backgroundColor: 'transparent',
-            borderBottom: `1px solid ${theme.palette.divider}`,
-            borderRadius: 0,
-          },
-          '& .MuiDataGrid-columnHeaderTitle': {
-            fontSize: '11px',
-            fontWeight: 700,
-            letterSpacing: '0.07em',
-            textTransform: 'uppercase',
-            color: theme.palette.text.secondary,
-          },
-          // separador de coluna sai: com o cabeçalho tingido ele só suja
-          '& .MuiDataGrid-columnSeparator': {
-            display: 'none',
-          },
-
-          // separador entre linhas mais leve que o divider cheio, que pesava a
-          // tabela toda
-          '& .MuiDataGrid-cell': {
-            borderBottom: `1px solid ${alpha(theme.palette.divider, 0.55)}`,
-          },
-          '& .MuiDataGrid-row:last-of-type .MuiDataGrid-cell': {
-            borderBottom: 'none',
-          },
-          '& .MuiDataGrid-row:hover': {
-            backgroundColor: theme.palette.background.hover,
-          },
-
-          '& .MuiDataGrid-footerContainer': {
-            backgroundColor: 'transparent',
-            border: 0,
-            borderTop: `1px solid ${theme.palette.divider}`,
-            minHeight: '44px !important',
-          },
-
-          // CPF, datas e horas: sem largura fixa de dígito a coluna tremia a
-          // cada linha
-          '& .celula-numerica': {
-            fontVariantNumeric: 'tabular-nums',
-          },
-          '& .celula-destaque': {
-            fontWeight: 500,
-          },
-
-          '& .MuiDataGrid-cell:focus, & .MuiDataGrid-cell:focus-within': {
-            outline: 'none',
-          },
-          '& .MuiDataGrid-columnHeader:focus, & .MuiDataGrid-columnHeader:focus-within':
-            {
-              outline: 'none',
-            },
-        }}
+        sx={dataGridSx(theme)}
         localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
       />
       <ModalEditRole

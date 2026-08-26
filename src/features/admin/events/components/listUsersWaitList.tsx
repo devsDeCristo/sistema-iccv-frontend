@@ -37,6 +37,7 @@ import Swal from 'sweetalert2';
 import { GET_EVENT_USERS_WAITLIST } from '../constants';
 import { queryClient } from '../../../../config/lib/react-query/query-client';
 import { UserAvatar } from '../../../../components/userAvatar';
+import { cardTabelaSx, dataGridSx } from '../../../../components/listPageStyles';
 
 const getSelectedRowsToExport = ({
   apiRef,
@@ -374,7 +375,7 @@ function ListUsersWaitList({
         </Stack>
       )}
 
-      <Card>
+      <Card sx={cardTabelaSx}>
         <DataGrid
           // disableColumnFilter
           // disableDensitySelector
@@ -416,28 +417,8 @@ function ListUsersWaitList({
               printOptions: { getRowsToExport: getSelectedRowsToExport },
             },
           }}
-          columnHeaderHeight={40}
-          sx={{
-            p: 2,
-            '& .MuiDataGrid-row': {
-              borderTop: '1px solid ' + theme.palette.divider,
-              borderBottom: 'none',
-            },
-            '& .MuiDataGrid-footerContainer': {
-              backgroundColor: 'transparent', // Altera cor do rodapé
-              border: 0,
-              borderTop: `1px solid ${theme.palette.divider}`,
-              height: '40px !important', // Define a altura do rodapé
-              minHeight: '40px !important', // Define a altura do rodapé
-            },
-            '& .MuiDataGrid-cell:focus, & .MuiDataGrid-cell:focus-within': {
-              outline: 'none',
-            },
-            '& .MuiDataGrid-columnHeader:focus, & .MuiDataGrid-columnHeader:focus-within':
-              {
-                outline: 'none',
-              },
-          }}
+          columnHeaderHeight={44}
+          sx={dataGridSx(theme)}
           localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
         />
       </Card>

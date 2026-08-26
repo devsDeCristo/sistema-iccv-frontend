@@ -68,6 +68,10 @@ import PdfTeams from '../../../../components/pdfTeams';
 import ModalQrCode from '../../../../features/admin/events/components/modalQrCode';
 import { QrScannerModal } from '../../../../components/qrScanner';
 import { parseBadgeCode } from '../../../../utils/qrcode';
+import {
+  campoBuscaSx,
+  superficieSx,
+} from '../../../../components/listPageStyles';
 import { User } from '../../../../types/user';
 import { ListUsersWaitList } from '../../../../features/admin/events/components/listUsersWaitList';
 import { ListPayments } from '../../../../features/admin/events/components/listPayments';
@@ -245,6 +249,7 @@ function Details() {
       gap: 2,
       mt: 2,
       p: 2,
+      ...superficieSx,
     },
     stackButtons: {
       direction: 'row',
@@ -257,6 +262,7 @@ function Details() {
     },
     textField: {
       width: { xs: '100%', sm: '350px' },
+      ...campoBuscaSx(theme),
     },
   };
 

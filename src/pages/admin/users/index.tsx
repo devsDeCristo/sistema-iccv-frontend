@@ -12,6 +12,10 @@ import { PageStyle } from '../../../components/pageStyle';
 import { Header } from '../../../components/header';
 import { List } from '../../../features/admin/users/components/list';
 import { useRole } from '../../../hooks/useRole';
+import {
+  campoBuscaSx,
+  superficieSx,
+} from '../../../components/listPageStyles';
 import { useState } from 'react';
 import { Add, Close, Search } from '@mui/icons-material';
 import { CardsStatus } from '../../../features/admin/users/components/cardsStatus';
@@ -34,7 +38,7 @@ function Users() {
       marginY: 2,
       padding: 2,
       // mesmo raio dos cards e da tabela; a sombra vem do tema
-      borderRadius: 3,
+      ...superficieSx,
     },
     button: {
       width: { xs: '100%', sm: 'fit-content' },
@@ -44,22 +48,7 @@ function Users() {
     },
     textField: {
       width: { xs: '100%', sm: '380px' },
-      '& .MuiOutlinedInput-root': {
-        borderRadius: 2,
-        // o campo se destaca do paper por tom, não por sombra
-        backgroundColor: theme.palette.background.input,
-        '& fieldset': {
-          borderColor: theme.palette.divider,
-        },
-        '&:hover fieldset': {
-          borderColor: theme.palette.border,
-        },
-        // foco na cor primária, sem engrossar a borda e empurrar o texto
-        '&.Mui-focused fieldset': {
-          borderWidth: 1,
-          borderColor: theme.palette.primary.main,
-        },
-      },
+      ...campoBuscaSx(theme),
     },
   };
   return (

@@ -34,6 +34,7 @@ import {
   filtrarPorSituacao,
 } from '../utils';
 import { CheckinParticipant } from '../types';
+import { cardTabelaSx, dataGridSx } from '../../../../components/listPageStyles';
 
 interface ReceptionStationProps {
   eventId: string;
@@ -311,7 +312,7 @@ function ReceptionStation({ eventId, grupo }: ReceptionStationProps) {
         </Box>
       </Stack>
 
-      <Card>
+      <Card sx={cardTabelaSx}>
         <DataGrid
           rows={lista}
           columns={colunas}
@@ -319,33 +320,13 @@ function ReceptionStation({ eventId, grupo }: ReceptionStationProps) {
           loading={isLoading}
           autoHeight
           rowHeight={56}
-          columnHeaderHeight={40}
+          columnHeaderHeight={44}
           disableRowSelectionOnClick
           pageSizeOptions={[25, 50, 100]}
           initialState={{
             pagination: { paginationModel: { pageSize: 25 } },
           }}
-          sx={{
-            p: 1,
-            '& .MuiDataGrid-row': {
-              borderTop: '1px solid ' + theme.palette.divider,
-              borderBottom: 'none',
-            },
-            '& .MuiDataGrid-footerContainer': {
-              backgroundColor: 'transparent',
-              border: 0,
-              borderTop: `1px solid ${theme.palette.divider}`,
-              height: '40px !important',
-              minHeight: '40px !important',
-            },
-            '& .MuiDataGrid-cell:focus, & .MuiDataGrid-cell:focus-within': {
-              outline: 'none',
-            },
-            '& .MuiDataGrid-columnHeader:focus, & .MuiDataGrid-columnHeader:focus-within':
-              {
-                outline: 'none',
-              },
-          }}
+          sx={dataGridSx(theme)}
           localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
         />
       </Card>

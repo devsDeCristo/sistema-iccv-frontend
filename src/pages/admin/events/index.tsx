@@ -1,4 +1,11 @@
-import { Button, MenuItem, Paper, Stack, TextField } from '@mui/material';
+import {
+  Button,
+  MenuItem,
+  Paper,
+  Stack,
+  TextField,
+  useTheme,
+} from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { PageStyle } from '../../../components/pageStyle';
 import { Header } from '../../../components/header';
@@ -8,6 +15,10 @@ import { useState } from 'react';
 import { Add } from '@mui/icons-material';
 import { EventStatusFilter } from '../../../features/admin/events/types';
 import { useRole } from '../../../hooks/useRole';
+import {
+  campoBuscaSx,
+  superficieSx,
+} from '../../../components/listPageStyles';
 
 const STATUS_OPTIONS: { value: EventStatusFilter; label: string }[] = [
   { value: 'active', label: 'Ativos' },
@@ -20,6 +31,7 @@ function Events() {
   const { isAdmin } = useRole();
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState<EventStatusFilter>('active');
+  const theme = useTheme();
   const styles = {
     boxFilterAndPdf: {
       display: 'flex',
@@ -30,14 +42,16 @@ function Events() {
       flexWrap: 'wrap',
       width: '100%',
       gap: 2,
-      // mt: 2,
       p: 2,
+      ...superficieSx,
     },
     textField: {
       width: { xs: '100%', sm: '300px' },
+      ...campoBuscaSx(theme),
     },
     selectStatus: {
       width: { xs: '100%', sm: '200px' },
+      ...campoBuscaSx(theme),
     },
     filters: {
       display: 'flex',
