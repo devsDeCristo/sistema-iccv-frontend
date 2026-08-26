@@ -20,6 +20,7 @@ const InputSelect = ({
   menuOptions,
   helperText,
   errorMessage,
+  sx,
   ...rest
 }: InputSelectProps & SelectProps) => {
   // um id por instância: com o id fixo, clicar no rótulo de um select abria o
@@ -34,9 +35,12 @@ const InputSelect = ({
           {label}
         </InputLabel>
         <Select
-          sx={{
-            width: '100%',
-          }}
+          /**
+           * O sx de quem chama entra somando, não substituindo: antes ele vinha
+           * no `...rest` depois desta prop e apagava a largura, então quem
+           * passasse estilo perdia o `width: 100%`.
+           */
+          sx={[{ width: '100%' }, ...(Array.isArray(sx) ? sx : [sx])]}
           labelId={labelId}
           label={label}
           displayEmpty

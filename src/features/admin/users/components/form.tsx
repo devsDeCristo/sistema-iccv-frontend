@@ -1,4 +1,4 @@
-import { Divider, Grid, Paper, Stack, Typography } from '@mui/material';
+import { Box, Divider, Grid, Stack, Typography } from '@mui/material';
 import { ReactNode } from 'react';
 import { Input } from '../../../../components/input';
 import { InputDatePicker } from '../../../../components/inputDatePicker';
@@ -14,19 +14,24 @@ import {
 import { OPTIONS_BOOLEAN, OPTIONS_LEADERSHIP } from '../constants';
 
 /** Bloco de campos agrupados por categoria (dados pessoais, endereço, etc.) */
+/**
+ * Sem Paper de propósito: a página já é uma superfície com padding, e envolver
+ * cada grupo numa segunda superfície só empilhava caixa dentro de caixa. O que
+ * agrupa é o título com a divisória embaixo.
+ */
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <Paper component="section" sx={{ p: 0 }}>
+    <Box component="section">
       {/* em rem para acompanhar quem redimensiona a raiz — na tela de
           detalhes continua nos mesmos 18px */}
-      <Typography variant="h6" fontSize="1.125rem">
+      <Typography variant="h6" fontSize="1.125rem" fontWeight={600}>
         {title}
       </Typography>
-      <Divider sx={{ mt: 0.5, mb: 2 }} />
-      <Grid container spacing={2}>
+      <Divider sx={{ mt: 1, mb: 2.5 }} />
+      <Grid container spacing={2.5}>
         {children}
       </Grid>
-    </Paper>
+    </Box>
   );
 }
 
@@ -35,8 +40,14 @@ function ViewField({ label, value }: { label: string; value?: ReactNode }) {
   const isEmpty = value === null || value === undefined || value === '';
 
   return (
-    <Stack>
-      <Typography variant="caption" color="text.secondary">
+    <Stack gap={0.25}>
+      <Typography
+        variant="caption"
+        color="text.secondary"
+        // um pouco mais de corpo: no tamanho anterior o rótulo quase
+        // desaparecia ao lado do valor
+        sx={{ fontWeight: 500, lineHeight: 1.4 }}
+      >
         {label}
       </Typography>
       <Typography
@@ -70,7 +81,8 @@ function Form({ readOnly = false }: { readOnly?: boolean }) {
   const values = watch();
 
   return (
-    <Grid container spacing={2}>
+    // espaçamento maior entre os grupos: sem superfície, é o vão que separa
+    <Grid container spacing={4}>
       <Grid item xs={12}>
         <Section title="Dados pessoais">
           <Grid item {...(readOnly ? VIEW_SIZE : { xs: 12, md: 8 })}>

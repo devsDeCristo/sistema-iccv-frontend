@@ -69,7 +69,9 @@ import ModalQrCode from '../../../../features/admin/events/components/modalQrCod
 import { QrScannerModal } from '../../../../components/qrScanner';
 import { parseBadgeCode } from '../../../../utils/qrcode';
 import {
+  abasSx,
   campoBuscaSx,
+  superficieAbasSx,
   superficieSx,
 } from '../../../../components/listPageStyles';
 import { User } from '../../../../types/user';
@@ -210,34 +212,6 @@ function Details() {
   );
 
   const styles = {
-    card: {
-      borderRadius: '5px',
-      backgroundColor: theme.palette.background.paper,
-      boxShadow: '0px 0px 3px  #0000001a',
-      border: 'none',
-      '&::before': {
-        display: 'none',
-      },
-    },
-    tabs: {
-      '& button': {
-        color: theme.palette.text.disabled,
-        textTransform: 'capitalize',
-        minHeight: '20px',
-        Height: '100%',
-        borderRadius: '5px',
-        paddingX: '10px',
-      },
-      '& .MuiTab-icon': { marginRight: '2px' },
-
-      '& button.Mui-selected': {
-        backgroundColor: theme.palette.background.hover,
-      },
-      '& .MuiTabs-indicator': {
-        backgroundColor: 'transparent',
-        border: 'none',
-      },
-    },
     boxFilterAndPdf: {
       display: 'flex',
       // flexDirection: { xs: 'column', sm: 'row' },
@@ -515,14 +489,11 @@ function Details() {
       </Header>
 
       <Stack
-        sx={[
-          styles.card,
-          { p: 0.5, height: '50px', width: 'fit-content', maxWidth: '100%' },
-        ]}
+        sx={superficieAbasSx}
       >
         <Tabs
           value={pageValue}
-          sx={styles.tabs}
+          sx={abasSx(theme)}
           onChange={handleChange}
           aria-label="basic tabs example"
           variant="scrollable"

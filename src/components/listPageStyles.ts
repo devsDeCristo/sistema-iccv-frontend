@@ -98,8 +98,8 @@ export const superficieSx = {
  * foco pinta a borda na cor primária sem engrossá-la — engrossar empurra o texto
  * um pixel e o campo "pula" ao focar.
  */
-export const campoBuscaSx = (theme: Theme) => ({
-  '& .MuiOutlinedInput-root': {
+export const campoBuscaSx = (theme: Theme) => {
+  const raizDoCampo = {
     borderRadius: 2,
     backgroundColor: theme.palette.background.input,
     '& fieldset': {
@@ -112,5 +112,54 @@ export const campoBuscaSx = (theme: Theme) => ({
       borderWidth: 1,
       borderColor: theme.palette.primary.main,
     },
+  };
+
+  return {
+    /**
+     * Os dois seletores são necessários porque o `sx` aterrissa em elementos
+     * diferentes conforme o componente:
+     *
+     * - `TextField`: a classe vai para o FormControl, e a raiz do input é
+     *   descendente → casa com `& .MuiOutlinedInput-root`
+     * - `Select`: a classe vai para a própria raiz do input → casa com
+     *   `&.MuiOutlinedInput-root`, sem o espaço
+     *
+     * Com só o de descendente, os selects de Grupo e Situação ficavam sem
+     * estilo. Não dá para conferir isso procurando a regra no CSS gerado — ela
+     * é emitida de qualquer jeito; o que decide é em qual elemento a classe cai.
+     */
+    '& .MuiOutlinedInput-root': raizDoCampo,
+    '&.MuiOutlinedInput-root': raizDoCampo,
+  };
+};
+
+/**
+ * Abas em pílula, o padrão do sistema: o indicador sublinhado do MUI sai e quem
+ * marca a aba ativa é o fundo. Vive aqui porque as telas de evento e de check-in
+ * usam as mesmas.
+ */
+export const abasSx = (theme: Theme) => ({
+  minHeight: 40,
+  '& button': {
+    color: theme.palette.text.disabled,
+    textTransform: 'capitalize' as const,
+    minHeight: 36,
+    borderRadius: 2,
+    paddingX: 1.5,
   },
+  '& .MuiTab-icon': { marginRight: '4px' },
+  '& button.Mui-selected': {
+    // a aba ativa também muda de cor: só o fundo deixava o texto apagado
+    color: theme.palette.text.primary,
+    backgroundColor: theme.palette.background.hover,
+  },
+  '& .MuiTabs-indicator': { display: 'none' },
 });
+
+/** Casca das abas: superfície estreita, do tamanho das abas e nada mais */
+export const superficieAbasSx = {
+  ...superficieSx,
+  p: 0.5,
+  width: 'fit-content',
+  maxWidth: '100%',
+};

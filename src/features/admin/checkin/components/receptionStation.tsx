@@ -4,6 +4,7 @@ import {
   Button,
   Card,
   InputAdornment,
+  Paper,
   Stack,
   TextField,
   Tooltip,
@@ -20,6 +21,10 @@ import { InputSelect } from '../../../../components/inputSelect';
 import { ConfirmModal } from '../../../../components/ConfirmModal';
 import { BadgeDeliveredModal } from './badgeDeliveredModal';
 import CustomChip from '../../../../components/customChip';
+import {
+  campoBuscaSx,
+  superficieSx,
+} from '../../../../components/listPageStyles';
 import { formatCPF } from '../../../../utils';
 import {
   CHECKIN_REFETCH_MS,
@@ -273,51 +278,62 @@ function ReceptionStation({ eventId, grupo }: ReceptionStationProps) {
 
   return (
     <Stack spacing={2}>
-      <Stack
-        direction={{ xs: 'column', sm: 'row' }}
-        spacing={1.5}
-        alignItems="flex-start"
-      >
-        <TextField
-          inputRef={campoFiltro}
-          autoFocus
-          fullWidth
-          size="medium"
-          placeholder="Filtrar por nome, crachá, CPF ou número de inscrição"
-          value={filtro}
-          onChange={(event) => setFiltro(event.target.value)}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <Search />
-              </InputAdornment>
-            ),
-          }}
-          helperText={
-            recortando
-              ? `${lista.length} de ${todos.length} inscritos`
-              : `${todos.length} inscritos ${
-                  grupo === TODOS_OS_GRUPOS ? 'no evento' : `em ${grupo}`
-                } — o participante é encaminhado ao posto de foto após a entrega`
-          }
-          sx={{ flex: 1 }}
-        />
-
-        <Box sx={{ width: { xs: '100%', sm: 260 } }}>
-          <InputSelect
-            label="Situação"
-            value={situacao}
-            onChange={(event) => setSituacao(String(event.target.value))}
-            menuOptions={[
-              { value: TODAS_AS_SITUACOES, name: 'Todas as situações' },
-              ...CHECKIN_STATUS_ORDER.map((status) => ({
-                value: status,
-                name: CHECKIN_STATUS_LABEL[status],
-              })),
-            ]}
+      {/* os campos ficam sobre uma superfície, como nas demais telas de lista */}
+      <Paper sx={{ ...superficieSx, p: 2 }}>
+        {/**
+         * `flex-start` e não `center`: o campo de filtro tem texto de apoio
+         * embaixo, então ele é mais alto que o select. Centralizando, a altura
+         * desse texto entra na conta e as duas caixas de input saem de linha —
+         * alinhando pelo topo, elas coincidem.
+         */}
+        <Stack
+          direction={{ xs: 'column', sm: 'row' }}
+          spacing={1.5}
+          alignItems={{ xs: 'stretch', sm: 'flex-start' }}
+        >
+          <TextField
+            inputRef={campoFiltro}
+            autoFocus
+            fullWidth
+            size="small"
+            placeholder="Filtrar por nome, crachá, CPF ou número de inscrição"
+            value={filtro}
+            onChange={(event) => setFiltro(event.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Search sx={{ fontSize: 20, color: 'text.secondary' }} />
+                </InputAdornment>
+              ),
+            }}
+            helperText={
+              recortando
+                ? `${lista.length} de ${todos.length} inscritos`
+                : `${todos.length} inscritos ${
+                    grupo === TODOS_OS_GRUPOS ? 'no evento' : `em ${grupo}`
+                  } — o participante é encaminhado ao posto de foto após a entrega`
+            }
+            sx={{ flex: 1, ...campoBuscaSx(theme) }}
           />
-        </Box>
-      </Stack>
+
+          <Box sx={{ width: { xs: '100%', sm: 260 } }}>
+            <InputSelect
+              label="Situação"
+              size="small"
+              sx={campoBuscaSx(theme)}
+              value={situacao}
+              onChange={(event) => setSituacao(String(event.target.value))}
+              menuOptions={[
+                { value: TODAS_AS_SITUACOES, name: 'Todas as situações' },
+                ...CHECKIN_STATUS_ORDER.map((status) => ({
+                  value: status,
+                  name: CHECKIN_STATUS_LABEL[status],
+                })),
+              ]}
+            />
+          </Box>
+        </Stack>
+      </Paper>
 
       <Card sx={cardTabelaSx}>
         <DataGrid

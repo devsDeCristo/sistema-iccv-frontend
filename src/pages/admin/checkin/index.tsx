@@ -8,11 +8,13 @@ import {
   Box,
   Chip,
   IconButton,
+  Paper,
   Stack,
   Tab,
   Tabs,
   Tooltip,
   Typography,
+  useTheme,
 } from '@mui/material';
 import {
   ArrowBack,
@@ -26,6 +28,12 @@ import { CheckinStats } from '../../../features/admin/checkin/components/checkin
 import { ReceptionStation } from '../../../features/admin/checkin/components/receptionStation';
 import { PhotoStation } from '../../../features/admin/checkin/components/photoStation';
 import { InputSelect } from '../../../components/inputSelect';
+import {
+  abasSx,
+  campoBuscaSx,
+  superficieAbasSx,
+  superficieSx,
+} from '../../../components/listPageStyles';
 import { useSearchCheckin } from '../../../features/admin/checkin/api/getCheckin';
 import { useCheckinSocket } from '../../../features/admin/checkin/hooks/useCheckinSocket';
 import { CHECKIN_REFETCH_MS } from '../../../features/admin/checkin/constants';
@@ -40,6 +48,7 @@ type Posto = 'recepcao' | 'foto';
 
 function Checkin() {
   const { id: eventId = '' } = useParams();
+  const theme = useTheme();
   const navigate = useNavigate();
   const [posto, setPosto] = useState<Posto>('recepcao');
   const [grupo, setGrupo] = useState(TODOS_OS_GRUPOS);
@@ -145,11 +154,20 @@ function Checkin() {
           </Typography>
         </Stack>
 
-        <Stack direction="row" alignItems="center" spacing={1.5}>
+        {/* os controles do cabeçalho também ficam sobre superfície: soltos,
+            eram os únicos campos da tela sem paper */}
+        <Paper
+          sx={{ ...superficieSx, p: 1.5 }}
+          component={Stack}
+          direction="row"
+          alignItems="center"
+          spacing={1.5}
+        >
           <Box sx={{ minWidth: 220 }}>
             <InputSelect
               label="Grupo"
               size="small"
+              sx={campoBuscaSx(theme)}
               value={grupo}
               onChange={(event) => setGrupo(String(event.target.value))}
               menuOptions={[
@@ -175,31 +193,33 @@ function Checkin() {
               variant={connected ? 'filled' : 'outlined'}
             />
           </Tooltip>
-        </Stack>
+        </Paper>
       </Stack>
 
       <Box sx={{ mb: 2 }}>
         <CheckinStats stats={stats} />
       </Box>
 
-      <Tabs
-        value={posto}
-        onChange={(_, value: Posto) => trocarPosto(value)}
-        sx={{ mb: 2 }}
-      >
-        <Tab
-          value="recepcao"
-          label="Recepção e crachá"
-          icon={<HowToReg />}
-          iconPosition="start"
-        />
-        <Tab
-          value="foto"
-          label="Foto e conferência"
-          icon={<PhotoCamera />}
-          iconPosition="start"
-        />
-      </Tabs>
+      <Paper sx={{ ...superficieAbasSx, mb: 2 }}>
+        <Tabs
+          value={posto}
+          onChange={(_, value: Posto) => trocarPosto(value)}
+          sx={abasSx(theme)}
+        >
+          <Tab
+            value="recepcao"
+            label="Recepção e crachá"
+            icon={<HowToReg />}
+            iconPosition="start"
+          />
+          <Tab
+            value="foto"
+            label="Foto e conferência"
+            icon={<PhotoCamera />}
+            iconPosition="start"
+          />
+        </Tabs>
+      </Paper>
 
       {posto === 'recepcao' ? (
         <ReceptionStation eventId={eventId} grupo={grupo} />
