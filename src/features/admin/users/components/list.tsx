@@ -14,10 +14,11 @@ import {
 import {
   DataGrid,
   GridColDef,
-  // GridRowId,
-  // gridFilteredSortedRowIdsSelector,
-  // GridGetRowsToExportParams,
-  // selectedGridRowsSelector,
+  GridRowId,
+  gridFilteredSortedRowIdsSelector,
+  GridGetRowsToExportParams,
+  GridToolbar,
+  selectedGridRowsSelector,
   GridCellParams,
   ptBR,
 } from '@mui/x-data-grid';
@@ -45,16 +46,20 @@ import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import { UserAvatar } from '../../../../components/userAvatar';
 import { cardTabelaSx, dataGridSx } from '../../../../components/listPageStyles';
-// const getSelectedRowsToExport = ({
-//   apiRef,
-// }: GridGetRowsToExportParams): GridRowId[] => {
-//   const selectedRowIds = selectedGridRowsSelector(apiRef);
-//   if (selectedRowIds.size > 0) {
-//     return Array.from(selectedRowIds.keys());
-//   }
+/**
+ * Exporta a seleção quando existe e, sem seleção, tudo o que o filtro deixou na
+ * tela — mesma regra das listas de evento.
+ */
+const getSelectedRowsToExport = ({
+  apiRef,
+}: GridGetRowsToExportParams): GridRowId[] => {
+  const selectedRowIds = selectedGridRowsSelector(apiRef);
+  if (selectedRowIds.size > 0) {
+    return Array.from(selectedRowIds.keys());
+  }
 
-//   return gridFilteredSortedRowIdsSelector(apiRef);
-// };
+  return gridFilteredSortedRowIdsSelector(apiRef);
+};
 const renderCellWithCopy = (value: string | number) => {
   const handleCopy = () => {
     navigator.clipboard.writeText(String(value));
@@ -331,13 +336,13 @@ function List({ search }: { search: string }) {
         autoHeight={true}
         columns={columns}
         loading={isLoading}
-        // slots={{ toolbar: GridToolbar }}
+        slots={{ toolbar: GridToolbar }}
         pageSizeOptions={[5, 10, 25, 50, 100]}
-        // slotProps={{
-        //   toolbar: {
-        //     printOptions: { getRowsToExport: getSelectedRowsToExport },
-        //   },
-        // }}
+        slotProps={{
+          toolbar: {
+            printOptions: { getRowsToExport: getSelectedRowsToExport },
+          },
+        }}
         columnHeaderHeight={44}
         initialState={{
           pagination: { paginationModel: { pageSize: 5 } },

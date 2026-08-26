@@ -131,6 +131,7 @@ function ListUsers({
       <GridToolbarContainer
         sx={{
           gap: 1,
+          p:1.5,
           flexWrap: 'wrap',
           alignItems: 'center',
           justifyContent: 'space-between',

@@ -16,6 +16,21 @@ export const dataGridSx = (theme: Theme) => ({
   // a sombra e o raio são do Card que envolve; o grid vai de ponta a ponta
   border: 0,
 
+  /**
+   * Barra de ferramentas (colunas, filtro, densidade, exportar) com o mesmo
+   * respiro das outras superfícies. Fica aqui, e não num toolbar próprio de cada
+   * lista: como a regra desce da raiz do grid (`& .MuiDataGrid-toolbarContainer`),
+   * ela ganha do estilo do próprio `GridToolbarContainer` por especificidade e
+   * vale tanto para o `GridToolbar` padrão quanto para o toolbar customizado dos
+   * inscritos.
+   */
+  '& .MuiDataGrid-toolbarContainer': {
+    // sem respiro embaixo: quem separa a barra das linhas é o cabeçalho da
+    // tabela, e 1.5 dos dois lados abria um vão grande demais ali
+    p: 1.5,
+    pb: 0,
+  },
+
   '& .MuiDataGrid-columnHeaders': {
     // mesmo tom do resto da tabela: quem separa o cabeçalho é a linha de baixo
     // e a tipografia
