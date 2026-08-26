@@ -9,14 +9,6 @@ import { Event } from '../admin/events/types';
  * sem montar React, e a mesma conta serve para o card e para o texto do hero.
  */
 
-/** Saudação pela hora do relógio de quem está olhando a tela. */
-export function saudacao(agora: Date = new Date()): string {
-  const hora = agora.getHours();
-  if (hora < 12) return 'Bom dia';
-  if (hora < 18) return 'Boa tarde';
-  return 'Boa noite';
-}
-
 /**
  * Primeiro nome, já com a caixa arrumada: o cadastro vem em CAIXA ALTA com
  * frequência, e "BOA TARDE, JOSÉ" grita com quem acabou de entrar.

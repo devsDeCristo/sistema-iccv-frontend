@@ -14,6 +14,36 @@ export const sombraSuperficie = (colorMode: boolean) =>
     ? '0 0 0 1px rgba(255,255,255,.07), 0 2px 4px rgba(0,0,0,.4), 0 12px 28px -8px rgba(0,0,0,.55)'
     : '0 1px 2px rgba(16,24,40,.05), 0 8px 20px -6px rgba(16,24,40,.12)';
 
+/**
+ * Azul e violeta de destaque das faixas tingidas (boas-vindas, próximo evento).
+ *
+ * Existem porque no tema claro a primária é quase preta (`#1C0F4D`): esmaecida,
+ * ela vira cinza em vez de cor, e a faixa fica apagada. O azul é o mesmo que a
+ * primária tem no tema escuro, onde o fundo já funcionava.
+ */
+export const AZUL_VIVO = '#2563EB';
+export const VIOLETA_VIVO = '#7C3AED';
+
+/**
+ * Degradê de tingimento de uma superfície.
+ *
+ * Vai em `backgroundImage`, nunca em `background`: o shorthand apagaria a cor de
+ * fundo do Paper e a superfície desapareceria.
+ *
+ * `forca` reduz a intensidade proporcionalmente, para uma faixa menor tingir
+ * menos que o cabeçalho da página sem virar outro tom.
+ */
+export const degradeVivo = (colorMode: boolean, angulo = 120, forca = 1) =>
+  colorMode
+    ? `linear-gradient(${angulo}deg, ${alpha(
+        AZUL_VIVO,
+        0.18 * forca
+      )}, transparent 62%)`
+    : `linear-gradient(${angulo}deg, ${alpha(
+        AZUL_VIVO,
+        0.18 * forca
+      )}, ${alpha(VIOLETA_VIVO, 0.12 * forca)} 46%, transparent 80%)`;
+
 declare module '@mui/material/styles' {
   interface BreakpointOverrides {
     xs: true;
@@ -150,7 +180,7 @@ export const myTheme = (colorMode: boolean) =>
           },
         },
       },
-      MuiTypography:{
+      MuiTypography: {
         styleOverrides: {
           root: {
             color: colorMode ? '#EBEBEB' : '#111B21',

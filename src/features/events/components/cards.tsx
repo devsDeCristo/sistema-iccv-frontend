@@ -20,6 +20,7 @@ import {
 import { useGetEvents } from '../../admin/events/api/getEvents';
 import { useGetGroupsByUser } from '../../admin/events/api/getGroupsByUser';
 import { Event } from '../../admin/events/types';
+import { degradeVivo } from '../../../themes';
 import CapaLogin from '../../../assets/capaLogin2.jpg';
 import {
   contagemRegressiva,
@@ -112,6 +113,7 @@ function LinhaEvento({
 }) {
   const theme = useTheme();
   const navigate = useNavigate();
+  const escuro = theme.palette.mode === 'dark';
   const abrir = () => navigate(`/eventos/${event.id}`);
 
   const contagem = contagemRegressiva(event.startDate, event.endDate);
@@ -129,15 +131,10 @@ function LinhaEvento({
         p: 1.5,
         borderRadius: 3,
         cursor: 'pointer',
-        // o próximo evento ganha um fundo levemente tingido, e não um banner à
-        // parte: destaca sem quebrar o ritmo da lista.
-        // `backgroundImage` porque `background` apagaria a cor do Paper
-        backgroundImage: proximo
-          ? `linear-gradient(100deg, ${alpha(
-              theme.palette.primary.main,
-              theme.palette.mode === 'dark' ? 0.14 : 0.07
-            )}, transparent 55%)`
-          : undefined,
+        // o próximo evento ganha o mesmo tingimento da faixa de boas-vindas, e
+        // não um banner à parte: destaca sem quebrar o ritmo da lista. Mais
+        // fraco que a faixa para não competir com ela
+        backgroundImage: proximo ? degradeVivo(escuro, 100, 0.8) : undefined,
         transition: theme.transitions.create(['background-color'], {
           duration: 160,
         }),
@@ -432,9 +429,7 @@ function Cards() {
   }
 
   if (eventos.length === 0) {
-    return (
-      <SemEventos />
-    );
+    return <SemEventos />;
   }
 
   /**
