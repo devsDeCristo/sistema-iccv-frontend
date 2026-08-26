@@ -128,7 +128,9 @@ function LinhaEvento({
     <Paper
       onClick={abrir}
       sx={{
-        p: 1.5,
+        // moldura enxuta: com a capa maior, 1.5 de respiro em volta virava uma
+        // borda larga de papel em torno da imagem
+        p: 1,
         borderRadius: 3,
         cursor: 'pointer',
         // o próximo evento ganha o mesmo tingimento da faixa de boas-vindas, e
@@ -149,15 +151,53 @@ function LinhaEvento({
       >
         <Box
           sx={{
+            position: 'relative',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
             flexShrink: 0,
-            width: { xs: '100%', sm: 112 },
-            height: { xs: 116, sm: 78 },
+            width: { xs: '100%', sm: 150 },
+            height: { xs: 150, sm: 100 },
             borderRadius: 2,
+            overflow: 'hidden',
             backgroundImage: `url(${event.data?.coverUrl || CapaLogin})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
           }}
-        />
+        >
+          {/* a logo do evento volta para cima da capa, como era no card antigo.
+              O véu por baixo dela é o que a mantém legível sobre foto clara, e
+              só entra quando existe logo — sem ela, a capa fica limpa */}
+          {event.data?.logoUrl && (
+            <>
+              <Box
+                sx={{
+                  position: 'absolute',
+                  inset: 0,
+                  backgroundColor: alpha('#0B1220', 0.2),
+                }}
+              />
+              <Box
+                component="img"
+                src={event.data.logoUrl}
+                alt={`Logo de ${event.name}`}
+                sx={{
+                  position: 'relative',
+                  /**
+                   * `width`/`height` com `contain`, e não `maxWidth`/`maxHeight`:
+                   * com máximo a logo só é reduzida, então arquivo pequeno
+                   * continuava pequeno na tela. Com tamanho fixo ela cresce até
+                   * encostar em um dos lados, mantendo a proporção.
+                   */
+                  width: '88%',
+                  height: '88%',
+                  objectFit: 'contain',
+                  filter: 'drop-shadow(0 2px 5px rgba(0,0,0,.45))',
+                }}
+              />
+            </>
+          )}
+        </Box>
 
         <Box sx={{ flexGrow: 1, minWidth: 0 }}>
           <Stack
@@ -279,7 +319,7 @@ function LinhaEvento({
 
 function EsqueletoLinha() {
   return (
-    <Paper sx={{ p: 1.5, borderRadius: 3 }}>
+    <Paper sx={{ p: 1, borderRadius: 3 }}>
       <Stack
         direction={{ xs: 'column', sm: 'row' }}
         gap={2}
@@ -289,8 +329,8 @@ function EsqueletoLinha() {
           variant="rectangular"
           sx={{
             borderRadius: 2,
-            width: { xs: '100%', sm: 112 },
-            height: { xs: 116, sm: 78 },
+            width: { xs: '100%', sm: 150 },
+            height: { xs: 150, sm: 100 },
             flexShrink: 0,
           }}
         />
