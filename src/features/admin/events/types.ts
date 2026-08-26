@@ -70,6 +70,12 @@ export interface Bedroom {
   name: string;
   capacity: number;
   tag: String[];
+  /**
+   * Grupos de inscrição que podem ocupar o quarto. Vazio = quarto aberto a
+   * qualquer inscrito; preenchido = restrito, e o check-in só aloca aqui quem
+   * for de um desses grupos.
+   */
+  groupTags?: string[];
   note: string | null;
   event: Event;
   users: User[];

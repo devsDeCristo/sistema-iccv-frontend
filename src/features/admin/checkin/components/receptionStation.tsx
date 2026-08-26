@@ -19,6 +19,7 @@ import { useDeliverBadge, useUndoBadgeDelivery } from '../api/postCheckin';
 import { UserAvatar } from '../../../../components/userAvatar';
 import { InputSelect } from '../../../../components/inputSelect';
 import { ConfirmModal } from '../../../../components/ConfirmModal';
+import { BadgeDeliveredModal } from './badgeDeliveredModal';
 import { formatCPF } from '../../../../utils';
 import {
   CHECKIN_REFETCH_MS,
@@ -59,6 +60,8 @@ function ReceptionStation({ eventId, grupo }: ReceptionStationProps) {
   const [situacao, setSituacao] = useState(TODAS_AS_SITUACOES);
   /** Participante aguardando confirmação para ter o check-in revertido */
   const [revertendo, setRevertendo] = useState<CheckinParticipant | null>(null);
+  /** Última entrega, para o modal mostrar o quarto alocado */
+  const [entregue, setEntregue] = useState<CheckinParticipant | null>(null);
   const campoFiltro = useRef<HTMLInputElement>(null);
   const theme = useTheme();
 
@@ -104,14 +107,20 @@ function ReceptionStation({ eventId, grupo }: ReceptionStationProps) {
   const recortando = !!filtro.trim() || situacao !== TODAS_AS_SITUACOES;
 
   const { mutate: entregarCracha, isLoading: entregando } = useDeliverBadge({
-    onSuccess: (participante) => {
-      toast.success(
-        `${participante.fullName} entrou na fila da foto. Encaminhe ao posto.`
-      );
-      setFiltro('');
-      campoFiltro.current?.focus();
-    },
+    /**
+     * O resultado vai para um modal, não para um toast: o quarto é alocado
+     * junto com a entrega e o operador precisa ler o nome dele para a pessoa
+     * que está no balcão. Toast some sozinho e passa batido.
+     */
+    onSuccess: (participante) => setEntregue(participante),
   });
+
+  /** O balcão volta a digitar assim que a confirmação é fechada. */
+  const fecharConfirmacao = () => {
+    setEntregue(null);
+    setFiltro('');
+    campoFiltro.current?.focus();
+  };
 
   const { mutate: reverterEntrega, isLoading: revertendoEntrega } =
     useUndoBadgeDelivery({
@@ -340,6 +349,11 @@ function ReceptionStation({ eventId, grupo }: ReceptionStationProps) {
           localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
         />
       </Card>
+
+      <BadgeDeliveredModal
+        participante={entregue}
+        onClose={fecharConfirmacao}
+      />
 
       <ConfirmModal
         open={!!revertendo}

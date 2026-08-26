@@ -18,7 +18,7 @@ import {
 import { useGetBedrooms } from '../api/getBedrooms';
 import { useParams } from 'react-router-dom';
 import { Loading } from '../../../../components/loading';
-import { Edit, Delete, Bed, MoreVert } from '@mui/icons-material';
+import { Edit, Delete, Bed, MoreVert, Lock } from '@mui/icons-material';
 import { useState } from 'react';
 import { ModalBedRoom } from './modalBedRoom';
 import { Bedroom } from '../types';
@@ -27,7 +27,14 @@ import { UserAvatar } from '../../../../components/userAvatar';
 import { ConfirmModal } from '../../../../components/ConfirmModal';
 import { useGridPagination } from '../../../../hooks/useGridPagination';
 
-function ListBedRooms({ search }: { search: string }) {
+function ListBedRooms({
+  search,
+  groupNames,
+}: {
+  search: string;
+  /** Grupos do evento, para as tags de restrição do modal de quarto */
+  groupNames?: string[];
+}) {
   const { id: eventId = '' } = useParams();
   const theme = useTheme();
   const { data: bedroomsData = [], isLoading } = useGetBedrooms(
@@ -208,6 +215,18 @@ function ListBedRooms({ search }: { search: string }) {
                   {bedroom.tag.map((tag) => (
                     <Chip key={tag + 'chips'} label={tag} sx={styles.chip} />
                   ))}
+                  {/* quarto restrito precisa se anunciar na lista: é o que
+                      explica por que o check-in não aloca todo mundo nele */}
+                  {(bedroom.groupTags || []).map((grupo) => (
+                    <Chip
+                      key={grupo + 'grupo'}
+                      label={grupo}
+                      size="small"
+                      color="primary"
+                      variant="outlined"
+                      icon={<Lock sx={{ fontSize: 14 }} />}
+                    />
+                  ))}
                 </Stack>
                 <Stack direction="column" gap={1}>
                   <Stack
@@ -304,6 +323,7 @@ function ListBedRooms({ search }: { search: string }) {
         handleClose={() => setOpenModalBedRoom(false)}
         bedRoom={selectBedRoom}
         eventId={eventId || ''}
+        groupNames={groupNames}
       />
       <ConfirmModal
         open={openModalDeleteBedRoom}

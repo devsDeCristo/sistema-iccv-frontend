@@ -733,7 +733,10 @@ function Details() {
             </Stack>
           </Paper>
 
-          <ListBedRooms search={searchBedroom} />
+          <ListBedRooms
+            search={searchBedroom}
+            groupNames={(event?.groupRoles || []).map((grupo) => grupo.name)}
+          />
         </Stack>
       )}
 
@@ -813,6 +816,7 @@ function Details() {
         open={openModalBedRoom}
         handleClose={() => setOpenModalBedRoom(false)}
         eventId={id || ''}
+        groupNames={(event?.groupRoles || []).map((grupo) => grupo.name)}
       />
 
       <ModalAddUserOnEvent

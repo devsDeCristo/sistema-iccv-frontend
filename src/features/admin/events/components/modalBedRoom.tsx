@@ -30,6 +30,12 @@ interface ModalBedRoomProps {
   handleClose: () => void;
   eventId: string;
   bedRoom?: any;
+  /**
+   * Grupos de inscrição do evento, para as tags de restrição. Vem de fora
+   * porque grupo sem ninguém inscrito ainda não apareceria na lista derivada
+   * dos participantes — e o quarto pode ser reservado antes das inscrições.
+   */
+  groupNames?: string[];
 }
 
 interface UserOption {
@@ -43,6 +49,7 @@ const emptyForm = {
   capacity: '',
   note: '',
   tags: [] as { value: string; label: string }[],
+  groupTags: [] as { value: string; label: string }[],
   usersId: [] as UserOption[],
 };
 
@@ -51,6 +58,7 @@ function ModalBedRoom({
   handleClose,
   eventId = '',
   bedRoom,
+  groupNames,
 }: ModalBedRoomProps) {
   const theme = useTheme();
   const styles = {
@@ -142,6 +150,11 @@ function ModalBedRoom({
             value: tag,
             label: tag,
           })) || [],
+        groupTags:
+          bedRoom?.groupTags?.map((tag: any) => ({
+            value: tag,
+            label: tag,
+          })) || [],
         note: bedRoom.note || '',
         usersId:
           bedRoom?.users?.map((user: any) => ({
@@ -171,6 +184,57 @@ function ModalBedRoom({
 
   const options = mapUsersToOptions(users || []);
 
+  const gruposSelecionados: string[] = (watch('groupTags') || []).map(
+    (tag: any) => tag.value
+  );
+  const restrito = gruposSelecionados.length > 0;
+
+  /**
+   * Lista de grupos para a restrição: os do evento, e como reserva os que
+   * aparecem nos inscritos — assim a tela funciona mesmo sem a prop.
+   */
+  const gruposDoEvento = Array.from(
+    new Set([
+      ...(groupNames || []),
+      ...options.map((option) => option.groupName),
+    ])
+  )
+    .filter(Boolean)
+    .sort((a, b) => a.localeCompare(b, 'pt-BR'))
+    .map((name) => ({ value: name, label: name }));
+
+  /**
+   * Com o quarto restrito, só aparecem os inscritos dos grupos marcados. Sem
+   * isso a tela ofereceria gente que o backend vai recusar no salvamento.
+   */
+  const optionsPermitidas = restrito
+    ? options.filter((option) => gruposSelecionados.includes(option.groupName))
+    : options;
+
+  /** Grupos de cada inscrito. A pessoa pode estar em mais de um. */
+  const gruposPorUsuario = options.reduce((mapa, option) => {
+    const grupos = mapa.get(option.value) || new Set<string>();
+    grupos.add(option.groupName);
+    return mapa.set(option.value, grupos);
+  }, new Map<string, Set<string>>());
+
+  /**
+   * Selecionados que não pertencem a nenhum grupo do quarto.
+   *
+   * Só é avisado, nunca removido em silêncio: no modo edição os ocupantes são
+   * carregados sem o grupo preenchido, e uma poda automática esvaziaria o
+   * quarto sozinha. Enquanto a lista de inscritos não carregou, não há como
+   * julgar e o aviso fica de fora.
+   */
+  const foraDoGrupo: UserOption[] =
+    restrito && !isLoadingUsers && options.length > 0
+      ? (watch('usersId') || []).filter((selecionado: UserOption) => {
+          const grupos = gruposPorUsuario.get(selecionado.value);
+          if (!grupos) return false;
+          return !gruposSelecionados.some((grupo) => grupos.has(grupo));
+        })
+      : [];
+
   const capacity = Number(watch('capacity') || 0);
   const ocupantes = (watch('usersId') || []).length;
   const vagasRestantes = capacity - ocupantes;
@@ -178,10 +242,20 @@ function ModalBedRoom({
   const quartoCheio = !semCapacidade && vagasRestantes <= 0;
 
   const onSubimitBedroom = (data: any) => {
-    const { tags, capacity, ...rest } = data;
+    if (foraDoGrupo.length > 0) {
+      toast.error(
+        `Quarto restrito: remova ${foraDoGrupo
+          .map((user) => user.label)
+          .join(', ')} ou libere o grupo correspondente.`
+      );
+      return;
+    }
+
+    const { tags, groupTags, capacity, ...rest } = data;
     const transoformData = {
       ...rest,
       tags: (tags || []).map((tag: any) => tag.value),
+      groupTags: (groupTags || []).map((tag: any) => tag.value),
       capacity: Number(capacity),
       usersId: (data.usersId || []).map((user: any) => user.value),
     };
@@ -424,6 +498,74 @@ function ModalBedRoom({
                 <Grid item xs={12}>
                   <Controller
                     control={control}
+                    name="groupTags"
+                    render={({ field: { onChange, value } }) => (
+                      <>
+                        <Title
+                          title="Restringir a grupos"
+                          hint={restrito ? 'Quarto restrito' : 'Quarto aberto'}
+                        />
+                        <Autocomplete
+                          multiple
+                          size="small"
+                          disableCloseOnSelect
+                          options={gruposDoEvento}
+                          isOptionEqualToValue={(option, valor) =>
+                            option.value === valor.value
+                          }
+                          getOptionLabel={(option) => option.label}
+                          noOptionsText="Nenhum grupo de inscrição no evento"
+                          renderOption={(props, option, { selected }) => {
+                            const { key, ...optionProps } = props;
+                            return (
+                              <li key={key} {...optionProps}>
+                                <Checkbox
+                                  icon={
+                                    <CheckBoxOutlineBlank fontSize="small" />
+                                  }
+                                  checkedIcon={<CheckBox fontSize="small" />}
+                                  style={{
+                                    marginLeft: '-10px',
+                                    marginRight: '5px',
+                                  }}
+                                  checked={selected}
+                                />
+                                {option.label}
+                              </li>
+                            );
+                          }}
+                          onChange={(_, newValue) => onChange(newValue)}
+                          value={value || []}
+                          renderInput={(params) => (
+                            <TextField
+                              {...params}
+                              placeholder="Deixe vazio para quarto aberto"
+                              helperText={
+                                restrito
+                                  ? 'O check-in só aloca aqui quem for de um desses grupos.'
+                                  : 'Sem grupo marcado o quarto é aberto: o check-in usa ele como reserva quando os quartos do grupo lotam.'
+                              }
+                            />
+                          )}
+                        />
+                      </>
+                    )}
+                  />
+                </Grid>
+
+                {foraDoGrupo.length > 0 && (
+                  <Grid item xs={12}>
+                    <Alert severity="warning">
+                      {`Fora do grupo do quarto: ${foraDoGrupo
+                        .map((user) => user.label)
+                        .join(', ')}. Remova essas pessoas ou marque o grupo delas.`}
+                    </Alert>
+                  </Grid>
+                )}
+
+                <Grid item xs={12}>
+                  <Controller
+                    control={control}
                     name="note"
                     render={({ field: { onChange, value } }) => (
                       <>
@@ -472,7 +614,7 @@ function ModalBedRoom({
                             loading={isLoadingUsers}
                             disabled={semCapacidade}
                             groupBy={(option) => option.groupName}
-                            options={options || []}
+                            options={optionsPermitidas || []}
                             isOptionEqualToValue={(option, value) =>
                               option.value == value.value
                             }
