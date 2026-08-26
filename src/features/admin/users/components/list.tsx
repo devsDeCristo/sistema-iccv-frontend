@@ -1,4 +1,5 @@
 import {
+  alpha,
   Box,
   Card,
   IconButton,
@@ -89,6 +90,15 @@ function List({ search }: { search: string }) {
   const [rowSelected, setRowSelected] = useState<User | null>(null);
   const theme = useTheme();
   const navigate = useNavigate();
+
+  /** Cor de cada perfil de acesso, na paleta de chips do tema */
+  const ROLE_CHIP_COLOR: Record<number, string> = {
+    [Role.SUPER_ADMIN]: theme.palette.chips.info,
+    [Role.ADMIN]: theme.palette.chips.alert,
+    [Role.FINANCE]: theme.palette.chips.pending,
+    [Role.USER]: theme.palette.chips.success,
+  };
+
   if (!Array.isArray(data)) {
     return null;
   }
@@ -121,6 +131,8 @@ function List({ search }: { search: string }) {
             sx={{
               width: '30px',
               height: '30px',
+              // anel discreto, do mesmo jeito que o ponto de status dos cards
+              boxShadow: `0 0 0 2px ${alpha(theme.palette.primary.main, 0.22)}`,
             }}
           />
         );
@@ -128,6 +140,7 @@ function List({ search }: { search: string }) {
     },
     {
       field: 'fullName',
+      cellClassName: 'celula-destaque',
       headerName: 'Nome',
       flex: 2,
       minWidth: 200,
@@ -136,6 +149,7 @@ function List({ search }: { search: string }) {
     },
     {
       field: 'cpf',
+      cellClassName: 'celula-numerica',
       headerName: 'CPF',
       flex: 1,
       minWidth: 140,
@@ -143,6 +157,7 @@ function List({ search }: { search: string }) {
     },
     {
       field: 'birthday',
+      cellClassName: 'celula-numerica',
       headerName: 'Data de nascimento',
       flex: 1,
       minWidth: 120,
@@ -231,39 +246,29 @@ function List({ search }: { search: string }) {
       flex: 1,
       minWidth: 120,
       renderCell: (params: GridCellParams) => {
+        // perfil desconhecido cai em Usuário, como antes
+        const role = Number(params.row.role);
+        const cor = ROLE_CHIP_COLOR[role] || theme.palette.chips.success;
+        const label = ROLE_LABELS[role] || ROLE_LABELS[Role.USER];
+
         return (
-          <Box>
-            {params.row.role === Role.SUPER_ADMIN ? (
-              <CustomChip
-                label={ROLE_LABELS[Role.SUPER_ADMIN]}
-                customColor={theme.palette.chips.info}
-                size="small"
-              />
-            ) : params.row.role === Role.ADMIN ? (
-              <CustomChip
-                label={ROLE_LABELS[Role.ADMIN]}
-                customColor={theme.palette.chips.alert}
-                size="small"
-              />
-            ) : params.row.role === Role.FINANCE ? (
-              <CustomChip
-                label={ROLE_LABELS[Role.FINANCE]}
-                customColor={theme.palette.chips.pending}
-                size="small"
-              />
-            ) : (
-              <CustomChip
-                label={ROLE_LABELS[Role.USER]}
-                customColor={theme.palette.chips.success}
-                size="small"
-              />
-            )}
-          </Box>
+          <CustomChip
+            label={label}
+            customColor={cor}
+            size="small"
+            // a borda na cor é o que amarra o chip aos cards do topo
+            sx={{
+              fontWeight: 600,
+              fontSize: '11px',
+              border: `1px solid ${alpha(cor, 0.28)}`,
+            }}
+          />
         );
       },
     },
     {
       field: 'createdAt',
+      cellClassName: 'celula-numerica',
       headerName: 'Cadastrado em',
       type: 'dateTime',
       flex: 1,
@@ -324,7 +329,16 @@ function List({ search }: { search: string }) {
     );
 
   return (
-    <Card>
+    <Card
+      elevation={0}
+      sx={{
+        // mesma casca dos cards do topo: borda fina, raio de 12px e nada de
+        // sombra. O overflow é o que faz a linha do cabeçalho respeitar o canto
+        borderRadius: 3,
+        border: `1px solid ${theme.palette.divider}`,
+        overflow: 'hidden',
+      }}
+    >
       <DataGrid
         rows={filteredData(data || [])}
         // onRowClick={handleRowClick}
@@ -342,7 +356,7 @@ function List({ search }: { search: string }) {
         //     printOptions: { getRowsToExport: getSelectedRowsToExport },
         //   },
         // }}
-        columnHeaderHeight={40}
+        columnHeaderHeight={44}
         initialState={{
           pagination: { paginationModel: { pageSize: 5 } },
           columns: {
@@ -366,19 +380,59 @@ function List({ search }: { search: string }) {
           },
         }}
         sx={{
-          p: 2,
-          '& .MuiDataGrid-row': {
-            // borderBottom: '1px solid ' + theme.palette.divider, // Define a cor da borda entre as linhas
-            borderTop: '1px solid ' + theme.palette.divider,
+          // a borda é do Card; o grid vai de ponta a ponta dentro dele
+          border: 0,
+
+          /**
+           * Cabeçalho no mesmo tratamento do rótulo dos cards: caixa alta,
+           * 11px, espaçado. É o que faz a lista e os cards parecerem da mesma
+           * família sem precisar de cor nenhuma.
+           */
+          '& .MuiDataGrid-columnHeaders': {
+            backgroundColor: alpha(theme.palette.primary.main, 0.05),
+            borderBottom: `1px solid ${theme.palette.divider}`,
+            borderRadius: 0,
+          },
+          '& .MuiDataGrid-columnHeaderTitle': {
+            fontSize: '11px',
+            fontWeight: 700,
+            letterSpacing: '0.07em',
+            textTransform: 'uppercase',
+            color: theme.palette.text.secondary,
+          },
+          // separador de coluna sai: com o cabeçalho tingido ele só suja
+          '& .MuiDataGrid-columnSeparator': {
+            display: 'none',
+          },
+
+          // separador entre linhas mais leve que o divider cheio, que pesava a
+          // tabela toda
+          '& .MuiDataGrid-cell': {
+            borderBottom: `1px solid ${alpha(theme.palette.divider, 0.55)}`,
+          },
+          '& .MuiDataGrid-row:last-of-type .MuiDataGrid-cell': {
             borderBottom: 'none',
           },
+          '& .MuiDataGrid-row:hover': {
+            backgroundColor: theme.palette.background.hover,
+          },
+
           '& .MuiDataGrid-footerContainer': {
-            backgroundColor: 'transparent', // Altera cor do rodapé
+            backgroundColor: alpha(theme.palette.primary.main, 0.04),
             border: 0,
             borderTop: `1px solid ${theme.palette.divider}`,
-            height: '40px !important', // Define a altura do rodapé
-            minHeight: '40px !important', // Define a altura do rodapé
+            minHeight: '44px !important',
           },
+
+          // CPF, datas e horas: sem largura fixa de dígito a coluna tremia a
+          // cada linha
+          '& .celula-numerica': {
+            fontVariantNumeric: 'tabular-nums',
+          },
+          '& .celula-destaque': {
+            fontWeight: 500,
+          },
+
           '& .MuiDataGrid-cell:focus, & .MuiDataGrid-cell:focus-within': {
             outline: 'none',
           },

@@ -45,6 +45,9 @@ export function StatusCards({ cards, isLoading }: StatusCardsProps) {
             elevation={0}
             sx={{
               height: '100%',
+              // 12px: o raio padrão do tema é 4px e deixava o card duro perto
+              // do número em 44px
+              borderRadius: 3,
               border: `1px solid ${alpha(card.color, 0.28)}`,
               /**
                * A tinta da cor entra como gradiente sobre o paper do tema, em
