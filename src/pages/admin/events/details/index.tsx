@@ -488,9 +488,9 @@ function Details() {
         )}
       </Header>
 
-      <Stack
-        sx={superficieAbasSx}
-      >
+      {/* Paper e não Stack: o fundo e a sombra da superfície vêm do MuiPaper do
+          tema, e um Stack não tem fundo próprio */}
+      <Paper sx={superficieAbasSx}>
         <Tabs
           value={pageValue}
           sx={abasSx(theme)}
@@ -504,7 +504,7 @@ function Details() {
             <Tab key={tab.value} label={tab.label} value={tab.value} />
           ))}
         </Tabs>
-      </Stack>
+      </Paper>
 
       {pageValue === 'usuarios' && (
         <Stack gap={2}>
