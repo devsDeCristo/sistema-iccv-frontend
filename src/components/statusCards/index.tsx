@@ -7,6 +7,8 @@ import {
   Grid,
   Skeleton,
   Stack,
+  SxProps,
+  Theme,
   Typography,
   useTheme,
 } from '@mui/material';
@@ -29,6 +31,11 @@ export interface StatusCard {
 interface StatusCardsProps {
   cards: StatusCard[];
   isLoading?: boolean;
+  /**
+   * Espaçamento da régua. O padrão deixa um vão embaixo, que é o que as telas
+   * de listagem querem; quem tem outro elemento colado embaixo passa `mb: 0`.
+   */
+  sx?: SxProps<Theme>;
 }
 
 /**
@@ -38,7 +45,7 @@ interface StatusCardsProps {
  * mas o cartão é o mesmo objeto visual. Duplicar o estilo faria os dois
  * divergirem no primeiro ajuste.
  */
-export function StatusCards({ cards, isLoading }: StatusCardsProps) {
+export function StatusCards({ cards, isLoading, sx }: StatusCardsProps) {
   const theme = useTheme();
 
   // a régua divide a linha pelo número de cards: 4 em quatro colunas, 3 em três
@@ -46,7 +53,11 @@ export function StatusCards({ cards, isLoading }: StatusCardsProps) {
     cards.length === 1 ? 12 : cards.length === 2 ? 6 : cards.length === 3 ? 4 : 3;
 
   return (
-    <Grid container spacing={2} sx={{ mb: 2 }}>
+    <Grid
+      container
+      spacing={2}
+      sx={[{ mb: 2 }, ...(Array.isArray(sx) ? sx : [sx])]}
+    >
       {cards.map((card) => (
         <Grid item xs={12} sm={6} md={colunas} key={card.title}>
           <Card

@@ -297,7 +297,13 @@ function ListPayments({
   ];
   return (
     <>
-      <StatusCards cards={cardsResumo} isLoading={isLoading} />
+      {/* sem vão embaixo: as abas de grupo vêm colado, formando um bloco com
+          a tabela */}
+      <StatusCards
+        cards={cardsResumo}
+        isLoading={isLoading}
+        sx={{ mb: 0 }}
+      />
       {Array.isArray(groupsRules) && groupsRules.length > 0 && (
         <NavTabs
           fullWidth
