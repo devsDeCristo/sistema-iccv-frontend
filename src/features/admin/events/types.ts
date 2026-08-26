@@ -58,13 +58,6 @@ export interface filterUsers {
   worker?: boolean;
 }
 
-export interface Insights {
-  totalEvents: number;
-  totalEventsActive: number;
-  timeToFillHours: number;
-  eventsInCurrentQuarter: number;
-}
-
 export interface Bedroom {
   id: string;
   name: string;

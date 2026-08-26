@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { PageStyle } from '../../../components/pageStyle';
 import { Header } from '../../../components/header';
 import { List } from '../../../features/admin/events/components/list';
-import { CardsInsights } from '../../../features/admin/events/components/cardsInsights';
+import { CardsStatus } from '../../../features/admin/events/components/cardsStatus';
 import { useState } from 'react';
 import { Add } from '@mui/icons-material';
 import { EventStatusFilter } from '../../../features/admin/events/types';
@@ -50,7 +50,7 @@ function Events() {
   return (
     <PageStyle>
       <Header title="Eventos"></Header>
-      <CardsInsights />
+      <CardsStatus />
       <Stack gap={2}>
         <Paper component="div" sx={styles.boxFilterAndPdf}>
           <Stack sx={styles.filters}>
