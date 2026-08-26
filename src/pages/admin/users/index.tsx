@@ -6,7 +6,7 @@ import { List } from '../../../features/admin/users/components/list';
 import { useRole } from '../../../hooks/useRole';
 import { useState } from 'react';
 import { Add, Search } from '@mui/icons-material';
-import { CardsInsights } from '../../../features/admin/users/components/cardsInsights';
+import { CardsStatus } from '../../../features/admin/users/components/cardsStatus';
 
 function Users() {
   const navigate = useNavigate();
@@ -35,7 +35,7 @@ function Users() {
   return (
     <PageStyle>
       <Header title="Usuários" />
-      <CardsInsights />
+      <CardsStatus />
       <Paper sx={styles.boxFilterAndButton}>
         <TextField
           placeholder="Pesquisar usuário por nome ou CPF"
