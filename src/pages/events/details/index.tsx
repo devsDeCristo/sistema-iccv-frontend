@@ -193,7 +193,7 @@ function EventsDetails() {
   if (isLoading) {
     return (
       <PageStyle>
-        <Header title="Detalhes do Evento" buttonBack pageBack="/eventos" />
+        <Header title="Detalhes do Evento" buttonBack pageBack="/home" />
 
         <Stack sx={styles.bannerContainer}>
           <Skeleton
@@ -263,7 +263,7 @@ function EventsDetails() {
           event?.status === 'TEST' ? ' · Evento de teste' : ''
         }`}
         buttonBack
-        pageBack="/eventos"
+        pageBack="/home"
       />
 
       {/* Banner */}

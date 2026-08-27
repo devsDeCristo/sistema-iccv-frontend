@@ -57,7 +57,7 @@ function RegisterUser() {
         icon: 'success',
       }).then((result) => {
         if (result.isConfirmed) {
-          navigate('/eventos');
+          navigate('/home');
         }
       });
     },

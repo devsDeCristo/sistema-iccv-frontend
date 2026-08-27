@@ -97,7 +97,7 @@ function Login() {
       if (ADMIN_AREA_ROLES.includes(response.user.role)) {
         navigate('/admin/eventos');
       } else {
-        navigate('/eventos');
+        navigate('/home');
       }
     },
     onError: (error: any) => {
