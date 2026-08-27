@@ -88,6 +88,39 @@ export function contagemRegressiva(
   return null;
 }
 
+/**
+ * Os últimos eventos que já acabaram: inativos e com a data final no passado.
+ *
+ * Entram na home depois dos abertos, esmaecidos, para a página não ficar vazia
+ * no intervalo entre um evento e outro e para quem participou reencontrar o
+ * evento de onde veio.
+ *
+ * O corte usa o fim do dia da data final, a mesma régua de `contagemRegressiva`:
+ * um evento que termina hoje ainda está acontecendo, não é passado.
+ */
+export function eventosEncerrados(
+  data: unknown,
+  quantidade = 2,
+  agora: Date = new Date()
+): Event[] {
+  if (!Array.isArray(data)) return [];
+
+  return (data as Event[])
+    .filter((event) => {
+      if (event?.status !== 'INACTIVE' || !event.endDate) return false;
+
+      const fim = dayjs(event.endDate).endOf('day');
+
+      return fim.isValid() && fim.isBefore(agora);
+    })
+    // do mais recente para o mais antigo: quem acabou ontem interessa mais que
+    // quem acabou ano passado
+    .sort(
+      (a, b) => new Date(b.endDate).getTime() - new Date(a.endDate).getTime()
+    )
+    .slice(0, quantidade);
+}
+
 export type SituacaoVagas = 'aberto' | 'ultimas' | 'esgotado';
 
 export interface Ocupacao {

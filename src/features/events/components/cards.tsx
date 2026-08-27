@@ -21,7 +21,12 @@ import { Event } from '../../admin/events/types';
 import { degradeVivo } from '../../../themes';
 import { useRole } from '../../../hooks/useRole';
 import CapaLogin from '../../../assets/capaLogin2.jpg';
-import { contagemRegressiva, eventosAbertos, formatarPeriodo } from '../utils';
+import {
+  contagemRegressiva,
+  eventosAbertos,
+  eventosEncerrados,
+  formatarPeriodo,
+} from '../utils';
 
 /** Como o usuário aparece neste evento, se aparecer. */
 type MinhaSituacao = 'inscrito' | 'espera' | null;
@@ -83,10 +88,13 @@ function LinhaEvento({
   event,
   minhaSituacao,
   proximo,
+  encerrado,
 }: {
   event: Event;
   minhaSituacao: MinhaSituacao;
   proximo?: boolean;
+  /** Evento que já acabou: a linha entra apagada e não abre */
+  encerrado?: boolean;
 }) {
   const theme = useTheme();
   const navigate = useNavigate();
@@ -97,13 +105,13 @@ function LinhaEvento({
 
   return (
     <Paper
-      onClick={abrir}
+      onClick={encerrado ? undefined : abrir}
       sx={{
         // moldura enxuta: com a capa maior, 1.5 de respiro em volta virava uma
         // borda larga de papel em torno da imagem
         p: 1,
         borderRadius: 3,
-        cursor: 'pointer',
+        cursor: encerrado ? 'default' : 'pointer',
         // o próximo evento ganha o mesmo tingimento da faixa de boas-vindas, e
         // não um banner à parte: destaca sem quebrar o ritmo da lista. Mais
         // fraco que a faixa para não competir com ela
@@ -111,8 +119,19 @@ function LinhaEvento({
         transition: theme.transitions.create(['background-color'], {
           duration: 160,
         }),
-        '&:hover': { backgroundColor: theme.palette.background.hover },
-        '&:hover .titulo-evento': { color: theme.palette.primary.main },
+        /**
+         * Apagado como campo desabilitado, e a capa perde a cor: é o que separa
+         * o que já passou do que ainda dá para fazer, sem precisar escrever
+         * "encerrado" em cada canto da linha.
+         */
+        ...(encerrado
+          ? { opacity: 0.55, '& img': { filter: 'grayscale(1)' } }
+          : {
+              '&:hover': { backgroundColor: theme.palette.background.hover },
+              '&:hover .titulo-evento': {
+                color: theme.palette.primary.main,
+              },
+            }),
       }}
     >
       <Stack
@@ -247,13 +266,18 @@ function LinhaEvento({
             variant={proximo ? 'contained' : 'outlined'}
             size="small"
             fullWidth
+            disabled={encerrado}
             sx={{ borderRadius: 2, textTransform: 'none' }}
             onClick={(clique) => {
               clique.stopPropagation();
               abrir();
             }}
           >
-            {minhaSituacao ? 'Ver meu evento' : 'Ver detalhes'}
+            {encerrado
+              ? 'Encerrado'
+              : minhaSituacao
+                ? 'Ver meu evento'
+                : 'Ver detalhes'}
           </Button>
         </Stack>
       </Stack>
@@ -294,14 +318,15 @@ function EsqueletoLinha() {
 
 /**
  * Título de seção da lista. O contador do lado direito responde "quantos são?"
- * sem a pessoa ter que contar as linhas.
+ * sem a pessoa ter que contar as linhas — e some quando a seção não é sobre
+ * quantidade, como a dos encerrados.
  */
 function TituloSecao({
   children,
   quantidade,
 }: {
   children: ReactNode;
-  quantidade: number;
+  quantidade?: number;
 }) {
   return (
     <Stack
@@ -313,9 +338,11 @@ function TituloSecao({
       <Typography sx={{ fontSize: '1.0625rem', fontWeight: 600 }}>
         {children}
       </Typography>
-      <Typography sx={{ fontSize: '0.8125rem', color: 'text.secondary' }}>
-        {quantidade === 1 ? '1 evento' : `${quantidade} eventos`}
-      </Typography>
+      {quantidade !== undefined && (
+        <Typography sx={{ fontSize: '0.8125rem', color: 'text.secondary' }}>
+          {quantidade === 1 ? '1 evento' : `${quantidade} eventos`}
+        </Typography>
+      )}
     </Stack>
   );
 }
@@ -381,6 +408,7 @@ function Cards() {
 
   // admin e super admin também enxergam os eventos em teste, marcados na linha
   const eventos = useMemo(() => eventosAbertos(data, isAdmin), [data, isAdmin]);
+  const encerrados = useMemo(() => eventosEncerrados(data), [data]);
 
   /**
    * Em quais destes eventos o usuário já está — a linha diz isso na cara, para
@@ -402,6 +430,30 @@ function Cards() {
     return mapa;
   }, [gruposDoUsuario]);
 
+  const linha = (event: Event, proximo?: boolean, encerrado?: boolean) => (
+    <LinhaEvento
+      key={event.id}
+      event={event}
+      proximo={proximo}
+      encerrado={encerrado}
+      minhaSituacao={situacaoPorEvento.get(event.id) ?? null}
+    />
+  );
+
+  /**
+   * Os que já acabaram fecham a página, depois dos abertos. Ficam fora do
+   * caminho de quem veio se inscrever, mas seguram a tela no intervalo entre
+   * dois eventos, quando ela ficaria só com o aviso de "nada aberto".
+   */
+  const secaoEncerrados = encerrados.length > 0 && (
+    <Box sx={{ mt: 3 }}>
+      <TituloSecao>Eventos encerrados</TituloSecao>
+      <Stack gap={1.5}>
+        {encerrados.map((event) => linha(event, false, true))}
+      </Stack>
+    </Box>
+  );
+
   if (isLoading) {
     return (
       <Box>
@@ -415,7 +467,12 @@ function Cards() {
   }
 
   if (eventos.length === 0) {
-    return <SemEventos />;
+    return (
+      <Box>
+        <SemEventos />
+        {secaoEncerrados}
+      </Box>
+    );
   }
 
   /**
@@ -433,15 +490,6 @@ function Cards() {
   );
   const outros = eventos.filter((event) => !proximos.includes(event));
 
-  const linha = (event: Event, proximo?: boolean) => (
-    <LinhaEvento
-      key={event.id}
-      event={event}
-      proximo={proximo}
-      minhaSituacao={situacaoPorEvento.get(event.id) ?? null}
-    />
-  );
-
   return (
     <Box>
       <TituloSecao quantidade={proximos.length}>Próximos eventos</TituloSecao>
@@ -455,6 +503,8 @@ function Cards() {
           <Stack gap={1.5}>{outros.map((event) => linha(event))}</Stack>
         </Box>
       )}
+
+      {secaoEncerrados}
     </Box>
   );
 }
