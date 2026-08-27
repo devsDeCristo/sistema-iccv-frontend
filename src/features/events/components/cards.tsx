@@ -2,14 +2,12 @@ import {
   alpha,
   Box,
   Button,
-  LinearProgress,
   Paper,
   Skeleton,
   Stack,
   Typography,
   useTheme,
 } from '@mui/material';
-import type { Theme } from '@mui/material';
 import { ReactNode, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -23,32 +21,10 @@ import { Event } from '../../admin/events/types';
 import { degradeVivo } from '../../../themes';
 import { useRole } from '../../../hooks/useRole';
 import CapaLogin from '../../../assets/capaLogin2.jpg';
-import {
-  contagemRegressiva,
-  eventosAbertos,
-  formatarPeriodo,
-  ocupacao,
-  SituacaoVagas,
-} from '../utils';
+import { contagemRegressiva, eventosAbertos, formatarPeriodo } from '../utils';
 
 /** Como o usuário aparece neste evento, se aparecer. */
 type MinhaSituacao = 'inscrito' | 'espera' | null;
-
-const corDaSituacao = (situacao: SituacaoVagas, theme: Theme) =>
-  situacao === 'esgotado'
-    ? theme.palette.chips.canceled
-    : situacao === 'ultimas'
-      ? theme.palette.chips.alert
-      : theme.palette.chips.success;
-
-const textoDasVagas = (situacao: SituacaoVagas, restantes: number) => {
-  if (situacao === 'esgotado') return 'Lista de espera';
-  if (situacao === 'ultimas') {
-    return restantes === 1 ? 'Última vaga' : `Últimas ${restantes} vagas`;
-  }
-
-  return restantes === 1 ? '1 vaga aberta' : `${restantes} vagas abertas`;
-};
 
 function Meta({ icone, children }: { icone: ReactNode; children: ReactNode }) {
   return (
@@ -118,12 +94,6 @@ function LinhaEvento({
   const abrir = () => navigate(`/eventos/${event.id}`);
 
   const contagem = contagemRegressiva(event.startDate, event.endDate);
-  const { percentual, restantes, situacao } = ocupacao(
-    event.users,
-    event.capacity
-  );
-  const mostrarVagas = !event.data?.hideVacancies && (event.capacity ?? 0) > 0;
-  const cor = corDaSituacao(situacao, theme);
 
   return (
     <Paper
@@ -273,36 +243,6 @@ function LinhaEvento({
             alignItems: { xs: 'stretch', sm: 'flex-end' },
           }}
         >
-          {mostrarVagas && (
-            <Box sx={{ width: '100%' }}>
-              <Typography
-                noWrap
-                sx={{
-                  fontSize: 11,
-                  fontWeight: 600,
-                  color: cor,
-                  textAlign: { xs: 'left', sm: 'right' },
-                  mb: 0.4,
-                }}
-              >
-                {textoDasVagas(situacao, restantes)}
-              </Typography>
-              <LinearProgress
-                variant="determinate"
-                value={percentual}
-                sx={{
-                  height: 4,
-                  borderRadius: 999,
-                  backgroundColor: alpha(cor, 0.16),
-                  '& .MuiLinearProgress-bar': {
-                    borderRadius: 999,
-                    backgroundColor: cor,
-                  },
-                }}
-              />
-            </Box>
-          )}
-
           <Button
             variant={proximo ? 'contained' : 'outlined'}
             size="small"
