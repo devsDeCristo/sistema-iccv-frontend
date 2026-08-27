@@ -56,17 +56,13 @@ export const CardsStatus = () => {
       // cima nos dois modos.
       color: theme.palette.text.disabled,
     },
-    ...(emTeste
-      ? [
-          {
-            title: 'Em teste',
-            value: emTeste,
-            subtitle: 'Visíveis só para admin',
-            icon: <ScienceOutlined sx={{ fontSize: 20 }} />,
-            color: theme.palette.chips.alert,
-          },
-        ]
-      : []),
+    {
+      title: 'Em teste',
+      value: emTeste,
+      subtitle: 'Visíveis só para admin',
+      icon: <ScienceOutlined sx={{ fontSize: 20 }} />,
+      color: theme.palette.chips.alert,
+    },
     {
       title: 'Em andamento',
       value: acontecendo,

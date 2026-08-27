@@ -4,7 +4,6 @@ import {
   Box,
   Card,
   CardContent,
-  Grid,
   Skeleton,
   Stack,
   SxProps,
@@ -48,18 +47,38 @@ interface StatusCardsProps {
 export function StatusCards({ cards, isLoading, sx }: StatusCardsProps) {
   const theme = useTheme();
 
-  // a régua divide a linha pelo número de cards: 4 em quatro colunas, 3 em três
-  const colunas =
-    cards.length === 1 ? 12 : cards.length === 2 ? 6 : cards.length === 3 ? 4 : 3;
+  /**
+   * A régua divide a linha pelo número de cards, até cinco lado a lado.
+   *
+   * Grid do CSS e não o `Grid` do MUI: o do MUI reparte doze colunas, e cinco
+   * cards não cabem em doze sem fração. Com `repeat(n, 1fr)` a conta é direta e
+   * a régua atende qualquer quantidade.
+   *
+   * Com cinco cards o passo do meio fica em três colunas: em tela média, cinco
+   * na mesma linha espremem o número e o rótulo até virar reticências.
+   */
+  const colunas = Math.min(cards.length, 5);
+  const colunasMd = colunas === 5 ? 3 : colunas;
 
   return (
-    <Grid
-      container
-      spacing={2}
-      sx={[{ mb: 2 }, ...(Array.isArray(sx) ? sx : [sx])]}
+    <Box
+      sx={[
+        {
+          display: 'grid',
+          gap: 2,
+          gridTemplateColumns: {
+            xs: '1fr',
+            sm: `repeat(${Math.min(colunas, 2)}, 1fr)`,
+            md: `repeat(${colunasMd}, 1fr)`,
+            lg: `repeat(${colunas}, 1fr)`,
+          },
+          mb: 2,
+        },
+        ...(Array.isArray(sx) ? sx : [sx]),
+      ]}
     >
       {cards.map((card) => (
-        <Grid item xs={12} sm={6} md={colunas} key={card.title}>
+        <Box key={card.title}>
           <Card
             elevation={0}
             sx={{
@@ -195,8 +214,8 @@ export function StatusCards({ cards, isLoading, sx }: StatusCardsProps) {
               </Typography>
             </CardContent>
           </Card>
-        </Grid>
+        </Box>
       ))}
-    </Grid>
+    </Box>
   );
 }
