@@ -45,7 +45,7 @@ function Register() {
   const methodsGeneralInfo = useForm<GeneralInfoFormType>({
     resolver: zodResolver(GENERAL_INFO_SCHEMA),
     defaultValues: {
-      isActive: true,
+      status: 'ACTIVE',
     },
   });
   const methodsDateAndTime = useForm<DateAndLocalFormType>({
@@ -143,7 +143,7 @@ function Register() {
           const finalDataBase64 = {
             name: generalInfoData.name,
             groupLink: generalInfoData.groupLink || '',
-            isActive: generalInfoData.isActive || false,
+            status: generalInfoData.status,
             startDate: new Date(dateAndTimeData.startDate),
             endDate: new Date(dateAndTimeData.endDate),
             type: eventTypeSelected!,
@@ -217,7 +217,7 @@ function Register() {
       formMethods: methodsDateAndTime,
       onSubmit: dateAndTimeSubmit,
       component: FormDateAndLocal,
-      props: { isActive: methodsGeneralInfo.getValues().isActive },
+      props: { status: methodsGeneralInfo.getValues().status },
     },
     {
       step: 4,

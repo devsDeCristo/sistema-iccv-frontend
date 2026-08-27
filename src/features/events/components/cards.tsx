@@ -21,6 +21,7 @@ import { useGetEvents } from '../../admin/events/api/getEvents';
 import { useGetGroupsByUser } from '../../admin/events/api/getGroupsByUser';
 import { Event } from '../../admin/events/types';
 import { degradeVivo } from '../../../themes';
+import { useRole } from '../../../hooks/useRole';
 import CapaLogin from '../../../assets/capaLogin2.jpg';
 import {
   contagemRegressiva,
@@ -206,6 +207,9 @@ function LinhaEvento({
             gap={0.75}
             sx={{ mb: 0.5, flexWrap: 'wrap' }}
           >
+            {event.status === 'TEST' && (
+              <Etiqueta cor={theme.palette.chips.alert}>Teste</Etiqueta>
+            )}
             {minhaSituacao && (
               <Etiqueta
                 cor={
@@ -428,13 +432,15 @@ function SemEventos() {
 
 function Cards() {
   const { data, isLoading } = useGetEvents({});
+  const { isAdmin } = useRole();
   const userId = JSON.parse(localStorage.getItem('user') || '{}')?.id || '';
   const { data: gruposDoUsuario } = useGetGroupsByUser(
     { userId },
     { enabled: !!userId }
   );
 
-  const eventos = useMemo(() => eventosAbertos(data), [data]);
+  // admin e super admin também enxergam os eventos em teste, marcados na linha
+  const eventos = useMemo(() => eventosAbertos(data, isAdmin), [data, isAdmin]);
 
   /**
    * Em quais destes eventos o usuário já está — a linha diz isso na cara, para

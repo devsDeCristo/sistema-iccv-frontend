@@ -23,13 +23,12 @@ const postCreateEvent = ({ data, files }: PostCreateEventProps) => {
   if (files.coverFile) formData.append('coverFile', files.coverFile);
   //resto dos dados do evento
   formData.append('name', data.name);
-  formData.append('isActive', String(data.isActive));
+  formData.append('status', data.status);
   formData.append('startDate', data.startDate.toISOString());
   formData.append('endDate', data.endDate.toISOString());
   formData.append('type', data.type);
   formData.append('data', JSON.stringify(data.data));
   formData.append('groupRoles', JSON.stringify(data.groupRoles));
-  formData.append('isActive', String(data.isActive));
   if (data.groupLink) formData.append('groupLink', data.groupLink);
 
   return apiClient

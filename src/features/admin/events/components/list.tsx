@@ -23,7 +23,8 @@ import { formatDate } from '../../../../utils';
 import { EditNoteOutlined, VisibilityOutlined } from '@mui/icons-material';
 import { useRole } from '../../../../hooks/useRole';
 import CustomChip from '../../../../components/customChip';
-import { EventStatusFilter } from '../types';
+import { EventStatus, EventStatusFilter } from '../types';
+import { EVENT_STATUS_LABELS } from '../constants';
 import { cardTabelaSx, dataGridSx } from '../../../../components/listPageStyles';
 
 const getSelectedRowsToExport = ({
@@ -37,6 +38,16 @@ const getSelectedRowsToExport = ({
 
   return gridFilteredSortedRowIdsSelector(apiRef);
 };
+/** Cada aba do filtro olha para um status só; 'all' não passa por aqui. */
+const STATUS_DO_FILTRO: Record<
+  Exclude<EventStatusFilter, 'all'>,
+  EventStatus
+> = {
+  active: 'ACTIVE',
+  inactive: 'INACTIVE',
+  test: 'TEST',
+};
+
 function List({
   search,
   status = 'active',
@@ -53,7 +64,7 @@ function List({
     const searchLower = search.toLowerCase();
     const matchesSearch = event.name.toLowerCase().includes(searchLower);
     const matchesStatus =
-      status === 'all' ? true : status === 'active' ? !!event.isActive : !event.isActive;
+      status === 'all' ? true : event.status === STATUS_DO_FILTRO[status];
 
     return matchesSearch && matchesStatus;
   });
@@ -172,18 +183,21 @@ function List({
       },
     },
     {
-      field: 'isActive',
+      field: 'status',
       headerName: 'Status',
       width: 100,
       align: 'center',
       headerAlign: 'center',
       renderCell: (params) => (
         <CustomChip
-          label={params.value ? 'Ativo' : 'Inativo'}
+          label={EVENT_STATUS_LABELS[params.value] || 'Inativo'}
+          // teste em cor de atenção: é um evento que existe mas não está no ar
           customColor={
-            params.value
+            params.value === 'ACTIVE'
               ? theme.palette.chips.success
-              : theme.palette.chips.canceled
+              : params.value === 'TEST'
+                ? theme.palette.chips.alert
+                : theme.palette.chips.canceled
           }
           size="small"
         />

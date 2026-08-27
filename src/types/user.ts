@@ -84,7 +84,9 @@ export interface User {
   teams?: any[];
   groupsRegistration?: any[];
   /** Inscrições do usuário — o `/users` devolve o evento de cada uma */
-  events?: { event: { id: string; name: string; isActive: boolean } }[];
+  events?: {
+    event: { id: string; name: string; status: 'ACTIVE' | 'INACTIVE' | 'TEST' };
+  }[];
 
 }
 export interface UserTeam extends User {

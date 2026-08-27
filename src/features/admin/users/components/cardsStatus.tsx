@@ -54,7 +54,7 @@ export const CardsStatus = () => {
        */
       title: 'Em eventos ativos',
       value: users.filter((user) =>
-        (user.events || []).some((item) => item.event?.isActive)
+        (user.events || []).some((item) => item.event?.status === 'ACTIVE')
       ).length,
       subtitle: 'Com inscrição em aberto',
       icon: <HowToReg sx={{ fontSize: 20 }} />,

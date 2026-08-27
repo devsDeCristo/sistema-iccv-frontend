@@ -124,12 +124,20 @@ export function ocupacao(
  *
  * Recebe o dado cru da query porque `/events` responde uma lista ou um evento
  * só, dependendo do parâmetro, e o hero e a grade precisam da mesma conta.
+ *
+ * `podeVerTeste` deixa o evento em teste entrar na lista para admin e super
+ * admin. O backend já não devolve esses eventos para os outros perfis; o
+ * parâmetro existe para a tela não depender só disso — e para o filtro
+ * continuar sendo uma conta pura, testável sem montar React.
  */
-export function eventosAbertos(data: unknown): Event[] {
+export function eventosAbertos(data: unknown, podeVerTeste = false): Event[] {
   if (!Array.isArray(data)) return [];
 
   return (data as Event[])
-    .filter((event) => event?.isActive)
+    .filter(
+      (event) =>
+        event?.status === 'ACTIVE' || (podeVerTeste && event?.status === 'TEST')
+    )
     .sort(
       (a, b) =>
         new Date(a.startDate).getTime() - new Date(b.startDate).getTime()

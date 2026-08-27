@@ -15,10 +15,14 @@ import { DateAndLocalFormType } from '../types';
 import { CancelOutlined, Clear, Place } from '@mui/icons-material';
 import GoogleMap from '../../../../components/mapWord';
 import { formatZipCode, removeMask } from '../../../../utils';
+import { EventStatus } from '../types';
 interface FormDateAndLocalProps {
-  isActive?: boolean;
+  status?: EventStatus;
 }
-function FormDateAndLocal({ isActive = false }: FormDateAndLocalProps) {
+function FormDateAndLocal({ status }: FormDateAndLocalProps) {
+  // data passada só é travada em evento aberto ao público; inativo e teste são
+  // rascunho, e nesses o admin precisa poder repetir uma data que já passou
+  const bloquearDatasPassadas = status === 'ACTIVE';
   const {
     control,
     setError,
@@ -98,7 +102,7 @@ function FormDateAndLocal({ isActive = false }: FormDateAndLocalProps) {
           render={({ field: { onChange, value } }) => (
             <InputDatePicker
               label="Data Inicial"
-              disablePast={isActive}
+              disablePast={bloquearDatasPassadas}
               value={value as unknown as Date}
               onChange={onChange}
               errorMessage={errors.startDate?.message}
@@ -114,7 +118,7 @@ function FormDateAndLocal({ isActive = false }: FormDateAndLocalProps) {
           render={({ field: { onChange, value } }) => (
             <InputDatePicker
               label="Data Final"
-              disablePast={isActive}
+              disablePast={bloquearDatasPassadas}
               minDate={startDate as unknown as Date}
               value={value as unknown as Date}
               onChange={onChange}

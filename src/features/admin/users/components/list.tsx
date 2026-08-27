@@ -227,7 +227,7 @@ function List({ search }: { search: string }) {
         return (
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
             {(params.row.events || [])
-              .filter((event: any) => event?.event?.isActive)
+              .filter((event: any) => event?.event?.status === 'ACTIVE')
               .map((event: any) => (
                 <Button
                   key={event.event.id}

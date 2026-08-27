@@ -23,6 +23,7 @@ import {
 const STATUS_OPTIONS: { value: EventStatusFilter; label: string }[] = [
   { value: 'active', label: 'Ativos' },
   { value: 'inactive', label: 'Inativos' },
+  { value: 'test', label: 'Em teste' },
   { value: 'all', label: 'Todos' },
 ];
 

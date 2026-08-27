@@ -3,6 +3,7 @@ import {
   EventBusy,
   Layers,
   PlayCircleOutline,
+  ScienceOutlined,
 } from '@mui/icons-material';
 import { useTheme } from '@mui/material';
 import { StatusCard, StatusCards } from '../../../../components/statusCards';
@@ -25,7 +26,9 @@ export const CardsStatus = () => {
   const { data, isLoading } = useGetEvents({});
   const events = Array.isArray(data) ? (data as Event[]) : [];
 
-  const ativos = events.filter((event) => event.isActive).length;
+  const ativos = events.filter((event) => event.status === 'ACTIVE').length;
+  const inativos = events.filter((event) => event.status === 'INACTIVE').length;
+  const emTeste = events.filter((event) => event.status === 'TEST').length;
   const acontecendo = events.filter(emAndamento).length;
 
   const cards: StatusCard[] = [
@@ -45,7 +48,7 @@ export const CardsStatus = () => {
     },
     {
       title: 'Inativos',
-      value: events.length - ativos,
+      value: inativos,
       subtitle: 'Ocultos do público',
       icon: <EventBusy sx={{ fontSize: 20 }} />,
       // `text.disabled` e não uma cor de alerta: inativo é estado desligado,
@@ -53,6 +56,17 @@ export const CardsStatus = () => {
       // cima nos dois modos.
       color: theme.palette.text.disabled,
     },
+    ...(emTeste
+      ? [
+          {
+            title: 'Em teste',
+            value: emTeste,
+            subtitle: 'Visíveis só para admin',
+            icon: <ScienceOutlined sx={{ fontSize: 20 }} />,
+            color: theme.palette.chips.alert,
+          },
+        ]
+      : []),
     {
       title: 'Em andamento',
       value: acontecendo,

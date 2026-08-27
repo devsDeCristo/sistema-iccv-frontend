@@ -11,14 +11,21 @@ import {
   ROLE_SELECT_SCHEMA,
 } from './constants';
 export type EventType = 'CURSILHO' | 'RETIRO';
-export type EventStatusFilter = 'active' | 'inactive' | 'all';
+
+/**
+ * Estado de publicação do evento (espelha `EventStatus` no backend).
+ * `TEST` é ensaio: o backend só devolve esses eventos para admin e super admin.
+ */
+export type EventStatus = 'ACTIVE' | 'INACTIVE' | 'TEST';
+
+export type EventStatusFilter = 'active' | 'inactive' | 'test' | 'all';
 export interface EventDetails {
   id: string;
   name: string;
   startDate: Date;
   endDate: Date;
   groupLink?: string;
-  isActive: boolean;
+  status: EventStatus;
   data: EventDataJson;
   type: EventType;
   groupRoles: GroupRole[];
@@ -43,7 +50,7 @@ export interface Event {
   name: string;
   startDate: Date;
   endDate: Date;
-  isActive: boolean;
+  status: EventStatus;
   bedroom: number;
   team: number;
   waitlist: number;
@@ -122,7 +129,7 @@ export interface EventDataJson {
 export interface CreateEventPayload {
   name: string;
   groupLink?: string;
-  isActive: boolean;
+  status: EventStatus;
   startDate: Date;
   endDate: Date;
   groupRoles: GroupRole[];

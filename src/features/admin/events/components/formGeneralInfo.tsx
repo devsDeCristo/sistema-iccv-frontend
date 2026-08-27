@@ -40,16 +40,23 @@ function FormGeneralInfo() {
       <Grid item xs={12} md={6}>
         <Controller
           control={control}
-          name="isActive"
+          name="status"
           render={({ field: { onChange, value } }) => (
             <InputSelect
               size="small"
               label="Status do evento"
               menuOptions={OPTIONS_STATUS}
-              value={value}
+              value={value ?? ''}
               onChange={onChange}
-              error={!!errors.isActive}
-              errorMessage={errors.isActive?.message}
+              // o aviso só aparece no status que esconde o evento: em "Ativo"
+              // seria ruído embaixo de um campo que já se explica
+              helperText={
+                value === 'TEST'
+                  ? 'Evento de teste: aparece na área do usuário só para admin e super admin'
+                  : undefined
+              }
+              error={!!errors.status}
+              errorMessage={errors.status?.message}
             />
           )}
         />

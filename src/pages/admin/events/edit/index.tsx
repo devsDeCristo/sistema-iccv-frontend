@@ -58,7 +58,7 @@ function Edit() {
     description: event?.data?.description || '',
     shortDescription: event?.data?.shortDescription || '',
     groupLink: event?.groupLink || '',
-    isActive: event?.isActive ?? true,
+    status: event?.status ?? 'ACTIVE',
   });
   const getDefaultDateAndLocalValues = (
     event?: EventDetails
@@ -200,7 +200,7 @@ function Edit() {
           const finalData = {
             name: generalInfoData.name,
             groupLink: generalInfoData.groupLink || '',
-            isActive: generalInfoData.isActive,
+            status: generalInfoData.status,
             startDate: new Date(dateAndTimeData.startDate),
             endDate: new Date(dateAndTimeData.endDate),
             type: eventTypeSelected!,
@@ -267,7 +267,7 @@ function Edit() {
       formMethods: methodsDateAndTime,
       onSubmit: registrationSettingsSubmit,
       component: FormDateAndLocal,
-      props: { isActive: methodsGeneralInfo.getValues().isActive },
+      props: { status: methodsGeneralInfo.getValues().status },
     },
     {
       step: 3,

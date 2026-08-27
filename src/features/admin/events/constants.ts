@@ -23,6 +23,8 @@ const DEFAULT_MESSAGE = 'Campo obrigatório';
 
 export const EVENT_TYPE_SCHEMA = z.enum(['RETIRO', 'CURSILHO']);
 
+export const EVENT_STATUS_SCHEMA = z.enum(['ACTIVE', 'INACTIVE', 'TEST']);
+
 export const GROUP_ROLE_SELECT_SCHEMA = z.object({
   groupRoleId: z.array(z.string()).min(1, {
     message: 'Selecione ao menos uma opção',
@@ -70,7 +72,7 @@ export const GENERAL_INFO_SCHEMA = z.object({
     })
     .optional(),
   hideVacancies: z.boolean().optional(),
-  isActive: z.boolean().optional(),
+  status: EVENT_STATUS_SCHEMA,
 });
 export const CATEGORY_EVENT_SCHEMA = z.object({
   eventType: EVENT_TYPE_SCHEMA,
@@ -162,9 +164,17 @@ export const REGISTER_EVENT_SCHEMA = GENERAL_INFO_SCHEMA.merge(
   .merge(REGISTRATION_SETTINGS_SCHEMA);
 
 export const OPTIONS_STATUS = [
-  { value: true, name: 'Ativo' },
-  { value: false, name: 'Inativo' },
+  { value: 'ACTIVE', name: 'Ativo' },
+  { value: 'INACTIVE', name: 'Inativo' },
+  { value: 'TEST', name: 'Teste' },
 ];
+
+/** Rótulo de cada status, usado na lista e nos cards */
+export const EVENT_STATUS_LABELS: Record<string, string> = {
+  ACTIVE: 'Ativo',
+  INACTIVE: 'Inativo',
+  TEST: 'Teste',
+};
 export const OPTIONS_EVENT_TYPE = [
   { value: 'RETIRO', name: 'Retiro' },
   { value: 'CURSILHO', name: 'Cursilho' },

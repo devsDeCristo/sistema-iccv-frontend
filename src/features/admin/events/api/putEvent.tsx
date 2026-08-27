@@ -27,7 +27,7 @@ const putUpdateEvent = ({ data, id, files }: PutUpdateEventProps) => {
 
   // resto dos dados do evento
   formData.append('name', data.name);
-  formData.append('isActive', String(data.isActive));
+  formData.append('status', data.status);
   formData.append('startDate', data.startDate.toISOString());
   formData.append('endDate', data.endDate.toISOString());
   formData.append('type', data.type);

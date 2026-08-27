@@ -257,7 +257,11 @@ function EventsDetails() {
     <PageStyle>
       <Header
         title="Detalhes do Evento"
-        description={event?.type || ''}
+        // só admin e super admin chegam num evento em teste: o aviso é para
+        // não confundir o ensaio com um evento que já está no ar
+        description={`${event?.type || ''}${
+          event?.status === 'TEST' ? ' · Evento de teste' : ''
+        }`}
         buttonBack
         pageBack="/eventos"
       />
