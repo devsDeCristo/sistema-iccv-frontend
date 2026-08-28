@@ -265,6 +265,14 @@ function Login() {
       fontWeight: 600,
       letterSpacing: '0.2px',
     },
+    // discreto de propósito: é saída de exceção, não caminho principal
+    esqueciSenha: {
+      mt: 1,
+      fontWeight: 500,
+      fontSize: '0.875rem',
+      color: 'text.secondary',
+      textTransform: 'none',
+    },
     rodapeForm: {
       mt: { xs: 1.5, md: 2.5 },
       justifyContent: 'center',
@@ -337,6 +345,15 @@ function Login() {
                   </Button>
                 </form>
               </FormProvider>
+
+              <Button
+                variant="text"
+                fullWidth
+                sx={styles.esqueciSenha}
+                onClick={() => navigate('/esqueci-senha')}
+              >
+                Esqueci minha senha
+              </Button>
 
               <Stack direction="row" spacing={0.5} sx={styles.rodapeForm}>
                 <Typography variant="body2" color="text.secondary">
