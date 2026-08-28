@@ -175,7 +175,7 @@ export function StatusCards({ cards, isLoading, sx }: StatusCardsProps) {
                     sx={{
                       fontSize: card.compact
                         ? { xs: '26px', sm: '30px' }
-                        : { xs: '40px', sm: '44px' },
+                        : { xs: '38px', sm: '39px' },
                       fontWeight: 800,
                       lineHeight: 1,
                       letterSpacing: '-0.03em',
