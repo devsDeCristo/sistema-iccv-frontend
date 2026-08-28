@@ -315,7 +315,7 @@ function Login() {
               Bem-vindo de volta
             </Typography>
             <Typography sx={styles.subtitulo}>
-              Entre com seu CPF para acompanhar seus eventos e inscrições.
+              Entre com seu CPF e senha para acompanhar seus eventos e inscrições.
             </Typography>
 
             <Box sx={styles.bloco}>
