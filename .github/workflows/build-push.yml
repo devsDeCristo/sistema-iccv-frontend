@@ -43,13 +43,10 @@ jobs:
             type=sha,prefix={{branch}}-
             type=raw,value=latest,enable={{is_default_branch}}
 
-      # Só para o deploy: a tag que a metadata-action gera (type=sha com
-      # prefixo da branch) e o nome do repo em minúsculas — devsDeCristo tem
+      # Só para o deploy: o nome do repo em minúsculas — devsDeCristo tem
       # maiúsculas e o Docker recusa referência que não seja minúscula.
       - name: Preparar variáveis do deploy
         run: |
-          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
-          echo "IMAGE_TAG=${{ github.ref_name }}-$SHORT_SHA" >> $GITHUB_ENV
           echo "IMAGE_LC=$(echo '${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
       - name: Set up Docker Buildx
@@ -97,7 +94,8 @@ jobs:
             # de imagem privada falha com "No such image".
             docker service update \
               --with-registry-auth \
-              --image ${{ env.IMAGE_LC }}:${{ env.IMAGE_TAG }} \
+              --force \
+              --image ${{ env.IMAGE_LC }}:latest \
               sistema-eventos-iccv_web
 
       # Cada push cria uma versão nova de imagem (tag type=sha). Sem limpeza o
