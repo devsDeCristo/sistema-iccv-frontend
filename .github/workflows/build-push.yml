@@ -10,6 +10,9 @@ env:
   # com o GITHUB_TOKEN do job
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
+  # Espelhado em env porque `if:` não enxerga o contexto `secrets`. Enquanto o
+  # secret não existir, o passo de deploy é pulado em vez de quebrar o build.
+  DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
 
 jobs:
   build-and-push-image:
@@ -40,6 +43,15 @@ jobs:
             type=sha,prefix={{branch}}-
             type=raw,value=latest,enable={{is_default_branch}}
 
+      # Só para o deploy: a tag que a metadata-action gera (type=sha com
+      # prefixo da branch) e o nome do repo em minúsculas — devsDeCristo tem
+      # maiúsculas e o Docker recusa referência que não seja minúscula.
+      - name: Preparar variáveis do deploy
+        run: |
+          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
+          echo "IMAGE_TAG=${{ github.ref_name }}-$SHORT_SHA" >> $GITHUB_ENV
+          echo "IMAGE_LC=$(echo '${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -63,6 +75,27 @@ jobs:
           sbom: false
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      # Troca a imagem do serviço no Swarm: o `docker service update` baixa a
+      # imagem no nó, sobe a task nova e derruba a antiga — sem pull nem restart
+      # separado. O stack file usa `order: start-first` no web, então o nginx
+      # novo já está de pé antes do antigo sair: deploy sem janela de fora do ar.
+      - name: Atualizar o serviço no Swarm
+        if: github.ref == 'refs/heads/main' && env.DEPLOY_HOST != ''
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            set -e
+            # --with-registry-auth repassa aos agentes do Swarm a credencial do
+            # ghcr que está no ~/.docker/config.json do usuário. Sem isso o pull
+            # de imagem privada falha com "No such image".
+            docker service update \
+              --with-registry-auth \
+              --image ${{ env.IMAGE_LC }}:${{ env.IMAGE_TAG }} \
+              sistema_iccv_web
 
       # Cada push cria uma versão nova de imagem (tag type=sha). Sem limpeza o
       # storage do package cresce indefinidamente — mantém só as 10 mais recentes.
