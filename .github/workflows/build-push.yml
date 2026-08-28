@@ -95,7 +95,7 @@ jobs:
             docker service update \
               --with-registry-auth \
               --image ${{ env.IMAGE_LC }}:${{ env.IMAGE_TAG }} \
-              sistema_iccv_web
+              sistema-eventos-iccv_web
 
       # Cada push cria uma versão nova de imagem (tag type=sha). Sem limpeza o
       # storage do package cresce indefinidamente — mantém só as 10 mais recentes.
