@@ -17,6 +17,7 @@ import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 
 import { Input } from '../../../components/input';
+import { CodeInput } from '../../../components/codeInput';
 import { formatCPF, removeMask } from '../../../utils';
 import {
   FORGOT_PASSWORD_SCHEMA,
@@ -211,17 +212,6 @@ function ForgotPassword() {
       letterSpacing: '1.5px',
       textTransform: 'uppercase',
     },
-    campoCodigo: {
-      // o `sx` do Input é substituído pelo que chega por props, então a
-      // largura tem que vir junto
-      width: '100%',
-      '& input': {
-        fontSize: '1.5rem',
-        letterSpacing: '10px',
-        textAlign: 'center',
-        fontWeight: 600,
-      },
-    },
     acao: {
       height: 46,
       mt: 3,
@@ -302,18 +292,13 @@ function ForgotPassword() {
                 name="code"
                 control={formCodigo.control}
                 render={({ field: { onChange, value } }) => (
-                  <Input
-                    required
+                  <CodeInput
                     autoFocus
-                    label="Código de 8 dígitos"
                     value={value}
-                    sx={styles.campoCodigo}
+                    onChange={onChange}
+                    disabled={carregando}
                     error={!!formCodigo.formState.errors.code}
                     errorMessage={formCodigo.formState.errors.code?.message}
-                    inputProps={{ inputMode: 'numeric', maxLength: 8 }}
-                    onChange={(event) =>
-                      onChange(event.target.value.replace(/\D/g, ''))
-                    }
                   />
                 )}
               />
