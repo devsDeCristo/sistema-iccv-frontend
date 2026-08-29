@@ -9,9 +9,11 @@ import MenuItem from '@mui/material/MenuItem';
 import Menu from '@mui/material/Menu';
 
 import {
+  AdminPanelSettings,
   DarkMode,
   LightMode,
   Logout,
+  Person,
   Settings,
   Tune,
 } from '@mui/icons-material';
@@ -32,7 +34,7 @@ export default function MenuAppBar({
 }) {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const { user, logout } = useUser();
-  const { canAccessAdminArea, isAdmin } = useRole();
+  const { canAccessAdminArea, isSuperAdmin } = useRole();
   const { colorMode, toggleColorMode } = useThemeContext();
   const navigate = useNavigate();
   const [isAdminRoute, setIsAdminRoute] = React.useState(false);
@@ -169,7 +171,7 @@ export default function MenuAppBar({
                   }}
                 >
                   <ListItemIcon>
-                    <Settings fontSize="small" />
+                    <AdminPanelSettings fontSize="small" />
                   </ListItemIcon>
                   Área do Administrador
                 </MenuItem>
@@ -182,14 +184,14 @@ export default function MenuAppBar({
                   }}
                 >
                   <ListItemIcon>
-                    <Settings fontSize="small" />
+                    <Person fontSize="small" />
                   </ListItemIcon>
                   Área do Usuário
                 </MenuItem>
               )}
 
               {/* configurações do sistema: mesmo grupo de quem administra */}
-              {isAdmin && (
+              {isSuperAdmin && (
                 <MenuItem
                   onClick={() => {
                     navigate('/configuracoes/disparadores');
@@ -199,7 +201,7 @@ export default function MenuAppBar({
                   <ListItemIcon>
                     <Tune fontSize="small" />
                   </ListItemIcon>
-                  Configurações do sistema
+                  Configurações
                 </MenuItem>
               )}
 

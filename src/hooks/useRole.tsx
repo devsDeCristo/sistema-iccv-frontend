@@ -25,6 +25,12 @@ function getStoredUser(): User | null {
 function useRole(): RoleInfo {
   const role = getStoredUser()?.role ?? null;
 
+  // Retorna informações sobre o papel do usuário, incluindo se ele é admin, super admin, financeiro e se pode acessar a área administrativa.
+  // isAdmin: true se o usuário for super admin ou admin, false caso contrário.
+  // isSuperAdmin: true se o usuário for super admin, false caso contrário.
+  // isFinance: true se o usuário for financeiro, false caso contrário.
+  // canAccessAdminArea: true se o usuário tiver acesso à área administrativa, false caso contrário.
+
   return {
     role,
     isAdmin: role !== null && ADMIN_ROLES.includes(role),
