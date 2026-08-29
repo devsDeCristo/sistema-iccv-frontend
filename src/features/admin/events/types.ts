@@ -56,6 +56,8 @@ export interface Event {
   waitlist: number;
   users: number;
   capacity: number;
+  /** grupos de inscrição com link de WhatsApp — quantos recebem disparo */
+  whatsappGroups?: number;
   data:EventDataJson
 }
 export interface filterUsers {

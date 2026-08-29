@@ -1,10 +1,12 @@
 import { ReactNode } from 'react';
 import {
+  ArrowBack,
   Campaign,
   ConfirmationNumber,
   Event,
   Logout,
   People,
+  Send,
 } from '@mui/icons-material';
 import { Link, useLocation } from 'react-router-dom';
 import {
@@ -36,9 +38,17 @@ type ItemMenu = {
   novo?: boolean;
 };
 
+/**
+ * Qual régua está no ar. `configuracoes` é a das configurações do sistema, que
+ * tem menu próprio — entra pelo avatar da barra do topo, não pelo painel.
+ */
+export type AreaSideBar = 'admin' | 'usuario' | 'configuracoes';
+
 type SideBarProps = {
   validRole?: boolean | null;
   isAdmin?: boolean;
+  /** Quando ausente, cai no `isAdmin` de sempre */
+  area?: AreaSideBar;
   openDrawer: boolean;
   setOpenDrawer: (open: boolean) => void;
 };
@@ -252,13 +262,31 @@ function ConteudoNav({
 const SideBar: React.FC<SideBarProps> = ({
   validRole = true,
   isAdmin = false,
+  area,
   openDrawer,
   setOpenDrawer,
 }) => {
   const theme = useTheme();
   const { isAdmin: isAdminRole } = useRole();
 
-  const itens: ItemMenu[] = isAdmin
+  const areaAtual: AreaSideBar = area ?? (isAdmin ? 'admin' : 'usuario');
+
+  const itensConfiguracoes: ItemMenu[] = [
+    {
+      link: '/configuracoes/disparadores',
+      icon: <Send />,
+      title: 'Disparadores',
+    },
+    // volta para onde a pessoa estava trabalhando; sem isto a única saída das
+    // configurações seria o avatar da barra do topo
+    {
+      link: '/admin/eventos',
+      icon: <ArrowBack />,
+      title: 'Voltar ao painel',
+    },
+  ];
+
+  const itensPainel: ItemMenu[] = isAdmin
     ? [
         // o financeiro não gerencia usuários
         ...(isAdminRole
@@ -300,7 +328,15 @@ const SideBar: React.FC<SideBarProps> = ({
         },
       ];
 
-  const titulo = isAdmin ? 'Administrador' : 'Inscrições';
+  const itens =
+    areaAtual === 'configuracoes' ? itensConfiguracoes : itensPainel;
+
+  const titulo =
+    areaAtual === 'configuracoes'
+      ? 'Configurações'
+      : areaAtual === 'admin'
+      ? 'Administrador'
+      : 'Inscrições';
 
   return (
     <>

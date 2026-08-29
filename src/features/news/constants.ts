@@ -1,2 +1,3 @@
 export const GET_NEWS = 'GET_NEWS';
 export const GET_NEWS_ADMIN = 'GET_NEWS_ADMIN';
+export const GET_NEWS_WHATSAPP_GROUPS = 'GET_NEWS_WHATSAPP_GROUPS';

@@ -1,5 +1,5 @@
 import { Outlet, useLoaderData } from 'react-router-dom';
-import SideBar from '../../components/sideBar';
+import SideBar, { AreaSideBar } from '../../components/sideBar';
 import MenuAppBar from '../../components/appBar';
 import { Box, Stack } from '@mui/material';
 import { useUser } from '../../contexts/userContext';
@@ -16,7 +16,14 @@ const styles = {
   },
 };
 
-export const Layout = ({ isAdmin }: { isAdmin: boolean }) => {
+export const Layout = ({
+  isAdmin,
+  area,
+}: {
+  isAdmin: boolean;
+  /** Régua das configurações do sistema, que tem menu próprio */
+  area?: AreaSideBar;
+}) => {
   const loaderData = useLoaderData() as User;
   const [openDrawer, setOpenDrawer] = useState(false);
   const { setUser } = useUser();
@@ -35,6 +42,7 @@ export const Layout = ({ isAdmin }: { isAdmin: boolean }) => {
           openDrawer={openDrawer}
           setOpenDrawer={setOpenDrawer}
           isAdmin={isAdmin}
+          area={area}
         />
         <Box sx={styles.boxOutlet} id="layout-scroll">
           <Outlet />

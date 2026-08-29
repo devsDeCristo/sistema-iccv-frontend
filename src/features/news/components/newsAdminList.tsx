@@ -11,6 +11,7 @@ import { DataGrid, GridColDef, GridToolbar, ptBR } from '@mui/x-data-grid';
 import {
   Delete,
   EditOutlined,
+  WhatsApp,
   ImageNotSupportedOutlined,
 } from '@mui/icons-material';
 import Swal from 'sweetalert2';
@@ -19,6 +20,7 @@ import { cardTabelaSx, dataGridSx } from '../../../components/listPageStyles';
 import { formatDateTime } from '../../../utils';
 import { useGetNewsAdmin } from '../api/getNewsAdmin';
 import { useDeleteNews } from '../api/deleteNews';
+import { useResendNews } from '../api/resendNews';
 import { News } from '../types';
 import { dataDaNoticia } from '../utils';
 
@@ -31,6 +33,8 @@ function NewsAdminList({
 }) {
   const theme = useTheme();
   const { data, isLoading } = useGetNewsAdmin();
+  const { mutate: reenviar, isLoading: reenviando } = useResendNews();
+
   const { mutate: excluir } = useDeleteNews({
     onSuccess: () =>
       Swal.fire({
@@ -39,6 +43,30 @@ function NewsAdminList({
         icon: 'success',
       }),
   });
+
+  // o reenvio vai para todos os grupos marcados, inclusive os que já
+  // receberam: quem já viu a notícia vai vê-la de novo, e mensagem em grupo não
+  // se desfaz — por isso a confirmação
+  const confirmarReenvio = (news: News) => {
+    const total = news.groups?.length || 0;
+
+    Swal.fire({
+      title: 'Reenviar no WhatsApp?',
+      text:
+        `"${news.title}" será enviada de novo para ${total} grupo(s), ` +
+        'com o texto e a imagem atuais. Quem já recebeu vai receber outra vez.',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Sim, reenviar',
+      cancelButtonText: 'Cancelar',
+      didOpen: () => {
+        const container = Swal.getContainer();
+        if (container) container.style.zIndex = '2000';
+      },
+    }).then((resultado) => {
+      if (resultado.isConfirmed) reenviar(news.id);
+    });
+  };
 
   const confirmarExclusao = (news: News) => {
     Swal.fire({
@@ -151,10 +179,71 @@ function NewsAdminList({
         params.value ? formatDateTime(params.value) : '—',
     },
     {
+      field: 'whatsapp',
+      headerName: 'WhatsApp',
+      sortable: false,
+      width: 150,
+      renderCell: (params) => {
+        const destinos = (params.row as News).groups ?? [];
+
+        if (!destinos.length) {
+          return (
+            <Typography sx={{ fontSize: '0.8125rem', color: 'text.secondary' }}>
+              —
+            </Typography>
+          );
+        }
+
+        const enviados = destinos.filter((destino) => destino.sentAt).length;
+        const comErro = destinos.filter(
+          (destino) => !destino.sentAt && destino.error
+        );
+        const tudoEnviado = enviados === destinos.length;
+
+        return (
+          <Tooltip
+            title={
+              comErro.length
+                ? comErro
+                    .map(
+                      (destino) =>
+                        `${destino.groupRole.event.name} / ${destino.groupRole.name}: ${destino.error}`
+                    )
+                    .join(' | ')
+                : destinos
+                    .map(
+                      (destino) =>
+                        `${destino.groupRole.event.name} / ${destino.groupRole.name}`
+                    )
+                    .join(', ')
+            }
+          >
+            <span>
+              <CustomChip
+                size="small"
+                label={
+                  tudoEnviado
+                    ? `Enviado (${enviados})`
+                    : `${enviados}/${destinos.length}`
+                }
+                customColor={
+                  tudoEnviado
+                    ? theme.palette.chips.success
+                    : comErro.length
+                    ? theme.palette.chips.canceled
+                    : theme.palette.chips.pending
+                }
+              />
+            </span>
+          </Tooltip>
+        );
+      },
+    },
+    {
       field: 'acoes',
       headerName: '',
       sortable: false,
-      width: 110,
+      width: 150,
       renderCell: (params) => (
         <Stack direction="row" gap={0.5}>
           <Tooltip title="Editar">
@@ -165,6 +254,23 @@ function NewsAdminList({
             >
               <EditOutlined fontSize="small" />
             </IconButton>
+          </Tooltip>
+          <Tooltip
+            title={
+              (params.row as News).groups?.length
+                ? 'Reenviar no WhatsApp'
+                : 'Sem grupo marcado para envio'
+            }
+          >
+            <span>
+              <IconButton
+                size="small"
+                disabled={reenviando || !(params.row as News).groups?.length}
+                onClick={() => confirmarReenvio(params.row as News)}
+              >
+                <WhatsApp fontSize="small" />
+              </IconButton>
+            </span>
           </Tooltip>
           <Tooltip title="Excluir">
             <IconButton

@@ -11,6 +11,29 @@ export interface News {
   /** Só vem na lista do admin (`/news/admin`) */
   isPublished?: boolean;
   updatedAt?: string;
+  /** Grupos escolhidos como destino no WhatsApp, com o resultado do envio */
+  groups?: NewsDestination[];
+}
+
+/** Um destino da notícia: o grupo marcado e como terminou o envio. */
+export interface NewsDestination {
+  groupRoleId: string;
+  /** null enquanto não saiu */
+  sentAt: string | null;
+  /** motivo da última falha */
+  error: string | null;
+  groupRole: {
+    name: string;
+    event: { name: string };
+  };
+}
+
+/** Grupo oferecido no formulário: tem link e é de evento no ar. */
+export interface WhatsappTargetGroup {
+  id: string;
+  name: string;
+  temLink: boolean;
+  event: { id: string; name: string; status: string };
 }
 
 export interface NewsPayload {
@@ -22,4 +45,6 @@ export interface NewsPayload {
   imageFile?: File | null;
   /** Apaga a imagem atual sem colocar outra no lugar */
   removeImage?: boolean;
+  /** Grupos de inscrição que recebem esta notícia no WhatsApp */
+  groupRoleIds?: string[];
 }

@@ -13,6 +13,7 @@ import { campoBuscaSx, superficieSx } from '../../../components/listPageStyles';
 import { NewsAdminList } from '../../../features/news/components/newsAdminList';
 import { NewsFormModal } from '../../../features/news/components/newsFormModal';
 import { News } from '../../../features/news/types';
+import { WhatsappOfflineAlert } from '../../../features/settings/whatsapp/components/whatsappOfflineAlert';
 
 /** Mural de notícias: é daqui que sai o feed da tela de eventos. */
 function NewsAdmin() {
@@ -60,6 +61,8 @@ function NewsAdmin() {
         title="Notícias"
         description="Avisos que aparecem no mural dos inscritos"
       />
+
+      <WhatsappOfflineAlert />
 
       <Paper sx={styles.boxFiltro}>
         <TextField

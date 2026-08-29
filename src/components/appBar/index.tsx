@@ -8,7 +8,13 @@ import MenuIcon from '@mui/icons-material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import Menu from '@mui/material/Menu';
 
-import { DarkMode, LightMode, Logout, Settings } from '@mui/icons-material';
+import {
+  DarkMode,
+  LightMode,
+  Logout,
+  Settings,
+  Tune,
+} from '@mui/icons-material';
 
 import { Avatar, Divider, ListItemIcon, Stack, useTheme } from '@mui/material';
 import { useUser } from '../../contexts/userContext';
@@ -26,7 +32,7 @@ export default function MenuAppBar({
 }) {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const { user, logout } = useUser();
-  const { canAccessAdminArea } = useRole();
+  const { canAccessAdminArea, isAdmin } = useRole();
   const { colorMode, toggleColorMode } = useThemeContext();
   const navigate = useNavigate();
   const [isAdminRoute, setIsAdminRoute] = React.useState(false);
@@ -179,6 +185,21 @@ export default function MenuAppBar({
                     <Settings fontSize="small" />
                   </ListItemIcon>
                   Área do Usuário
+                </MenuItem>
+              )}
+
+              {/* configurações do sistema: mesmo grupo de quem administra */}
+              {isAdmin && (
+                <MenuItem
+                  onClick={() => {
+                    navigate('/configuracoes/disparadores');
+                    handleClose();
+                  }}
+                >
+                  <ListItemIcon>
+                    <Tune fontSize="small" />
+                  </ListItemIcon>
+                  Configurações do sistema
                 </MenuItem>
               )}
 

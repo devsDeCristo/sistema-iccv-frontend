@@ -17,6 +17,7 @@ import { authLoaderAdmin } from '../auth/functions/authLoaderAdmin';
 import { Layout } from '../pages/layout';
 import { UserProvider } from '../contexts/userContext';
 import { RoutesMyRegisters } from '../pages/myRegisters/routers';
+import { RoutesSettings } from '../pages/settings/routes';
 
 const routers = (): ReturnType<typeof createBrowserRouter> => {
   return createBrowserRouter(
@@ -41,6 +42,24 @@ const routers = (): ReturnType<typeof createBrowserRouter> => {
           {RoutesEventsAdmin()}
           {RoutesNewsAdmin()}
         </Route>
+        {/*
+          Configurações do sistema: mesma proteção da área administrativa, mas
+          com régua lateral própria — entra pelo avatar da barra do topo.
+        */}
+        <Route
+          loader={authLoaderAdmin}
+          shouldRevalidate={({ currentUrl, nextUrl }) => {
+            return currentUrl.pathname !== nextUrl.pathname;
+          }}
+          element={
+            <UserProvider>
+              <Layout isAdmin area="configuracoes" />
+            </UserProvider>
+          }
+        >
+          {RoutesSettings()}
+        </Route>
+
         <Route
           loader={authLoader}
           shouldRevalidate={({ currentUrl, nextUrl }) => {

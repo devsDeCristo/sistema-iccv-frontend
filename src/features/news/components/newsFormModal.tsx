@@ -1,6 +1,9 @@
 import {
+  Alert,
+  Autocomplete,
   Box,
   Button,
+  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -13,12 +16,13 @@ import {
   useTheme,
 } from '@mui/material';
 import { AddPhotoAlternateOutlined, Delete } from '@mui/icons-material';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
 import ReactQuillEditor from '../../../components/reactQuillEditor';
 import { campoBuscaSx } from '../../../components/listPageStyles';
+import { useGetNewsWhatsappGroups } from '../api/getWhatsappGroups';
 import { useSaveNews } from '../api/saveNews';
-import { News } from '../types';
+import { News, WhatsappTargetGroup } from '../types';
 
 /** Limite do arquivo, o mesmo da capa do evento. */
 const TAMANHO_MAXIMO = 2 * 1024 * 1024;
@@ -41,6 +45,13 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
   const [arquivo, setArquivo] = useState<File | null>(null);
   const [imagemAtual, setImagemAtual] = useState<string | null>(null);
   const [removerImagem, setRemoverImagem] = useState(false);
+  const [destinos, setDestinos] = useState<WhatsappTargetGroup[]>([]);
+
+  // a lista só é buscada com o modal aberto: é tela de admin, não vale manter
+  // consulta viva atrás dela
+  const { data: grupos } = useGetNewsWhatsappGroups({ enabled: open });
+
+  const listaGrupos = useMemo(() => grupos ?? [], [grupos]);
 
   // reabrir o modal precisa recarregar o formulário: sem isto a segunda edição
   // abriria com os dados da primeira
@@ -55,6 +66,15 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
     setArquivo(null);
     setRemoverImagem(false);
   }, [open, news]);
+
+  // os destinos só podem ser marcados depois que a lista de grupos chega
+  useEffect(() => {
+    if (!open) return;
+
+    const marcados = news?.groups?.map((destino) => destino.groupRoleId) ?? [];
+
+    setDestinos(listaGrupos.filter((grupo) => marcados.includes(grupo.id)));
+  }, [open, news, listaGrupos]);
 
   const { mutate: salvar, isLoading } = useSaveNews({
     onSuccess: () => onClose(),
@@ -85,6 +105,7 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
         isPublished: publicada,
         imageFile: arquivo,
         removeImage: removerImagem,
+        groupRoleIds: destinos.map((grupo) => grupo.id),
       },
     });
   };
@@ -201,6 +222,64 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
               Texto
             </Typography>
             <ReactQuillEditor value={texto} onChange={setTexto} />
+          </Box>
+
+          <Box>
+            <Typography sx={{ mb: 1, fontSize: '0.875rem', fontWeight: 500 }}>
+              Enviar nos grupos do WhatsApp
+            </Typography>
+
+            <Autocomplete
+              multiple
+              size="small"
+              options={listaGrupos}
+              value={destinos}
+              onChange={(_, valor) => setDestinos(valor)}
+              isOptionEqualToValue={(opcao, valor) => opcao.id === valor.id}
+              getOptionLabel={(grupo) => grupo.name}
+              // agrupa por evento: o mesmo nome de grupo aparece em vários
+              // cursilhos, e sem o cabeçalho não dá para saber qual é qual
+              groupBy={(grupo) =>
+                grupo.event.status === 'TEST'
+                  ? `${grupo.event.name} (em teste)`
+                  : grupo.event.name
+              }
+              renderTags={(valor, getTagProps) =>
+                valor.map((grupo, index) => (
+                  <Chip
+                    {...getTagProps({ index })}
+                    key={grupo.id}
+                    size="small"
+                    label={`${grupo.event.name} / ${grupo.name}`}
+                  />
+                ))
+              }
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  placeholder={
+                    destinos.length ? '' : 'Nenhum grupo — não envia no WhatsApp'
+                  }
+                  sx={campoBuscaSx(theme)}
+                />
+              )}
+            />
+
+            <Typography
+              sx={{ mt: 0.75, fontSize: '0.75rem' }}
+              color="text.secondary"
+            >
+              A lista traz os grupos com link preenchido, de eventos ativos ou em
+              teste. A mensagem sai quando a notícia for publicada, com um
+              intervalo entre um grupo e outro.
+            </Typography>
+
+            {!listaGrupos.length && (
+              <Alert severity="info" sx={{ mt: 1.5 }}>
+                Nenhum grupo disponível. Preencha o link do grupo de WhatsApp no
+                cadastro do evento, na aba de inscrições.
+              </Alert>
+            )}
           </Box>
 
           <FormControlLabel
