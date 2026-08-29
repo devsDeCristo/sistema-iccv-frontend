@@ -94,7 +94,7 @@ export default function MenuAppBar({
             component="div"
             sx={{ flexGrow: 1, color: 'white' }}
           >
-            CIDADE VERDE
+            ICCV Eventos
           </Typography>
 
           <Stack direction="row" spacing={1} alignItems="center">

@@ -317,7 +317,7 @@ function Login() {
             </Box>
 
             <Typography sx={styles.sobrenome}>
-              Igreja de Cristo Cidade Verde
+              ICCV Eventos
             </Typography>
             <Typography component="h1" sx={styles.titulo}>
               Bem-vindo de volta
