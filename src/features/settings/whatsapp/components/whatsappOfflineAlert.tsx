@@ -1,6 +1,6 @@
 import { Alert, AlertTitle, Button } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { useGetWhatsappStatus } from '../api/getWhatsappStatus';
+import { useWhatsappConectado } from '../useWhatsappConectado';
 
 /**
  * Aviso de que o canal está fora do ar.
@@ -11,15 +11,13 @@ import { useGetWhatsappStatus } from '../api/getWhatsappStatus';
  */
 function WhatsappOfflineAlert() {
   const navigate = useNavigate();
-
-  // aqui não se espera QR nenhum, só perceber a queda: 30s basta
-  const { data: conexao } = useGetWhatsappStatus({ refetchInterval: 30000 });
+  const { status, semNumero } = useWhatsappConectado();
 
   // enquanto a primeira consulta não volta — ou se ela falhar — não há o que
   // afirmar: piscar "desconectado" e sumir seria pior que não mostrar nada
-  if (!conexao || conexao.status === 'CONNECTED') return null;
+  if (!semNumero) return null;
 
-  const conectando = conexao.status === 'CONNECTING';
+  const conectando = status === 'CONNECTING';
 
   return (
     <Alert

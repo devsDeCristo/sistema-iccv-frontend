@@ -21,6 +21,7 @@ import { formatDateTime } from '../../../utils';
 import { useGetNewsAdmin } from '../api/getNewsAdmin';
 import { useDeleteNews } from '../api/deleteNews';
 import { useResendNews } from '../api/resendNews';
+import { useWhatsappConectado } from '../../settings/whatsapp/useWhatsappConectado';
 import { News } from '../types';
 import { dataDaNoticia } from '../utils';
 
@@ -33,6 +34,7 @@ function NewsAdminList({
 }) {
   const theme = useTheme();
   const { data, isLoading } = useGetNewsAdmin();
+  const { semNumero } = useWhatsappConectado();
   const { mutate: reenviar, isLoading: reenviando } = useResendNews();
 
   const { mutate: excluir } = useDeleteNews({
@@ -43,6 +45,18 @@ function NewsAdminList({
         icon: 'success',
       }),
   });
+
+  // sem número conectado o disparo só gravaria falha em cada destino; o botão
+  // fica de fora, e o porquê vai no tooltip para não virar botão morto
+  const motivoDoReenvio = (news: News) => {
+    if (!news.groups?.length) return 'Sem grupo marcado para envio';
+
+    if (semNumero) {
+      return 'WhatsApp desconectado — conecte um número em Configurações → Disparadores';
+    }
+
+    return 'Reenviar no WhatsApp';
+  };
 
   // o reenvio vai para todos os grupos marcados, inclusive os que já
   // receberam: quem já viu a notícia vai vê-la de novo, e mensagem em grupo não
@@ -255,17 +269,15 @@ function NewsAdminList({
               <EditOutlined fontSize="small" />
             </IconButton>
           </Tooltip>
-          <Tooltip
-            title={
-              (params.row as News).groups?.length
-                ? 'Reenviar no WhatsApp'
-                : 'Sem grupo marcado para envio'
-            }
-          >
+          <Tooltip title={motivoDoReenvio(params.row as News)}>
             <span>
               <IconButton
                 size="small"
-                disabled={reenviando || !(params.row as News).groups?.length}
+                disabled={
+                  reenviando ||
+                  semNumero ||
+                  !(params.row as News).groups?.length
+                }
                 onClick={() => confirmarReenvio(params.row as News)}
               >
                 <WhatsApp fontSize="small" />

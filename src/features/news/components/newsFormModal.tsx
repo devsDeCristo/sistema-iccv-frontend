@@ -27,6 +27,7 @@ import { ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
 import ReactQuillEditor from '../../../components/reactQuillEditor';
 import { campoBuscaSx } from '../../../components/listPageStyles';
+import { useWhatsappConectado } from '../../settings/whatsapp/useWhatsappConectado';
 import { useGetNewsWhatsappGroups } from '../api/getWhatsappGroups';
 import { useSaveNews } from '../api/saveNews';
 import { News, WhatsappTargetGroup } from '../types';
@@ -87,6 +88,8 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
   // a lista só é buscada com o modal aberto: é tela de admin, não vale manter
   // consulta viva atrás dela
   const { data: grupos } = useGetNewsWhatsappGroups({ enabled: open });
+
+  const { semNumero } = useWhatsappConectado();
 
   const listaGrupos = useMemo(() => grupos ?? [], [grupos]);
 
@@ -163,6 +166,8 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
    */
   const resumoDoEnvio = () => {
     if (!destinos.length) return 'Nenhum grupo marcado: não sai no WhatsApp.';
+
+    if (semNumero) return 'Sem número conectado: nada sai no WhatsApp agora.';
 
     if (!publicada) return 'Como rascunho, nada é enviado.';
 
@@ -436,6 +441,10 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
             <Autocomplete
               multiple
               size="small"
+              // sem número conectado a escolha não leva a nada: o disparo só
+              // gravaria falha em cada grupo. Os já marcados continuam à vista,
+              // porque a notícia em edição pode ter sido montada antes da queda
+              disabled={semNumero}
               options={listaGrupos}
               value={destinos}
               onChange={(_, valor) => setDestinos(valor)}
@@ -461,7 +470,13 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
               renderInput={(params) => (
                 <TextField
                   {...params}
-                  placeholder={destinos.length ? '' : 'Nenhum grupo escolhido'}
+                  placeholder={
+                    destinos.length
+                      ? ''
+                      : semNumero
+                        ? 'Sem número conectado'
+                        : 'Nenhum grupo escolhido'
+                  }
                   sx={campoBuscaSx(theme)}
                 />
               )}
@@ -477,7 +492,15 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
               elas.
             </Typography>
 
-            {!listaGrupos.length && (
+            {semNumero && (
+              <Alert severity="warning" sx={{ mt: 1.5, borderRadius: 2 }}>
+                Nenhum número conectado ao WhatsApp, então não dá para escolher
+                grupos agora. Conecte em Configurações → Disparadores; a notícia
+                pode ser salva do mesmo jeito.
+              </Alert>
+            )}
+
+            {!semNumero && !listaGrupos.length && (
               <Alert severity="info" sx={{ mt: 1.5, borderRadius: 2 }}>
                 Nenhum grupo disponível. Preencha o link do grupo de WhatsApp no
                 cadastro do evento, na aba de inscrições.
