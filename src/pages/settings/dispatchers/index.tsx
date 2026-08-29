@@ -37,9 +37,8 @@ function Dispatchers() {
         <Stack spacing={2.5}>
           <Box>
             <Typography variant="body2" color="text.secondary">
-              O sistema entra como um aparelho conectado deste número, do mesmo
-              jeito que o WhatsApp Web. Cada notícia publicada sai para os grupos
-              vinculados aos eventos marcados nela.
+              Cada notícia publicada sai para os grupos marcados nela, um de cada
+              vez e com intervalo entre um envio e outro.
             </Typography>
           </Box>
 
