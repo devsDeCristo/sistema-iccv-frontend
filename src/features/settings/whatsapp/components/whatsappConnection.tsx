@@ -55,7 +55,9 @@ const PASSOS: Record<Modo, ReactNode[]> = {
     'Pegue o celular do número que vai disparar e abra o WhatsApp.',
     <>
       Toque em{' '}
-      <strong>Configurações → Aparelhos conectados → Conectar um aparelho</strong>
+      <strong>
+        Configurações → Aparelhos conectados → Conectar um aparelho
+      </strong>
       .
     </>,
     'Aponte a câmera para o código que aparece ao lado.',
@@ -63,8 +65,9 @@ const PASSOS: Record<Modo, ReactNode[]> = {
   codigo: [
     'Informe ao lado o número com DDI e DDD, só os dígitos.',
     <>
-      No celular, vá em <strong>Aparelhos conectados → Conectar um aparelho</strong>{' '}
-      e escolha <strong>Conectar com número de telefone</strong>.
+      No celular, vá em{' '}
+      <strong>Aparelhos conectados → Conectar um aparelho</strong> e escolha{' '}
+      <strong>Conectar com número de telefone</strong>.
     </>,
     'Digite lá os 8 caracteres que aparecerem ao lado.',
   ],
@@ -296,8 +299,8 @@ function WhatsappConnection() {
             <QRCodeCanvas value={conexao.qr} size={220} level="M" />
           </Box>
           <Typography variant="caption" color="text.secondary">
-            O código se renova sozinho a cada poucos segundos — aponte a câmera e
-            espere.
+            O código se renova sozinho a cada poucos segundos — aponte a câmera
+            e espere.
           </Typography>
         </>
       );
@@ -354,7 +357,8 @@ function WhatsappConnection() {
             <Box>
               <Typography sx={styles.rotulo}>Número de origem</Typography>
               <Typography sx={{ fontSize: '1.0625rem', fontWeight: 600 }}>
-                {formataNumero(conexao?.phoneNumber) ?? 'Nenhum número conectado'}
+                {formataNumero(conexao?.phoneNumber) ??
+                  'Nenhum número conectado'}
               </Typography>
               <Typography variant="caption" color="text.secondary">
                 {detalhe}
@@ -363,11 +367,7 @@ function WhatsappConnection() {
           </Stack>
 
           <Stack direction="row" spacing={1.5} alignItems="center">
-            <CustomChip
-              size="small"
-              label={ROTULO[status]}
-              customColor={cor}
-            />
+            <CustomChip size="small" label={ROTULO[status]} customColor={cor} />
 
             {status === 'CONNECTED' && (
               <Button
@@ -401,12 +401,12 @@ function WhatsappConnection() {
             </AlertTitle>
 
             <Typography variant="body2">
-              O sistema entra como mais um aparelho conectado, do mesmo jeito que
-              o WhatsApp Web — o WhatsApp não tem uma porta oficial para isso. No
-              ritmo daqui, poucos avisos por semana em grupos onde as pessoas
-              entraram por vontade própria, o risco é pequeno; mas nunca é zero.
-              Uma denúncia de quem recebe, ou um envio que pareça automático
-              demais, pode custar um bloqueio ao número.
+              O sistema entra como mais um aparelho conectado, do mesmo jeito
+              que o WhatsApp Web — o WhatsApp não tem uma porta oficial para
+              isso. No ritmo daqui, poucos avisos por semana em grupos onde as
+              pessoas entraram por vontade própria, o risco é pequeno; mas nunca
+              é zero. Uma denúncia de quem recebe, ou um envio que pareça
+              automático demais, pode custar um bloqueio ao número.
             </Typography>
 
             <Typography variant="body2" sx={{ mt: 1 }}>

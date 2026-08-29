@@ -1,3 +1,4 @@
+import { Box } from '@mui/material';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import CustomToolbar from './customToolbar';
@@ -79,9 +80,20 @@ const formats = [
   // 'style',
 ];
 
+/**
+ * A altura mínima vai na área editável, e não na raiz do Quill.
+ *
+ * O container do Quill é `height: 100%`, que contra um pai que só tem
+ * `min-height` vira altura automática: o texto ocupava umas quatro linhas e a
+ * raiz continuava esticada em 180px, deixando um vão vazio embaixo da caixa —
+ * que na tela parecia margem sobrando antes do bloco seguinte. Na área editável,
+ * a caixa inteira cresce, e o clique no espaço vazio cai dentro do editor.
+ */
+const alturaDoEditor = { '& .ql-editor': { minHeight: 180 } };
+
 function ReactQuillEditor({ value, onChange }: ReactQuillEditorProps) {
   return (
-    <>
+    <Box sx={alturaDoEditor}>
       <CustomToolbar />
       <ReactQuill
         theme="snow"
@@ -89,9 +101,8 @@ function ReactQuillEditor({ value, onChange }: ReactQuillEditorProps) {
         onChange={onChange}
         modules={modules}
         formats={formats}
-        style={{ minHeight: 180 }}
       />
-    </>
+    </Box>
   );
 }
 
