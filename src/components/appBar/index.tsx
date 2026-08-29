@@ -14,7 +14,6 @@ import {
   LightMode,
   Logout,
   Person,
-  Settings,
   Tune,
 } from '@mui/icons-material';
 
