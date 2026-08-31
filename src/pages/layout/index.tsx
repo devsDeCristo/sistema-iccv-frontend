@@ -6,10 +6,29 @@ import { useUser } from '../../contexts/userContext';
 import { User } from '../../types/user';
 import { useEffect, useState } from 'react';
 
+/** Altura da barra do topo (src/components/appBar) */
+const ALTURA_APPBAR = 70;
+
 const styles = {
   boxOutlet: {
-    maxHeight: 'calc(100vh - 70px)',
+    /**
+     * Altura fixa, e não só um teto: é esta caixa que rola, então ela precisa
+     * ocupar o que sobra da tela mesmo com pouco conteúdo — senão o fundo do
+     * documento aparece embaixo, como uma faixa clara no fim da página.
+     *
+     * `dvh` porque, com a rolagem aqui dentro, a barra do navegador do celular
+     * nunca recolhe: `100vh` já conta com ela recolhida e sobraria altura fora
+     * da área visível.
+     */
+    height: `calc(100vh - ${ALTURA_APPBAR}px)`,
+    '@supports (height: 100dvh)': {
+      height: `calc(100dvh - ${ALTURA_APPBAR}px)`,
+    },
     overflowY: 'auto',
+    // o fundo é pintado aqui, e não só na página: página curta não deixa buraco
+    bgcolor: 'background.default',
+    // no iPhone a faixa do indicador de início fica por cima do conteúdo
+    paddingBottom: 'env(safe-area-inset-bottom)',
     flexGrow: 1,
     width: '100%',
     gap: 2,

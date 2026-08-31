@@ -1,4 +1,3 @@
-
 /* @import '~react-quill/dist /quill.snow.css'; */
 
 :root {
@@ -6,9 +5,14 @@
   line-height: 1.5;
   font-weight: 400;
 
+  /*
+    Cor e fundo saem do tema, pelo CssBaseline: cravados aqui, ficavam por
+    baixo do app e apareciam como uma faixa cinza-clara embaixo do conteúdo
+    sempre que a página era mais curta que a tela — no tema escuro, um bloco
+    branco no fim do celular. `color-scheme` fica: é ele que pinta a tela do
+    navegador antes do React montar.
+  */
   color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #f2f2f2;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -22,8 +26,7 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   width: 100%;
-  height: 100%;
-  background: #f2f2f2;
+  min-height: 100%;
 }
 
 .sidebar {
@@ -74,28 +77,28 @@ border: none;
 
 .ql-editor iframe,
 .ql-editor video {
-display: block;
-width: 100%;
-max-width: 100%;
-height: auto;
-aspect-ratio: 16 / 9;
-border: none;
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  border: none;
 }
 .ql-editor .video-wrapper {
-position: relative;
-width: 100%;
-padding-bottom: 56.25%;
-height: 0;
-overflow: hidden;
+  position: relative;
+  width: 100%;
+  padding-bottom: 56.25%;
+  height: 0;
+  overflow: hidden;
 }
 .ql-editor .video-wrapper iframe,
 .ql-editor .video-wrapper video {
-position: absolute;
-top: 0;
-left: 0;
-width: 100%;
-height: 100%;
-border: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
 }
 /* .ql-editor img,
 .ql-editor figure img {
@@ -118,16 +121,15 @@ border: none;
 
 .ql-toolbar.ql-snow {
   display: block;
-  border-bottom:none !important  ;
+  border-bottom: none !important  ;
   border-top-left-radius: 0.3em;
   border-top-right-radius: 0.3em;
 }
 
 .viewer-rquil .ql-container {
- border:none !important ;
+  border: none !important ;
 }
 
 .viewer-rquil .ql-editor {
   padding: 0 !important ;
-
 }
