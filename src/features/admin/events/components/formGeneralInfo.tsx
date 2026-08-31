@@ -7,7 +7,7 @@ import { GeneralInfoFormType } from '../types';
 import 'react-quill/dist/quill.snow.css';
 import ReactQuillEditor from '../../../../components/reactQuillEditor';
 import { useRole } from '../../../../hooks/useRole';
-import { useGetChurches } from '../../users/api/getChurches';
+import { useGetChurches } from '../../churches/api/getChurches';
 type FormGeneralInfoProps = {
   /**
    * Mostra a escolha da igreja. Vale só na criação: depois de criado o evento

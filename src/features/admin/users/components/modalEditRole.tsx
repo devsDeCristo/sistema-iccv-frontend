@@ -23,7 +23,7 @@ import { useEffect, useState } from 'react';
 import { User } from '../../../../types/user';
 import { Role } from '../../../../constants/roles';
 import { useUser } from '../../../../contexts/userContext';
-import { useGetChurches } from '../api/getChurches';
+import { useGetChurches } from '../../churches/api/getChurches';
 
 interface ModalAddUserProps {
   open: boolean;
