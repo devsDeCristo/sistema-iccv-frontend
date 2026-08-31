@@ -68,7 +68,9 @@ export interface User {
   profilePhotoUrl?: string;
   badgeName?: string;
   role?: number;
+  /** Igreja de quem entra no painel; inscrito não pertence a nenhuma */
   churchId?: string;
+  church?: { id: string; name: string } | null;
   emergencyContact?: string;
   indicatedBy?: string;
   leadershipPosition?: string;

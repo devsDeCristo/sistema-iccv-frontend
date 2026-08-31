@@ -6,6 +6,7 @@ import {
   ListItemIcon,
   ListItemText,
   Menu,
+  Stack,
   Tooltip,
   MenuItem,
   useTheme,
@@ -46,6 +47,7 @@ import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import { UserAvatar } from '../../../../components/userAvatar';
 import { cardTabelaSx, dataGridSx } from '../../../../components/listPageStyles';
+import { useRole } from '../../../../hooks/useRole';
 /**
  * Exporta a seleção quando existe e, sem seleção, tudo o que o filtro deixou na
  * tela — mesma regra das listas de evento.
@@ -96,6 +98,7 @@ function List({ search }: { search: string }) {
   const [rowSelected, setRowSelected] = useState<User | null>(null);
   const theme = useTheme();
   const navigate = useNavigate();
+  const { isSuperAdmin } = useRole();
 
   /** Cor de cada perfil de acesso, na paleta de chips do tema */
   const ROLE_CHIP_COLOR: Record<number, string> = {
@@ -250,15 +253,63 @@ function List({ search }: { search: string }) {
       field: 'role',
       headerName: 'Permissão',
       flex: 1,
-      minWidth: 120,
+      // cabe "Admin · " mais um nome curto de igreja; o que passar disso corta
+      // com reticências e aparece inteiro na dica
+      minWidth: 200,
       renderCell: (params: GridCellParams) => {
         // perfil desconhecido cai em Usuário, como antes
         const role = Number(params.row.role);
         const cor = ROLE_CHIP_COLOR[role] || theme.palette.chips.success;
         const label = ROLE_LABELS[role] || ROLE_LABELS[Role.USER];
+        /**
+         * A permissão só diz metade: é a igreja que decide qual painel a
+         * pessoa enxerga, e o super admin vê os perfis de todas — sem o nome
+         * junto não dá para saber de quem é aquele admin.
+         *
+         * Sai um chip por igreja. Hoje o vínculo é um só, mas quando um admin
+         * puder atender duas o mesmo laço já resolve, sem mexer na célula.
+         * Inscrito não pertence a igreja nenhuma: fica só o perfil.
+         */
+        const igreja = (params.row as User).church;
+        const igrejas = isSuperAdmin && igreja ? [igreja] : [];
+
+        const chips = igrejas.length
+          ? igrejas.map((casa) => ({
+              key: casa.id,
+              label: `${label} · ${casa.name}`,
+              // o chip corta com reticências quando a coluna aperta, então a
+              // dica repete o nome inteiro e ainda diz o que o vínculo faz
+              dica: `${label} da ${casa.name} — enxerga no painel só os eventos e os inscritos dessa igreja`,
+            }))
+          : [{ key: 'perfil', label, dica: `Perfil de acesso: ${label}` }];
 
         return (
-          <CustomChip label={label} customColor={cor} size="small" />
+          <Stack
+            direction="row"
+            gap={0.5}
+            flexWrap="wrap"
+            alignItems="center"
+            sx={{ width: '100%', minWidth: 0, overflow: 'hidden' }}
+          >
+            {chips.map((chip) => (
+              <Tooltip key={chip.key} title={chip.dica}>
+                {/* o `span` do Tooltip cresce com o conteúdo: sem prendê-lo à
+                    largura da célula, o `maxWidth` do chip não tem a que se
+                    referir e o nome comprido vaza por cima da coluna vizinha */}
+                <Box
+                  component="span"
+                  sx={{ display: 'inline-flex', minWidth: 0, maxWidth: '100%' }}
+                >
+                  <CustomChip
+                    label={chip.label}
+                    customColor={cor}
+                    size="small"
+                    sx={{ maxWidth: '100%' }}
+                  />
+                </Box>
+              </Tooltip>
+            ))}
+          </Stack>
         );
       },
     },
