@@ -8,10 +8,9 @@ export const handleResponseThrowError = (
   return (error: AxiosError<any>) => {
     const errorMessage = errorDefaultMessage || error.response?.data.message;
 
-    // if (error.response?.status === 401) {
-    //   localStorage.clear();
-    //   redirect('/login');
-    // }
+    // 401 não é tratado aqui: quem encerra a sessão é o interceptor de resposta
+    // do `apiClient` (src/config/lib/axios/api-client.ts), que age uma única
+    // vez mesmo quando várias chamadas da tela falham juntas
 
     if (showToast) {
       if (Array.isArray(errorMessage)) {

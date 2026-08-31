@@ -1,5 +1,5 @@
-import { User } from '../types/user';
 import { ADMIN_AREA_ROLES, ADMIN_ROLES, Role } from '../constants/roles';
+import { getStoredUser } from '../auth/session';
 
 type RoleInfo = {
   role: number | null;
@@ -10,17 +10,6 @@ type RoleInfo = {
   /** Entra no painel administrativo (inclui o financeiro) */
   canAccessAdminArea: boolean;
 };
-
-function getStoredUser(): User | null {
-  const localStorageUser = localStorage.getItem('user');
-
-  try {
-    return localStorageUser ? JSON.parse(localStorageUser) : null;
-  } catch (error) {
-    console.error('Erro ao parsear o JSON do usuário:', error);
-    return null;
-  }
-}
 
 function useRole(): RoleInfo {
   const role = getStoredUser()?.role ?? null;

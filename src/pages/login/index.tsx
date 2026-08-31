@@ -16,8 +16,14 @@ import { FormLogin } from '../../features/login/components/form';
 import { useEffect } from 'react';
 // import { setBearerToken } from '../../config/lib/axios/api-client';
 import { usePermission } from '../../hooks/usePermission';
+import {
+  isAdminPath,
+  takeRememberedRoute,
+  takeSessionExpired,
+} from '../../auth/session';
 import { usePostLogin } from '../../features/login/api/postLogin';
 import Swal from 'sweetalert2';
+import { toast } from 'react-toastify';
 import { useRole } from '../../hooks/useRole';
 import { ADMIN_AREA_ROLES } from '../../constants/roles';
 import { LoginFormType } from '../../features/login/types';
@@ -79,6 +85,14 @@ function Login() {
   }
 
   useEffect(() => {
+    // quem chegou aqui por sessão vencida merece saber o motivo: o redirect
+    // recarrega a aplicação, então o aviso viaja pelo sessionStorage
+    if (takeSessionExpired()) {
+      toast.info('Sua sessão expirou. Entre novamente para continuar.');
+    }
+  }, []);
+
+  useEffect(() => {
     const permission = usePermission();
     const { canAccessAdminArea } = useRole();
 
@@ -94,11 +108,20 @@ function Login() {
       localStorage.setItem('access_token', response.access_token);
       localStorage.setItem('user', JSON.stringify(response.user));
 
-      if (ADMIN_AREA_ROLES.includes(response.user.role)) {
-        navigate('/admin/eventos');
-      } else {
-        navigate('/home');
-      }
+      const canAccessAdminArea = ADMIN_AREA_ROLES.includes(response.user.role);
+      const areaInicial = canAccessAdminArea ? '/admin/eventos' : '/home';
+
+      /**
+       * Sessão vencida no meio do caminho: volta para a tela onde a pessoa
+       * estava. A rota guardada só vale se o perfil de agora alcança ela —
+       * senão quem entrasse como usuário comum cairia numa rota de painel e
+       * levaria outro redirect na cara.
+       */
+      const rotaGuardada = takeRememberedRoute();
+      const podeVoltar =
+        rotaGuardada && (canAccessAdminArea || !isAdminPath(rotaGuardada));
+
+      navigate(podeVoltar ? (rotaGuardada as string) : areaInicial);
     },
     onError: (error: any) => {
       if (error.response.status === 404) {
@@ -191,7 +214,6 @@ function Login() {
       fontWeight: 500,
       letterSpacing: '2.5px',
       textTransform: 'uppercase',
-
     },
     ladoForm: {
       flex: { md: '0 0 44%' },
@@ -316,14 +338,13 @@ function Login() {
               <Logo style={styles.logo} />
             </Box>
 
-            <Typography sx={styles.sobrenome}>
-              ICCV Eventos
-            </Typography>
+            <Typography sx={styles.sobrenome}>ICCV Eventos</Typography>
             <Typography component="h1" sx={styles.titulo}>
               Bem-vindo de volta
             </Typography>
             <Typography sx={styles.subtitulo}>
-              Entre com seu CPF e senha para acompanhar seus eventos e inscrições.
+              Entre com seu CPF e senha para acompanhar seus eventos e
+              inscrições.
             </Typography>
 
             <Box sx={styles.bloco}>
