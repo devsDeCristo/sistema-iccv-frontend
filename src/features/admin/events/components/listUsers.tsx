@@ -38,9 +38,7 @@ import {
   MoreVert,
   VisibilityOutlined,
 } from '@mui/icons-material';
-import FileSaver from 'file-saver';
-import { pdf } from '@react-pdf/renderer';
-import PdfBadge from '../../../../components/pdfBadge';
+import { ModalGenerateBadge } from './pdfGenerator/modalGenerateBadge';
 import { User } from '../../../../types/user';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Swal from 'sweetalert2';
@@ -56,7 +54,10 @@ import { queryClient } from '../../../../config/lib/react-query/query-client';
 import { toast } from 'react-toastify';
 import { ModalAddUserOnEvent } from './modalAddUser';
 import { UserAvatar } from '../../../../components/userAvatar';
-import { cardTabelaSx, dataGridSx } from '../../../../components/listPageStyles';
+import {
+  cardTabelaSx,
+  dataGridSx,
+} from '../../../../components/listPageStyles';
 import { NavTabs } from '../../../../components/navTabs';
 const getSelectedRowsToExport = ({
   apiRef,
@@ -117,6 +118,8 @@ function ListUsers({
   const [rowSelected, setRowSelected] = useState<User | null>(null);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [openModalEditWork, setOpenModalEditWork] = useState(false);
+  /** inscrito cujo crachá está sendo gerado; o modal abre com ele */
+  const [badgeUser, setBadgeUser] = useState<User | null>(null);
   // já inicia no primeiro grupo: com '1' nenhuma aba casa no primeiro render
   const [panel, setPanel] = useState<string>(
     () => event?.groupRoles?.[0]?.name ?? '1'
@@ -131,7 +134,7 @@ function ListUsers({
       <GridToolbarContainer
         sx={{
           gap: 1,
-          p:1.5,
+          p: 1.5,
           flexWrap: 'wrap',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -162,13 +165,12 @@ function ListUsers({
         )}
       </GridToolbarContainer>
     ),
-    [isAdmin],
+    [isAdmin]
   );
   const handleClose = () => {
     setAnchorEl(null);
   };
-  const { mutateAsync: mutateRemoveUserFromEvent } =
-    useRemoveUserFromEvent();
+  const { mutateAsync: mutateRemoveUserFromEvent } = useRemoveUserFromEvent();
   const groupsRules = useMemo(
     () => event?.groupRoles?.map((g: any) => g.name) ?? [],
     [event]
@@ -180,7 +182,7 @@ function ListUsers({
         return acc;
       }, {}) ?? {},
     [event]
-   ) as Record<string, string>;
+  ) as Record<string, string>;
   useEffect(() => {
     if (groupsRules.length > 0) {
       setPanel(groupsRules[0]);
@@ -190,11 +192,6 @@ function ListUsers({
     return null;
   }
   // const { mutate: mutateDeleteEventUser } = useDeleteRelationEventUser({});
-  async function handleDownloadPDF(data: User[]) {
-    if (!data) return;
-    const blob = await pdf(<PdfBadge data={data || []} event={event}  />).toBlob();
-    FileSaver.saveAs(blob, 'crachas.pdf');
-  }
   const handleClickOptions = (
     event: React.MouseEvent<HTMLElement>,
     params: GridCellParams
@@ -389,7 +386,8 @@ function ListUsers({
   const handleClickDownloadBadge = (event: React.MouseEvent) => {
     event.stopPropagation();
     if (!rowSelected) return;
-    handleDownloadPDF([rowSelected]);
+    // o crachá tem opções (QR, formatação do nome): pergunta antes de gerar
+    setBadgeUser(rowSelected);
     handleClose();
   };
   const handleClickRemoveUser = async () => {
@@ -559,14 +557,20 @@ function ListUsers({
           eventId={eventId}
           handleClose={() => setOpenModalEditWork(false)}
         />
-          <ModalAddUserOnEvent
-                open={openModalAddUser}
-                handleClose={() => setOpenModalAddUser(false)}
-                eventId={eventId}
-                usersAdded={filteredByGroup(usersData)}
-                roleRegistrationId={groupsRulesIds[panel]}
-                roleName={panel}
-              />
+        <ModalGenerateBadge
+          open={!!badgeUser}
+          user={badgeUser}
+          event={event}
+          onClose={() => setBadgeUser(null)}
+        />
+        <ModalAddUserOnEvent
+          open={openModalAddUser}
+          handleClose={() => setOpenModalAddUser(false)}
+          eventId={eventId}
+          usersAdded={filteredByGroup(usersData)}
+          roleRegistrationId={groupsRulesIds[panel]}
+          roleName={panel}
+        />
         <Menu
           id="basic-menu"
           anchorEl={anchorEl}

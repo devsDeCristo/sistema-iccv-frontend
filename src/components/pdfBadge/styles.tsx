@@ -45,7 +45,6 @@ const stylesPdfBadge = StyleSheet.create({
   },
   image: {
     height: 30,
-
   },
   imageEvent: {
     height: 100,
@@ -60,7 +59,8 @@ const stylesPdfBadge = StyleSheet.create({
    * 177,1pt a 273,6pt — centro em 225,4pt.
    *
    * O 184 é esse centro menos metade do conjunto de uma linha
-   * (24 do nome + 6 + 52 do QR = 82pt): 225,4 - 41 = 184,4.
+   * (24 do nome + 6 + 52 do QR = 82pt): 225,4 - 41 = 184,4. Sem QR o conjunto
+   * encurta para o nome sozinho, e a posição é a de `nameAreaNoQr`.
    *
    * Sem `height` de propósito. Container de altura fixa faz o react-pdf medir o
    * texto pela altura que sobra em vez de pelo conteúdo: o nome de três linhas
@@ -70,6 +70,18 @@ const stylesPdfBadge = StyleSheet.create({
   nameArea: {
     position: 'absolute',
     top: 190,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+  },
+  /**
+   * Sem QR o conjunto é só o nome, então o topo sobe para ele ficar no centro
+   * do rasgo em vez de pendurado na altura de onde o QR estava: 225,4 (centro
+   * da faixa clara) menos metade de uma linha de nome (24/2) = 213,4.
+   */
+  nameAreaNoQr: {
+    position: 'absolute',
+    top: 213,
     left: 0,
     right: 0,
     alignItems: 'center',

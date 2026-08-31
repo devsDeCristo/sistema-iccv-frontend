@@ -15,6 +15,11 @@ export interface PdfProps {
   nameCase?: PdfNameCase;
   /** Crachás em branco impressos ao final, sem nome */
   blankCount?: number;
+  /**
+   * Imprime o QR da inscrição. Desligado, o crachá sai só com o nome — é o
+   * caso de quem confere a entrada em lista, sem leitor.
+   */
+  withQrCode?: boolean;
 }
 
 /** Um crachá: o nome impresso e o QR da inscrição (ausente no crachá em branco) */

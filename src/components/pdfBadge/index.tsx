@@ -40,7 +40,8 @@ function chunkArray<T>(arr: T[], size: number): T[][] {
 function buildPages(
   sections: PdfSection[],
   blankCount: number,
-  nameCase: PdfNameCase
+  nameCase: PdfNameCase,
+  withQrCode: boolean
 ): BadgePage[] {
   const pages: BadgePage[] = [];
 
@@ -52,7 +53,7 @@ function buildPages(
         // inteira e imprime o que veio
         name: formatNameCase(limitToTwoNames(user.badgeName || ''), nameCase),
         // sem id não há inscrição para apontar: o crachá sai só com o nome
-        qr: buildQrCodePath(buildBadgeCode(user.id)),
+        qr: withQrCode ? buildQrCodePath(buildBadgeCode(user.id)) : null,
       }));
 
     for (const chunk of chunkArray(badges, BADGES_PER_PAGE)) {
@@ -79,13 +80,14 @@ function PdfBadge({
   sections,
   nameCase = 'capitalize',
   blankCount = 0,
+  withQrCode = true,
 }: PdfProps) {
   const dataEvent = event.data;
 
   const resolvedSections: PdfSection[] = sections?.length
     ? sections
     : [{ title: null, users: data || [] }];
-  const pages = buildPages(resolvedSections, blankCount, nameCase);
+  const pages = buildPages(resolvedSections, blankCount, nameCase, withQrCode);
 
   return (
     <Document>
@@ -103,18 +105,29 @@ function PdfBadge({
                 key={`cracha-${pageIndex}-${index}`}
                 wrap={false}
               >
-                <Image style={stylesPdfBadge.imageBackground} src={dataEvent?.coverBase64 ||bgbadge} />
+                <Image
+                  style={stylesPdfBadge.imageBackground}
+                  src={dataEvent?.coverBase64 || bgbadge}
+                />
                 <View style={stylesPdfBadge.headerBadge}>
                   <Image style={stylesPdfBadge.image} src={logoIc} />
                   <Image
                     style={stylesPdfBadge.imageEvent}
-                    src={
-                      dataEvent?.logoBase64 || logoEvento
-                    }
+                    src={dataEvent?.logoBase64 || logoEvento}
                   />
                   <Image style={stylesPdfBadge.imagePaper} src={paper} />
                 </View>
-                <View style={stylesPdfBadge.nameArea}>
+                {/*
+                  A âncora do nome depende do QR: sem ele (opção do modal, id
+                  inválido ou crachá em branco) o nome se centraliza no rasgo.
+                */}
+                <View
+                  style={
+                    badge.qr
+                      ? stylesPdfBadge.nameArea
+                      : stylesPdfBadge.nameAreaNoQr
+                  }
+                >
                   <Text style={stylesPdfBadge.textName}>{badge.name}</Text>
                   {badge.qr && (
                     <View style={stylesPdfBadge.qrBox}>

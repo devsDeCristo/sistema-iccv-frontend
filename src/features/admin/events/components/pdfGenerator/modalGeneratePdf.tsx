@@ -97,6 +97,7 @@ function ModalGeneratePdf({
   const [alphabetical, setAlphabetical] = useState(true);
   const [groupBy, setGroupBy] = useState<PdfGroupBy>('none');
   const [nameCase, setNameCase] = useState<PdfNameCase>('capitalize');
+  const [withQrCode, setWithQrCode] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
 
   // cada abertura recomeça do padrão, senão sobra a configuração anterior
@@ -110,6 +111,7 @@ function ModalGeneratePdf({
     setAlphabetical(true);
     setGroupBy('none');
     setNameCase('capitalize');
+    setWithQrCode(true);
   }, [open]);
 
   /** Equipes vêm da query; se ela não carregou, sobra o que os inscritos têm */
@@ -190,6 +192,7 @@ function ModalGeneratePdf({
               sections={sections}
               nameCase={nameCase}
               blankCount={blanks}
+              withQrCode={withQrCode}
             />
           ).toBlob();
           fileName = 'crachas.pdf';
@@ -260,7 +263,9 @@ function ModalGeneratePdf({
               <RadioGroup
                 row
                 value={envelopeKind}
-                onChange={(e) => setEnvelopeKind(e.target.value as EnvelopeKind)}
+                onChange={(e) =>
+                  setEnvelopeKind(e.target.value as EnvelopeKind)
+                }
               >
                 <FormControlLabel
                   value="letter"
@@ -435,6 +440,19 @@ function ModalGeneratePdf({
           </Grid>
           {isBadge && (
             <Grid item xs={12} md={4}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={withQrCode}
+                    onChange={(e) => setWithQrCode(e.target.checked)}
+                  />
+                }
+                label="QR code"
+              />
+            </Grid>
+          )}
+          {isBadge && (
+            <Grid item xs={12} md={4}>
               <SelectField
                 label="Agrupar por"
                 native={isMobile}
@@ -458,6 +476,13 @@ function ModalGeneratePdf({
             </Grid>
           )}
         </Grid>
+
+        {isBadge && !withQrCode && (
+          <Alert severity="warning">
+            Sem QR code o crachá sai só com o nome, e a entrada não pode ser
+            registrada pelo leitor — a conferência tem que ser na lista.
+          </Alert>
+        )}
 
         {isBadge && groupBy !== 'none' && !isBlankScope && (
           <Alert severity="info">
