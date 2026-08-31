@@ -104,7 +104,12 @@ function EventsDetails() {
 
       stackContainer: {
         position: 'relative',
-        flexDirection: { xs: 'column-reverse', lg: 'row' },
+        /**
+         * No celular a ordem é a do documento: nome e descrição primeiro,
+         * depois inscrições e localização. Era `column-reverse`, que jogava a
+         * coluna lateral para cima do nome do evento.
+         */
+        flexDirection: { xs: 'column', lg: 'row' },
         width: { xs: '100%', lg: '80%' },
         ml: 'auto',
         mr: 'auto',
@@ -285,7 +290,7 @@ function EventsDetails() {
       </Stack>
 
       <Stack sx={styles.stackContainer}>
-        {/* Coluna esquerda */}
+        {/* Coluna principal: à esquerda no desktop, no topo no celular */}
         <Stack gap={3} sx={styles.stackRight}>
           <Paper sx={styles.paper}>
             <Typography sx={styles.title}>{event?.name}</Typography>
@@ -306,7 +311,7 @@ function EventsDetails() {
           </Paper>
         </Stack>
 
-        {/* Coluna direita */}
+        {/* Coluna lateral: à direita no desktop, embaixo no celular */}
         <Stack sx={styles.stackLeft}>
           <Paper sx={styles.paper}>
             <Typography sx={styles.title}>Inscrições</Typography>
@@ -375,7 +380,11 @@ function EventsDetails() {
                   '&:hover': { backgroundColor: '#1ebe5d' },
                 }}
                 onClick={() => {
-                  window.open(group.link || '', '_blank', 'noopener,noreferrer');
+                  window.open(
+                    group.link || '',
+                    '_blank',
+                    'noopener,noreferrer'
+                  );
                 }}
               >
                 {registeredGroupsWithLink.length > 1
