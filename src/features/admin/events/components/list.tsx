@@ -51,11 +51,11 @@ const STATUS_DO_FILTRO: Record<
 function List({
   search,
   status = 'active',
-  churchId = '',
+  churchId = 'all',
 }: {
   search: string;
   status?: EventStatusFilter;
-  /** vazio = todas. Só o super admin recebe evento de mais de uma igreja */
+  /** 'all' = todas. Só o super admin recebe evento de mais de uma igreja */
   churchId?: string;
 }) {
   const navigate = useNavigate();
@@ -68,7 +68,8 @@ function List({
     const matchesSearch = event.name.toLowerCase().includes(searchLower);
     const matchesStatus =
       status === 'all' ? true : event.status === STATUS_DO_FILTRO[status];
-    const matchesChurch = !churchId || event.church?.id === churchId;
+    const matchesChurch =
+      churchId === 'all' || event.church?.id === churchId;
 
     return matchesSearch && matchesStatus && matchesChurch;
   });

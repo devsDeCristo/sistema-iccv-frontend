@@ -33,9 +33,10 @@ function Events() {
   const { isAdmin, isSuperAdmin } = useRole();
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState<EventStatusFilter>('active');
-  // vazio = todas. Só o super admin escolhe: o admin já recebe do backend
-  // apenas os eventos da igreja dele
-  const [churchId, setChurchId] = useState('');
+  // 'all' e não string vazia: com valor vazio o campo fica em branco e o
+  // rótulo não sobe, destoando do Status ao lado. Só o super admin escolhe —
+  // o admin já recebe do backend apenas os eventos da igreja dele
+  const [churchId, setChurchId] = useState('all');
   const { data: churches = [] } = useGetChurches({ enabled: isSuperAdmin });
   const theme = useTheme();
   const styles = {
@@ -109,7 +110,7 @@ function Events() {
                 sx={styles.selectStatus}
                 onChange={(e) => setChurchId(e.target.value)}
               >
-                <MenuItem value="">Todas</MenuItem>
+                <MenuItem value="all">Todas</MenuItem>
                 {churches.map((church) => (
                   <MenuItem key={church.id} value={church.id}>
                     {church.name}
