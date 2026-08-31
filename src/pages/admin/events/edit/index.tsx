@@ -274,7 +274,7 @@ function Edit() {
       formMethods: methodsEventLogo,
       onSubmit: registrationSettingsSubmit,
       component: FormLogoAndCover,
-      props: {},
+      props: { eventName: methodsGeneralInfo.getValues().name },
     },
     {
       step: 4,

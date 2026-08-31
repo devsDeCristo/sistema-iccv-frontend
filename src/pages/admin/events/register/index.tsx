@@ -224,7 +224,7 @@ function Register() {
       formMethods: methodsEventLogo,
       onSubmit: eventLogoSubmit,
       component: FormLogoAndCover,
-      props: {},
+      props: { eventName: methodsGeneralInfo.getValues().name },
     },
     {
       step: 5,
