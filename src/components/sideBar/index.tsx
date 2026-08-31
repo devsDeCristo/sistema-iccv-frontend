@@ -312,6 +312,7 @@ const SideBar: React.FC<SideBarProps> = ({
                 link: '/admin/igrejas',
                 icon: <Church />,
                 title: 'Igrejas',
+                novo: true,
               },
             ]
           : []),

@@ -222,7 +222,7 @@ function Register() {
       formMethods: methodsGeneralInfo,
       onSubmit: generalInfoSubmit,
       component: FormGeneralInfo,
-      props: { escolheIgreja: true },
+      props: {},
     },
     {
       step: 3,

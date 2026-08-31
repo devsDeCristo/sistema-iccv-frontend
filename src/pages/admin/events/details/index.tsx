@@ -148,6 +148,7 @@ function Details() {
   const { data: eventData, isLoading: loadingEventDetails } = useGetEvents(
     {
       eventId: eventId,
+      painel: true,
     },
     {
       enabled: !!eventId,

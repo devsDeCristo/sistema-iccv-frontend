@@ -8,25 +8,19 @@ import 'react-quill/dist/quill.snow.css';
 import ReactQuillEditor from '../../../../components/reactQuillEditor';
 import { useRole } from '../../../../hooks/useRole';
 import { useGetChurches } from '../../churches/api/getChurches';
-type FormGeneralInfoProps = {
-  /**
-   * Mostra a escolha da igreja. Vale só na criação: depois de criado o evento
-   * não muda de igreja — os inscritos, pagamentos e quartos iriam junto.
-   */
-  escolheIgreja?: boolean;
-};
-
-function FormGeneralInfo({ escolheIgreja = false }: FormGeneralInfoProps) {
+function FormGeneralInfo() {
   const {
     control,
     formState: { errors },
   } = useFormContext<GeneralInfoFormType>();
 
   // o admin não escolhe: o backend vincula o evento à igreja do perfil dele.
-  // O super admin não pertence a nenhuma, então precisa dizer para qual cria.
+  // O super admin não pertence a nenhuma, então diz para qual está criando —
+  // e, na edição, é por aqui que ele passa um evento para outra igreja.
   const { isSuperAdmin } = useRole();
-  const { data: churches = [] } = useGetChurches();
-  const mostraIgreja = escolheIgreja && isSuperAdmin;
+  const { data: churches = [], isLoading: carregandoIgrejas } =
+    useGetChurches();
+  const semIgrejas = !carregandoIgrejas && !churches.length;
 
   return (
     <Grid container spacing={2}>
@@ -35,6 +29,36 @@ function FormGeneralInfo({ escolheIgreja = false }: FormGeneralInfoProps) {
           Informações Gerais do Evento
         </Typography>
       </Grid>
+      {/* primeiro campo da etapa, e não espremido ao lado de outro: é a
+          escolha que decide qual painel enxerga o evento e tudo o que vem
+          com ele — inscritos, pagamentos, quartos */}
+      {isSuperAdmin && (
+        <Grid item xs={12} md={12}>
+          <Controller
+            control={control}
+            name="churchId"
+            render={({ field: { onChange, value } }) => (
+              <InputSelect
+                size="small"
+                label="Igreja do evento *"
+                menuOptions={churches.map((church) => ({
+                  value: church.id,
+                  name: church.name,
+                }))}
+                value={value ?? ''}
+                onChange={onChange}
+                helperText={
+                  semIgrejas
+                    ? 'Nenhuma igreja cadastrada — crie uma no menu Igrejas antes de seguir'
+                    : 'O evento e os inscritos dele ficam visíveis só para o painel desta igreja'
+                }
+                error={!!errors.churchId || semIgrejas}
+                errorMessage={errors.churchId?.message}
+              />
+            )}
+          />
+        </Grid>
+      )}
       <Grid item xs={12} md={6}>
         <Controller
           control={control}
@@ -77,29 +101,6 @@ function FormGeneralInfo({ escolheIgreja = false }: FormGeneralInfoProps) {
           )}
         />
       </Grid>{' '}
-      {mostraIgreja && (
-        <Grid item xs={12} md={6}>
-          <Controller
-            control={control}
-            name="churchId"
-            render={({ field: { onChange, value } }) => (
-              <InputSelect
-                size="small"
-                label="Igreja do evento"
-                menuOptions={churches.map((church) => ({
-                  value: church.id,
-                  name: church.name,
-                }))}
-                value={value ?? ''}
-                onChange={onChange}
-                helperText="O evento e os inscritos ficam visíveis só para o painel desta igreja"
-                error={!!errors.churchId}
-                errorMessage={errors.churchId?.message}
-              />
-            )}
-          />
-        </Grid>
-      )}
       <Grid item xs={12} md={12}>
         <Controller
           control={control}

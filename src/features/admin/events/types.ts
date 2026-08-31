@@ -22,6 +22,8 @@ export type EventStatusFilter = 'active' | 'inactive' | 'test' | 'all';
 export interface EventDetails {
   id: string;
   name: string;
+  /** igreja dona do evento — só o super admin escolhe e altera */
+  churchId?: string;
   startDate: Date;
   endDate: Date;
   groupLink?: string;
@@ -58,6 +60,8 @@ export interface Event {
   capacity: number;
   /** grupos de inscrição com link de WhatsApp — quantos recebem disparo */
   whatsappGroups?: number;
+  /** igreja dona do evento; só interessa ao super admin, que vê todas */
+  church?: { id: string; name: string } | null;
   data:EventDataJson
 }
 export interface filterUsers {

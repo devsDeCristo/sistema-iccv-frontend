@@ -1,4 +1,4 @@
-import { useQuery } from 'react-query';
+import { UseQueryOptions, useQuery } from 'react-query';
 import { apiClient } from '../../../../config/lib/axios/api-client';
 import { GET_CHURCHES } from '../constants';
 
@@ -20,4 +20,11 @@ const getChurches = () => {
   return apiClient.get<Church[]>('/churches').then((response) => response.data);
 };
 
-export const useGetChurches = () => useQuery([GET_CHURCHES], getChurches);
+type GetChurchesData = Awaited<ReturnType<typeof getChurches>>;
+
+export const useGetChurches = (
+  options: Omit<
+    UseQueryOptions<GetChurchesData, unknown, GetChurchesData>,
+    'queryKey' | 'queryFn'
+  > = {}
+) => useQuery([GET_CHURCHES], getChurches, options);

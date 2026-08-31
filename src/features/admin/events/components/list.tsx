@@ -51,25 +51,40 @@ const STATUS_DO_FILTRO: Record<
 function List({
   search,
   status = 'active',
+  churchId = '',
 }: {
   search: string;
   status?: EventStatusFilter;
+  /** vazio = todas. Só o super admin recebe evento de mais de uma igreja */
+  churchId?: string;
 }) {
   const navigate = useNavigate();
   const theme = useTheme();
-  const { isAdmin } = useRole();
-  const { data: eventData, isLoading } = useGetEvents({});
+  const { isAdmin, isSuperAdmin } = useRole();
+  const { data: eventData, isLoading } = useGetEvents({ painel: true });
   const events = Array.isArray(eventData) ? eventData : [];
   const filteredData = events.filter((event: any) => {
     const searchLower = search.toLowerCase();
     const matchesSearch = event.name.toLowerCase().includes(searchLower);
     const matchesStatus =
       status === 'all' ? true : event.status === STATUS_DO_FILTRO[status];
+    const matchesChurch = !churchId || event.church?.id === churchId;
 
-    return matchesSearch && matchesStatus;
+    return matchesSearch && matchesStatus && matchesChurch;
   });
   const columns: GridColDef[] = [
     { field: 'name', headerName: 'Nome', flex: 2,   minWidth: 180, },
+    // a coluna só faz sentido para quem enxerga mais de uma igreja
+    ...(isSuperAdmin
+      ? [
+          {
+            field: 'church',
+            headerName: 'Igreja',
+            width: 170,
+            valueGetter: (params: any) => params.row.church?.name || '—',
+          },
+        ]
+      : []),
     {
       field: 'startDate',
       headerName: 'Data inicial',

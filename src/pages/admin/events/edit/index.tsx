@@ -44,6 +44,7 @@ function Edit() {
   const { data: eventData, isLoading } = useGetEvents(
     {
       eventId: id,
+      painel: true,
     },
     {
       enabled: !!id,
@@ -59,6 +60,9 @@ function Edit() {
     shortDescription: event?.data?.shortDescription || '',
     groupLink: event?.groupLink || '',
     status: event?.status ?? 'ACTIVE',
+    // só o super admin enxerga e altera o campo; o backend ignora o que vier
+    // dos outros perfis
+    churchId: event?.churchId || '',
   });
   const getDefaultDateAndLocalValues = (
     event?: EventDetails
@@ -201,6 +205,7 @@ function Edit() {
             name: generalInfoData.name,
             groupLink: generalInfoData.groupLink || '',
             status: generalInfoData.status,
+            churchId: generalInfoData.churchId,
             startDate: new Date(dateAndTimeData.startDate),
             endDate: new Date(dateAndTimeData.endDate),
             type: eventTypeSelected!,

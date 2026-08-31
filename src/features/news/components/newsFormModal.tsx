@@ -94,7 +94,10 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
   const { data: grupos } = useGetNewsWhatsappGroups({ enabled: open });
 
   // eventos da igreja de quem está logado — é o backend que faz esse recorte
-  const { data: eventos } = useGetEvents({}, { enabled: open });
+  const { data: eventos } = useGetEvents(
+    { painel: true },
+    { enabled: open }
+  );
 
   const { semNumero } = useWhatsappConectado();
 
