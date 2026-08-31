@@ -89,6 +89,7 @@ function PreviaCabecalho({ capa, logo, nomeEvento }: PreviaCabecalhoProps) {
       p: { xs: 2, sm: 2.5 },
       display: 'flex',
       flexDirection: 'column',
+      boxShadow:theme.palette.mode=="dark" ? "" : "0px 0px 5px 2px rgba(0,0,0,0.1)",
       gap: 2,
     },
     palco: {
@@ -131,6 +132,7 @@ function PreviaCabecalho({ capa, logo, nomeEvento }: PreviaCabecalhoProps) {
       width: '100%',
       height: '100%',
       objectFit: 'cover',
+      
     },
     logo: {
       position: 'absolute',
@@ -293,6 +295,7 @@ function CampoImagem({
       display: 'flex',
       flexDirection: 'column',
       gap: 2,
+      boxShadow:theme.palette.mode=="dark" ? "" : "0px 0px 5px 2px rgba(0,0,0,0.1)",
       borderColor: arrastando
         ? theme.palette.primary.main
         : theme.palette.divider,

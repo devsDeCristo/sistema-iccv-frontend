@@ -1,12 +1,15 @@
 import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
   Alert,
   alpha,
   Box,
   Button,
   Chip,
-  Divider,
   Grid,
   IconButton,
+  InputAdornment,
   Stack,
   Tooltip,
   Typography,
@@ -16,34 +19,488 @@ import { Input } from '../../../../components/input';
 import { useState } from 'react';
 import {
   Add,
-  Close,
-  Delete,
-  KeyboardArrowDown,
-  KeyboardArrowUp,
+  DeleteOutline,
+  ExpandMore,
+  GroupsOutlined,
 } from '@mui/icons-material';
-import { RegistrationSettingsFormType } from '../types';
+import { GroupRole, RegistrationSettingsFormType } from '../types';
 import { Controller, useFormContext, useWatch } from 'react-hook-form';
 import Swal from 'sweetalert2';
 import { sanitizePrice, sanitizeInteger } from '../../../../utils';
 
-function FormRegistrationSettings() {
+/**
+ * Grupo e regra nascem vazios para o admin preencher, mas o schema pede número
+ * em `capacity` e `price` — é a validação que cobra o preenchimento, não o
+ * valor inicial.
+ */
+const grupoVazio = (): GroupRole => ({
+  name: '',
+  capacity: null as unknown as number,
+  link: '',
+  roles: [],
+});
+
+const regraVazia = () => ({
+  price: null as unknown as number,
+  description: '',
+});
+
+/** inscritos + lista de espera: quem já entrou no grupo por qualquer porta */
+function contarInscritos(grupo: GroupRole) {
+  return (grupo.roles ?? []).reduce(
+    (total, regra) => total + (regra.registered ?? 0) + (regra.waitlisted ?? 0),
+    0
+  );
+}
+
+function plural(quantidade: number, singular: string, plural: string) {
+  return `${quantidade} ${quantidade === 1 ? singular : plural}`;
+}
+
+type CartaoGrupoProps = {
+  index: number;
+  grupo: GroupRole;
+  expandido: boolean;
+  onAlternar: () => void;
+  onRemover: () => void;
+  onAdicionarRegra: () => void;
+  onRemoverRegra: (indexRegra: number) => void;
+};
+
+/**
+ * Um grupo por acordeão: o cabeçalho resume o que está dentro (nome, vagas,
+ * regras, inscritos) e as regras ficam recolhidas até serem chamadas. Antes o
+ * recolher era um `Chip` dentro de um `Divider`, sem foco por teclado e sem o
+ * resumo — de fora não dava para saber o que o grupo tinha.
+ */
+function CartaoGrupo({
+  index,
+  grupo,
+  expandido,
+  onAlternar,
+  onRemover,
+  onAdicionarRegra,
+  onRemoverRegra,
+}: CartaoGrupoProps) {
+  const theme = useTheme();
   const {
     control,
-    setValue,
     formState: { errors },
   } = useFormContext<RegistrationSettingsFormType>();
+
+  const regras = grupo.roles ?? [];
+  const inscritos = contarInscritos(grupo);
+  const temInscricoes = inscritos > 0;
+  const errosDoGrupo = errors.groupRoles?.[index];
+
+  const styles = {
+    cartao: {
+      // o MUI arredonda só o primeiro e o último de um grupo de acordeões, e
+      // aqui cada um é um cartão solto
+      boxShadow:
+        theme.palette.mode == 'dark' ? '' : '0px 0px 5px 2px rgba(0,0,0,0.1)',
+      borderRadius: 2,
+      '&:first-of-type, &:last-of-type': { borderRadius: 2 },
+      // a linha que o MUI desenha entre acordeões empilhados sobra: o
+      // espaçamento entre os cartões já separa um do outro
+      '&:before': { display: 'none' },
+    },
+    resumo: {
+      '& .MuiAccordionSummary-content': {
+        alignItems: 'center',
+        gap: 1,
+        flexWrap: 'wrap',
+        my: 1,
+        mr: 1,
+      },
+    },
+    /**
+     * O padding fica no Box e o espaçamento interno num Stack com `gap`. Com
+     * `Grid container spacing` aqui, as margens negativas do próprio Grid
+     * (-16px em cima e à esquerda) comiam essa padding e jogavam os campos por
+     * cima da borda.
+     */
+    linhaRegra: {
+      p: 1.5,
+      ml: 0,
+      borderRadius: 2,
+      border: `1px solid ${theme.palette.divider}`,
+      bgcolor: alpha(theme.palette.text.primary, 0.02),
+    },
+    semRegras: {
+      p: 2,
+      borderRadius: 2,
+      border: `1px dashed ${theme.palette.divider}`,
+      textAlign: 'center',
+    },
+  };
+
+  return (
+    <Accordion
+      expanded={expandido}
+      onChange={onAlternar}
+      disableGutters
+      sx={styles.cartao}
+    >
+      <AccordionSummary expandIcon={<ExpandMore />} sx={styles.resumo}>
+        <Typography fontWeight={600} sx={{ mr: 'auto' }}>
+          {grupo.name?.trim() || `Grupo ${index + 1}`}
+        </Typography>
+
+        {!!grupo.capacity && (
+          <Chip
+            size="small"
+            variant="outlined"
+            label={`${grupo.capacity} vagas`}
+          />
+        )}
+        <Chip
+          size="small"
+          variant="outlined"
+          label={plural(regras.length, 'regra', 'regras')}
+          color={regras.length ? 'default' : 'warning'}
+        />
+        {temInscricoes && (
+          <Chip
+            size="small"
+            variant="outlined"
+            color="warning"
+            label={plural(inscritos, 'inscrito', 'inscritos')}
+          />
+        )}
+
+        <Tooltip
+          title={
+            temInscricoes
+              ? 'Grupo com inscrições não pode ser removido'
+              : 'Remover grupo'
+          }
+        >
+          {/* o span mantém o tooltip vivo quando o botão está desabilitado */}
+          <span>
+            <IconButton
+              size="small"
+              disabled={temInscricoes}
+              aria-label="Remover grupo"
+              // sem isto o clique no botão também abriria e fecharia o grupo
+              onClick={(event) => {
+                event.stopPropagation();
+                onRemover();
+              }}
+              sx={{ '&:hover': { color: theme.palette.error.main } }}
+            >
+              <DeleteOutline fontSize="small" />
+            </IconButton>
+          </span>
+        </Tooltip>
+      </AccordionSummary>
+
+      <AccordionDetails sx={{ pt: 0, mt:1 }}>
+        <Grid container spacing={2}>
+          <Grid item xs={12} sm={8}>
+            <Controller
+              control={control}
+              name={`groupRoles.${index}.name`}
+              render={({ field: { onChange, value } }) => (
+                <Input
+                  size="small"
+                  required
+                  label="Nome do grupo"
+                  placeholder="Ex: Completo"
+                  value={value ?? ''}
+                  onChange={onChange}
+                  error={Boolean(errosDoGrupo?.name)}
+                  errorMessage={errosDoGrupo?.name?.message}
+                  InputLabelProps={{ shrink: true }}
+                />
+              )}
+            />
+          </Grid>
+
+          <Grid item xs={12} sm={4}>
+            <Controller
+              control={control}
+              name={`groupRoles.${index}.capacity`}
+              render={({ field: { onChange, value } }) => (
+                <Input
+                  size="small"
+                  required
+                  type="text"
+                  label="Capacidade"
+                  placeholder="Ex: 200"
+                  value={value ?? ''}
+                  onChange={(e) => {
+                    const sanitized = sanitizeInteger(e.target.value);
+                    onChange(sanitized ? Number(sanitized) : null);
+                  }}
+                  onPaste={(e) => {
+                    e.preventDefault();
+                    const colado = e.clipboardData.getData('text');
+                    const sanitized = sanitizeInteger(colado);
+                    onChange(sanitized ? Number(sanitized) : null);
+                  }}
+                  onKeyDown={(e) => {
+                    const liberadas = [
+                      'Backspace',
+                      'Tab',
+                      'ArrowLeft',
+                      'ArrowRight',
+                      'Delete',
+                    ];
+                    if (liberadas.includes(e.key)) return;
+                    if (!/^[0-9]$/.test(e.key)) e.preventDefault();
+                  }}
+                  error={Boolean(errosDoGrupo?.capacity)}
+                  errorMessage={
+                    errosDoGrupo?.capacity?.message
+                  }
+                  inputProps={{
+                    inputMode: 'numeric',
+                    pattern: '\\d*',
+                    min: 0,
+                  }}
+                  InputLabelProps={{ shrink: true }}
+                />
+              )}
+            />
+          </Grid>
+
+          {/* <Grid item xs={12}>
+            <Controller
+              control={control}
+              name={`groupRoles.${index}.link`}
+              render={({ field: { onChange, value } }) => (
+                <Input
+                  size="small"
+                  label="Link do grupo (opcional)"
+                  placeholder="Ex: https://chat.whatsapp.com/xxxxxxxx"
+                  value={value ?? ''}
+                  onChange={onChange}
+                  error={Boolean(errosDoGrupo?.link)}
+                  errorMessage={
+                    errosDoGrupo?.link?.message
+                  }
+                  InputLabelProps={{ shrink: true }}
+                />
+              )}
+            />
+          </Grid> */}
+
+          {temInscricoes && (
+            <Grid item xs={12}>
+              <Alert
+                severity="warning"
+                variant="outlined"
+                sx={{ bgcolor: alpha(theme.palette.warning.main, 0.08) }}
+              >
+                Este grupo já tem inscrições: ele e as regras em uso não podem
+                ser removidos.
+              </Alert>
+            </Grid>
+          )}
+
+          <Grid item xs={12}>
+            <Stack
+              direction="row"
+              alignItems="center"
+              justifyContent="space-between"
+              gap={1}
+              sx={{ mt: 1 }}
+            >
+              <Stack direction="column" gap={0}>
+                <Typography variant="subtitle2">Regras de valor</Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Cada regra é um valor de inscrição dentro do grupo.
+                </Typography>
+              </Stack>
+              <Button
+                size="small"
+                variant="outlined"
+                startIcon={<Add />}
+                onClick={onAdicionarRegra}
+                sx={{ flexShrink: 0 }}
+              >
+                Adicionar regra
+              </Button>
+            </Stack>
+          </Grid>
+
+          {regras.length === 0 ? (
+            <Grid item xs={12}>
+              <Box sx={styles.semRegras}>
+                <Typography variant="body2" color="text.secondary">
+                  Nenhuma regra ainda. Sem pelo menos uma, ninguém consegue se
+                  inscrever neste grupo.
+                </Typography>
+              </Box>
+            </Grid>
+          ) : (
+            regras.map((regra, indexRegra) => {
+              const errosDaRegra = errosDoGrupo?.roles?.[indexRegra];
+              const inscritosNaRegra =
+                (regra.registered ?? 0) + (regra.waitlisted ?? 0);
+
+              return (
+                <Grid item xs={12} key={regra.id ?? `regra-${indexRegra}`}>
+                  <Box sx={styles.linhaRegra}>
+                    <Stack
+                      direction={{ xs: 'column', sm: 'row' }}
+                      alignItems={{ sm: 'center' }}
+                      gap={2}
+                    >
+                      <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+                        <Controller
+                          control={control}
+                          name={`groupRoles.${index}.roles.${indexRegra}.description`}
+                          render={({ field: { onChange, value } }) => (
+                            <Input
+                              size="small"
+                              required
+                              label="Descrição"
+                              placeholder="Ex: Idade entre 2 e 10 anos"
+                              value={value ?? ''}
+                              onChange={onChange}
+                              error={Boolean(errosDaRegra?.description)}
+                              errorMessage={errosDaRegra?.description?.message}
+                              InputLabelProps={{ shrink: true }}
+                            />
+                          )}
+                        />
+                      </Box>
+
+                      <Box
+                        sx={{ width: { xs: '100%', sm: 150 }, flexShrink: 0 }}
+                      >
+                        <Controller
+                          control={control}
+                          name={`groupRoles.${index}.roles.${indexRegra}.price`}
+                          render={({ field: { onChange, value } }) => (
+                            <Input
+                              size="small"
+                              required
+                              type="number"
+                              label="Preço"
+                              placeholder="0,00"
+                              value={value ?? ''}
+                              onChange={(e) => {
+                                const digitado = e.target.value;
+                                onChange(
+                                  digitado ? sanitizePrice(digitado) : null
+                                );
+                              }}
+                              onKeyDown={(e) => {
+                                // notação científica e sinal não fazem sentido em preço
+                                if (['e', 'E', '+', '-'].includes(e.key)) {
+                                  e.preventDefault();
+                                }
+                              }}
+                              error={Boolean(errosDaRegra?.price)}
+                              errorMessage={errosDaRegra?.price?.message}
+                              InputProps={{
+                                startAdornment: (
+                                  <InputAdornment position="start">
+                                    R$
+                                  </InputAdornment>
+                                ),
+                              }}
+                              InputLabelProps={{ shrink: true }}
+                            />
+                          )}
+                        />
+                      </Box>
+
+                      <Stack
+                        direction="row"
+                        alignItems="center"
+                        justifyContent="flex-end"
+                        gap={0.5}
+                        sx={{ flexShrink: 0 }}
+                      >
+                        {inscritosNaRegra > 0 && (
+                          <Chip
+                            size="small"
+                            variant="outlined"
+                            color="warning"
+                            label={inscritosNaRegra}
+                          />
+                        )}
+                        <Tooltip
+                          title={
+                            inscritosNaRegra > 0
+                              ? 'Regra com inscrições não pode ser removida'
+                              : 'Remover regra'
+                          }
+                        >
+                          <span>
+                            <IconButton
+                              size="small"
+                              aria-label="Remover regra"
+                              disabled={inscritosNaRegra > 0}
+                              onClick={() => onRemoverRegra(indexRegra)}
+                              sx={{
+                                '&:hover': { color: theme.palette.error.main },
+                              }}
+                            >
+                              <DeleteOutline fontSize="small" />
+                            </IconButton>
+                          </span>
+                        </Tooltip>
+                      </Stack>
+                    </Stack>
+                  </Box>
+                </Grid>
+              );
+            })
+          )}
+        </Grid>
+      </AccordionDetails>
+    </Accordion>
+  );
+}
+
+function FormRegistrationSettings() {
+  const { control, setValue } = useFormContext<RegistrationSettingsFormType>();
   const theme = useTheme();
-  const groupRoles = useWatch({
-    control,
-    name: 'groupRoles',
-  });
-  const [groupsExpanded, setGroupsExpanded] = useState<any>(
-    groupRoles?.map((_v, index) => ({
-      [index]: true,
-    }))
+
+  const grupos = (useWatch({ control, name: 'groupRoles' }) ??
+    []) as GroupRole[];
+
+  /**
+   * Um booleano por grupo, na mesma ordem da lista: ao remover um grupo o
+   * estado é recortado junto. O controle anterior era uma lista de objetos
+   * `{ [índice]: boolean }` procurada por `Object.keys(...)[0]`, e depois de
+   * remover um grupo o estado passava a apontar para o grupo errado.
+   */
+  const [expandidos, setExpandidos] = useState<boolean[]>(() =>
+    grupos.map(() => true)
   );
 
-  const handleRemoveGroupRole = (index: number) => {
+  const estaExpandido = (index: number) => expandidos[index] ?? true;
+
+  const alternarGrupo = (index: number) =>
+    setExpandidos((atual) => {
+      const proximos = grupos.map((_, i) => atual[i] ?? true);
+      proximos[index] = !estaExpandido(index);
+      return proximos;
+    });
+
+  /**
+   * Toda alteração devolve arrays novos. O código antigo dava `splice` e `push`
+   * direto no array observado pelo formulário, mexendo no estado interno do
+   * react-hook-form sem avisar ninguém.
+   */
+  const atualizarGrupos = (proximos: GroupRole[]) =>
+    setValue(
+      'groupRoles',
+      proximos as RegistrationSettingsFormType['groupRoles']
+    );
+
+  const adicionarGrupo = () => {
+    atualizarGrupos([...grupos, grupoVazio()]);
+    setExpandidos((atual) => [...grupos.map((_, i) => atual[i] ?? true), true]);
+  };
+
+  const removerGrupo = (index: number) => {
     Swal.fire({
       title: 'Tem certeza?',
       text: 'Essa ação irá remover o grupo de inscrições.',
@@ -53,538 +510,142 @@ function FormRegistrationSettings() {
       cancelButtonColor: '#3085d6',
       confirmButtonText: 'Sim, remover!',
       cancelButtonText: 'Cancelar',
-    }).then((result) => {
-      if (result.isConfirmed) {
-        const updatedGroupRoles = [...groupRoles];
-        updatedGroupRoles.splice(index, 1);
-        setValue('groupRoles', updatedGroupRoles);
-      }
+    }).then((resultado) => {
+      if (!resultado.isConfirmed) return;
+
+      atualizarGrupos(grupos.filter((_, i) => i !== index));
+      setExpandidos((atual) =>
+        grupos.map((_, i) => atual[i] ?? true).filter((_, i) => i !== index)
+      );
     });
   };
 
+  const adicionarRegra = (index: number) =>
+    atualizarGrupos(
+      grupos.map((grupo, i) =>
+        i === index
+          ? { ...grupo, roles: [...(grupo.roles ?? []), regraVazia()] }
+          : grupo
+      )
+    );
+
+  const removerRegra = (index: number, indexRegra: number) =>
+    atualizarGrupos(
+      grupos.map((grupo, i) =>
+        i === index
+          ? {
+              ...grupo,
+              roles: (grupo.roles ?? []).filter((_, r) => r !== indexRegra),
+            }
+          : grupo
+      )
+    );
+
+  const totalRegras = grupos.reduce(
+    (total, grupo) => total + (grupo.roles?.length ?? 0),
+    0
+  );
+  const totalVagas = grupos.reduce(
+    (total, grupo) => total + (grupo.capacity ?? 0),
+    0
+  );
+
+  const styles = {
+    aviso: {
+      bgcolor: alpha(theme.palette.info.main, 0.08),
+      '& .MuiAlert-message': { py: 0.5 },
+    },
+    vazio: {
+      p: 4,
+      borderRadius: 2,
+      border: `1px dashed ${theme.palette.divider}`,
+      textAlign: 'center',
+    },
+  };
+
   return (
-    <Grid container spacing={2}>
-      <Grid item xs={12} md={12}>
-        <Typography variant="h6" gutterBottom fontSize={'18px'}>
-          Grupos de pessoas e regras de inscrição
-        </Typography>
-        <Typography variant="body2" color="textSecondary">
-          {
-            'Defina os grupos e suas regras de inscrição para definir como os participantes poderão se inscrever no evento.\n'
-          }
-        </Typography>
-        <Typography variant="body2" color="textSecondary">
-          {
-            'Os grupos servem para separar os participantes em diferentes categorias, como "Cursilhistas" e "Cursilheiros" em um Cursilho, ou "Completo" e "Dárias" em um Retiro.'
-          }
-        </Typography>
-        <Typography variant="body2" color="textSecondary">
-          {
-            'As regras servem para definir diferentes valores de ingresso dentro de um grupo.'
-          }
-        </Typography>
-      </Grid>
-      <Grid item xs={12} md={12}>
+    <Stack gap={2} sx={{ mb: 1 }}>
+      <Stack
+        direction={{ xs: 'column', sm: 'row' }}
+        justifyContent="space-between"
+        alignItems={{ xs: 'stretch', sm: 'flex-start' }}
+        gap={2}
+      >
+        <Box>
+          <Typography variant="h6" fontSize={18}>
+            Grupos e regras de inscrição
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Definem como os participantes se separam e quanto cada um paga.
+          </Typography>
+          {grupos.length > 0 && (
+            <Typography variant="caption" color="text.secondary">
+              {[
+                plural(grupos.length, 'grupo', 'grupos'),
+                plural(totalRegras, 'regra', 'regras'),
+                `${totalVagas} vagas`,
+              ].join(' · ')}
+            </Typography>
+          )}
+        </Box>
+
         <Button
-          endIcon={<Add />}
           variant="contained"
-          onClick={() => {
-            const updatedGroupRoles = [...groupRoles] as any;
-            updatedGroupRoles.push({
-              name: '',
-              capacity: null,
-              link: '',
-              roles: [],
-            });
-
-            setValue('groupRoles', updatedGroupRoles);
-          }}
+          startIcon={<Add />}
+          onClick={adicionarGrupo}
+          sx={{ flexShrink: 0 }}
         >
-          Adicionar novo grupo
+          Adicionar grupo
         </Button>
-      </Grid>
-      <Grid item xs={12} md={12}>
-        <Grid container spacing={2}>
-          {groupRoles.map(({ roles }, index) => {
-       
-            const disabledGroup = roles.some(({ registered, waitlisted }) => {
-              return (registered && registered > 0) || (waitlisted && waitlisted > 0);
-            });
+      </Stack>
 
-            const expanded =
-              groupsExpanded?.find(
-                (group: any) => Object.keys(group)[0] === index.toString()
-              )?.[index] ?? true;
-            return (
-              <Grid item xs={12} md={12}>
-                <Box
-                  key={index + 'groupRole'}
-                  sx={{
-                    padding: 2,
-                    gap: 2,
-                    borderRadius: 2,
-                    border: '1px solid',
-                    borderColor: alpha(theme.palette.text.primary, 0.08),
-                    backgroundColor: alpha(theme.palette.text.primary, 0.04),
-                  }}
-                >
-                  <Stack
-                    direction="row"
-                    alignItems="center"
-                    justifyContent="space-between"
-                    // width={'100%'}
-                    sx={{ mb: disabledGroup ? 0 : 2 }}
-                  >
-                    <Typography
-                      variant="subtitle1"
-                      gutterBottom
-                      fontWeight="bold"
-                      sx={{
-                        fontSize: 14,
-                        // marginBottom: 2,
-                        color: alpha(theme.palette.text.secondary, 1),
-                      }}
-                    >
-                      GRUPO {index + 1}
-                    </Typography>
-                    {/* <Button
-                      variant="text"
-                      color="error"
-                      endIcon={<Delete />}
-                      sx={
-                        {
-                          // marginBottom: 2,
-                        }
-                      }
-                      onClick={() => {
-                        const updatedGroupRoles = [...selectGroupRolesExtended];
-                        updatedGroupRoles.splice(index, 1);
-                        setSelectGroupRolesExtended(updatedGroupRoles);
-                      }}
-                    >
-                      Excluir Grupo
-                    </Button> */}
-                    <Tooltip title="Remover Grupo">
-                      <IconButton
-                        sx={{
-                          '&:hover': { color: theme.palette.error.main },
-                          display: disabledGroup ? 'none' : 'flex',
-                        }}
-                        onClick={() => handleRemoveGroupRole(index)}
-                      >
-                        <Close />
-                      </IconButton>
-                    </Tooltip>
-                  </Stack>
-                  {disabledGroup && (
-                    <Alert
-                      severity="warning"
-                      variant="outlined"
-                      sx={{
-                        mb: 2,
-                        background: alpha(theme.palette.warning.main, 0.1),
-                      }}
-                    >
-                      {' '}
-                      Esse grupo possui inscrições já realizadas, portanto não
-                      pode ser removido.
-                    </Alert>
-                    // <Typography variant="body2" sx={{ mb: 2 }} color="warning">
-                    //   Esse grupo possui inscrições já realizadas, portanto não
-                    //   pode ser removido.
-                    // </Typography>
-                  )}
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      gap: 2,
-                      flexDirection: { xs: 'column', sm: 'row' },
-                    }}
-                  >
-                    <Grid item xs={12} md={10}>
-                      <Controller
-                        control={control}
-                        name={`groupRoles.${index}.name`}
-                        render={({ field: { onChange, value } }) => (
-                          <Input
-                            size="small"
-                            value={value}
-                            placeholder="Ex: Meia entrada"
-                            // disabled={disabled}
-                            onChange={onChange}
-                            // onChange={(event) => onChange(onlyNumber(event.target.value))}
-                            required
-                            label="Nome"
-                            errorMessage={
-                              errors.groupRoles?.[index]?.name?.message
-                            }
-                            error={Boolean(errors.groupRoles?.[index]?.name)}
-                            InputLabelProps={{
-                              shrink: true,
-                            }}
-                          />
-                        )}
-                      />
-                    </Grid>
-                    <Grid item xs={12} md={2}>
-                      <Controller
-                        control={control}
-                        name={`groupRoles.${index}.capacity`}
-                        render={({ field: { onChange, value } }) => (
-                          <Input
-                            type="text"
-                            size="small"
-                            placeholder="Ex: 200"
-                           //isabled={disabledGroup}
-                            value={value ?? ''}
-                            onChange={(e) => {
-                              const sanitized = sanitizeInteger(e.target.value);
-                              if (!sanitized) {
-                                onChange(null);
-                                return;
-                              }
-                              onChange(Number(sanitized));
-                            }}
-                            onPaste={(e) => {
-                              e.preventDefault();
-                              const paste = (
-                                e.clipboardData || (window as any).clipboardData
-                              ).getData('text');
-                              const sanitized = sanitizeInteger(paste);
-                              if (!sanitized) {
-                                onChange(null);
-                                return;
-                              }
-                              onChange(Number(sanitized));
-                            }}
-                            onKeyDown={(e) => {
-                              const allowed = [
-                                'Backspace',
-                                'Tab',
-                                'ArrowLeft',
-                                'ArrowRight',
-                                'Delete',
-                              ];
-                              if (allowed.includes(e.key)) return;
-                              if (!/^[0-9]$/.test(e.key)) {
-                                e.preventDefault();
-                              }
-                            }}
-                            required
-                            label="Capacidade máxima de inscrições"
-                            errorMessage={
-                              errors.groupRoles?.[index]?.capacity?.message
-                            }
-                            error={Boolean(
-                              errors.groupRoles?.[index]?.capacity
-                            )}
-                            inputProps={{
-                              inputMode: 'numeric',
-                              pattern: '\\d*',
-                              min: 0,
-                            }}
-                            InputLabelProps={{
-                              shrink: true,
-                            }}
-                          />
-                        )}
-                      />
-                    </Grid>
-                  </Box>
-                  <Grid item xs={12} md={12} sx={{ mt: 2 }}>
-                    <Controller
-                      control={control}
-                      name={`groupRoles.${index}.link`}
-                      render={({ field: { onChange, value } }) => (
-                        <Input
-                          size="small"
-                          sx={{ width: '100%' }}
-                          value={value ?? ''}
-                          onChange={onChange}
-                          placeholder="Ex: https://chat.whatsapp.com/xxxxxxxx"
-                          label="Link do grupo (opcional)"
-                          errorMessage={
-                            errors.groupRoles?.[index]?.link?.message ??
-                            'Aparece apenas para quem está inscrito neste grupo'
-                          }
-                          error={Boolean(errors.groupRoles?.[index]?.link)}
-                          InputLabelProps={{
-                            shrink: true,
-                          }}
-                        />
-                      )}
-                    />
-                  </Grid>
-                  {expanded ? (
-                    <Divider sx={{ marginY: 2 }}>
-                      <Chip
-                        sx={{ cursor: 'pointer' }}
-                        onClick={() => {
-                          const updatedGroupRoles = [...groupsExpanded];
-                          const groupIndex = updatedGroupRoles.findIndex(
-                            (group: any) =>
-                              Object.keys(group)[0] === index.toString()
-                          );
-                          if (groupIndex !== -1) {
-                            updatedGroupRoles[groupIndex][index] = false;
-                          } else {
-                            updatedGroupRoles.push({ [index]: false });
-                          }
-                          setGroupsExpanded(updatedGroupRoles);
-                        }}
-                        icon={<KeyboardArrowUp />}
-                        label="Recolher"
-                      />
-                    </Divider>
-                  ) : (
-                    <Divider
-                      sx={{
-                        width: '100%',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        height: 'fit-content',
-                        marginTop: 2,
-                      }}
-                    >
-                      <Chip
-                        sx={{ cursor: 'pointer' }}
-                        onClick={() => {
-                          const updatedGroupRoles = [...groupsExpanded];
-                          const groupIndex = updatedGroupRoles.findIndex(
-                            (group: any) =>
-                              Object.keys(group)[0] === index.toString()
-                          );
-                          if (groupIndex !== -1) {
-                            updatedGroupRoles[groupIndex][index] = true;
-                          } else {
-                            updatedGroupRoles.push({ [index]: true });
-                          }
-                          setGroupsExpanded(updatedGroupRoles);
-                        }}
-                        icon={<KeyboardArrowDown />}
-                        label="Mostrar Regras"
-                      />
-                    </Divider>
-                    // </Divider>
-                  )}{' '}
-                  <Grid item xs={12} md={12}>
-                    <Grid container spacing={2}>
-                      {expanded &&
-                        roles?.map(({ registered }, roleIndex) => (
-                          <Grid item xs={12} md={12}>
-                            <Box
-                              key={roleIndex}
-                              sx={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 2,
-                                width: '100%',
-                                flexDirection: { xs: 'column', md: 'row' },
-                              }}
-                            >
-                              <Grid item xs={12} md={10}>
-                                <Controller
-                                  control={control}
-                                  name={`groupRoles.${index}.roles.${roleIndex}.description`}
-                                  render={({ field: { onChange, value } }) => (
-                                    <Input
-                                      size="small"
-                                      required
-                                      placeholder="Ex: Idade entre 2 e 10 anos"
-                                      // disabled={!!registered}
-                                      sx={{ width: '100%' }}
-                                      value={value}
-                                      onChange={onChange}
-                                      label="Descrição"
-                                      error={Boolean(
-                                        errors.groupRoles?.[index]?.roles?.[
-                                          roleIndex
-                                        ]?.description
-                                      )}
-                                      errorMessage={
-                                        errors.groupRoles?.[index]?.roles?.[
-                                          roleIndex
-                                        ]?.description?.message
-                                      }
-                                      InputLabelProps={{
-                                        shrink: true,
-                                      }}
-                                    />
-                                  )}
-                                />{' '}
-                              </Grid>
-                              <Grid item xs={12} md={1.7}>
-                                <Controller
-                                  control={control}
-                                  name={`groupRoles.${index}.roles.${roleIndex}.price`}
-                                  render={({ field: { onChange, value } }) => (
-                                    <Input
-                                      size="small"
-                                      required
-                                      // disabled={!!registered}
-                                      value={value ?? ''}
-                                      placeholder="Ex: 100"
-                                      type="number"
-                                      onChange={(e) => {
-                                        const val = e.target.value;
-                                        if (!val) {
-                                          onChange(null);
-                                          return;
-                                        }
-                                        onChange(sanitizePrice(val));
-                                      }}
-                                      onKeyDown={(e) => {
-                                        // bloquear caracteres não desejados no input de preço
-                                        const blocked = ['e', 'E', '+', '-'];
-                                        if (blocked.includes(e.key)) {
-                                          e.preventDefault();
-                                        }
-                                      }}
-                                      label="Preço (R$)"
-                                      error={Boolean(
-                                        errors.groupRoles?.[index]?.roles?.[
-                                          roleIndex
-                                        ]?.price
-                                      )}
-                                      errorMessage={
-                                        errors.groupRoles?.[index]?.roles?.[
-                                          roleIndex
-                                        ]?.price?.message
-                                      }
-                                      InputLabelProps={{
-                                        shrink: true,
-                                      }}
-                                    />
-                                  )}
-                                />
-                              </Grid>
-                              <Grid item xs={12} md={0.2}>
-                                <Box
-                                  sx={{
-                                    display: 'flex',
-                                    justifyContent: 'center',
-                                    alignItems: 'center',
-                                  }}
-                                >
-                                  <Tooltip title={'Remover Regra'}>
-                                    <IconButton
-                                      disabled={!!registered}
-                                      onClick={() => {
-                                        const updatedGroupRoles = [
-                                          ...groupRoles,
-                                        ];
-                                        updatedGroupRoles[index].roles.splice(
-                                          roleIndex,
-                                          1
-                                        );
+      <Alert severity="info" variant="outlined" sx={styles.aviso}>
+        <Typography variant="body2">
+          <strong>Grupos</strong> separam os participantes em categorias — como{' '}
+          {
+            '“Cursilhistas” e “Cursilheiros” num Cursilho, ou “Completo” e “Diárias” num Retiro.'
+          }
+        </Typography>
+        <Typography variant="body2">
+          <strong>Regras</strong> definem os valores dentro de um grupo, por
+          faixa de idade ou tipo de ingresso.
+        </Typography>
+      </Alert>
 
-                                        setValue(
-                                          'groupRoles',
-                                          updatedGroupRoles
-                                        );
-                                      }}
-                                    >
-                                      <Delete />
-                                    </IconButton>
-                                  </Tooltip>
-                                </Box>
-                              </Grid>
-                            </Box>
-                          </Grid>
-                        ))}
-                    </Grid>
-                  </Grid>
-                  {expanded ? (
-                    <>
-                      {roles.length > 0 && <Divider sx={{ marginY: 2 }} />}
-                      <Box
-                        sx={{
-                          marginTop: 2,
-                          display: 'flex',
-                          justifyContent: 'start',
-                          alignItems: 'center',
-                        }}
-                      >
-                        <Box
-                          onClick={() => {
-                            const updatedGroupRoles = [...groupRoles] as any;
-                            updatedGroupRoles[index].roles?.push({
-                              price: null,
-                              description: '',
-                            });
-                            setValue('groupRoles', updatedGroupRoles);
-                          }}
-                          sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: 1,
-                            cursor: 'pointer',
-                            borderRadius: 1,
-                            // border: '1px solid',
-                            width: 'fit-content',
-                            backgroundColor: alpha(
-                              theme.palette.text.primary,
-                              0.1
-                            ),
-                            // borderColor: alpha(
-                            //   theme.palette.text.secondary,
-                            //   0.5
-                            // ),
-                            padding: '6px 12px',
-                            // backgroundColor: alpha(theme.palette.primary.main, 0.1),
-
-                            '&:hover': {
-                              backgroundColor: alpha(
-                                theme.palette.text.primary,
-                                0.05
-                              ),
-                            },
-                            border: 'none',
-                            // ...(!!registered && {
-                            //   pointerEvents: 'none',
-                            //   opacity: 0.6,
-                            // }),
-                          }}
-                        >
-                          <span
-                            style={{ fontSize: '15px', fontWeight: 'bold' }}
-                          >
-                            Adicionar Regra
-                          </span>
-                          <Add />
-                        </Box>
-                        {/* <Button
-                            disabled={disabled}
-                            sx={{ marginLeft: 2 }}
-                            endIcon={<Add />}
-                            variant="outlined"
-                            onClick={() => {
-                              const updatedGroupRoles = [
-                                ...selectGroupRolesExtended,
-                              ];
-                              updatedGroupRoles[index].roles?.push({
-                                price: null,
-                                description: '',
-                              });
-                              setSelectGroupRolesExtended(updatedGroupRoles);
-                            }}
-                          >
-                            Adicionar Regra
-                          </Button> */}
-                      </Box>
-                    </>
-                  ) : (
-                    <Box sx={{ height: 20 }} />
-                  )}
-                </Box>
-              </Grid>
-            );
-          })}
-        </Grid>
-      </Grid>
-    </Grid>
+      {grupos.length === 0 ? (
+        <Box sx={styles.vazio}>
+          <GroupsOutlined sx={{ fontSize: 40, color: 'text.secondary' }} />
+          <Typography fontWeight={500} sx={{ mt: 1 }}>
+            Nenhum grupo criado
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Sem grupo não há como se inscrever no evento.
+          </Typography>
+          <Button
+            variant="contained"
+            startIcon={<Add />}
+            onClick={adicionarGrupo}
+          >
+            Adicionar grupo
+          </Button>
+        </Box>
+      ) : (
+        <Stack gap={1.5}>
+          {grupos.map((grupo, index) => (
+            <CartaoGrupo
+              key={grupo.id ?? `grupo-${index}`}
+              index={index}
+              grupo={grupo}
+              expandido={estaExpandido(index)}
+              onAlternar={() => alternarGrupo(index)}
+              onRemover={() => removerGrupo(index)}
+              onAdicionarRegra={() => adicionarRegra(index)}
+              onRemoverRegra={(indexRegra) => removerRegra(index, indexRegra)}
+            />
+          ))}
+        </Stack>
+      )}
+    </Stack>
   );
 }
 
