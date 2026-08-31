@@ -6,11 +6,27 @@ import { OPTIONS_STATUS } from '../constants';
 import { GeneralInfoFormType } from '../types';
 import 'react-quill/dist/quill.snow.css';
 import ReactQuillEditor from '../../../../components/reactQuillEditor';
-function FormGeneralInfo() {
+import { useRole } from '../../../../hooks/useRole';
+import { useGetChurches } from '../../users/api/getChurches';
+type FormGeneralInfoProps = {
+  /**
+   * Mostra a escolha da igreja. Vale só na criação: depois de criado o evento
+   * não muda de igreja — os inscritos, pagamentos e quartos iriam junto.
+   */
+  escolheIgreja?: boolean;
+};
+
+function FormGeneralInfo({ escolheIgreja = false }: FormGeneralInfoProps) {
   const {
     control,
     formState: { errors },
   } = useFormContext<GeneralInfoFormType>();
+
+  // o admin não escolhe: o backend vincula o evento à igreja do perfil dele.
+  // O super admin não pertence a nenhuma, então precisa dizer para qual cria.
+  const { isSuperAdmin } = useRole();
+  const { data: churches = [] } = useGetChurches();
+  const mostraIgreja = escolheIgreja && isSuperAdmin;
 
   return (
     <Grid container spacing={2}>
@@ -61,6 +77,29 @@ function FormGeneralInfo() {
           )}
         />
       </Grid>{' '}
+      {mostraIgreja && (
+        <Grid item xs={12} md={6}>
+          <Controller
+            control={control}
+            name="churchId"
+            render={({ field: { onChange, value } }) => (
+              <InputSelect
+                size="small"
+                label="Igreja do evento"
+                menuOptions={churches.map((church) => ({
+                  value: church.id,
+                  name: church.name,
+                }))}
+                value={value ?? ''}
+                onChange={onChange}
+                helperText="O evento e os inscritos ficam visíveis só para o painel desta igreja"
+                error={!!errors.churchId}
+                errorMessage={errors.churchId?.message}
+              />
+            )}
+          />
+        </Grid>
+      )}
       <Grid item xs={12} md={12}>
         <Controller
           control={control}

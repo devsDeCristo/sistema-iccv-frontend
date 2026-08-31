@@ -68,6 +68,7 @@ export interface User {
   profilePhotoUrl?: string;
   badgeName?: string;
   role?: number;
+  churchId?: string;
   emergencyContact?: string;
   indicatedBy?: string;
   leadershipPosition?: string;

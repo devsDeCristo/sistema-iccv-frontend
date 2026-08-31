@@ -11,6 +11,7 @@ import { RoutesUsersAdmin } from '../pages/admin/users/routes';
 import { RoutesUsers } from '../pages/users/routes';
 import { RoutesEventsAdmin } from '../pages/admin/events/routes';
 import { RoutesNewsAdmin } from '../pages/admin/news/routes';
+import { RoutesChurchesAdmin } from '../pages/admin/churches/routes';
 import { authLoader } from '../auth/functions/authLoader';
 import { RoutesEvents } from '../pages/events/routes';
 import { authLoaderAdmin } from '../auth/functions/authLoaderAdmin';
@@ -39,6 +40,7 @@ const routers = (): ReturnType<typeof createBrowserRouter> => {
           }
         >
           {RoutesUsersAdmin()}
+          {RoutesChurchesAdmin()}
           {RoutesEventsAdmin()}
           {RoutesNewsAdmin()}
         </Route>

@@ -7,6 +7,7 @@ import {
   Logout,
   People,
   Send,
+  Church,
 } from '@mui/icons-material';
 import { Link, useLocation } from 'react-router-dom';
 import {
@@ -267,16 +268,22 @@ const SideBar: React.FC<SideBarProps> = ({
   setOpenDrawer,
 }) => {
   const theme = useTheme();
-  const { isAdmin: isAdminRole } = useRole();
+  const { isAdmin: isAdminRole, isSuperAdmin } = useRole();
 
   const areaAtual: AreaSideBar = area ?? (isAdmin ? 'admin' : 'usuario');
 
   const itensConfiguracoes: ItemMenu[] = [
-    {
-      link: '/configuracoes/disparadores',
-      icon: <Send />,
-      title: 'Disparadores',
-    },
+    // o número do WhatsApp é um só para todas as igrejas: quem mexe nele é o
+    // super admin
+    ...(isSuperAdmin
+      ? [
+          {
+            link: '/configuracoes/disparadores',
+            icon: <Send />,
+            title: 'Disparadores',
+          },
+        ]
+      : []),
     // volta para onde a pessoa estava trabalhando; sem isto a única saída das
     // configurações seria o avatar da barra do topo
     {
@@ -295,6 +302,16 @@ const SideBar: React.FC<SideBarProps> = ({
                 link: '/admin/usuarios',
                 icon: <People />,
                 title: 'Usuários',
+              },
+            ]
+          : []),
+        // a igreja é o tenant do sistema: só o super admin cria e remove
+        ...(isSuperAdmin
+          ? [
+              {
+                link: '/admin/igrejas',
+                icon: <Church />,
+                title: 'Igrejas',
               },
             ]
           : []),

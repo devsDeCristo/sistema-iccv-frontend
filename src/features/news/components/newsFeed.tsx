@@ -57,6 +57,9 @@ function ItemDoFeed({ news, onClick }: { news: News; onClick: () => void }) {
           sx={{ fontSize: 11, color: 'text.secondary', fontWeight: 500 }}
         >
           {dataDaNoticia(news)}
+          {/* anúncio restrito a um evento: quem lê só chegou aqui porque está
+              nele, e saber de qual se trata evita confusão com outro cursilho */}
+          {news.event && ` · ${news.event.name}`}
         </Typography>
         <Typography
           className="titulo-noticia"

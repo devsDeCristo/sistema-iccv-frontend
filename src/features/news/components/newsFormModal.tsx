@@ -10,6 +10,7 @@ import {
   DialogTitle,
   Divider,
   IconButton,
+  MenuItem,
   Stack,
   Switch,
   TextField,
@@ -28,6 +29,7 @@ import { toast } from 'react-toastify';
 import ReactQuillEditor from '../../../components/reactQuillEditor';
 import { campoBuscaSx } from '../../../components/listPageStyles';
 import { useWhatsappConectado } from '../../settings/whatsapp/useWhatsappConectado';
+import { useGetEvents } from '../../admin/events/api/getEvents';
 import { useGetNewsWhatsappGroups } from '../api/getWhatsappGroups';
 import { useSaveNews } from '../api/saveNews';
 import { News, WhatsappTargetGroup } from '../types';
@@ -82,6 +84,8 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
   const [imagemAtual, setImagemAtual] = useState<string | null>(null);
   const [removerImagem, setRemoverImagem] = useState(false);
   const [destinos, setDestinos] = useState<WhatsappTargetGroup[]>([]);
+  /** vazio = aviso para todos; com evento, só quem está nele vê */
+  const [eventoDoAnuncio, setEventoDoAnuncio] = useState('');
   const [arrastando, setArrastando] = useState(false);
   const [erros, setErros] = useState<{ titulo?: boolean; texto?: boolean }>({});
 
@@ -89,9 +93,16 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
   // consulta viva atrás dela
   const { data: grupos } = useGetNewsWhatsappGroups({ enabled: open });
 
+  // eventos da igreja de quem está logado — é o backend que faz esse recorte
+  const { data: eventos } = useGetEvents({}, { enabled: open });
+
   const { semNumero } = useWhatsappConectado();
 
   const listaGrupos = useMemo(() => grupos ?? [], [grupos]);
+  const listaEventos = useMemo(
+    () => (Array.isArray(eventos) ? eventos : []),
+    [eventos]
+  );
 
   // reabrir o modal precisa recarregar o formulário: sem isto a segunda edição
   // abriria com os dados da primeira
@@ -105,6 +116,7 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
     setImagemAtual(news?.imageUrl || null);
     setArquivo(null);
     setRemoverImagem(false);
+    setEventoDoAnuncio(news?.event?.id || '');
     setErros({});
   }, [open, news]);
 
@@ -195,6 +207,7 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
         isPublished: publicada,
         imageFile: arquivo,
         removeImage: removerImagem,
+        eventId: eventoDoAnuncio || null,
         groupRoleIds: destinos.map((grupo) => grupo.id),
       },
     });
@@ -271,8 +284,8 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
               {news ? 'Editar notícia' : 'Nova notícia'}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Aparece no mural dos inscritos e, se você marcar grupos, também no
-              WhatsApp.
+              Aparece no mural de todos os usuários — ou só de um evento, se
+              você escolher — e, se marcar grupos, também no WhatsApp.
             </Typography>
           </Box>
 
@@ -433,6 +446,30 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
                 </Typography>
               </Box>
             )}
+          </Secao>
+
+          <Divider />
+
+          <Secao titulo="Quem vê no mural">
+            <TextField
+              select
+              size="small"
+              fullWidth
+              value={eventoDoAnuncio}
+              onChange={(evento) => setEventoDoAnuncio(evento.target.value)}
+              helperText={
+                eventoDoAnuncio
+                  ? 'Só quem está neste evento vê o anúncio — inscritos e lista de espera.'
+                  : 'O anúncio aparece para todos os usuários.'
+              }
+            >
+              <MenuItem value="">Todos os usuários</MenuItem>
+              {listaEventos.map((evento) => (
+                <MenuItem key={evento.id} value={evento.id}>
+                  {evento.name}
+                </MenuItem>
+              ))}
+            </TextField>
           </Secao>
 
           <Divider />

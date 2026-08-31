@@ -158,6 +158,38 @@ function NewsAdminList({
       ),
     },
     {
+      // quem enxerga o anúncio no mural. Sem evento é aviso geral — o padrão
+      field: 'event',
+      headerName: 'Público',
+      sortable: false,
+      width: 190,
+      renderCell: (params) => {
+        const evento = (params.row as News).event;
+
+        return (
+          <Tooltip
+            title={
+              evento
+                ? `Só quem está em ${evento.name} — inscritos e lista de espera`
+                : 'Todos os usuários'
+            }
+          >
+            <span>
+              <CustomChip
+                size="small"
+                label={evento ? evento.name : 'Todos'}
+                customColor={
+                  evento
+                    ? theme.palette.chips.pending
+                    : theme.palette.chips.success
+                }
+              />
+            </span>
+          </Tooltip>
+        );
+      },
+    },
+    {
       // `dateTime` com valor de Date, e não a string já formatada: senão a
       // coluna ordenaria em ordem alfabética de "Hoje, 19:08"
       field: 'publishedAt',

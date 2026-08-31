@@ -131,6 +131,8 @@ export interface EventDataJson {
 export interface CreateEventPayload {
   name: string;
   groupLink?: string;
+  /** só o super admin manda: os demais herdam a igreja do próprio perfil */
+  churchId?: string;
   status: EventStatus;
   startDate: Date;
   endDate: Date;

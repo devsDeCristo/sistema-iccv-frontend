@@ -8,6 +8,11 @@ export interface News {
   publishedAt?: string | null;
   createdAt: string;
   author?: { fullName: string } | null;
+  /**
+   * Público do anúncio: nulo é aviso geral, para todo mundo. Preenchido
+   * restringe o mural a quem está no evento.
+   */
+  event?: { id: string; name: string } | null;
   /** Só vem na lista do admin (`/news/admin`) */
   isPublished?: boolean;
   updatedAt?: string;
@@ -45,6 +50,8 @@ export interface NewsPayload {
   imageFile?: File | null;
   /** Apaga a imagem atual sem colocar outra no lugar */
   removeImage?: boolean;
+  /** Vazio = aviso para todos; com evento, só quem está nele vê no mural */
+  eventId?: string | null;
   /** Grupos de inscrição que recebem esta notícia no WhatsApp */
   groupRoleIds?: string[];
 }
