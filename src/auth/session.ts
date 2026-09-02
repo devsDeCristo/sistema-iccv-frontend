@@ -39,6 +39,22 @@ export function getStoredUser(): User | null {
   }
 }
 
+/**
+ * Grava o perfil da sessão. Os loaders de rota chamam isto com a resposta do
+ * `/auth/validate`: é o que mantém `role` e `churchRoles` em dia sem obrigar a
+ * pessoa a sair e entrar de novo quando o vínculo dela muda.
+ */
+export function setStoredUser(user: Partial<User> | null) {
+  if (!user) return;
+
+  // mescla em vez de substituir: o `/auth/validate` devolve só o que interessa
+  // à permissão, e trocar o objeto inteiro apagaria os campos de perfil que o
+  // login guardou e outras telas leem
+  const atual = getStoredUser() ?? {};
+
+  localStorage.setItem('user', JSON.stringify({ ...atual, ...user }));
+}
+
 export function hasSession() {
   return !!localStorage.getItem('access_token');
 }

@@ -3,7 +3,10 @@ import { Events } from '..';
 import { Register } from '../register';
 import { Details } from '../details';
 import { Edit } from '../edit';
-import { RequireRole } from '../../../../components/requireRole';
+import {
+  RequireEventRole,
+  RequireRole,
+} from '../../../../components/requireRole';
 import { ADMIN_ROLES } from '../../../../constants/roles';
 import { Checkin } from '../../checkin';
 
@@ -11,7 +14,8 @@ function RoutesEventsAdmin() {
   return (
     <>
       <Route path="/admin/eventos" element={<Events />} />
-      {/* criar e editar evento são exclusivos de super admin/admin */}
+      {/* criar é de quem administra alguma igreja; editar depende da igreja
+          do evento, então tem guarda própria */}
       <Route
         path="/admin/eventos/cadastro"
         element={
@@ -23,22 +27,23 @@ function RoutesEventsAdmin() {
       <Route
         path="/admin/eventos/:id/editar"
         element={
-          <RequireRole allowedRoles={ADMIN_ROLES}>
+          <RequireEventRole>
             <Edit />
-          </RequireRole>
+          </RequireEventRole>
         }
       />
       <Route
         path="/admin/eventos/:id/detalhes/:subPage"
         element={<Details />}
       />
-      {/* o financeiro não opera o check-in */}
+      {/* o check-in é de quem administra a igreja do evento: o financeiro não
+          opera, e admin de outra igreja também não */}
       <Route
         path="/admin/eventos/:id/checkin"
         element={
-          <RequireRole allowedRoles={ADMIN_ROLES}>
+          <RequireEventRole>
             <Checkin />
-          </RequireRole>
+          </RequireEventRole>
         }
       />
     </>

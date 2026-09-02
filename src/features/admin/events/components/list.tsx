@@ -22,10 +22,14 @@ import { useGetEvents } from '../api/getEvents';
 import { formatDate } from '../../../../utils';
 import { EditNoteOutlined, VisibilityOutlined } from '@mui/icons-material';
 import { useRole } from '../../../../hooks/useRole';
+import { Role } from '../../../../constants/roles';
 import CustomChip from '../../../../components/customChip';
 import { EventStatus, EventStatusFilter } from '../types';
 import { EVENT_STATUS_LABELS } from '../constants';
-import { cardTabelaSx, dataGridSx } from '../../../../components/listPageStyles';
+import {
+  cardTabelaSx,
+  dataGridSx,
+} from '../../../../components/listPageStyles';
 
 const getSelectedRowsToExport = ({
   apiRef,
@@ -60,7 +64,7 @@ function List({
 }) {
   const navigate = useNavigate();
   const theme = useTheme();
-  const { isAdmin, isSuperAdmin } = useRole();
+  const { isSuperAdmin, perfilNaIgreja } = useRole();
   const { data: eventData, isLoading } = useGetEvents({ painel: true });
   const events = Array.isArray(eventData) ? eventData : [];
   const filteredData = events.filter((event: any) => {
@@ -68,13 +72,12 @@ function List({
     const matchesSearch = event.name.toLowerCase().includes(searchLower);
     const matchesStatus =
       status === 'all' ? true : event.status === STATUS_DO_FILTRO[status];
-    const matchesChurch =
-      churchId === 'all' || event.church?.id === churchId;
+    const matchesChurch = churchId === 'all' || event.church?.id === churchId;
 
     return matchesSearch && matchesStatus && matchesChurch;
   });
   const columns: GridColDef[] = [
-    { field: 'name', headerName: 'Nome', flex: 2,   minWidth: 180, },
+    { field: 'name', headerName: 'Nome', flex: 2, minWidth: 180 },
     // a coluna só faz sentido para quem enxerga mais de uma igreja
     ...(isSuperAdmin
       ? [
@@ -147,7 +150,7 @@ function List({
       width: 100,
       align: 'center',
       headerAlign: 'center',
-       renderCell: (params) => {
+      renderCell: (params) => {
         return (
           <Stack direction="column" alignItems="center">
             <Typography color={theme.palette.text.primary} variant="body2">
@@ -226,34 +229,41 @@ function List({
       width: 130,
       align: 'center',
       headerAlign: 'center',
-      renderCell: (params) => (
-        <>
-          <Tooltip title="Detalhes">
-            <IconButton
-              onClick={() =>
-                navigate(`/admin/eventos/${params.row.id}/detalhes/usuarios`)
-              }
-              sx={{ color: theme.palette.text.primary }}
-              size="medium"
-            >
-              <VisibilityOutlined />
-            </IconButton>
-          </Tooltip>
-          {isAdmin && (
-            <Tooltip title="Editar">
+      renderCell: (params) => {
+        // linha a linha: a mesma pessoa pode administrar a igreja de um evento
+        // e ser só financeiro na do evento de baixo
+        const podeEditar =
+          isSuperAdmin || perfilNaIgreja(params.row.church?.id) === Role.ADMIN;
+
+        return (
+          <>
+            <Tooltip title="Detalhes">
               <IconButton
                 onClick={() =>
-                  navigate(`/admin/eventos/${params.row.id}/editar`)
+                  navigate(`/admin/eventos/${params.row.id}/detalhes/usuarios`)
                 }
                 sx={{ color: theme.palette.text.primary }}
                 size="medium"
               >
-                <EditNoteOutlined />
+                <VisibilityOutlined />
               </IconButton>
             </Tooltip>
-          )}
-        </>
-      ),
+            {podeEditar && (
+              <Tooltip title="Editar">
+                <IconButton
+                  onClick={() =>
+                    navigate(`/admin/eventos/${params.row.id}/editar`)
+                  }
+                  sx={{ color: theme.palette.text.primary }}
+                  size="medium"
+                >
+                  <EditNoteOutlined />
+                </IconButton>
+              </Tooltip>
+            )}
+          </>
+        );
+      },
     },
   ];
 

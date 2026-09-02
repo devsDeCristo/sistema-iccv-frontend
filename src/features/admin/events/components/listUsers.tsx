@@ -44,7 +44,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import Swal from 'sweetalert2';
 import { useRemoveUserFromEvent } from '../api/deleteUser';
 import { ModalEditWork } from './modalEditWork';
-import { useRole } from '../../../../hooks/useRole';
+import { useEventRole } from '../../../../hooks/useEventRole';
 import { useGetUsers } from '../api/getUsers';
 import { filterUsers } from '../types';
 import dayjs from 'dayjs';
@@ -103,7 +103,9 @@ function ListUsers({
 }) {
   const { id: eventId = '' } = useParams();
   const navigate = useNavigate();
-  const { isAdmin } = useRole();
+  // ações de inscrição são de quem administra a igreja deste evento — o
+  // financeiro abre a mesma lista, mas só para olhar
+  const { isAdminDoEvento } = useEventRole(event?.churchId);
   const { data: usersData, isLoading } = useGetUsers(
     {
       eventId: eventId,
@@ -148,7 +150,7 @@ function ListUsers({
             printOptions={{ getRowsToExport: getSelectedRowsToExport }}
           />
         </Box>
-        {isAdmin && (
+        {isAdminDoEvento && (
           <Button
             onClick={() => setOpenModalAddUser(true)}
             startIcon={<Add />}
@@ -165,7 +167,7 @@ function ListUsers({
         )}
       </GridToolbarContainer>
     ),
-    [isAdmin]
+    [isAdminDoEvento]
   );
   const handleClose = () => {
     setAnchorEl(null);
@@ -580,7 +582,7 @@ function ListUsers({
             'aria-labelledby': 'options-button',
           }}
         >
-          {isAdmin && (
+          {isAdminDoEvento && (
             <MenuItem onClick={handleClickEdit}>
               <ListItemIcon>
                 <VisibilityOutlined fontSize="small" color="primary" />
@@ -594,8 +596,8 @@ function ListUsers({
             </ListItemIcon>
             <ListItemText>Baixar Crachá</ListItemText>
           </MenuItem>
-          {isAdmin && <Divider />}
-          {isAdmin && (
+          {isAdminDoEvento && <Divider />}
+          {isAdminDoEvento && (
             <MenuItem onClick={handleClickRemoveUser}>
               <ListItemIcon>
                 <Delete fontSize="small" color="error" />
