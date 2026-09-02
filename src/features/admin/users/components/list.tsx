@@ -88,8 +88,17 @@ const renderCellWithCopy = (value: string | number) => {
   );
 };
 
-function List({ search }: { search: string }) {
-  const { data = [], isLoading } = useGetUsers({});
+function List({
+  search,
+  churchId = 'all',
+}: {
+  search: string;
+  /** 'all' = todas; só o super admin recebe gente de mais de uma igreja */
+  churchId?: string;
+}) {
+  const { data = [], isLoading } = useGetUsers({
+    churchId: churchId === 'all' ? undefined : churchId,
+  });
   // const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const openMenu = Boolean(anchorEl);

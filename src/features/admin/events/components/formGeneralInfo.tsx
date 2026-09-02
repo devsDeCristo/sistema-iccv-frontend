@@ -18,8 +18,9 @@ function FormGeneralInfo() {
   // O super admin não pertence a nenhuma, então diz para qual está criando —
   // e, na edição, é por aqui que ele passa um evento para outra igreja.
   const { isSuperAdmin } = useRole();
-  const { data: churches = [], isLoading: carregandoIgrejas } =
-    useGetChurches();
+  const { data: churches = [], isLoading: carregandoIgrejas } = useGetChurches({
+    enabled: isSuperAdmin,
+  });
   const semIgrejas = !carregandoIgrejas && !churches.length;
 
   return (

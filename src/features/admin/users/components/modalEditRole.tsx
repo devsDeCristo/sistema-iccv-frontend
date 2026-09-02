@@ -39,7 +39,10 @@ function ModalEditRole({
   user,
 }: ModalAddUserProps) {
   const { user: loggedUser } = useUser();
-  const { data: churches = [] } = useGetChurches();
+  // a lista de igrejas é do super admin: só ele escolhe a igreja da permissão
+  const { data: churches = [] } = useGetChurches({
+    enabled: loggedUser?.role === Role.SUPER_ADMIN,
+  });
   const [valueRole, setValueRole] = useState(user?.role || 5);
   const [churchId, setChurchId] = useState(user?.churchId || '');
   const [erro, setErro] = useState<string | null>(null);
