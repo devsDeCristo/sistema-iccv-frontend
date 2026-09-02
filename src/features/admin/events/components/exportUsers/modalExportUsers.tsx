@@ -57,6 +57,14 @@ interface ModalExportUsersProps {
   format: ExportFormat | null;
   onClose: () => void;
   event?: EventDetails;
+  /**
+   * Rebusca o evento com a logo em base64, na hora de gerar o PDF.
+   *
+   * O `event` da prop vem sem ela porque embuti-la custa ~1,5s no servidor e a
+   * tela não deve pagar isso só por ter sido aberta. Exportação em planilha nem
+   * chama isto.
+   */
+  loadEventImages?: () => Promise<EventDetails | undefined>;
   teams: Team[];
   /** todos os inscritos do evento, sem filtro */
   allUsers: User[];
@@ -77,6 +85,7 @@ function ModalExportUsers({
   format,
   onClose,
   event,
+  loadEventImages,
   teams,
   allUsers,
   filteredUsers,
@@ -188,6 +197,9 @@ function ModalExportUsers({
 
     try {
       if (format === 'pdf') {
+        // a logo só é baixada aqui — ver `loadEventImages`
+        const eventoComImagens = (await loadEventImages?.()) ?? event;
+
         // o líder sai do elenco completo da equipe, não dos usuários filtrados
         const leaderByTeam =
           grouping === 'team' && showLeader
@@ -217,7 +229,7 @@ function ModalExportUsers({
             columns={columns}
             markLeaders={grouping === 'team'}
             orientation={orientation}
-            logo={event?.data?.logoBase64}
+            logo={eventoComImagens?.data?.logoBase64}
           />
         ).toBlob();
 

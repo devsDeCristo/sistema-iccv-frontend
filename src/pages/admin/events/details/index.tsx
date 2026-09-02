@@ -21,6 +21,7 @@ import { ListTeams } from '../../../../features/admin/events/components/listTeam
 import { ListBedRooms } from '../../../../features/admin/events/components/listBedRooms';
 import { ModalBedRoom } from '../../../../features/admin/events/components/modalBedRoom';
 import { useEffect, useMemo, useState } from 'react';
+import { useQueryClient } from 'react-query';
 import { ModalTeam } from '../../../../features/admin/events/components/modalTeam';
 import { ListUsers } from '../../../../features/admin/events/components/listUsers';
 import PdfEvent from '../../../../components/pdfEvent';
@@ -34,7 +35,10 @@ import {
 import { useGetTeams } from '../../../../features/admin/events/api/getTeams';
 import { useGetBedrooms } from '../../../../features/admin/events/api/getBedrooms';
 import PdfBedRooms from '../../../../components/pdfRooms';
-import { useGetEvents } from '../../../../features/admin/events/api/getEvents';
+import {
+  fetchEventWithImages,
+  useGetEvents,
+} from '../../../../features/admin/events/api/getEvents';
 import { ModalAddUserOnEvent } from '../../../../features/admin/events/components/modalAddUser';
 import {
   BadgeOutlined,
@@ -163,6 +167,29 @@ function Details() {
   );
   const users = usersData as User[];
   const event = eventData as EventDetails;
+  const queryClient = useQueryClient();
+
+  /**
+   * Evento com logo e capa em base64, para os PDFs — o `@react-pdf/renderer`
+   * não busca imagem remota, precisa delas embutidas.
+   *
+   * Buscado só na hora de gerar, nunca na abertura da tela: embutir as imagens
+   * obriga o servidor a baixá-las do Firebase Storage e custa ~1,5s na resposta.
+   * Aqui esse custo cai dentro do loading do próprio gerador, e só para quem
+   * realmente pediu um PDF.
+   */
+  async function carregarEventoParaPdf(): Promise<EventDetails> {
+    if (!eventId) return event;
+
+    try {
+      const comImagens = await fetchEventWithImages(queryClient, eventId);
+
+      return (comImagens as EventDetails) || event;
+    } catch {
+      // sem as imagens o PDF ainda sai, só que sem logo e capa
+      return event;
+    }
+  }
 
   /**
    * Bipagem do QR do crachá: o código traz o id do inscrito, que vai para o
@@ -248,11 +275,12 @@ function Details() {
 
   async function generatePdfRooms() {
     setLoadingPdfRooms(true);
+    const eventoComImagens = await carregarEventoParaPdf();
     setTimeout(async () => {
       let blob;
 
       blob = await pdf(
-        <PdfBedRooms data={bedroomsData} event={event} />
+        <PdfBedRooms data={bedroomsData} event={eventoComImagens} />
       ).toBlob();
       FileSaver.saveAs(blob, 'quartos.pdf');
 
@@ -268,13 +296,14 @@ function Details() {
     }
 
     setLoadingPdfTeams(true);
+    const eventoComImagens = await carregarEventoParaPdf();
     const orderUsersByRoleTeam = teams?.map((team) => ({
       ...team,
       usersLeaders:
         team.users?.filter((user) => user.roleTeam === 'LEADER') || [],
       usersMembers:
         team.users?.filter((user) => user.roleTeam === 'MEMBER') || [],
-      event: event, // Add the event property
+      event: eventoComImagens, // Add the event property
       note: team.note || '', // Add the note property, default to empty string if undefined
     }));
 
@@ -282,7 +311,7 @@ function Details() {
       let blob;
 
       blob = await pdf(
-        <PdfTeams data={orderUsersByRoleTeam} event={event} />
+        <PdfTeams data={orderUsersByRoleTeam} event={eventoComImagens} />
       ).toBlob();
       FileSaver.saveAs(blob, 'quadrantes.pdf');
 
@@ -302,6 +331,7 @@ function Details() {
     }
 
     setLoadingPdfEvent(true);
+    const eventoComImagens = await carregarEventoParaPdf();
     const orderUsersByRoleTeam = teams?.map((team) => ({
       ...team,
       users: team.users?.sort((a, b) =>
@@ -317,7 +347,7 @@ function Details() {
       let blob;
 
       blob = await pdf(
-        <PdfEvent data={orderUsersByRoleTeam} event={eventData} />
+        <PdfEvent data={orderUsersByRoleTeam} event={eventoComImagens} />
       ).toBlob();
       FileSaver.saveAs(blob, 'quadrantes.pdf');
 
@@ -823,6 +853,7 @@ function Details() {
         format={exportFormat}
         onClose={() => setExportFormat(null)}
         event={event}
+        loadEventImages={carregarEventoParaPdf}
         teams={teams}
         allUsers={users || []}
         filteredUsers={gridFilteredUsers}
@@ -834,6 +865,7 @@ function Details() {
         type={pdfType}
         onClose={() => setPdfType(null)}
         event={event}
+        loadEventImages={carregarEventoParaPdf}
         teams={teams}
         allUsers={users || []}
         filteredUsers={gridFilteredUsers}

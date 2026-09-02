@@ -48,6 +48,14 @@ interface ModalGeneratePdfProps {
   type: PdfDocType | null;
   onClose: () => void;
   event?: EventDetails;
+  /**
+   * Rebusca o evento com logo e capa em base64, na hora de gerar.
+   *
+   * O `event` da prop vem sem as imagens porque embuti-las custa ~1,5s no
+   * servidor e a tela não deve pagar isso só por ter sido aberta. Aqui o custo
+   * cai dentro do loading do PDF, que já existe.
+   */
+  loadEventImages?: () => Promise<EventDetails | undefined>;
   teams: Team[];
   /** todos os inscritos do evento, sem filtro */
   allUsers: User[];
@@ -77,6 +85,7 @@ function ModalGeneratePdf({
   type,
   onClose,
   event,
+  loadEventImages,
   teams,
   allUsers,
   filteredUsers,
@@ -181,6 +190,9 @@ function ModalGeneratePdf({
     // o react-pdf trava a tela enquanto monta: dá um frame para o loading pintar
     setTimeout(async () => {
       try {
+        // logo e capa só são baixadas aqui — ver `loadEventImages`
+        const eventoComImagens = (await loadEventImages?.()) ?? event;
+
         let blob: Blob;
         let fileName: string;
 
@@ -188,7 +200,7 @@ function ModalGeneratePdf({
           blob = await pdf(
             <PdfBadge
               data={[]}
-              event={event}
+              event={eventoComImagens}
               sections={sections}
               nameCase={nameCase}
               blankCount={blanks}
@@ -200,7 +212,7 @@ function ModalGeneratePdf({
           blob = await pdf(
             <PdfEnvelope
               data={[]}
-              event={event}
+              event={eventoComImagens}
               sections={sections}
               nameCase={nameCase}
               blankCount={blanks}
@@ -210,7 +222,7 @@ function ModalGeneratePdf({
         } else {
           blob = await pdf(
             <PdfEnvelopePhoto
-              event={event}
+              event={eventoComImagens}
               sections={sections}
               blankCount={blanks}
             />
