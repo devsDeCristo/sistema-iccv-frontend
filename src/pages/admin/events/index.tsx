@@ -30,14 +30,23 @@ const STATUS_OPTIONS: { value: EventStatusFilter; label: string }[] = [
 
 function Events() {
   const navigate = useNavigate();
-  const { isAdmin, isSuperAdmin } = useRole();
+  const { isAdmin, isSuperAdmin, churchRoles } = useRole();
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState<EventStatusFilter>('active');
   // 'all' e não string vazia: com valor vazio o campo fica em branco e o
   // rótulo não sobe, destoando do Status ao lado. Só o super admin escolhe —
   // o admin já recebe do backend apenas os eventos da igreja dele
   const [churchId, setChurchId] = useState('all');
-  const { data: churches = [] } = useGetChurches({ enabled: isSuperAdmin });
+  const { data: todasAsIgrejas = [] } = useGetChurches({
+    enabled: isSuperAdmin,
+  });
+
+  // o super admin filtra entre todas; quem administra mais de uma, entre as
+  // dela. Com uma igreja só a lista já é de uma igreja só
+  const igrejasDoFiltro = isSuperAdmin
+    ? todasAsIgrejas.map((igreja) => ({ id: igreja.id, name: igreja.name }))
+    : churchRoles.map((vinculo) => vinculo.church);
+  const mostraFiltroDeIgreja = isSuperAdmin || igrejasDoFiltro.length > 1;
   const theme = useTheme();
   const styles = {
     boxFilterAndPdf: {
@@ -100,7 +109,7 @@ function Events() {
             </TextField>
 
             {/* o admin não precisa: a lista dele já vem só com a igreja dele */}
-            {isSuperAdmin && (
+            {mostraFiltroDeIgreja && (
               <TextField
                 select
                 label="Igreja"
@@ -111,9 +120,9 @@ function Events() {
                 onChange={(e) => setChurchId(e.target.value)}
               >
                 <MenuItem value="all">Todas</MenuItem>
-                {churches.map((church) => (
-                  <MenuItem key={church.id} value={church.id}>
-                    {church.name}
+                {igrejasDoFiltro.map((igreja) => (
+                  <MenuItem key={igreja.id} value={igreja.id}>
+                    {igreja.name}
                   </MenuItem>
                 ))}
               </TextField>

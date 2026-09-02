@@ -14,14 +14,20 @@ function FormGeneralInfo() {
     formState: { errors },
   } = useFormContext<GeneralInfoFormType>();
 
-  // o admin não escolhe: o backend vincula o evento à igreja do perfil dele.
-  // O super admin não pertence a nenhuma, então diz para qual está criando —
-  // e, na edição, é por aqui que ele passa um evento para outra igreja.
-  const { isSuperAdmin } = useRole();
-  const { data: churches = [], isLoading: carregandoIgrejas } = useGetChurches({
+  /**
+   * Quem administra uma igreja só não escolhe nada: o backend usa a dela. O
+   * campo aparece para quem tem escolha — o super admin, que pode criar em
+   * qualquer uma, e quem administra mais de uma.
+   */
+  const { isSuperAdmin, igrejasQueAdministra } = useRole();
+  const { data: todas = [], isLoading: carregandoIgrejas } = useGetChurches({
     enabled: isSuperAdmin,
   });
-  const semIgrejas = !carregandoIgrejas && !churches.length;
+
+  const churches = isSuperAdmin ? todas : igrejasQueAdministra;
+  const mostraIgreja = isSuperAdmin || igrejasQueAdministra.length > 1;
+  const semIgrejas =
+    isSuperAdmin && !carregandoIgrejas && !todas.length;
 
   return (
     <Grid container spacing={2}>
@@ -33,7 +39,7 @@ function FormGeneralInfo() {
       {/* primeiro campo da etapa, e não espremido ao lado de outro: é a
           escolha que decide qual painel enxerga o evento e tudo o que vem
           com ele — inscritos, pagamentos, quartos */}
-      {isSuperAdmin && (
+      {mostraIgreja && (
         <Grid item xs={12} md={12}>
           <Controller
             control={control}

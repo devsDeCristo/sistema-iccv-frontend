@@ -38,7 +38,9 @@ import { useRole } from '../../../../hooks/useRole';
 
 function Register() {
   const navigate = useNavigate();
-  const { isSuperAdmin } = useRole();
+  const { isSuperAdmin, igrejasQueAdministra } = useRole();
+  // mesma condição do campo no formulário: só quem tem escolha precisa escolher
+  const precisaEscolherIgreja = isSuperAdmin || igrejasQueAdministra.length > 1;
   const [currentStep, setCurrentStep] = useState(1);
   const methodsCategoryEvent = useForm<CategoryEventFormType>({
     resolver: zodResolver(CATEGORY_EVENT_SCHEMA),
@@ -99,7 +101,7 @@ function Register() {
     methodsGeneralInfo.trigger().then((isValid) => {
       // o super admin não tem igreja no perfil para o backend herdar, então
       // sem esta escolha a criação volta com 400 lá no fim do formulário
-      if (isSuperAdmin && !methodsGeneralInfo.getValues().churchId) {
+      if (precisaEscolherIgreja && !methodsGeneralInfo.getValues().churchId) {
         methodsGeneralInfo.setError('churchId', {
           message: 'Escolha a igreja do evento',
         });

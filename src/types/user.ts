@@ -51,6 +51,12 @@ export interface PaymentResponse {
   payload: Record<string, any> | null;
   discountsAppliedId?: string;
 }
+/** O perfil que uma pessoa tem em uma igreja. */
+export interface ChurchRole {
+  role: number;
+  church: { id: string; name: string };
+}
+
 export interface User {
   id: string;
   email: string;
@@ -67,10 +73,17 @@ export interface User {
   worker: boolean;
   profilePhotoUrl?: string;
   badgeName?: string;
+  /**
+   * Perfil efetivo: super admin, usuário comum ou o mais alto dos vínculos.
+   * Diz se a pessoa alcança a rota; em qual igreja, quem responde é
+   * `churchRoles`.
+   */
   role?: number;
-  /** Igreja de quem entra no painel; inscrito não pertence a nenhuma */
-  churchId?: string;
-  church?: { id: string; name: string } | null;
+  /**
+   * Vínculos de painel: o perfil que ela tem em cada igreja. A mesma pessoa
+   * pode ser admin de uma e financeiro de outra. Inscrito não tem nenhum.
+   */
+  churchRoles?: ChurchRole[];
   emergencyContact?: string;
   indicatedBy?: string;
   leadershipPosition?: string;

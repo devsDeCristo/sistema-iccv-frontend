@@ -27,8 +27,17 @@ function Users() {
   // sobe. Só o super admin escolhe — a lista do admin já vem recortada
   const [churchId, setChurchId] = useState('all');
 
-  const { isAdmin, isSuperAdmin } = useRole();
-  const { data: churches = [] } = useGetChurches({ enabled: isSuperAdmin });
+  const { isAdmin, isSuperAdmin, churchRoles } = useRole();
+  const { data: todasAsIgrejas = [] } = useGetChurches({
+    enabled: isSuperAdmin,
+  });
+
+  // o super admin escolhe entre todas; quem administra mais de uma, entre as
+  // dela. Com uma igreja só não há o que filtrar
+  const igrejasDoFiltro = isSuperAdmin
+    ? todasAsIgrejas.map((igreja) => ({ id: igreja.id, name: igreja.name }))
+    : churchRoles.map((vinculo) => vinculo.church);
+  const mostraFiltroDeIgreja = isSuperAdmin || igrejasDoFiltro.length > 1;
   const theme = useTheme();
   const styles = {
     boxFilterAndButton: {
@@ -104,9 +113,9 @@ function Users() {
           />
 
           {/* a lente da igreja: traz quem está nos eventos dela mais os
-            administradores dela. Quem não é super admin não vê o campo porque
-            a lista dele já é de uma igreja só */}
-          {isSuperAdmin && (
+            administradores dela. Só aparece para quem tem mais de uma igreja
+            para olhar — com uma só, a lista já é dela */}
+          {mostraFiltroDeIgreja && (
             <TextField
               select
               label="Igreja"
@@ -117,9 +126,9 @@ function Users() {
               onChange={(e) => setChurchId(e.target.value)}
             >
               <MenuItem value="all">Todas</MenuItem>
-              {churches.map((church) => (
-                <MenuItem key={church.id} value={church.id}>
-                  {church.name}
+              {igrejasDoFiltro.map((igreja) => (
+                <MenuItem key={igreja.id} value={igreja.id}>
+                  {igreja.name}
                 </MenuItem>
               ))}
             </TextField>

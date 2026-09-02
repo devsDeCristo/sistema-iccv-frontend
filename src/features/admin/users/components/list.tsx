@@ -272,25 +272,35 @@ function List({
         const label = ROLE_LABELS[role] || ROLE_LABELS[Role.USER];
         /**
          * A permissão só diz metade: é a igreja que decide qual painel a
-         * pessoa enxerga, e o super admin vê os perfis de todas — sem o nome
-         * junto não dá para saber de quem é aquele admin.
+         * pessoa enxerga, e a mesma pessoa pode ser admin de uma e financeiro
+         * de outra. Sai um chip por vínculo — o super admin vê os de todas as
+         * igrejas, e sem o nome junto não dá para saber de quem é qual.
          *
-         * Sai um chip por igreja. Hoje o vínculo é um só, mas quando um admin
-         * puder atender duas o mesmo laço já resolve, sem mexer na célula.
-         * Inscrito não pertence a igreja nenhuma: fica só o perfil.
+         * Inscrito não tem vínculo nenhum: fica só o perfil.
          */
-        const igreja = (params.row as User).church;
-        const igrejas = isSuperAdmin && igreja ? [igreja] : [];
+        const vinculos = isSuperAdmin
+          ? (params.row as User).churchRoles ?? []
+          : [];
 
-        const chips = igrejas.length
-          ? igrejas.map((casa) => ({
-              key: casa.id,
-              label: `${label} · ${casa.name}`,
-              // o chip corta com reticências quando a coluna aperta, então a
-              // dica repete o nome inteiro e ainda diz o que o vínculo faz
-              dica: `${label} da ${casa.name} — enxerga no painel só os eventos e os inscritos dessa igreja`,
-            }))
-          : [{ key: 'perfil', label, dica: `Perfil de acesso: ${label}` }];
+        const chips = vinculos.length
+          ? vinculos.map((vinculo) => {
+              const nome = ROLE_LABELS[vinculo.role] || label;
+
+              return {
+                key: vinculo.church.id,
+                cor: ROLE_CHIP_COLOR[vinculo.role] || cor,
+                label: `${nome} · ${vinculo.church.name}`,
+                dica: `${nome} da ${vinculo.church.name} — enxerga no painel só os eventos e os inscritos dessa igreja`,
+              };
+            })
+          : [
+              {
+                key: 'perfil',
+                cor,
+                label,
+                dica: `Perfil de acesso: ${label}`,
+              },
+            ];
 
         return (
           <Stack
@@ -311,7 +321,7 @@ function List({
                 >
                   <CustomChip
                     label={chip.label}
-                    customColor={cor}
+                    customColor={chip.cor}
                     size="small"
                     sx={{ maxWidth: '100%' }}
                   />
