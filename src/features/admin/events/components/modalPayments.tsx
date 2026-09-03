@@ -15,19 +15,28 @@ import {
 } from '@mui/material';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Close, Upload } from '@mui/icons-material';
+import { Close, Description, Upload } from '@mui/icons-material';
 import { methodPaymentOptions, statusPaymentOptions } from '../constants';
 import { usePutUpdatePayment } from '../api/putPayment';
 import { useGetDiscounts } from '../api/getDiscounts';
 import { discountsResponse } from '../../../../types/user';
 import { formatCurrency } from '../../../../utils';
 import { ReceiptPreviewModal } from './modalReceiptView';
+import { toast } from 'react-toastify';
 
 interface ModalPaymentProps {
   open: boolean;
   handleClose: () => void;
   payment: any;
 }
+
+// O `accept` do input é só uma sugestão na caixa de diálogo do SO, e o
+// drag-and-drop nem isso: sem checar o type, já subiu pro Storage desde PDF
+// até o .txt com UUID que o app Fotos da Apple entrega quando a foto é
+// arrastada. PDF é comprovante legítimo (extrato de banco), o resto não.
+const ACCEPTED_RECEIPT_TYPES = ['image/png', 'image/jpeg', 'application/pdf'];
+
+const isImageType = (type?: string) => !!type && type.startsWith('image/');
 
 const titleMap: Record<string, string> = {
   amount: 'Valor',
@@ -55,12 +64,26 @@ export function ModalPayment({
 
   const [isDragging, setIsDragging] = useState(false);
   const [openReceiptPreview, setOpenReceiptPreview] = useState(false);
+  const [receiptBroken, setReceiptBroken] = useState(false);
 
   // O comprovante já enviado vive no payload do pagamento (URL do Firebase,
   // gravada pelo PUT). `receiptFile` é só o arquivo novo escolhido agora —
   // sozinho, ele nunca revela que já existe anexo.
   const existingReceiptUrl: string | undefined =
     payment?.payload?.comprovanteFileUrl;
+  // Comprovantes antigos não guardaram o mime type, e a URL não tem extensão
+  // (`receipt-<id>-<timestamp>`) — para eles só o onError da <img> revela que
+  // o arquivo não é imagem.
+  const existingReceiptType: string | undefined =
+    payment?.payload?.comprovanteFileType;
+  const existingReceiptIsImage =
+    !receiptBroken &&
+    (!existingReceiptType || isImageType(existingReceiptType));
+
+  const openReceiptInNewTab = () => {
+    if (existingReceiptUrl)
+      window.open(existingReceiptUrl, '_blank', 'noopener');
+  };
 
   const { mutate: putUpdatePayment } = usePutUpdatePayment({
     onSuccess: () => {
@@ -74,12 +97,13 @@ export function ModalPayment({
   const discounts = data as discountsResponse[];
 
   const preview = useMemo(() => {
-    if (!receiptFile) return null;
+    if (!receiptFile || !isImageType(receiptFile.type)) return null;
     return URL.createObjectURL(receiptFile);
   }, [receiptFile]);
 
   useEffect(() => {
     if (payment) {
+      setReceiptBroken(false);
       reset({
         //id: payment.id,
         name: payment.fullName,
@@ -113,7 +137,12 @@ export function ModalPayment({
     e.preventDefault();
     setIsDragging(false);
     const file = e.dataTransfer.files?.[0];
-    if (file) setValue('receiptFile', file);
+    if (!file) return;
+    if (!ACCEPTED_RECEIPT_TYPES.includes(file.type)) {
+      toast.error('O comprovante precisa ser PNG, JPG ou PDF');
+      return;
+    }
+    setValue('receiptFile', file);
   };
 
   const styles = {
@@ -330,10 +359,21 @@ export function ModalPayment({
                           hidden
                           ref={fileRef}
                           type="file"
-                          accept="image/png,image/jpeg"
-                          onChange={(e) =>
-                            onChange(e.target.files?.[0] ?? null)
-                          }
+                          accept="image/png,image/jpeg,application/pdf"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0] ?? null;
+                            if (
+                              file &&
+                              !ACCEPTED_RECEIPT_TYPES.includes(file.type)
+                            ) {
+                              toast.error(
+                                'O comprovante precisa ser PNG, JPG ou PDF'
+                              );
+                              e.target.value = '';
+                              return;
+                            }
+                            onChange(file);
+                          }}
                         />
 
                         {receiptFile ? (
@@ -352,7 +392,7 @@ export function ModalPayment({
                               spacing={2}
                               alignItems="center"
                             >
-                              {preview && (
+                              {preview ? (
                                 <Box
                                   component="img"
                                   src={preview}
@@ -364,6 +404,23 @@ export function ModalPayment({
                                     bgcolor: theme.palette.background.default,
                                   }}
                                 />
+                              ) : (
+                                <Box
+                                  sx={{
+                                    width: 100,
+                                    height: 100,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    borderRadius: 1,
+                                    bgcolor: theme.palette.background.default,
+                                  }}
+                                >
+                                  <Description
+                                    fontSize="large"
+                                    color="action"
+                                  />
+                                </Box>
                               )}
 
                               <Box>
@@ -403,20 +460,42 @@ export function ModalPayment({
                               spacing={2}
                               alignItems="center"
                             >
-                              <Box
-                                component="img"
-                                src={existingReceiptUrl}
-                                alt="Comprovante enviado"
-                                onClick={() => setOpenReceiptPreview(true)}
-                                sx={{
-                                  width: 100,
-                                  height: 100,
-                                  objectFit: 'contain',
-                                  borderRadius: 1,
-                                  cursor: 'zoom-in',
-                                  bgcolor: theme.palette.background.default,
-                                }}
-                              />
+                              {existingReceiptIsImage ? (
+                                <Box
+                                  component="img"
+                                  src={existingReceiptUrl}
+                                  alt="Comprovante enviado"
+                                  onError={() => setReceiptBroken(true)}
+                                  onClick={() => setOpenReceiptPreview(true)}
+                                  sx={{
+                                    width: 100,
+                                    height: 100,
+                                    objectFit: 'contain',
+                                    borderRadius: 1,
+                                    cursor: 'zoom-in',
+                                    bgcolor: theme.palette.background.default,
+                                  }}
+                                />
+                              ) : (
+                                <Box
+                                  onClick={openReceiptInNewTab}
+                                  sx={{
+                                    width: 100,
+                                    height: 100,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    borderRadius: 1,
+                                    cursor: 'pointer',
+                                    bgcolor: theme.palette.background.default,
+                                  }}
+                                >
+                                  <Description
+                                    fontSize="large"
+                                    color="action"
+                                  />
+                                </Box>
+                              )}
 
                               <Box>
                                 <Typography fontWeight={500}>
@@ -426,7 +505,9 @@ export function ModalPayment({
                                   fontSize={13}
                                   color="text.secondary"
                                 >
-                                  Clique na imagem para ampliar
+                                  {existingReceiptIsImage
+                                    ? 'Clique na imagem para ampliar'
+                                    : 'O arquivo não é imagem (PDF) — clique para abrir'}
                                 </Typography>
                               </Box>
                             </Stack>
@@ -455,7 +536,7 @@ export function ModalPayment({
                               Clique ou arraste o recibo aqui
                             </Typography>
                             <Typography fontSize={12} color="text.secondary">
-                              PNG, JPG ou SVG
+                              PNG, JPG ou PDF
                             </Typography>
                           </Box>
                         )}
@@ -490,7 +571,9 @@ export function ModalPayment({
           <ReceiptPreviewModal
             open={openReceiptPreview}
             onClose={() => setOpenReceiptPreview(false)}
-            imageUrl={existingReceiptUrl ?? null}
+            imageUrl={
+              existingReceiptIsImage ? (existingReceiptUrl ?? null) : null
+            }
           />
         </Box>
       </Fade>
