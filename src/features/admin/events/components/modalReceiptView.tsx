@@ -27,6 +27,11 @@ export function ReceiptPreviewModal({
     const link = document.createElement('a');
     link.href = imageUrl;
     link.download = 'comprovante.png'; // nome sugerido
+    // A imagem vem do Firebase (outra origem), e aí o browser ignora o
+    // `download` e navega pro arquivo. Sem o _blank isso tiraria o admin da
+    // página de pagamentos.
+    link.target = '_blank';
+    link.rel = 'noopener';
     document?.body?.appendChild(link);
     link.click();
     document?.body?.removeChild(link);

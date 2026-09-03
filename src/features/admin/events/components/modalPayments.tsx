@@ -21,6 +21,7 @@ import { usePutUpdatePayment } from '../api/putPayment';
 import { useGetDiscounts } from '../api/getDiscounts';
 import { discountsResponse } from '../../../../types/user';
 import { formatCurrency } from '../../../../utils';
+import { ReceiptPreviewModal } from './modalReceiptView';
 
 interface ModalPaymentProps {
   open: boolean;
@@ -53,6 +54,13 @@ export function ModalPayment({
   const receiptFile = useWatch({ control, name: 'receiptFile' });
 
   const [isDragging, setIsDragging] = useState(false);
+  const [openReceiptPreview, setOpenReceiptPreview] = useState(false);
+
+  // O comprovante já enviado vive no payload do pagamento (URL do Firebase,
+  // gravada pelo PUT). `receiptFile` é só o arquivo novo escolhido agora —
+  // sozinho, ele nunca revela que já existe anexo.
+  const existingReceiptUrl: string | undefined =
+    payment?.payload?.comprovanteFileUrl;
 
   const { mutate: putUpdatePayment } = usePutUpdatePayment({
     onSuccess: () => {
@@ -296,7 +304,7 @@ export function ModalPayment({
                 />
               </Grid>
 
-              {status === 'PAID' && (
+              {(status === 'PAID' || existingReceiptUrl) && (
                 <Grid item xs={12}>
                   <Title title="Recibo" />
 
@@ -305,7 +313,12 @@ export function ModalPayment({
                     control={control}
                     rules={{
                       validate: (file) => {
-                        if (status === 'PAID' && !file && !codeTransaction) {
+                        if (
+                          status === 'PAID' &&
+                          !file &&
+                          !codeTransaction &&
+                          !existingReceiptUrl
+                        ) {
                           return 'Envie o comprovante ou informe o código da transação';
                         }
                         return true;
@@ -374,6 +387,58 @@ export function ModalPayment({
                               </IconButton>
                             </Tooltip>
                           </Box>
+                        ) : existingReceiptUrl ? (
+                          <Box
+                            sx={{
+                              border: `1px solid ${theme.palette.divider}`,
+                              borderRadius: 2,
+                              p: 2,
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                            }}
+                          >
+                            <Stack
+                              direction="row"
+                              spacing={2}
+                              alignItems="center"
+                            >
+                              <Box
+                                component="img"
+                                src={existingReceiptUrl}
+                                alt="Comprovante enviado"
+                                onClick={() => setOpenReceiptPreview(true)}
+                                sx={{
+                                  width: 100,
+                                  height: 100,
+                                  objectFit: 'contain',
+                                  borderRadius: 1,
+                                  cursor: 'zoom-in',
+                                  bgcolor: theme.palette.background.default,
+                                }}
+                              />
+
+                              <Box>
+                                <Typography fontWeight={500}>
+                                  Comprovante já anexado
+                                </Typography>
+                                <Typography
+                                  fontSize={13}
+                                  color="text.secondary"
+                                >
+                                  Clique na imagem para ampliar
+                                </Typography>
+                              </Box>
+                            </Stack>
+
+                            <Tooltip title="Substituir comprovante">
+                              <IconButton
+                                onClick={() => fileRef.current?.click()}
+                              >
+                                <Upload />
+                              </IconButton>
+                            </Tooltip>
+                          </Box>
                         ) : (
                           <Box
                             sx={styles.uploadBox}
@@ -411,11 +476,22 @@ export function ModalPayment({
               type="submit"
               variant="contained"
               sx={{ mt: 3 }}
-              disabled={status === 'PAID' && !receiptFile && !codeTransaction}
+              disabled={
+                status === 'PAID' &&
+                !receiptFile &&
+                !codeTransaction &&
+                !existingReceiptUrl
+              }
             >
               Salvar alterações
             </Button>
           </form>
+
+          <ReceiptPreviewModal
+            open={openReceiptPreview}
+            onClose={() => setOpenReceiptPreview(false)}
+            imageUrl={existingReceiptUrl ?? null}
+          />
         </Box>
       </Fade>
     </Modal>
