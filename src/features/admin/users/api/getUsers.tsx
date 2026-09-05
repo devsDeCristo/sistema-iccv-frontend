@@ -5,12 +5,20 @@ import { User } from '../../../../types/user';
 
 type GetUsersParams = {
   userId?: string;
+  /**
+   * Lente de igreja: devolve quem está nos eventos dela mais os administradores
+   * dela. Só o super admin muda alguma coisa com isto — o recorte dos outros o
+   * backend já aplica pelo vínculo de quem pediu.
+   */
+  churchId?: string;
 };
 
-const getUsers = ({ userId }: GetUsersParams) => {
+const getUsers = ({ userId, churchId }: GetUsersParams) => {
   const urlWithId = userId ? `/${userId}` : '';
+  const query = churchId ? `?churchId=${encodeURIComponent(churchId)}` : '';
+
   return apiClient
-    .get<User[] | User>(`/users${urlWithId}`)
+    .get<User[] | User>(`/users${urlWithId}${query}`)
     .then((response) => response.data);
 };
 

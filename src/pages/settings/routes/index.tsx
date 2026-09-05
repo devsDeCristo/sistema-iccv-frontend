@@ -1,11 +1,13 @@
 import { Navigate, Route } from 'react-router-dom';
 import { Dispatchers } from '../dispatchers';
 import { RequireRole } from '../../../components/requireRole';
-import { ADMIN_ROLES } from '../../../constants/roles';
+import { Role } from '../../../constants/roles';
 
 /**
- * Configurações do sistema. Mexe em canal de disparo da igreja inteira, então
- * fica fora do alcance do financeiro — só admin e super admin.
+ * Configurações do sistema. O número do WhatsApp é um só para todas as
+ * igrejas: parear ou desconectar aqui derruba o disparo de todas elas, então a
+ * tela é do super admin. Cada igreja escolhe os destinos da própria notícia na
+ * tela de notícias.
  */
 function RoutesSettings() {
   return (
@@ -17,7 +19,7 @@ function RoutesSettings() {
       <Route
         path="/configuracoes/disparadores"
         element={
-          <RequireRole allowedRoles={ADMIN_ROLES}>
+          <RequireRole allowedRoles={[Role.SUPER_ADMIN]}>
             <Dispatchers />
           </RequireRole>
         }

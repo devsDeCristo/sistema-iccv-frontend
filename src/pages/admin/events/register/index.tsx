@@ -34,9 +34,13 @@ import { SelectCategoryEvent } from '../../../../features/admin/events/component
 import { FormLogoAndCover } from '../../../../features/admin/events/components/formLogoAndCover';
 import { toast } from 'react-toastify';
 import { queryClient } from '../../../../config/lib/react-query/query-client';
+import { useRole } from '../../../../hooks/useRole';
 
 function Register() {
   const navigate = useNavigate();
+  const { isSuperAdmin, igrejasQueAdministra } = useRole();
+  // mesma condição do campo no formulário: só quem tem escolha precisa escolher
+  const precisaEscolherIgreja = isSuperAdmin || igrejasQueAdministra.length > 1;
   const [currentStep, setCurrentStep] = useState(1);
   const methodsCategoryEvent = useForm<CategoryEventFormType>({
     resolver: zodResolver(CATEGORY_EVENT_SCHEMA),
@@ -95,6 +99,15 @@ function Register() {
   }
   function generalInfoSubmit() {
     methodsGeneralInfo.trigger().then((isValid) => {
+      // o super admin não tem igreja no perfil para o backend herdar, então
+      // sem esta escolha a criação volta com 400 lá no fim do formulário
+      if (precisaEscolherIgreja && !methodsGeneralInfo.getValues().churchId) {
+        methodsGeneralInfo.setError('churchId', {
+          message: 'Escolha a igreja do evento',
+        });
+        return;
+      }
+
       if (isValid) {
         handleNext();
       }
@@ -143,6 +156,7 @@ function Register() {
           const finalDataBase64 = {
             name: generalInfoData.name,
             groupLink: generalInfoData.groupLink || '',
+            churchId: generalInfoData.churchId,
             status: generalInfoData.status,
             startDate: new Date(dateAndTimeData.startDate),
             endDate: new Date(dateAndTimeData.endDate),

@@ -6,11 +6,15 @@ import {
   getStoredUser,
   isAuthError,
   rememberRoute,
+  setStoredUser,
 } from '../session';
 
 export async function authLoaderAdmin({ request }: LoaderFunctionArgs) {
   try {
     const { data } = await apiClient.get('/auth/admin/validate');
+    // a resposta é a versão atual do perfil: guardá-la aqui é o que faz uma
+    // mudança de vínculo valer na navegação seguinte, e não só no próximo login
+    setStoredUser(data);
     return data;
   } catch (error) {
     if (!isAuthError(error)) {

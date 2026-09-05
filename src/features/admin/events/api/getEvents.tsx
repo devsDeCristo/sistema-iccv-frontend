@@ -15,14 +15,24 @@ interface GetEventsParams {
    * próprio navegador carrega e cacheia.
    */
   embedImages?: boolean;
+  /**
+   * Visão do painel: só os eventos da igreja de quem está logado. Sem isto vem
+   * o catálogo, que é o que a área do usuário mostra — lá o admin navega e se
+   * inscreve como qualquer outro, em evento de qualquer igreja.
+   */
+  painel?: boolean;
 }
 
-const getEvents = ({ eventId, embedImages }: GetEventsParams) => {
+const getEvents = ({ eventId, embedImages, painel }: GetEventsParams) => {
   const urlWithId = eventId ? `/${eventId}` : '';
 
   return apiClient
     .get<Event[] | EventDetails>(`/events${urlWithId}`, {
-      params: embedImages ? { embedImages: true } : undefined,
+      // os dois convivem: o painel recorta por igreja, o base64 é para o PDF
+      params: {
+        ...(painel ? { painel: true } : {}),
+        ...(embedImages ? { embedImages: true } : {}),
+      },
     })
     .then((response) => response.data)
     .catch(handleResponseThrowError());

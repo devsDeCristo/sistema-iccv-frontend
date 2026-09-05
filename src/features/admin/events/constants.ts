@@ -72,6 +72,12 @@ export const GENERAL_INFO_SCHEMA = z.object({
     })
     .optional(),
   hideVacancies: z.boolean().optional(),
+  /**
+   * Igreja dona do evento. O admin não escolhe — o backend usa a dele. Só o
+   * super admin, que não pertence a nenhuma, precisa dizer para qual está
+   * criando, e aí o campo vira obrigatório na tela.
+   */
+  churchId: z.string().optional(),
   status: EVENT_STATUS_SCHEMA,
 });
 export const CATEGORY_EVENT_SCHEMA = z.object({

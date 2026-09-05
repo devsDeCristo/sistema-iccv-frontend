@@ -6,6 +6,7 @@ import {
   ListItemIcon,
   ListItemText,
   Menu,
+  Stack,
   Tooltip,
   MenuItem,
   useTheme,
@@ -88,8 +89,17 @@ const renderCellWithCopy = (value: string | number) => {
   );
 };
 
-function List({ search }: { search: string }) {
-  const { data = [], isLoading } = useGetUsers({});
+function List({
+  search,
+  churchId = 'all',
+}: {
+  search: string;
+  /** 'all' = todas; só o super admin recebe gente de mais de uma igreja */
+  churchId?: string;
+}) {
+  const { data = [], isLoading } = useGetUsers({
+    churchId: churchId === 'all' ? undefined : churchId,
+  });
   // const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const openMenu = Boolean(anchorEl);
@@ -102,6 +112,7 @@ function List({ search }: { search: string }) {
   const devRowBlocked = rowSelected?.role === Role.DEV && !isDev;
   const theme = useTheme();
   const navigate = useNavigate();
+  const { isSuperAdmin } = useRole();
 
   /** Cor de cada perfil de acesso, na paleta de chips do tema */
   const ROLE_CHIP_COLOR: Record<number, string> = {
@@ -257,15 +268,75 @@ function List({ search }: { search: string }) {
       field: 'role',
       headerName: 'Permissão',
       flex: 1,
-      minWidth: 120,
+      // cabe "Admin · " mais um nome curto de igreja; o que passar disso corta
+      // com reticências e aparece inteiro na dica
+      minWidth: 200,
       renderCell: (params: GridCellParams) => {
         // perfil desconhecido cai em Usuário, como antes
         const role = Number(params.row.role);
+        // `??` e não `||`: perfil futuro em 0 é valor válido e cairia no
+        // padrão silenciosamente
         const cor = ROLE_CHIP_COLOR[role] ?? theme.palette.chips.success;
         const label = ROLE_LABELS[role] ?? ROLE_LABELS[Role.USER];
+        /**
+         * A permissão só diz metade: é a igreja que decide qual painel a
+         * pessoa enxerga, e a mesma pessoa pode ser admin de uma e financeiro
+         * de outra. Sai um chip por vínculo — o super admin vê os de todas as
+         * igrejas, e sem o nome junto não dá para saber de quem é qual.
+         *
+         * Inscrito não tem vínculo nenhum: fica só o perfil.
+         */
+        const vinculos = isSuperAdmin
+          ? (params.row as User).churchRoles ?? []
+          : [];
+
+        const chips = vinculos.length
+          ? vinculos.map((vinculo) => {
+              const nome = ROLE_LABELS[vinculo.role] ?? label;
+
+              return {
+                key: vinculo.church.id,
+                cor: ROLE_CHIP_COLOR[vinculo.role] ?? cor,
+                label: `${nome} · ${vinculo.church.name}`,
+                dica: `${nome} da ${vinculo.church.name} — enxerga no painel só os eventos e os inscritos dessa igreja`,
+              };
+            })
+          : [
+              {
+                key: 'perfil',
+                cor,
+                label,
+                dica: `Perfil de acesso: ${label}`,
+              },
+            ];
 
         return (
-          <CustomChip label={label} customColor={cor} size="small" />
+          <Stack
+            direction="row"
+            gap={0.5}
+            flexWrap="wrap"
+            alignItems="center"
+            sx={{ width: '100%', minWidth: 0, overflow: 'hidden' }}
+          >
+            {chips.map((chip) => (
+              <Tooltip key={chip.key} title={chip.dica}>
+                {/* o `span` do Tooltip cresce com o conteúdo: sem prendê-lo à
+                    largura da célula, o `maxWidth` do chip não tem a que se
+                    referir e o nome comprido vaza por cima da coluna vizinha */}
+                <Box
+                  component="span"
+                  sx={{ display: 'inline-flex', minWidth: 0, maxWidth: '100%' }}
+                >
+                  <CustomChip
+                    label={chip.label}
+                    customColor={chip.cor}
+                    size="small"
+                    sx={{ maxWidth: '100%' }}
+                  />
+                </Box>
+              </Tooltip>
+            ))}
+          </Stack>
         );
       },
     },

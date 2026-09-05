@@ -79,7 +79,7 @@ import { User } from '../../../../types/user';
 import { ListUsersWaitList } from '../../../../features/admin/events/components/listUsersWaitList';
 import { ListPayments } from '../../../../features/admin/events/components/listPayments';
 import { toast } from 'react-toastify';
-import { useRole } from '../../../../hooks/useRole';
+import { useEventRole } from '../../../../hooks/useEventRole';
 import { FINANCE_EVENT_TABS } from '../../../../constants/roles';
 
 const EVENT_TABS = [
@@ -92,7 +92,6 @@ const EVENT_TABS = [
 
 function Details() {
   const { id, subPage } = useParams();
-  const { isAdmin, isFinance } = useRole();
   const navigate = useNavigate();
   const apiRefUsers = useGridApiRef();
   const [openModalBedRoom, setOpenModalBedRoom] = useState(false);
@@ -127,16 +126,33 @@ function Details() {
 
   const handleCloseModalQrCode = () => setOpenModalQrCode(false);
   const theme = useTheme();
+  const { data: eventData, isLoading: loadingEventDetails } = useGetEvents(
+    {
+      eventId: eventId,
+      painel: true,
+    },
+    {
+      enabled: !!eventId,
+    }
+  );
+  const event = eventData as EventDetails;
+  /**
+   * O perfil desta pessoa na igreja *deste* evento. Um admin de uma igreja
+   * pode ser financeiro em outra: usar o perfil efetivo aqui abriria as abas
+   * de admin num evento onde a API só a reconhece como financeiro.
+   */
+  const { isAdminDoEvento, resolvido } = useEventRole(event?.churchId);
+
   // quartos e equipes são carregados aqui só para os PDFs dessas abas.
-  // O financeiro não tem acesso a esses endpoints: sem o `enabled` a página
-  // dispararia as duas queries no mount e ele veria vários toasts de 403
-  // sem ter clicado em nada.
+  // Quem não administra esta igreja não tem acesso a esses endpoints: sem o
+  // `enabled` a página dispararia as duas queries no mount e a pessoa veria
+  // vários toasts de 403 sem ter clicado em nada.
   const { data: teamsData = [], isLoading: loadingTeams } = useGetTeams(
     {
       eventId,
     },
     {
-      enabled: !!eventId && isAdmin,
+      enabled: !!eventId && isAdminDoEvento,
     }
   );
   const teams = teamsData as unknown as Team[];
@@ -146,17 +162,9 @@ function Details() {
         eventId: eventId,
       },
       {
-        enabled: !!eventId && isAdmin,
+        enabled: !!eventId && isAdminDoEvento,
       }
     );
-  const { data: eventData, isLoading: loadingEventDetails } = useGetEvents(
-    {
-      eventId: eventId,
-    },
-    {
-      enabled: !!eventId,
-    }
-  );
   const { data: usersData, isLoading: loadingUsers } = useGetUsers(
     {
       eventId: eventId,
@@ -166,7 +174,6 @@ function Details() {
     }
   );
   const users = usersData as User[];
-  const event = eventData as EventDetails;
   const queryClient = useQueryClient();
 
   /**
@@ -338,8 +345,8 @@ function Details() {
         a.roleTeam === b.roleTeam
           ? a.fullName.localeCompare(b.fullName)
           : a.roleTeam === 'LEADER'
-          ? -1
-          : 1
+            ? -1
+            : 1
       ),
     }));
 
@@ -360,23 +367,32 @@ function Details() {
     navigate(`/admin/eventos/${id}/detalhes/${newValue}`);
   };
 
-  // o financeiro só enxerga Inscritos e Pagamentos
+  /**
+   * Só quem administra a igreja deste evento vê as cinco abas. As outras — o
+   * financeiro, e o intervalo em que o evento ainda está carregando — ficam em
+   * Inscritos e Pagamentos: começar pelo conjunto menor e abrir depois nunca
+   * chega a oferecer uma aba que a API vai recusar.
+   */
   const visibleTabs = useMemo(
     () =>
-      isFinance
-        ? EVENT_TABS.filter((tab) => FINANCE_EVENT_TABS.includes(tab.value))
-        : EVENT_TABS,
-    [isFinance]
+      isAdminDoEvento
+        ? EVENT_TABS
+        : EVENT_TABS.filter((tab) => FINANCE_EVENT_TABS.includes(tab.value)),
+    [isAdminDoEvento]
   );
 
-  // acesso direto pela URL a uma aba bloqueada volta para a primeira liberada
+  // acesso direto pela URL a uma aba bloqueada volta para a primeira liberada.
+  // Só depois do evento chegar: antes disso todo mundo parece financeiro, e um
+  // link direto para Quartos seria jogado fora antes de dar tempo de decidir
   useEffect(() => {
+    if (!resolvido) return;
+
     if (!visibleTabs.some((tab) => tab.value === pageValue)) {
       const fallback = visibleTabs[0].value;
       setPageValue(fallback);
       navigate(`/admin/eventos/${id}/detalhes/${fallback}`, { replace: true });
     }
-  }, [visibleTabs, pageValue, id, navigate]);
+  }, [resolvido, visibleTabs, pageValue, id, navigate]);
   /**
    * Lê da grade o que o usuário vê e o que marcou. `gridFilteredSortedRowIds`
    * já reflete busca, filtros e aba de grupo; `selectedGridRows` traz as linhas
@@ -503,7 +519,7 @@ function Details() {
       >
         {/* ação da tela inteira, ao lado do título: o check-in é operado em
             tela cheia, fora das abas de detalhe */}
-        {!isFinance && (
+        {isAdminDoEvento && (
           <Button
             variant="contained"
             startIcon={<HowToReg />}

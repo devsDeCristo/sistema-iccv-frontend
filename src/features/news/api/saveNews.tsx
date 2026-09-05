@@ -28,6 +28,10 @@ const montarFormData = (data: NewsPayload) => {
   if (data.imageFile) formData.append('imageFile', data.imageFile);
   if (data.removeImage) formData.append('removeImage', 'true');
 
+  // sempre vai, mesmo vazio: vazio é o "aviso para todos", e é assim que a
+  // edição consegue tirar a restrição de evento que a notícia tinha
+  formData.append('eventId', data.eventId ?? '');
+
   // sempre vai, mesmo vazio: é assim que o backend entende "tirei todos os
   // destinos" em vez de "não mexi neles"
   formData.append('groupRoleIds', JSON.stringify(data.groupRoleIds ?? []));

@@ -23,7 +23,7 @@ import { emAndamento } from '../utils/eventStatus';
  */
 export const CardsStatus = () => {
   const theme = useTheme();
-  const { data, isLoading } = useGetEvents({});
+  const { data, isLoading } = useGetEvents({ painel: true });
   const events = Array.isArray(data) ? (data as Event[]) : [];
 
   const ativos = events.filter((event) => event.status === 'ACTIVE').length;

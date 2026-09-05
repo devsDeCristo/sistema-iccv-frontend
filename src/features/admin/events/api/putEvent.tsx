@@ -34,6 +34,9 @@ const putUpdateEvent = ({ data, id, files }: PutUpdateEventProps) => {
   formData.append('data', JSON.stringify(data.data));
   formData.append('groupRoles', JSON.stringify(data.groupRoles));
   if (data.groupLink) formData.append('groupLink', data.groupLink);
+  // mudar a igreja do evento é do super admin; dos outros perfis o campo nem
+  // sai da tela, e o backend ignora se vier
+  if (data.churchId) formData.append('churchId', data.churchId);
 
   return apiClient
     .put<boolean>(`/events/${id}`, formData, {

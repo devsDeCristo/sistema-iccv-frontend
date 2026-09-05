@@ -6,11 +6,28 @@ import { OPTIONS_STATUS } from '../constants';
 import { GeneralInfoFormType } from '../types';
 import 'react-quill/dist/quill.snow.css';
 import ReactQuillEditor from '../../../../components/reactQuillEditor';
+import { useRole } from '../../../../hooks/useRole';
+import { useGetChurches } from '../../churches/api/getChurches';
 function FormGeneralInfo() {
   const {
     control,
     formState: { errors },
   } = useFormContext<GeneralInfoFormType>();
+
+  /**
+   * Quem administra uma igreja só não escolhe nada: o backend usa a dela. O
+   * campo aparece para quem tem escolha — o super admin, que pode criar em
+   * qualquer uma, e quem administra mais de uma.
+   */
+  const { isSuperAdmin, igrejasQueAdministra } = useRole();
+  const { data: todas = [], isLoading: carregandoIgrejas } = useGetChurches({
+    enabled: isSuperAdmin,
+  });
+
+  const churches = isSuperAdmin ? todas : igrejasQueAdministra;
+  const mostraIgreja = isSuperAdmin || igrejasQueAdministra.length > 1;
+  const semIgrejas =
+    isSuperAdmin && !carregandoIgrejas && !todas.length;
 
   return (
     <Grid container spacing={2}>
@@ -19,6 +36,36 @@ function FormGeneralInfo() {
           Informações Gerais do Evento
         </Typography>
       </Grid>
+      {/* primeiro campo da etapa, e não espremido ao lado de outro: é a
+          escolha que decide qual painel enxerga o evento e tudo o que vem
+          com ele — inscritos, pagamentos, quartos */}
+      {mostraIgreja && (
+        <Grid item xs={12} md={12}>
+          <Controller
+            control={control}
+            name="churchId"
+            render={({ field: { onChange, value } }) => (
+              <InputSelect
+                size="small"
+                label="Igreja do evento *"
+                menuOptions={churches.map((church) => ({
+                  value: church.id,
+                  name: church.name,
+                }))}
+                value={value ?? ''}
+                onChange={onChange}
+                helperText={
+                  semIgrejas
+                    ? 'Nenhuma igreja cadastrada — crie uma no menu Igrejas antes de seguir'
+                    : 'O evento e os inscritos dele ficam visíveis só para o painel desta igreja'
+                }
+                error={!!errors.churchId || semIgrejas}
+                errorMessage={errors.churchId?.message}
+              />
+            )}
+          />
+        </Grid>
+      )}
       <Grid item xs={12} md={6}>
         <Controller
           control={control}
