@@ -10,6 +10,7 @@ import {
   MenuItem,
   useTheme,
   Button,
+  Typography,
 } from '@mui/material';
 import {
   DataGrid,
@@ -24,6 +25,7 @@ import {
 } from '@mui/x-data-grid';
 import { useGetUsers } from '../api/getUsers';
 import { Role, ROLE_LABELS } from '../../../../constants/roles';
+import { useRole } from '../../../../hooks/useRole';
 import {
   formatCPF,
   formatDate,
@@ -94,11 +96,16 @@ function List({ search }: { search: string }) {
   const [openModalEditRole, setOpenModalEditRole] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [rowSelected, setRowSelected] = useState<User | null>(null);
+  const { isDev } = useRole();
+  // O backend recusa com 403 qualquer alteração numa conta dev feita por outro
+  // perfil; aqui a ação nem é oferecida, para o admin não esbarrar no erro.
+  const devRowBlocked = rowSelected?.role === Role.DEV && !isDev;
   const theme = useTheme();
   const navigate = useNavigate();
 
   /** Cor de cada perfil de acesso, na paleta de chips do tema */
   const ROLE_CHIP_COLOR: Record<number, string> = {
+    [Role.DEV]: theme.palette.chips.default,
     [Role.SUPER_ADMIN]: theme.palette.chips.info,
     [Role.ADMIN]: theme.palette.chips.alert,
     [Role.FINANCE]: theme.palette.chips.pending,
@@ -254,8 +261,8 @@ function List({ search }: { search: string }) {
       renderCell: (params: GridCellParams) => {
         // perfil desconhecido cai em Usuário, como antes
         const role = Number(params.row.role);
-        const cor = ROLE_CHIP_COLOR[role] || theme.palette.chips.success;
-        const label = ROLE_LABELS[role] || ROLE_LABELS[Role.USER];
+        const cor = ROLE_CHIP_COLOR[role] ?? theme.palette.chips.success;
+        const label = ROLE_LABELS[role] ?? ROLE_LABELS[Role.USER];
 
         return (
           <CustomChip label={label} customColor={cor} size="small" />
@@ -384,18 +391,27 @@ function List({ search }: { search: string }) {
           'aria-labelledby': 'options-button',
         }}
       >
-        <MenuItem onClick={handleClickEdit}>
+        <MenuItem onClick={handleClickEdit} disabled={devRowBlocked}>
           <ListItemIcon>
             <VisibilityOutlined fontSize="small" color="primary" />
           </ListItemIcon>
           <ListItemText>Ver detalhes do usuário</ListItemText>
         </MenuItem>
-        <MenuItem onClick={handleClickEditRole}>
+        <MenuItem onClick={handleClickEditRole} disabled={devRowBlocked}>
           <ListItemIcon>
             <Key fontSize="small" color="primary" />
           </ListItemIcon>
           <ListItemText>Editar Permissões</ListItemText>
         </MenuItem>
+        {devRowBlocked && (
+          <Typography
+            fontSize={12}
+            color="text.secondary"
+            sx={{ px: 2, py: 1, maxWidth: 240 }}
+          >
+            Conta Dev: somente outro Dev pode alterar.
+          </Typography>
+        )}
       </Menu>
     </Card>
   );

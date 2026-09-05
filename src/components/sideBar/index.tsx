@@ -4,6 +4,7 @@ import {
   Campaign,
   ConfirmationNumber,
   Event,
+  History,
   Logout,
   People,
   Send,
@@ -267,7 +268,7 @@ const SideBar: React.FC<SideBarProps> = ({
   setOpenDrawer,
 }) => {
   const theme = useTheme();
-  const { isAdmin: isAdminRole } = useRole();
+  const { isAdmin: isAdminRole, isDev } = useRole();
 
   const areaAtual: AreaSideBar = area ?? (isAdmin ? 'admin' : 'usuario');
 
@@ -310,6 +311,18 @@ const SideBar: React.FC<SideBarProps> = ({
                 link: '/admin/noticias',
                 icon: <Campaign />,
                 title: 'Notícias',
+                novo: true,
+              },
+            ]
+          : []),
+        // registro de atividades é do dev: mostra o antes e o depois de
+        // qualquer tabela, dado pessoal de inscrito incluído
+        ...(isDev
+          ? [
+              {
+                link: '/admin/atividades',
+                icon: <History />,
+                title: 'Registro de Atividades',
                 novo: true,
               },
             ]

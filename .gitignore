@@ -1,5 +1,8 @@
 # Logs
-logs
+# Ancorado na raiz de propósito: sem a barra, o padrão casa com qualquer
+# pasta chamada `logs` em qualquer nível — e engolia as telas do registro
+# de atividades, sem aviso nenhum.
+/logs
 *.log
 npm-debug.log*
 yarn-debug.log*

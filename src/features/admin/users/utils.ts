@@ -32,7 +32,7 @@ export function userToFormValues(user?: User | null): RegisterUsersFormType {
     badgeName: user?.badgeName || '',
     notes: user?.notes || '',
     leadershipPosition: user?.leadershipPosition || '',
-    role: user?.role || DEFAULT_USER_ROLE,
+    role: user?.role ?? DEFAULT_USER_ROLE,
   };
 }
 

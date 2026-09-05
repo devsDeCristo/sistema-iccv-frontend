@@ -18,6 +18,7 @@ import { usePutUser } from '../api/putUser';
 import { useEffect, useState } from 'react';
 import { User } from '../../../../types/user';
 import { Role } from '../../../../constants/roles';
+import { useRole } from '../../../../hooks/useRole';
 
 interface ModalAddUserProps {
   open: boolean;
@@ -32,7 +33,15 @@ function ModalEditRole({
   userId = '',
   user,
 }: ModalAddUserProps) {
-  const [valueRole, setValueRole] = useState(user?.role || 5);
+  // `??` e não `||`: o dev é -1 hoje, mas qualquer perfil futuro em 0 viraria
+  // "Usuário" silenciosamente aqui.
+  const [valueRole, setValueRole] = useState(user?.role ?? Role.USER);
+  const { isDev } = useRole();
+  // Conceder ou remover o dev é coisa de dev (o backend recusa com 403), então
+  // para os demais admins o perfil nem aparece, e o formulário fica travado
+  // quando o usuário editado já é dev.
+  const targetIsDev = user?.role === Role.DEV;
+  const blockedByDev = targetIsDev && !isDev;
   // const userLocal = JSON.parse(localStorage.getItem('user') || '{}') as User;
   // const disabledButton = userLocal ? userLocal.id === userLocal.id : false;
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -40,7 +49,7 @@ function ModalEditRole({
   };
   useEffect(() => {
     if (user) {
-      setValueRole(user.role || 5);
+      setValueRole(user.role ?? Role.USER);
     }
   }, [user]);
   const style = {
@@ -65,7 +74,7 @@ function ModalEditRole({
   });
 
   const onSubimitEditRoleUser = () => {
-    if (!userId) return;
+    if (!userId || blockedByDev) return;
     putUser({
       userId: userId,
       data: {
@@ -111,29 +120,51 @@ function ModalEditRole({
                 value={valueRole}
                 onChange={handleChange}
               >
+                {(isDev || targetIsDev) && (
+                  <FormControlLabel
+                    value={Role.DEV}
+                    control={<Radio />}
+                    disabled={!isDev}
+                    label="Dev"
+                  />
+                )}
                 <FormControlLabel
+                  disabled={blockedByDev}
                   value={Role.SUPER_ADMIN}
                   control={<Radio />}
                   label="Super Admin"
                 />
                 <FormControlLabel
+                  disabled={blockedByDev}
                   value={Role.ADMIN}
                   control={<Radio />}
                   label="Admin"
                 />
                 <FormControlLabel
+                  disabled={blockedByDev}
                   value={Role.FINANCE}
                   control={<Radio />}
                   label="Financeiro"
                 />
                 <FormControlLabel
+                  disabled={blockedByDev}
                   value={Role.USER}
                   control={<Radio />}
                   label="Usuário"
                 />
               </RadioGroup>
             </FormControl>
-            <Button type="submit" variant="contained" fullWidth>
+            {blockedByDev && (
+              <Typography fontSize={13} color="error" mb={1}>
+                Perfil Dev: somente outro Dev pode alterar este acesso.
+              </Typography>
+            )}
+            <Button
+              type="submit"
+              variant="contained"
+              fullWidth
+              disabled={blockedByDev}
+            >
               Salvar
             </Button>
           </form>
