@@ -1,7 +1,7 @@
 import { UseQueryOptions, useQuery } from 'react-query';
 import { apiClient } from '../../../../config/lib/axios/api-client';
 import { handleResponseThrowError } from '../../../../utils/service';
-import { GET_LOGS } from '../constants';
+import { GET_LOGS, GET_LOG_OPERATIONS } from '../constants';
 
 export type LogChange = {
   field: string;
@@ -39,6 +39,17 @@ export type LogEntry = {
  * inscrição, tipo de inscrição e pagamento — na tela isso é uma linha só.
  */
 export type LogAction = LogEntry & {
+  /**
+   * A rota que executou a ação, no molde `POST /events/:idEvent/users/:idUser`.
+   * Nula no histórico anterior à coluna.
+   */
+  operation: string | null;
+  /**
+   * O nome da ação — "Inscrição no evento". A tabela diz o que mudou; isto diz
+   * o que a pessoa mandou fazer, e as duas coisas não são a mesma: inscrever,
+   * cancelar e chamar da lista de espera mexem nas mesmas tabelas.
+   */
+  operationLabel: string | null;
   /** quantas tabelas diferentes a ação tocou */
   tablesCount: number;
   /** quantas escritas ao todo, contando repetições na mesma tabela */
@@ -63,6 +74,8 @@ export type GetLogsParams = {
   userId?: string;
   model?: string;
   action?: string;
+  /** operação executada, no molde da rota; o catálogo vem de useGetLogOperations */
+  operation?: string;
   page?: number;
   limit?: number;
 };
@@ -88,5 +101,29 @@ export const useGetLogs = (
     () => getLogs(params),
     // a paginação é do servidor: sem isto a tabela pisca a cada página
     { keepPreviousData: true, ...options }
+  );
+};
+
+/** Uma opção do filtro de operação: a rota e o nome dela */
+export type LogOperation = { value: string; label: string };
+
+const getLogOperations = () => {
+  return apiClient
+    .get<LogOperation[]>('/logs/operations')
+    .then((response) => response.data)
+    .catch(handleResponseThrowError());
+};
+
+/**
+ * O catálogo de operações vem da API, e não de uma cópia por aqui: a lista
+ * muda quando uma rota nasce ou troca de caminho, e duas listas mantidas à mão
+ * divergem na primeira vez que alguém esquecer de mexer nas duas.
+ */
+export const useGetLogOperations = () => {
+  return useQuery<LogOperation[]>(
+    [GET_LOG_OPERATIONS],
+    () => getLogOperations(),
+    // não muda enquanto o servidor não for reimplantado
+    { staleTime: Infinity }
   );
 };

@@ -1,4 +1,5 @@
 export const GET_LOGS = 'GET_LOGS';
+export const GET_LOG_OPERATIONS = 'GET_LOG_OPERATIONS';
 
 /** Janelas do filtro de tempo. A tela abre em 24 horas. */
 export const PERIOD_OPTIONS = [

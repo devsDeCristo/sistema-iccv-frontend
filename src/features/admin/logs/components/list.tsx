@@ -36,7 +36,14 @@ import { UserAvatar } from '../../../../components/userAvatar';
 import { formatDateTime, tempoRelativo } from '../../../../utils';
 import { useGetUsers } from '../../users/api/getUsers';
 import { User } from '../../../../types/user';
-import { LogAction, LogChange, LogPerson, useGetLogs } from '../api/getLogs';
+import {
+  LogAction,
+  LogChange,
+  LogOperation,
+  LogPerson,
+  useGetLogOperations,
+  useGetLogs,
+} from '../api/getLogs';
 import {
   ACTION_CHIP_TONE,
   ACTION_OPTIONS,
@@ -145,6 +152,7 @@ function ListLogs() {
   const [usuario, setUsuario] = useState<User | null>(null);
   const [model, setModel] = useState('');
   const [action, setAction] = useState('');
+  const [operacao, setOperacao] = useState<LogOperation | null>(null);
   const [page, setPage] = useState(0);
   const [detalhe, setDetalhe] = useState<LogAction | null>(null);
 
@@ -158,10 +166,12 @@ function ListLogs() {
     userId: usuario?.id,
     model: model || undefined,
     action: action || undefined,
+    operation: operacao?.value,
     page: page + 1,
     limit: PAGE_SIZE,
   });
 
+  const { data: operacoes = [] } = useGetLogOperations();
   const { data: usersData = [] } = useGetUsers({});
   const usuarios = (Array.isArray(usersData) ? usersData : []) as User[];
 
@@ -263,22 +273,41 @@ function ListLogs() {
       ),
     },
     {
-      field: 'modelLabel',
-      headerName: 'Tabela',
-      width: 175,
+      field: 'operationLabel',
+      headerName: 'Operação',
+      flex: 1,
+      minWidth: 215,
       renderCell: ({ row }) => {
-        // a mesma ação escreve em várias tabelas; a linha mostra a principal e
-        // conta as outras, que abrem no painel lateral
+        /**
+         * O que a pessoa mandou fazer, e não a tabela que isso mexeu: uma
+         * inscrição, um cancelamento e uma chamada da lista de espera escrevem
+         * nas mesmas duas tabelas, e antes as três diziam "Inscrição no
+         * evento". Sem a rota — histórico antigo — a tabela volta a ser o nome
+         * possível.
+         */
+        const nome = row.operationLabel ?? row.modelLabel;
         const outras = row.tablesCount - 1;
+
+        const detalhe = [
+          // não repete o nome quando a tabela principal se chama igual
+          row.operationLabel && row.modelLabel !== row.operationLabel
+            ? row.modelLabel
+            : null,
+          outras > 0
+            ? `+${outras} ${outras === 1 ? 'tabela' : 'tabelas'}`
+            : null,
+        ]
+          .filter(Boolean)
+          .join(' · ');
 
         return (
           <Stack spacing={0} py={1} minWidth={0}>
             <Typography fontSize={13} noWrap>
-              {row.modelLabel}
+              {nome}
             </Typography>
-            {outras > 0 && (
-              <Typography fontSize={11} color="text.secondary">
-                e mais {outras} {outras === 1 ? 'tabela' : 'tabelas'}
+            {detalhe && (
+              <Typography fontSize={11} color="text.secondary" noWrap>
+                {detalhe}
               </Typography>
             )}
           </Stack>
@@ -392,6 +421,30 @@ function ListLogs() {
             )}
           />
 
+          {/* lista longa e de nomes parecidos: um select obrigaria a percorrer
+              quase quarenta linhas para achar "Inscrição no evento" */}
+          <Autocomplete
+            size="small"
+            sx={{ minWidth: 240, flex: 1 }}
+            options={operacoes}
+            value={operacao}
+            onChange={(_, value) => {
+              setOperacao(value);
+              setPage(0);
+            }}
+            getOptionLabel={(option) => option.label}
+            isOptionEqualToValue={(option, value) =>
+              option.value === value.value
+            }
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="Operação"
+                placeholder="O que foi feito"
+              />
+            )}
+          />
+
           <TextField
             select
             size="small"
@@ -494,14 +547,26 @@ function ListLogs() {
               alignItems="center"
               justifyContent="space-between"
             >
-              <Box>
+              <Box minWidth={0}>
                 <Typography fontSize={18} fontWeight={600}>
-                  {detalhe.actionLabel} · {detalhe.modelLabel}
+                  {detalhe.operationLabel ??
+                    `${detalhe.actionLabel} · ${detalhe.modelLabel}`}
                 </Typography>
                 {detalhe.entriesCount > 1 && (
                   <Typography fontSize={12} color="text.secondary">
                     {detalhe.entriesCount} escritas em {detalhe.tablesCount}{' '}
                     {detalhe.tablesCount === 1 ? 'tabela' : 'tabelas'}
+                  </Typography>
+                )}
+                {/* a rota crua: o painel é do dev, e é por ela que ele acha o
+                    controller que executou a ação */}
+                {detalhe.operation && (
+                  <Typography
+                    fontSize={11}
+                    color="text.disabled"
+                    sx={{ fontFamily: 'monospace', mt: 0.25 }}
+                  >
+                    {detalhe.operation}
                   </Typography>
                 )}
               </Box>
