@@ -8,7 +8,11 @@ import {
 } from '@mui/icons-material';
 import { z } from 'zod';
 import { GroupRole } from './types';
-import { PaymentMethod, PaymentStatus } from '../../../types/user';
+import {
+  PaymentMethod,
+  PaymentReceived,
+  PaymentStatus,
+} from '../../../types/user';
 
 export const GET_EVENTS = 'GET_EVENTS';
 export const GET_BEDROOMS = 'GET_BEDROOMS';
@@ -17,6 +21,7 @@ export const GET_EVENT_USERS = 'GET_EVENT_USERS';
 export const GET_EVENT_USERS_WAITLIST = 'GET_EVENT_USERS_WAITLIST';
 export const GET_GROUPS_BY_USER = 'GET_GROUPS_BY_USER';
 export const GET_PAYMENTS_EVENT = 'GET_PAYMENTS_EVENT';
+export const GET_PAYMENT_LOGS = 'GET_PAYMENT_LOGS';
 export const GET_DISCOUNTS = 'GET_DISCOUNTS';
 
 const DEFAULT_MESSAGE = 'Campo obrigatório';
@@ -31,14 +36,16 @@ export const GROUP_ROLE_SELECT_SCHEMA = z.object({
   }),
 });
 export const ROLE_SELECT_SCHEMA = z.object({
-  groupRole:z.array(z.object({
-    groupRoleId: z.string({
-      required_error: DEFAULT_MESSAGE,
-    }),
-    roleIds: z.array(z.string()).min(1, {
-      message: 'Selecione ao menos uma opção',
-    }),
-  })),
+  groupRole: z.array(
+    z.object({
+      groupRoleId: z.string({
+        required_error: DEFAULT_MESSAGE,
+      }),
+      roleIds: z.array(z.string()).min(1, {
+        message: 'Selecione ao menos uma opção',
+      }),
+    })
+  ),
 });
 
 export const GENERAL_INFO_SCHEMA = z.object({
@@ -114,9 +121,9 @@ export const REGISTRATION_SETTINGS_SCHEMA = z.object({
   groupRoles: z.array(
     z.object({
       // id: z.string(),
-      name: z.string({ required_error: DEFAULT_MESSAGE }).refine(
-        value =>!!value
-      ),
+      name: z
+        .string({ required_error: DEFAULT_MESSAGE })
+        .refine((value) => !!value),
       capacity: z.number({ required_error: DEFAULT_MESSAGE }),
       link: z
         .string()
@@ -128,9 +135,9 @@ export const REGISTRATION_SETTINGS_SCHEMA = z.object({
       roles: z.array(
         z.object({
           price: z.number({ required_error: DEFAULT_MESSAGE }),
-          description: z.string({ required_error: DEFAULT_MESSAGE }).refine(
-        value =>!!value
-      ),
+          description: z
+            .string({ required_error: DEFAULT_MESSAGE })
+            .refine((value) => !!value),
           registered: z.number().optional(),
           waitlisted: z.number().optional(),
         })
@@ -351,13 +358,20 @@ export const PAYMENT_STATUS_COLOR = (
   return map[status];
 };
 
-export const ACTION_FROM = (status: string): string => {
-  const map: Record<string, string> = {
+/**
+ * Por onde o dinheiro entrou — e não quem mexeu no registro.
+ *
+ * "Externo" sugeria uma ação; o campo fala de origem. O dicionário do log
+ * (backend, `src/logs/log-diff.ts`) já lia assim, e a grade de pagamentos era
+ * a única a discordar.
+ */
+export const PAYMENT_ORIGIN = (origem: PaymentReceived): string => {
+  const map: Record<PaymentReceived, string> = {
     SYSTEM: 'Sistema',
-    EXTERNAL: 'Externo',
+    EXTERNAL: 'Lançamento manual',
   };
 
-  return map[status];
+  return map[origem];
 };
 
 export const methodPaymentOptions = [

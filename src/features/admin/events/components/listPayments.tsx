@@ -28,29 +28,31 @@ import { useParams } from 'react-router-dom';
 import {
   AccountBalanceWallet,
   Edit,
+  History,
   MoreVert,
   Paid,
   PendingActions,
   Reply,
 } from '@mui/icons-material';
 import { PaymentResponse } from '../../../../types/user';
-import {
-  StatusCard,
-  StatusCards,
-} from '../../../../components/statusCards';
+import { StatusCard, StatusCards } from '../../../../components/statusCards';
 import { useEffect, useMemo, useState } from 'react';
 import CustomChip from '../../../../components/customChip';
 import {
-  ACTION_FROM,
   PAYMENT_METHODS,
   PAYMENT_STATUS,
   PAYMENT_STATUS_COLOR,
+  PAYMENT_ORIGIN,
 } from '../constants';
 import { toast } from 'react-toastify';
 import { useGetPayments } from '../api/getPayments';
 import { ModalPayment } from './modalPayments';
+import { ModalPaymentHistory } from './modalPaymentHistory';
 import { UserAvatar } from '../../../../components/userAvatar';
-import { cardTabelaSx, dataGridSx } from '../../../../components/listPageStyles';
+import {
+  cardTabelaSx,
+  dataGridSx,
+} from '../../../../components/listPageStyles';
 import { NavTabs } from '../../../../components/navTabs';
 const getSelectedRowsToExport = ({
   apiRef,
@@ -108,6 +110,7 @@ function ListPayments({
   const [selectedPayment, setSelectedPayment] =
     useState<PaymentResponse | null>(null);
   const [openModalPayment, setOpenModalPayment] = useState(false);
+  const [openModalHistory, setOpenModalHistory] = useState(false);
   const [panel, setPanel] = useState<string>('1');
   const handleClose = () => {
     setAnchorEl(null);
@@ -181,7 +184,8 @@ function ListPayments({
     {
       field: 'status',
       headerName: 'Status',
-      width: 120,
+      // "Reembolsado" chegava como "Reembols…" em 120
+      width: 145,
       renderCell: (params) => (
         <CustomChip
           label={PAYMENT_STATUS(params.value)}
@@ -191,11 +195,15 @@ function ListPayments({
     },
     {
       field: 'receivedFrom',
-      headerName: 'Ação',
-      width: 100,
+      // "Ação" dizia que ali havia um verbo; o campo guarda de onde o dinheiro
+      // veio — pelo checkout ou lançado à mão
+      headerName: 'Origem',
+      // 190: "Lançamento manual" é a etiqueta mais longa e o chip do MUI corta
+      // com reticências antes de deixar o texto vazar
+      width: 190,
       renderCell: (params) => (
         <CustomChip
-          label={ACTION_FROM(params.value)}
+          label={PAYMENT_ORIGIN(params.value)}
           customColor={theme.palette.info.main}
         />
       ),
@@ -299,11 +307,7 @@ function ListPayments({
     <>
       {/* sem vão embaixo: as abas de grupo vêm colado, formando um bloco com
           a tabela */}
-      <StatusCards
-        cards={cardsResumo}
-        isLoading={isLoading}
-        sx={{ mb: 0 }}
-      />
+      <StatusCards cards={cardsResumo} isLoading={isLoading} sx={{ mb: 0 }} />
       {Array.isArray(groupsRules) && groupsRules.length > 0 && (
         <NavTabs
           fullWidth
@@ -347,6 +351,12 @@ function ListPayments({
           handleClose={() => setOpenModalPayment(false)}
           payment={selectedPayment}
         />
+        <ModalPaymentHistory
+          open={openModalHistory}
+          handleClose={() => setOpenModalHistory(false)}
+          payment={selectedPayment}
+          eventId={eventId}
+        />
         <Menu
           id="basic-menu"
           anchorEl={anchorEl}
@@ -372,6 +382,23 @@ function ListPayments({
               <Reply fontSize="small" color="error" />
             </ListItemIcon>
             <ListItemText>Extornar </ListItemText>
+          </MenuItem>
+          {/*
+            Depois de editar e estornar: as duas mexem no dinheiro, esta só
+            conta o que já fizeram com ele. É a pergunta que vem antes de
+            decidir — quem baixou, quando, e se foi gente ou a conferência
+            automática.
+          */}
+          <MenuItem
+            onClick={() => {
+              setOpenModalHistory(true);
+              handleClose();
+            }}
+          >
+            <ListItemIcon>
+              <History fontSize="small" color="action" />
+            </ListItemIcon>
+            <ListItemText>Ver histórico</ListItemText>
           </MenuItem>
         </Menu>
       </Card>
