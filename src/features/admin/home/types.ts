@@ -191,15 +191,14 @@ export interface Dashboard {
   scope: DashboardScope;
   role: number | null;
   churches: DashboardChurch[] | null;
-  /** O evento que merece a tela: em andamento > próximo > último encerrado */
-  spotlight: DashboardEvent | null;
   /**
-   * `null` na home do dev: a lista de igrejas já mostra o evento em foco de
-   * cada uma, e a dele é de operação, não de um evento em particular.
+   * Os eventos da igreja: os abertos, ou o último encerrado quando não há
+   * nenhum. `null` no escopo de sistema — lá a lista de igrejas já mostra o
+   * evento em foco de cada uma.
    */
-  otherEvents: DashboardEvent[] | null;
+  events: DashboardEvent[] | null;
   pending: DashboardPending[];
-  /** `null` na home do dev — quem entrou numa igreja é assunto de quem a administra */
+  /** `null` no escopo de sistema — quem entrou é assunto de quem administra a igreja */
   recentRegistrations: RecentRegistration[] | null;
   /** Só o admin: publicar notícia não é do financeiro nem do super admin */
   news: NewsBoard | null;

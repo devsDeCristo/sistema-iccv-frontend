@@ -1,34 +1,40 @@
 import {
   alpha,
   Box,
-  Chip,
   Paper,
   Skeleton,
   Stack,
   Typography,
   useTheme,
 } from '@mui/material';
-import { ChurchOutlined, PublicOutlined } from '@mui/icons-material';
 import { UserAvatar } from '../../../../components/userAvatar';
 import { useUser } from '../../../../contexts/userContext';
 import { AZUL_VIVO, degradeVivo } from '../../../../themes';
 import { primeiroNome } from '../../../events/utils';
-import { ROLE_LABELS } from '../../../../constants/roles';
 import { DashboardChurch } from '../types';
+import { apresentacao } from '../utils';
+import { RoleBadge } from './roleBadge';
 
 interface HeroProps {
   /** `null` é super admin/dev (nenhuma igreja própria); ausente é carregando */
   churches?: DashboardChurch[] | null;
+  /**
+   * Perfil efetivo de quem entrou. Vem da API, e não do storage: o vínculo
+   * pode ter mudado desde o login, e a saudação não é lugar de mostrar um
+   * cargo vencido.
+   */
+  role?: number | null;
 }
 
 /**
- * Faixa de abertura: quem entrou e por qual igreja ele responde.
+ * Faixa de abertura: quem entrou, com que cargo e por qual igreja responde.
  *
- * Só contexto. Os números ficam abaixo, dentro do evento a que pertencem — a
- * faixa que também contava inscritos e dinheiro dava um resumo que não era de
- * nada em particular.
+ * Dito por extenso, numa frase, e não em etiquetas soltas — é a primeira coisa
+ * que a tela fala, e deve se ler como alguém falando. A etiqueta da igreja que
+ * ficava à direita saiu junto: a frase já diz o nome dela, e repetir a mesma
+ * informação em dois lugares da mesma faixa não a torna mais clara.
  */
-function Hero({ churches }: HeroProps) {
+function Hero({ churches, role }: HeroProps) {
   const theme = useTheme();
   const { user } = useUser();
 
@@ -42,11 +48,12 @@ function Hero({ churches }: HeroProps) {
   const nome = primeiroNome(nomeCompleto);
 
   /**
-   * `churches` ausente e `churches` nulo diziam a mesma coisa aqui, e um admin
-   * via "todas as igrejas" piscar antes do nome da igreja dele aparecer.
+   * `churches` ausente é "ainda carregando"; `null` é super admin/dev, que não
+   * têm igreja própria. Tratar os dois igual fazia um admin ver "todas as
+   * igrejas" piscar antes do nome da dele aparecer.
    */
   const carregando = churches === undefined;
-  const todasAsIgrejas = churches === null;
+  const frase = apresentacao(role, churches);
 
   return (
     <Paper
@@ -78,108 +85,56 @@ function Hero({ churches }: HeroProps) {
       />
 
       <Stack
-        direction={{ xs: 'column', sm: 'row' }}
-        justifyContent="space-between"
-        alignItems={{ xs: 'flex-start', sm: 'center' }}
+        direction="row"
+        alignItems="center"
         gap={2}
-        sx={{ position: 'relative' }}
+        sx={{ position: 'relative', minWidth: 0 }}
       >
-        <Stack direction="row" alignItems="center" gap={2} sx={{ minWidth: 0 }}>
+        <RoleBadge role={role}>
           <UserAvatar
             name={nomeCompleto}
             photoUrl={user?.profilePhotoUrl || doStorage?.profilePhotoUrl}
-            sx={{ width: 46, height: 46, flexShrink: 0 }}
+            sx={{ width: 52, height: 52, flexShrink: 0 }}
           />
+        </RoleBadge>
 
-          <Box sx={{ minWidth: 0 }}>
-            <Typography
-              sx={{
-                fontSize: { xs: 19, md: 22 },
-                fontWeight: 600,
-                lineHeight: 1.2,
-              }}
-            >
-              Olá{nome ? `, ${nome}` : ''}!
-            </Typography>
-            <Typography sx={{ fontSize: '0.875rem', color: 'text.secondary' }}>
-              {carregando
-                ? 'Montando o resumo do painel…'
-                : todasAsIgrejas
-                  ? 'Você acompanha todas as igrejas do sistema.'
-                  : 'Aqui está como andam os eventos da sua igreja.'}
-            </Typography>
-          </Box>
-        </Stack>
-
-        <Stack
-          gap={0.75}
-          alignItems={{ xs: 'flex-start', sm: 'flex-end' }}
-          sx={{ flexShrink: 0, maxWidth: '100%' }}
-        >
+        <Box sx={{ minWidth: 0 }}>
           <Typography
             sx={{
-              fontSize: 11,
-              fontWeight: 700,
-              letterSpacing: '0.07em',
-              textTransform: 'uppercase',
-              color: 'text.secondary',
+              fontSize: { xs: 19, md: 22 },
+              fontWeight: 600,
+              lineHeight: 1.2,
             }}
           >
-            {carregando || todasAsIgrejas ? 'Alcance' : 'Sua igreja'}
+            Olá{nome ? `, ${nome}` : ''}!
           </Typography>
 
           {carregando ? (
-            <Skeleton variant="rounded" width={180} height={32} />
-          ) : todasAsIgrejas ? (
-            <Chip
-              icon={<PublicOutlined sx={{ fontSize: 18 }} />}
-              label="Todas as igrejas"
-              sx={{
-                fontWeight: 600,
-                bgcolor: alpha(corDoTom, 0.14),
-                color: 'text.primary',
-              }}
+            <Skeleton
+              variant="text"
+              width={280}
+              sx={{ fontSize: '0.9375rem' }}
             />
           ) : (
-            <Stack
-              direction="row"
-              gap={1}
-              flexWrap="wrap"
-              justifyContent={{ xs: 'flex-start', sm: 'flex-end' }}
-            >
-              {churches.length === 0 && (
-                // admin sem vínculo: o backend fecha o recorte e a tela chega
-                // vazia — dizer isso é melhor do que uma faixa sem etiqueta
-                <Chip
-                  variant="outlined"
-                  label="Nenhuma igreja vinculada"
-                  sx={{ fontWeight: 600 }}
-                />
-              )}
-
-              {churches.map((igreja) => (
-                <Chip
-                  key={igreja.id}
-                  icon={<ChurchOutlined sx={{ fontSize: 18 }} />}
-                  label={
-                    // quem é admin de uma e financeiro de outra precisa ver os
-                    // dois chapéus; com uma igreja só o perfil já está na barra
-                    // do topo e o nome basta
-                    churches.length > 1 && igreja.role !== null
-                      ? `${igreja.name} · ${ROLE_LABELS[igreja.role]}`
-                      : igreja.name
-                  }
-                  sx={{
-                    fontWeight: 600,
-                    maxWidth: 320,
-                    bgcolor: alpha(corDoTom, 0.14),
-                    color: 'text.primary',
-                  }}
-                />
-              ))}
-            </Stack>
+            <Typography sx={{ fontSize: '0.9375rem', color: 'text.secondary' }}>
+              {frase
+                ? frase.map((trecho, indice) =>
+                    trecho.forte ? (
+                      <Box
+                        key={indice}
+                        component="span"
+                        sx={{ fontWeight: 700, color: 'text.primary' }}
+                      >
+                        {trecho.texto}
+                      </Box>
+                    ) : (
+                      trecho.texto
+                    )
+                  )
+                : 'Bem-vindo ao painel.'}
+            </Typography>
           )}
-        </Stack>
+        </Box>
       </Stack>
     </Paper>
   );

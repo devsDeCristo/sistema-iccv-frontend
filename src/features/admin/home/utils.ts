@@ -1,6 +1,7 @@
 import dayjs from 'dayjs';
 import { Theme } from '@mui/material';
-import { DashboardEvent, EventPhase } from './types';
+import { ROLE_LABELS, Role } from '../../../constants/roles';
+import { DashboardChurch, DashboardEvent, EventPhase } from './types';
 
 /**
  * Como o evento se apresenta na tela conforme a fase.
@@ -64,4 +65,102 @@ export function percentual(parte: number, todo: number | null): number {
 export function vagasLivres(event: DashboardEvent): number | null {
   if (event.seats.total === null) return null;
   return Math.max(0, event.seats.total - event.seats.taken);
+}
+
+/**
+ * Um pedaço da frase de apresentação. `forte` marca o nome da igreja, que é a
+ * única palavra que a pessoa procura de relance na faixa.
+ */
+export type TrechoDaApresentacao = { texto: string; forte?: boolean };
+
+/**
+ * Nome da igreja encaixado numa frase, separado do que vem antes dele.
+ *
+ * "da igreja Betel" lê bem; "da igreja Igreja Padrão" não. Quando o nome já
+ * começa com "Igreja", o substantivo sai — é o mesmo que a pessoa faria
+ * falando. Volta em duas partes porque só o nome é destacado.
+ */
+function daIgreja(nome: string): TrechoDaApresentacao[] {
+  const preposicao = /^igreja\b/i.test(nome.trim()) ? 'da ' : 'da igreja ';
+  return [{ texto: preposicao }, { texto: nome, forte: true }];
+}
+
+/** Junta os vínculos com vírgula, e "e" antes do último. */
+function listar(grupos: TrechoDaApresentacao[][]): TrechoDaApresentacao[] {
+  return grupos.flatMap((grupo, indice) => {
+    if (indice === 0) return grupo;
+    const separador = indice === grupos.length - 1 ? ' e ' : ', ';
+    return [{ texto: separador }, ...grupo];
+  });
+}
+
+/**
+ * Quem a pessoa é e o que vem abaixo, em duas frases.
+ *
+ * A primeira identifica: cargo e igreja ditos por extenso, e não em etiquetas
+ * soltas — é a primeira coisa que a tela fala, e deve se ler como alguém
+ * falando. Quem tem vínculo em duas igrejas com papéis diferentes vê os dois:
+ * é justamente o caso em que "Admin" sozinho mentiria pela metade.
+ *
+ * A segunda anuncia o que a pessoa vai encontrar rolando a página, e muda com
+ * o perfil porque o conteúdo muda: prometer "um resumo da sua igreja" para
+ * quem vê gráficos de sistema seria promessa falsa.
+ *
+ * Sai em trechos, e não em texto corrido, para o nome da igreja poder ser
+ * destacado sem a tela remontar a frase por conta própria.
+ */
+export function apresentacao(
+  role: number | null | undefined,
+  churches: DashboardChurch[] | null | undefined
+): TrechoDaApresentacao[] | null {
+  if (role === null || role === undefined) return null;
+
+  const papel = (valor: number) => (ROLE_LABELS[valor] ?? '').toLowerCase();
+  const meu = papel(role);
+  if (!meu) return null;
+
+  // super admin e dev não pertencem a igreja nenhuma: atravessam todas
+  if (churches === null) {
+    const oQueVem =
+      role === Role.DEV
+        ? 'os indicadores do sistema'
+        : 'um resumo das igrejas e dos usuários';
+
+    return [
+      {
+        texto: `Você é ${meu} e acompanha todas as igrejas do sistema. A seguir, ${oQueVem}.`,
+      },
+    ];
+  }
+
+  if (churches === undefined) return null;
+
+  /**
+   * Sem vínculo não há resumo a prometer: a segunda frase vira o que fazer a
+   * respeito, que é o que a pessoa precisa nesse estado.
+   */
+  if (churches.length === 0) {
+    return [
+      {
+        texto: `Você é ${meu}, mas ainda não está vinculado a nenhuma igreja. Peça a um super admin para incluir você em uma.`,
+      },
+    ];
+  }
+
+  const vinculos = churches.map((igreja) => {
+    const cargo =
+      igreja.role !== null && papel(igreja.role) ? papel(igreja.role) : meu;
+    return [{ texto: `${cargo} ` }, ...daIgreja(igreja.name)];
+  });
+
+  const resumo =
+    churches.length > 1
+      ? 'um resumo das suas igrejas'
+      : 'um resumo da sua igreja';
+
+  return [
+    { texto: 'Você é ' },
+    ...listar(vinculos),
+    { texto: `. A seguir, ${resumo}.` },
+  ];
 }

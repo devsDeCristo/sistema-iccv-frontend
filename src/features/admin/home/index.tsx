@@ -2,13 +2,15 @@ import { Box, Stack } from '@mui/material';
 import { PageStyle } from '../../../components/pageStyle';
 import { useGetDashboard } from './api/getDashboard';
 import { ChurchBreakdown } from './components/churchBreakdown';
+import { ChurchKpis } from './components/churchKpis';
 import { ChurchRankings } from './components/churchRankings';
+import { EventsList } from './components/eventsList';
+import { FinanceSummary } from './components/financeSummary';
 import { Hero } from './components/hero';
 import { NewsBoard } from './components/newsBoard';
-import { OtherEvents } from './components/otherEvents';
 import { PendingActions } from './components/pendingActions';
 import { RecentRegistrations } from './components/recentRegistrations';
-import { SpotlightEvent } from './components/spotlightEvent';
+import { SecaoDaHome } from './components/secao';
 import { SystemInsights } from './components/systemInsights';
 import { SystemKpis } from './components/systemKpis';
 import { UserOverview } from './components/userOverview';
@@ -19,14 +21,13 @@ import { UserOverview } from './components/userOverview';
  * A página se lê de cima para baixo como uma resposta, e a resposta muda com
  * quem pergunta:
  *
- * - admin e financeiro abrem em "como vai o evento que está na minha mão";
+ * - admin e financeiro abrem na igreja deles — eventos, inscritos e caixa;
  * - o super admin, em "como estão as igrejas e as pessoas do sistema";
  * - o dev, nos indicadores de funcionamento.
  *
- * Quem administra uma igreja vê números de evento, porque é neles que o
- * trabalho dele acontece. Quem responde pelo conjunto vê totais, que ali
- * significam o tamanho da coisa — o mesmo total na tela do admin não
- * significava nada.
+ * Números de evento para quem toca evento; totais do sistema para quem
+ * responde pelo sistema. O mesmo total na tela errada não significa nada — foi
+ * o que os primeiros cortes desta tela ensinaram.
  *
  * Nenhum bloco é decidido por `role`: a tela desenha o que a API mandou
  * preenchido. O recorte mora num lugar só, no serviço, e é o mesmo que barra a
@@ -42,7 +43,10 @@ export function Home() {
   return (
     <PageStyle>
       <Stack gap={3}>
-        <Hero churches={data?.churches} />
+        <Hero churches={data?.churches} role={data?.role} />
+
+        {/* a igreja em números: só os eventos em jogo */}
+        {data?.events && <ChurchKpis events={data.events} />}
 
         {/* o tamanho do sistema, para quem responde por ele */}
         {data?.panorama && data.byChurch && (
@@ -55,16 +59,17 @@ export function Home() {
         */}
         {data?.insights && <SystemInsights insights={data.insights} />}
 
-        {/*
-          O cartão em close é de quem tem um evento na mão. Super admin e dev
-          não têm: o evento que por acaso começa primeiro é de uma igreja que
-          não é deles.
-        */}
-        {!varias && <SpotlightEvent event={data?.spotlight} />}
-
         {data && <PendingActions pending={data.pending} showChurch={varias} />}
 
-        {data?.otherEvents && <OtherEvents events={data.otherEvents} />}
+        {data?.events && data.events.length > 0 && (
+          <FinanceSummary events={data.events} />
+        )}
+
+        {data?.events && (
+          <SecaoDaHome titulo="Eventos">
+            <EventsList events={data.events} />
+          </SecaoDaHome>
+        )}
 
         {/*
           Movimento e mural lado a lado: são as duas listas curtas da página, e
