@@ -4,7 +4,6 @@ import { useGetDashboard } from './api/getDashboard';
 import { ChurchBreakdown } from './components/churchBreakdown';
 import { ChurchKpis } from './components/churchKpis';
 import { ChurchRankings } from './components/churchRankings';
-import { Debtors } from './components/debtors';
 import { EventEarnings } from './components/eventEarnings';
 import { EventsList } from './components/eventsList';
 import { FinanceSummary } from './components/financeSummary';
@@ -88,8 +87,6 @@ export function Home() {
         {data?.treasury && data.events && (
           <EventEarnings events={data.events} />
         )}
-
-        {data?.treasury && <Debtors treasury={data.treasury} />}
 
         {/*
           Movimento e mural lado a lado: são as duas listas curtas da página, e

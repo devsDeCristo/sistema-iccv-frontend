@@ -128,18 +128,6 @@ export interface DashboardChurchRow {
  * `topActors` é movimento, e não acesso: o sistema não registra login em lugar
  * nenhum — a tabela de logs guarda escritas. O rótulo da tela diz isso.
  */
-/** Alguém com cobrança em aberto. */
-export interface Debtor {
-  userId: string;
-  name: string;
-  photoUrl: string | null;
-  eventId: string;
-  eventName: string;
-  amount: number;
-  /** Dias desde que a cobrança foi criada */
-  days: number;
-}
-
 /**
  * A tesouraria da igreja, só para o financeiro.
  *
@@ -153,7 +141,6 @@ export interface DashboardTreasury {
     people: number;
     charges: number;
     amount: number;
-    top: Debtor[];
   };
   refunded: { count: number; amount: number };
 }
