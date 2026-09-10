@@ -6,7 +6,7 @@ import { ChurchKpis } from './components/churchKpis';
 import { ChurchRankings } from './components/churchRankings';
 import { EventEarnings } from './components/eventEarnings';
 import { EventsList } from './components/eventsList';
-import { FinanceSummary } from './components/financeSummary';
+//import { FinanceSummary } from './components/financeSummary';
 import { Hero } from './components/hero';
 import { NewsBoard } from './components/newsBoard';
 import { PendingActions } from './components/pendingActions';
@@ -77,9 +77,9 @@ export function Home() {
 
         {data && <PendingActions pending={data.pending} showChurch={varias} />}
 
-        {data?.events && data.events.length > 0 && !data.treasury && (
+        {/* {data?.events && data.events.length > 0 && !data.treasury && (
           <FinanceSummary events={data.events} />
-        )}
+        )} */}
 
         {/*
           A lista de eventos e o bloco de finanças são de quem administra a
