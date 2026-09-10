@@ -2,6 +2,7 @@ import { Box, Stack } from '@mui/material';
 import { PageStyle } from '../../../components/pageStyle';
 import { useGetDashboard } from './api/getDashboard';
 import { ChurchBreakdown } from './components/churchBreakdown';
+import { ChurchRankings } from './components/churchRankings';
 import { Hero } from './components/hero';
 import { NewsBoard } from './components/newsBoard';
 import { OtherEvents } from './components/otherEvents';
@@ -9,17 +10,23 @@ import { PendingActions } from './components/pendingActions';
 import { RecentRegistrations } from './components/recentRegistrations';
 import { SpotlightEvent } from './components/spotlightEvent';
 import { SystemInsights } from './components/systemInsights';
+import { SystemKpis } from './components/systemKpis';
+import { UserOverview } from './components/userOverview';
 
 /**
  * Tela de abertura do painel.
  *
  * A página se lê de cima para baixo como uma resposta, e a resposta muda com
- * quem pergunta. Quem administra uma igreja abre em "como vai o evento que
- * está na minha mão"; quem cuida do sistema abre nos indicadores dele.
+ * quem pergunta:
  *
- * O eixo é o evento, e não o sistema. Somar inscritos, vagas ou dinheiro de
- * todos os eventos de todos os anos dá um número grande que não decide nada;
- * cada número aqui mora dentro do evento a que pertence.
+ * - admin e financeiro abrem em "como vai o evento que está na minha mão";
+ * - o super admin, em "como estão as igrejas e as pessoas do sistema";
+ * - o dev, nos indicadores de funcionamento.
+ *
+ * Quem administra uma igreja vê números de evento, porque é neles que o
+ * trabalho dele acontece. Quem responde pelo conjunto vê totais, que ali
+ * significam o tamanho da coisa — o mesmo total na tela do admin não
+ * significava nada.
  *
  * Nenhum bloco é decidido por `role`: a tela desenha o que a API mandou
  * preenchido. O recorte mora num lugar só, no serviço, e é o mesmo que barra a
@@ -29,7 +36,7 @@ import { SystemInsights } from './components/systemInsights';
 export function Home() {
   const { data } = useGetDashboard();
 
-  // quem vê várias igrejas precisa saber de qual é cada evento e cada tarefa
+  // quem vê várias igrejas precisa saber de qual é cada tarefa
   const varias = data?.scope === 'system';
 
   return (
@@ -37,34 +44,27 @@ export function Home() {
       <Stack gap={3}>
         <Hero churches={data?.churches} />
 
+        {/* o tamanho do sistema, para quem responde por ele */}
+        {data?.panorama && data.byChurch && (
+          <SystemKpis churches={data.byChurch} panorama={data.panorama} />
+        )}
+
         {/*
-          Os indicadores abrem a home de quem cuida do sistema: é o panorama
-          que ele veio ver, e deixá-lo abaixo das listas o esconderia atrás de
-          uma rolagem.
+          Os indicadores de funcionamento abrem a home do dev: é o panorama que
+          ele veio ver, e embaixo das listas ficaria atrás de uma rolagem.
         */}
         {data?.insights && <SystemInsights insights={data.insights} />}
 
         {/*
           O cartão em close é de quem tem um evento na mão. Super admin e dev
           não têm: o evento que por acaso começa primeiro é de uma igreja que
-          não é deles, e dar a tela inteira a ele diz a coisa errada.
+          não é deles.
         */}
         {!varias && <SpotlightEvent event={data?.spotlight} />}
 
         {data && <PendingActions pending={data.pending} showChurch={varias} />}
 
-        {data?.otherEvents && (
-          <OtherEvents
-            events={data.otherEvents}
-            showChurch={varias}
-            titulo={varias ? 'Eventos abertos' : 'Outros eventos abertos'}
-            vazio={
-              varias
-                ? 'Nenhum evento aberto em nenhuma igreja no momento.'
-                : undefined
-            }
-          />
-        )}
+        {data?.otherEvents && <OtherEvents events={data.otherEvents} />}
 
         {/*
           Movimento e mural lado a lado: são as duas listas curtas da página, e
@@ -88,6 +88,12 @@ export function Home() {
         )}
 
         {data?.byChurch && <ChurchBreakdown churches={data.byChurch} />}
+
+        {data?.panorama && data.byChurch && (
+          <ChurchRankings churches={data.byChurch} panorama={data.panorama} />
+        )}
+
+        {data?.panorama && <UserOverview panorama={data.panorama} />}
       </Stack>
     </PageStyle>
   );

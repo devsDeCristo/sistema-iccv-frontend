@@ -108,6 +108,9 @@ export interface DashboardChurchRow {
   name: string;
   /** Quem entra no painel dela — inscrito não pertence a igreja nenhuma */
   admins: number;
+  totalEvents: number;
+  /** Inscrições em eventos dela, somando toda a história */
+  registrations: number;
   openEvents: number;
   spotlight: {
     id: string;
@@ -125,6 +128,35 @@ export interface DashboardChurchRow {
  * `topActors` é movimento, e não acesso: o sistema não registra login em lugar
  * nenhum — a tabela de logs guarda escritas. O rótulo da tela diz isso.
  */
+/**
+ * O panorama do super admin: o conjunto, não a operação. Só ele recebe — o
+ * dev tem os indicadores de funcionamento, e quem administra uma igreja tem
+ * o evento dela.
+ */
+export interface DashboardPanorama {
+  /**
+   * Ações por igreja, atribuídas pelo vínculo de quem executou — admin e
+   * financeiro. Super admin e dev não entram: não pertencem a igreja nenhuma.
+   */
+  churchActivity: { churchId: string; total: number }[];
+  activityWindowDays: number;
+  users: {
+    total: number;
+    newThisMonth: number;
+    /** Novos cadastros por mês, 12 meses */
+    byMonth: { key: string; total: number }[];
+    /** Composição da base por perfil */
+    byRole: { role: number; total: number }[];
+    /** Cadastrou-se e nunca entrou em evento nenhum, nem na lista de espera */
+    neverRegistered: number;
+    /**
+     * Vinculadas a alguma igreja. Super admin e dev ficam fora de propósito:
+     * eles não têm vínculo, atravessam todas.
+     */
+    withChurchLink: number;
+  };
+}
+
 export interface DashboardInsights {
   registrationsByMonth: { key: string; total: number }[];
   activityByDay: { key: string; total: number }[];
@@ -172,6 +204,8 @@ export interface Dashboard {
   /** Só o admin: publicar notícia não é do financeiro nem do super admin */
   news: NewsBoard | null;
   byChurch: DashboardChurchRow[] | null;
+  /** Só o super admin */
+  panorama: DashboardPanorama | null;
   /** Só o dev */
   insights: DashboardInsights | null;
 }

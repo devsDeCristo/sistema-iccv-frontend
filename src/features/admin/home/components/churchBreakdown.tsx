@@ -107,8 +107,9 @@ export function ChurchBreakdown({ churches }: ChurchBreakdownProps) {
                   <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>
                     {igreja.openEvents === 0
                       ? 'Nenhum evento aberto'
-                      : `${igreja.openEvents} evento(s) aberto(s)`}{' '}
-                    · {igreja.admins} no painel
+                      : `${igreja.openEvents} aberto(s)`}{' '}
+                    de {igreja.totalEvents} evento(s) · {igreja.registrations}{' '}
+                    inscrição(ões) · {igreja.admins} no painel
                   </Typography>
                 </Box>
               </Stack>

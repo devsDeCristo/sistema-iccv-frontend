@@ -307,7 +307,6 @@ export function BarrasRanking({ linhas, unidade, vazio }: BarrasRankingProps) {
   );
 }
 
-
 export interface PontoEmpilhado {
   key: string;
   label: string;
@@ -326,10 +325,18 @@ function ItemDaLegenda({ cor, nome }: { cor: string; nome: string }) {
   return (
     <Stack direction="row" alignItems="center" gap={0.75}>
       <Box
-        sx={{ width: 10, height: 10, borderRadius: '2px', bgcolor: cor, flexShrink: 0 }}
+        sx={{
+          width: 10,
+          height: 10,
+          borderRadius: '2px',
+          bgcolor: cor,
+          flexShrink: 0,
+        }}
       />
       {/* o texto usa tinta de texto; quem carrega a identidade é o quadrado */}
-      <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>{nome}</Typography>
+      <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>
+        {nome}
+      </Typography>
     </Stack>
   );
 }
@@ -453,8 +460,7 @@ export function ColunasEmpilhadas({ pontos, vazio }: ColunasEmpilhadasProps) {
                           bgcolor: corSucesso,
                           // quadrado na base; só arredonda se for o pedaço de
                           // cima, quando não houve falha nenhuma no dia
-                          borderRadius:
-                            ponto.failure > 0 ? '0' : '4px 4px 0 0',
+                          borderRadius: ponto.failure > 0 ? '0' : '4px 4px 0 0',
                         }}
                       />
                     )}
@@ -468,7 +474,10 @@ export function ColunasEmpilhadas({ pontos, vazio }: ColunasEmpilhadasProps) {
 
       <Stack direction="row" gap="2px" sx={{ mt: 0.75 }}>
         {pontos.map((ponto, indice) => (
-          <Box key={ponto.key} sx={{ flex: 1, textAlign: 'center', minWidth: 0 }}>
+          <Box
+            key={ponto.key}
+            sx={{ flex: 1, textAlign: 'center', minWidth: 0 }}
+          >
             <Typography
               noWrap
               sx={{

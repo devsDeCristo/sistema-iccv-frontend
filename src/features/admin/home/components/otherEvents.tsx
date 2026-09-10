@@ -7,7 +7,7 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
-import { ArrowForward, EventBusy } from '@mui/icons-material';
+import { ArrowForward } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { cardTabelaSx } from '../../../../components/listPageStyles';
 import { formatCurrency } from '../../../../utils';
@@ -23,18 +23,6 @@ import { SecaoDaHome } from './secao';
 
 interface OtherEventsProps {
   events: DashboardEvent[];
-  showChurch?: boolean;
-  /**
-   * Quem não tem cartão em foco (super admin e dev) vê esta lista como *a*
-   * lista de eventos, e não como o resto dela.
-   */
-  titulo?: string;
-  /**
-   * Texto do estado vazio. Sem ele a seção some quando não há eventos — o que
-   * é certo para "outros eventos", e errado para quem depende desta lista
-   * como única visão de evento na página.
-   */
-  vazio?: string;
 }
 
 /**
@@ -44,20 +32,15 @@ interface OtherEventsProps {
  * com barra e quanto do caixa entrou. Uma lista de nomes e datas obrigaria a
  * abrir cada evento para saber qual deles precisa de atenção.
  */
-export function OtherEvents({
-  events,
-  showChurch,
-  titulo = 'Outros eventos abertos',
-  vazio,
-}: OtherEventsProps) {
+export function OtherEvents({ events }: OtherEventsProps) {
   const theme = useTheme();
   const navigate = useNavigate();
 
-  if (!events.length && !vazio) return null;
+  if (!events.length) return null;
 
   return (
     <SecaoDaHome
-      titulo={titulo}
+      titulo="Outros eventos abertos"
       acao={
         <Button
           size="small"
@@ -70,15 +53,6 @@ export function OtherEvents({
       }
     >
       <Card elevation={0} sx={cardTabelaSx}>
-        {events.length === 0 && (
-          <Stack alignItems="center" gap={1} sx={{ py: 5, px: 2 }}>
-            <EventBusy sx={{ fontSize: 34, color: 'text.disabled' }} />
-            <Typography color="text.secondary" fontSize={14}>
-              {vazio}
-            </Typography>
-          </Stack>
-        )}
-
         {events.map((event) => {
           const { cor, rotulo } = aparenciaDaFase(event.phase, theme);
           const temTeto = event.seats.total !== null;
@@ -138,7 +112,6 @@ export function OtherEvents({
                 >
                   {rotulo} · {formatarPeriodo(event.startDate, event.endDate)} ·{' '}
                   {quandoAcontece(event)}
-                  {showChurch ? ` · ${event.church.name}` : ''}
                 </Typography>
               </Box>
 
