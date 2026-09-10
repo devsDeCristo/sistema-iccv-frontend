@@ -7,6 +7,7 @@ import {
 import { RoutesLogin } from '../pages/login/routes';
 import { RegisterUser } from '../pages/users/register';
 
+import { RoutesHomeAdmin } from '../pages/admin/home/routes';
 import { RoutesUsersAdmin } from '../pages/admin/users/routes';
 import { RoutesUsers } from '../pages/users/routes';
 import { RoutesEventsAdmin } from '../pages/admin/events/routes';
@@ -40,6 +41,7 @@ const routers = (): ReturnType<typeof createBrowserRouter> => {
             </UserProvider>
           }
         >
+          {RoutesHomeAdmin()}
           {RoutesUsersAdmin()}
           {RoutesChurchesAdmin()}
           {RoutesEventsAdmin()}

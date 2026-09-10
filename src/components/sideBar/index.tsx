@@ -9,6 +9,7 @@ import {
   People,
   Send,
   Church,
+  SpaceDashboard,
 } from '@mui/icons-material';
 import { Link, useLocation } from 'react-router-dom';
 import {
@@ -288,7 +289,7 @@ const SideBar: React.FC<SideBarProps> = ({
     // volta para onde a pessoa estava trabalhando; sem isto a única saída das
     // configurações seria o avatar da barra do topo
     {
-      link: '/admin/eventos',
+      link: '/admin/inicio',
       icon: <ArrowBack />,
       title: 'Voltar ao painel',
     },
@@ -296,6 +297,14 @@ const SideBar: React.FC<SideBarProps> = ({
 
   const itensPainel: ItemMenu[] = isAdmin
     ? [
+        // a home é a entrada do painel: primeira linha, antes das telas de
+        // trabalho, e o destino do login
+        {
+          link: '/admin/inicio',
+          icon: <SpaceDashboard />,
+          title: 'Início',
+          novo: true,
+        },
         // o financeiro não gerencia usuários
         ...(isAdminRole
           ? [
@@ -417,7 +426,7 @@ const SideBar: React.FC<SideBarProps> = ({
         {/* a marca aparece só aqui: na tela grande ela já está na barra do topo */}
         <Stack
           component={Link}
-          to={isAdmin ? '/admin/eventos' : '/home'}
+          to={isAdmin ? '/admin/inicio' : '/home'}
           onClick={() => setOpenDrawer(false)}
           direction="row"
           alignItems="center"

@@ -100,7 +100,7 @@ function Login() {
 
     // os dois ifs eram independentes, então o segundo sempre vencia
     // e mandava o admin para a área de usuário
-    navigate(canAccessAdminArea ? '/admin/eventos' : '/eventos');
+    navigate(canAccessAdminArea ? '/admin/inicio' : '/eventos');
   }, []);
 
   const { mutate: mutatePostLogin, isLoading } = usePostLogin({
@@ -109,7 +109,7 @@ function Login() {
       localStorage.setItem('user', JSON.stringify(response.user));
 
       const canAccessAdminArea = ADMIN_AREA_ROLES.includes(response.user.role);
-      const areaInicial = canAccessAdminArea ? '/admin/eventos' : '/home';
+      const areaInicial = canAccessAdminArea ? '/admin/inicio' : '/home';
 
       /**
        * Sessão vencida no meio do caminho: volta para a tela onde a pessoa

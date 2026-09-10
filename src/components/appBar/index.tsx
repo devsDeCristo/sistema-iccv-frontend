@@ -165,7 +165,7 @@ export default function MenuAppBar({
               {canAccessAdminArea && !isAdminRoute && (
                 <MenuItem
                   onClick={() => {
-                    navigate('/admin/eventos');
+                    navigate('/admin/inicio');
                     handleClose();
                   }}
                 >

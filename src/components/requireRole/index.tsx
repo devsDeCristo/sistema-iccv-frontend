@@ -21,7 +21,7 @@ type RequireRoleProps = {
 function RequireRole({
   allowedRoles,
   children,
-  redirectTo = '/admin/eventos',
+  redirectTo = '/admin/inicio',
 }: RequireRoleProps) {
   const { role } = useRole();
 
@@ -44,7 +44,7 @@ export { RequireRole };
  */
 function RequireEventRole({
   children,
-  redirectTo = '/admin/eventos',
+  redirectTo = '/admin/inicio',
 }: Omit<RequireRoleProps, 'allowedRoles'>) {
   const { id } = useParams();
   const { data, isError } = useGetEvents(

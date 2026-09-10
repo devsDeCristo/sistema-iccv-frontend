@@ -46,6 +46,24 @@ export function formatDateTime(date?: Date | string | null) {
   });
 }
 
+const relativo = new Intl.RelativeTimeFormat('pt-BR', { numeric: 'auto' });
+
+/**
+ * "há 20 min", "há 3 h". O horário exato acompanha em outra linha: o relativo é
+ * o que o olho usa para varrer uma lista, e a hora é o que serve para cruzar
+ * com outro registro.
+ */
+export function tempoRelativo(iso: string) {
+  const segundos = (Date.now() - new Date(iso).getTime()) / 1000;
+
+  if (segundos < 60) return 'agora';
+  if (segundos < 3600)
+    return relativo.format(-Math.floor(segundos / 60), 'minute');
+  if (segundos < 86400)
+    return relativo.format(-Math.floor(segundos / 3600), 'hour');
+  return relativo.format(-Math.floor(segundos / 86400), 'day');
+}
+
 /**
  * Conectores de nome brasileiro. Não contam como palavra na regra das duas
  * palavras do crachá, mas continuam impressos: "Maria de Fatima" sai inteiro, e

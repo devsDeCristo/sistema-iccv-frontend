@@ -33,7 +33,7 @@ import {
 } from '../../../../components/listPageStyles';
 import { StatusCard, StatusCards } from '../../../../components/statusCards';
 import { UserAvatar } from '../../../../components/userAvatar';
-import { formatDateTime } from '../../../../utils';
+import { formatDateTime, tempoRelativo } from '../../../../utils';
 import { useGetUsers } from '../../users/api/getUsers';
 import { User } from '../../../../types/user';
 import { LogAction, LogChange, LogPerson, useGetLogs } from '../api/getLogs';
@@ -49,24 +49,6 @@ const PAGE_SIZE = 25;
 
 /** Campos que cabem na célula antes de virar "+N" — o resto abre no painel */
 const CHANGES_VISIVEIS = 2;
-
-const relativo = new Intl.RelativeTimeFormat('pt-BR', { numeric: 'auto' });
-
-/**
- * "há 20 min", "há 3 h". O horário exato fica na linha de cima da célula: o
- * relativo é o que o olho usa para varrer a lista, e a hora é o que serve para
- * cruzar com outro registro.
- */
-function tempoRelativo(iso: string) {
-  const segundos = (Date.now() - new Date(iso).getTime()) / 1000;
-
-  if (segundos < 60) return 'agora';
-  if (segundos < 3600)
-    return relativo.format(-Math.floor(segundos / 60), 'minute');
-  if (segundos < 86400)
-    return relativo.format(-Math.floor(segundos / 3600), 'hour');
-  return relativo.format(-Math.floor(segundos / 86400), 'day');
-}
 
 /**
  * Uma linha do antes/depois.
