@@ -87,11 +87,13 @@ function Estado({
 export function FinanceSummary({ events }: FinanceSummaryProps) {
   const theme = useTheme();
 
-  const abertos = events.filter((event) => event.phase !== 'finished');
-  const emJogo = abertos.length ? abertos : events;
-
+  /**
+   * Soma todos os eventos ativos, encerrados ou não: cobrança em aberto não
+   * deixa de existir porque o cursilho acabou — e é justamente a de evento
+   * passado que costuma ficar esquecida.
+   */
   const soma = (pegar: (event: DashboardEvent) => number) =>
-    emJogo.reduce((total, event) => total + pegar(event), 0);
+    events.reduce((total, event) => total + pegar(event), 0);
 
   const recebido = soma((event) => event.finance.paid.amount);
   const emAnalise = soma((event) => event.finance.inAnalysis.amount);
@@ -102,8 +104,8 @@ export function FinanceSummary({ events }: FinanceSummaryProps) {
   return (
     <SecaoDaHome
       titulo={
-        abertos.length > 1
-          ? `Finanças · ${abertos.length} eventos abertos`
+        events.length > 1
+          ? `Finanças · ${events.length} eventos ativos`
           : 'Finanças'
       }
     >

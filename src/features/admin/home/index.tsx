@@ -4,6 +4,8 @@ import { useGetDashboard } from './api/getDashboard';
 import { ChurchBreakdown } from './components/churchBreakdown';
 import { ChurchKpis } from './components/churchKpis';
 import { ChurchRankings } from './components/churchRankings';
+import { Debtors } from './components/debtors';
+import { EventEarnings } from './components/eventEarnings';
 import { EventsList } from './components/eventsList';
 import { FinanceSummary } from './components/financeSummary';
 import { Hero } from './components/hero';
@@ -13,6 +15,7 @@ import { RecentRegistrations } from './components/recentRegistrations';
 import { SecaoDaHome } from './components/secao';
 import { SystemInsights } from './components/systemInsights';
 import { SystemKpis } from './components/systemKpis';
+import { TreasuryKpis } from './components/treasuryKpis';
 import { UserOverview } from './components/userOverview';
 
 /**
@@ -46,7 +49,12 @@ export function Home() {
         <Hero churches={data?.churches} role={data?.role} />
 
         {/* a igreja em números: só os eventos em jogo */}
-        {data?.events && <ChurchKpis events={data.events} />}
+        {data?.events && !data.treasury && <ChurchKpis events={data.events} />}
+
+        {/* a do financeiro é só dinheiro — vaga e ritmo não são decisão dele */}
+        {data?.events && data.treasury && (
+          <TreasuryKpis events={data.events} treasury={data.treasury} />
+        )}
 
         {/* o tamanho do sistema, para quem responde por ele */}
         {data?.panorama && data.byChurch && (
@@ -61,15 +69,27 @@ export function Home() {
 
         {data && <PendingActions pending={data.pending} showChurch={varias} />}
 
-        {data?.events && data.events.length > 0 && (
+        {data?.events && data.events.length > 0 && !data.treasury && (
           <FinanceSummary events={data.events} />
         )}
 
-        {data?.events && (
+        {/*
+          A lista de eventos e o bloco de finanças são de quem administra a
+          igreja. Para o financeiro os dois seriam repetição: a régua acima já
+          traz os três estados do dinheiro, e "ganhos por evento" abaixo já
+          abre o caixa evento a evento.
+        */}
+        {data?.events && !data.treasury && (
           <SecaoDaHome titulo="Eventos">
             <EventsList events={data.events} />
           </SecaoDaHome>
         )}
+
+        {data?.treasury && data.events && (
+          <EventEarnings events={data.events} />
+        )}
+
+        {data?.treasury && <Debtors treasury={data.treasury} />}
 
         {/*
           Movimento e mural lado a lado: são as duas listas curtas da página, e

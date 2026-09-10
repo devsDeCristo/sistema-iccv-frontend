@@ -128,6 +128,36 @@ export interface DashboardChurchRow {
  * `topActors` é movimento, e não acesso: o sistema não registra login em lugar
  * nenhum — a tabela de logs guarda escritas. O rótulo da tela diz isso.
  */
+/** Alguém com cobrança em aberto. */
+export interface Debtor {
+  userId: string;
+  name: string;
+  photoUrl: string | null;
+  eventId: string;
+  eventName: string;
+  amount: number;
+  /** Dias desde que a cobrança foi criada */
+  days: number;
+}
+
+/**
+ * A tesouraria da igreja, só para o financeiro.
+ *
+ * O sistema não registra despesa: `Payment` guarda entrada, então a única
+ * "saída" que existe é o estorno. Fluxo de caixa de verdade pediria uma
+ * tabela de despesas.
+ */
+export interface DashboardTreasury {
+  debtors: {
+    /** Pessoas distintas devendo — uma pode ter mais de uma cobrança */
+    people: number;
+    charges: number;
+    amount: number;
+    top: Debtor[];
+  };
+  refunded: { count: number; amount: number };
+}
+
 /**
  * O panorama do super admin: o conjunto, não a operação. Só ele recebe — o
  * dev tem os indicadores de funcionamento, e quem administra uma igreja tem
@@ -203,6 +233,8 @@ export interface Dashboard {
   /** Só o admin: publicar notícia não é do financeiro nem do super admin */
   news: NewsBoard | null;
   byChurch: DashboardChurchRow[] | null;
+  /** Só o financeiro */
+  treasury: DashboardTreasury | null;
   /** Só o super admin */
   panorama: DashboardPanorama | null;
   /** Só o dev */

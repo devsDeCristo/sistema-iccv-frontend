@@ -24,13 +24,35 @@ interface ChurchKpisProps {
 export function ChurchKpis({ events }: ChurchKpisProps) {
   const theme = useTheme();
 
-  const abertos = events.filter((event) => event.phase !== 'finished');
-  // sem nenhum aberto a régua fala do último encerrado, que é o que a lista
-  // abaixo também está mostrando
-  const emJogo = abertos.length ? abertos : events;
+  /**
+   * Ocupação olha só o que ainda não terminou — não se enche vaga de evento
+   * encerrado. Dinheiro olha todos: cobrança em aberto não deixa de existir
+   * porque o cursilho acabou.
+   */
+  const naAgenda = events.filter((event) => event.phase !== 'finished');
+  const emJogo = naAgenda.length ? naAgenda : events;
 
-  const soma = (pegar: (event: DashboardEvent) => number) =>
-    emJogo.reduce((total, event) => total + pegar(event), 0);
+  const soma = (
+    pegar: (event: DashboardEvent) => number,
+    lista: DashboardEvent[] = emJogo
+  ) => lista.reduce((total, event) => total + pegar(event), 0);
+
+  const acontecendo = events.filter(
+    (event) => event.phase === 'ongoing'
+  ).length;
+  const aCaminho = events.filter((event) => event.phase === 'upcoming').length;
+  const encerrados = events.filter(
+    (event) => event.phase === 'finished'
+  ).length;
+
+  const composicao =
+    [
+      acontecendo && `${acontecendo} acontecendo`,
+      aCaminho && `${aCaminho} a caminho`,
+      encerrados && `${encerrados} encerrado(s)`,
+    ]
+      .filter(Boolean)
+      .join(' · ') || 'Nenhum evento ativo';
 
   const inscritos = soma((event) => event.seats.taken);
   // evento sem capacidade definida não entra no total de vagas: somar zero
@@ -41,20 +63,24 @@ export function ChurchKpis({ events }: ChurchKpisProps) {
   );
 
   const naEspera = soma((event) => event.waitlist);
-  const aConferir = soma((event) => event.finance.inAnalysis.count);
-  const emAnalise = soma((event) => event.finance.inAnalysis.amount);
+  // comprovante parado conta mesmo em evento encerrado: é dinheiro esperando
+  const aConferir = soma((event) => event.finance.inAnalysis.count, events);
+  const emAnalise = soma((event) => event.finance.inAnalysis.amount, events);
   const livres = Math.max(vagas - inscritos, 0);
 
   const cards: StatusCard[] = [
     {
-      title: abertos.length ? 'Eventos abertos' : 'Último evento',
-      value: abertos.length || 1,
-      subtitle: abertos.length
-        ? 'Acontecendo ou a caminho'
-        : 'Nenhum evento aberto agora',
+      /**
+       * Conta o que está marcado como ativo, encerrado ou não — é o mesmo
+       * conjunto da lista logo abaixo. A composição vai no rótulo, para o
+       * número não dar a entender que há três cursilhos rolando.
+       */
+      title: 'Eventos ativos',
+      value: events.length,
+      subtitle: composicao,
       icon: <EventAvailable sx={{ fontSize: 20 }} />,
       color: theme.palette.chips.success,
-      live: emJogo.some((event) => event.phase === 'ongoing'),
+      live: acontecendo > 0,
     },
     {
       title: 'Inscritos',
