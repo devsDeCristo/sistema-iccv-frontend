@@ -42,6 +42,15 @@ export function Home() {
   // quem vê várias igrejas precisa saber de qual é cada tarefa
   const varias = data?.scope === 'system';
 
+  /**
+   * Sem nenhum evento ativo, a API manda o último encerrado no lugar para a
+   * igreja não abrir o painel vazia — e aí o bloco não pode se chamar
+   * "Eventos ativos".
+   */
+  const soEncerrado =
+    !!data?.events?.length &&
+    data.events.every((event) => event.status === 'INACTIVE');
+
   return (
     <PageStyle>
       <Stack gap={3}>
@@ -79,7 +88,9 @@ export function Home() {
           abre o caixa evento a evento.
         */}
         {data?.events && !data.treasury && (
-          <SecaoDaHome titulo="Eventos">
+          <SecaoDaHome
+            titulo={soEncerrado ? 'Último evento encerrado' : 'Eventos ativos'}
+          >
             <EventsList events={data.events} />
           </SecaoDaHome>
         )}
