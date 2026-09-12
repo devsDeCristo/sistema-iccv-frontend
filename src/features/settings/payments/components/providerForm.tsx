@@ -12,6 +12,7 @@ import { OpenInNew } from '@mui/icons-material';
 
 import { ResponsiveModal } from '../../../../components/responsiveModal';
 import { ProviderLogo } from './providerLogo';
+import { WebhookUrls } from './webhookUrls';
 import { Input } from '../../../../components/input';
 import { SelectField } from '../../../../components/selectField';
 import { useSavePaymentProvider } from '../api/paymentProviderActions';
@@ -195,10 +196,33 @@ function ProviderForm({ churchId, integracao, onClose }: Props) {
           />
         </Stack>
 
+        {/*
+          Os endereços de notificação moram aqui, e não no cartão: eles são
+          papelada de instalação — copiados uma vez, colados no painel da casa
+          e nunca mais olhados. No cartão ocupavam espaço todo dia para servir
+          num dia só.
+
+          Só aparecem depois de a casa ter credencial salva, porque é o cadastro
+          que cria o segredo que vai na URL.
+        */}
+        {integracao.webhooks.length > 0 && (
+          <Stack spacing={1}>
+            <Typography variant="subtitle2" fontWeight={700}>
+              Cadastre estes endereços no painel da {integracao.label}
+            </Typography>
+
+            <WebhookUrls integracao={integracao} />
+
+            <Typography variant="caption" color="text.secondary">
+              Sem eles a casa recebe o dinheiro e não avisa o sistema: o
+              inscrito paga e a inscrição continua marcada como pendente.
+            </Typography>
+          </Stack>
+        )}
+
         <Alert severity="info" sx={{ py: 0.5 }}>
           As credenciais são gravadas cifradas e não voltam para esta tela — só
-          a máscara. Depois de salvar, copie os endereços de notificação do
-          cartão e cadastre-os no painel do provedor.
+          a máscara.
         </Alert>
       </Stack>
     </ResponsiveModal>

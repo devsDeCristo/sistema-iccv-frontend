@@ -82,3 +82,24 @@ export const PAYMENT_METHOD_LABEL: Record<string, string> = {
   CASH: 'Dinheiro',
   OTHER: 'Outro',
 };
+
+/** Uma linha da tabela de preço de uma casa */
+export interface ProviderFee {
+  /** A forma de pagamento como o inscrito a vê: `Crédito à vista` */
+  label: string;
+  /** `1,89%`, `4,99% + R$ 0,40`, `a partir de 2,29%`. Nulo: a casa não publica. */
+  rate: string | null;
+  /** Quando o dinheiro entra: `na hora`, `em 14 dias` */
+  settlement?: string;
+}
+
+/** O que uma casa cobra, do jeito que ela publica. Ver `PROVIDER_PRICING`. */
+export interface ProviderPricing {
+  fees: ProviderFee[];
+  /** A página de onde os números saíram, para quem quiser conferir */
+  sourceUrl: string;
+  /** Mês da consulta, já formatado: `set/2026` */
+  checkedAt: string;
+  /** O que mais precisa ser dito antes de comparar uma casa com a outra */
+  note?: string;
+}

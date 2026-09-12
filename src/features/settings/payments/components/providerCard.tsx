@@ -5,7 +5,6 @@ import {
   Button,
   Chip,
   CircularProgress,
-  Collapse,
   Divider,
   IconButton,
   Menu,
@@ -19,8 +18,6 @@ import {
   Autorenew,
   CheckCircle,
   DeleteOutline,
-  ExpandLess,
-  ExpandMore,
   MoreVert,
   NetworkCheck,
   Settings,
@@ -30,7 +27,8 @@ import CustomChip from '../../../../components/customChip';
 import { ConfirmModal } from '../../../../components/ConfirmModal';
 import { formatDateTime } from '../../../../utils';
 import { ProviderLogo } from './providerLogo';
-import { WebhookUrls } from './webhookUrls';
+import { ProviderFees } from './providerFees';
+import { PROVIDER_PRICING } from '../constants';
 import {
   useRemoveProvider,
   useRotateWebhookSecret,
@@ -64,7 +62,6 @@ function ProviderCard({ churchId, integracao, onConfigurar }: Props) {
   const [confirmandoRemocao, setConfirmandoRemocao] = useState(false);
   const [confirmandoGiro, setConfirmandoGiro] = useState(false);
   const [saude, setSaude] = useState<GatewayHealth | null>(null);
-  const [mostrandoEnderecos, setMostrandoEnderecos] = useState(false);
 
   const { mutate: definirPadrao, isLoading: definindo } =
     useSetDefaultProvider();
@@ -79,6 +76,7 @@ function ProviderCard({ churchId, integracao, onConfigurar }: Props) {
   });
 
   const acao = { churchId, provider: integracao.provider };
+  const pricing = PROVIDER_PRICING[integracao.provider];
 
   const styles = {
     cartao: {
@@ -219,23 +217,36 @@ function ProviderCard({ churchId, integracao, onConfigurar }: Props) {
         )}
       </Box>
 
-      <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
-        {integracao.paymentMethods.map((metodo) => (
-          <Chip
-            key={metodo}
-            size="small"
-            variant="outlined"
-            label={PAYMENT_METHOD_LABEL[metodo] ?? metodo}
-            sx={{ height: 22, fontSize: 11 }}
-          />
-        ))}
-      </Stack>
+      {/*
+        A tabela entra no lugar das etiquetas de forma de pagamento: ela já diz
+        quais são as formas, e com o preço ao lado — as duas juntas repetiriam
+        as mesmas palavras a dois centímetros de distância.
+
+        A casa sem tabela cadastrada aqui volta a mostrar só as etiquetas. É o
+        caso de uma integração nova no backend antes de alguém levantar o preço
+        dela: o cartão fica incompleto, não quebrado.
+      */}
+      {pricing ? (
+        <ProviderFees pricing={pricing} />
+      ) : (
+        <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
+          {integracao.paymentMethods.map((metodo) => (
+            <Chip
+              key={metodo}
+              size="small"
+              variant="outlined"
+              label={PAYMENT_METHOD_LABEL[metodo] ?? metodo}
+              sx={{ height: 22, fontSize: 11 }}
+            />
+          ))}
+        </Stack>
+      )}
 
       {semRetorno && (
         <Alert severity="warning" sx={{ py: 0.5 }}>
-          Nenhuma notificação recebida até agora. Confira se os endereços abaixo
-          estão cadastrados no painel da {integracao.label} — sem eles o
-          pagamento entra e a inscrição continua marcada como pendente.
+          Nenhuma notificação recebida até agora. Abra Editar e confira se os
+          endereços estão cadastrados no painel da {integracao.label} — sem eles
+          o pagamento entra e a inscrição continua marcada como pendente.
         </Alert>
       )}
 
@@ -254,39 +265,20 @@ function ProviderCard({ churchId, integracao, onConfigurar }: Props) {
         <>
           <Divider />
 
-          <Box>
-            <Button
-              size="small"
-              color="inherit"
-              onClick={() => setMostrandoEnderecos((atual) => !atual)}
-              endIcon={
-                mostrandoEnderecos ? (
-                  <ExpandLess fontSize="small" />
-                ) : (
-                  <ExpandMore fontSize="small" />
-                )
-              }
-              sx={{ px: 0, textTransform: 'none', fontWeight: 600 }}
-            >
-              Endereços de notificação
-            </Button>
-
-            <Collapse in={mostrandoEnderecos} unmountOnExit>
-              <Box sx={{ pt: 1 }}>
-                <WebhookUrls integracao={integracao} />
-              </Box>
-            </Collapse>
-
-            <Typography
-              variant="caption"
-              color="text.secondary"
-              sx={{ display: 'block' }}
-            >
-              {integracao.lastWebhookAt
-                ? `Último retorno em ${formatDateTime(integracao.lastWebhookAt)}`
-                : 'Nenhum retorno recebido ainda'}
-            </Typography>
-          </Box>
+          {/*
+            Os endereços de notificação saíram daqui e foram para o formulário:
+            são copiados uma vez, na instalação, e depois só ocupavam espaço. O
+            que fica é o sinal de que eles estão funcionando.
+          */}
+          <Typography
+            variant="caption"
+            color="text.secondary"
+            sx={{ display: 'block' }}
+          >
+            {integracao.lastWebhookAt
+              ? `Último retorno em ${formatDateTime(integracao.lastWebhookAt)}`
+              : 'Nenhum retorno recebido ainda'}
+          </Typography>
         </>
       )}
 
