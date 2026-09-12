@@ -47,9 +47,9 @@ function ChurchScopeBar({ escopo, oQueMuda }: Props) {
 
   const styles = {
     /**
-     * Pílula, e não retângulo: o raio total afasta o desenho de um campo de
-     * formulário, que é a leitura errada — a igreja não é algo que se preenche
-     * aqui, é o recorte do que já está na tela.
+     * Raio 8px, o mesmo que o tema dá a todo `Paper` e que os cartões desta
+     * tela usam. Já foi pílula (raio total), e destoava: era a única forma
+     * totalmente arredondada da interface inteira.
      */
     botao: {
       backgroundColor: theme.palette.background.paperSecondary,
@@ -58,10 +58,10 @@ function ChurchScopeBar({ escopo, oQueMuda }: Props) {
       alignItems: 'center',
       gap: 0.9,
       // menos folga do lado do chevron, que já tem ar próprio no desenho dele
-      pl: 1.25,
-      pr: 0.75,
-      py: 0.6,
-      borderRadius: 999,
+      pl: 1.5,
+      pr: 1,
+      py: 0.85,
+      borderRadius: 1,
       maxWidth: '100%',
       transition: 'background-color .15s, border-color .15s',
       '&:hover': {
@@ -85,7 +85,7 @@ function ChurchScopeBar({ escopo, oQueMuda }: Props) {
       maxWidth: '100%',
     },
     nome: {
-      fontSize: 14,
+      fontSize: 15,
       fontWeight: 600,
       // a mesma altura de linha do ícone ao lado: sem isto o chevron e o texto
       // assentam em bases diferentes e a linha fica torta
@@ -110,7 +110,13 @@ function ChurchScopeBar({ escopo, oQueMuda }: Props) {
         Preenchido e não vazado: a 19px o contorno da igrejinha vira rabisco. É
         o mesmo ícone que a régua lateral usa para a tela de igrejas.
       */}
-      <Church sx={{ fontSize: 17, color: theme.palette.text.secondary }} />
+      <Church
+        sx={{
+          fontSize: 18,
+          flexShrink: 0,
+          color: theme.palette.text.secondary,
+        }}
+      />
 
       <Box
         component="span"
@@ -130,17 +136,56 @@ function ChurchScopeBar({ escopo, oQueMuda }: Props) {
         tela inteira. Este é o mesmo sinal que alternador de conta usa.
       */}
       {podeTrocar && (
-        <UnfoldMore sx={{ fontSize: 16, color: theme.palette.text.disabled }} />
+        <UnfoldMore sx={{ fontSize: 18, color: theme.palette.text.disabled }} />
       )}
     </>
   );
 
+  /**
+   * O rótulo em texto, fora do controle.
+   *
+   * Sem ele o nome da igreja aparecia sozinho no cabeçalho e não dizia o que
+   * era — dava para ler como subtítulo da página. Fora e não dentro do botão
+   * porque dentro ele empurraria o nome para uma segunda linha.
+   *
+   * "selecionada" e não só "Igreja": é o que diferencia um rótulo de campo de
+   * um recorte já aplicado. O que está ali não é o que você vai escolher, é o
+   * que já está valendo para a tela inteira.
+   */
+  const rotulo = (
+    <Typography
+      variant="body2"
+      sx={{
+        color: theme.palette.text.secondary,
+        whiteSpace: 'nowrap',
+        flexShrink: 0,
+      }}
+    >
+      Igreja selecionada
+    </Typography>
+  );
+
   if (!podeTrocar) {
-    return <Box sx={styles.rotulo}>{conteudo}</Box>;
+    return (
+      <Box sx={styles.rotulo}>
+        {rotulo}
+        <Box sx={{ ...styles.rotulo, minWidth: 0 }}>{conteudo}</Box>
+      </Box>
+    );
   }
 
   return (
-    <Box>
+    <Box
+      sx={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 1,
+        minWidth: 0,
+        maxWidth: '100%',
+      }}
+    >
+      {rotulo}
+
       <ButtonBase
         sx={styles.botao}
         onClick={(evento) => setMenu(evento.currentTarget)}
