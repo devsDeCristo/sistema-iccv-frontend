@@ -102,3 +102,30 @@ export const PROVIDER_PRICING: Record<string, ProviderPricing> = {
     ],
   },
 };
+
+/**
+ * Como o endereço de notificação chega até a casa.
+ *
+ * `por-cobranca`: o sistema manda a URL dentro da própria chamada que cria a
+ * cobrança (`payment_notification_urls` no PagBank, `notification_url` na
+ * preferência do Mercado Pago, `webhook_url` no link da InfinitePay). Não há
+ * nada a cadastrar em painel nenhum — quem administra a igreja só precisa das
+ * credenciais.
+ *
+ * `painel`: a casa não aceita URL por cobrança, e o endereço só existe se
+ * alguém cadastrar na conta. É o caso do Ton: a API v5 da Pagar.me resolve
+ * webhook por conta, não por pedido. Sem esse cadastro a cobrança é criada e
+ * paga normalmente, e a baixa nunca chega.
+ *
+ * Espelha o que cada adapter faz em `createCheckout`. Mudar o adapter sem
+ * mudar aqui deixa a tela mandando a pessoa fazer trabalho à toa — ou, pior,
+ * calada sobre um cadastro que ela precisa fazer.
+ */
+export type WebhookSetup = 'por-cobranca' | 'painel';
+
+export const PROVIDER_WEBHOOK_SETUP: Record<string, WebhookSetup> = {
+  PAGBANK: 'por-cobranca',
+  MERCADO_PAGO: 'por-cobranca',
+  INFINITEPAY: 'por-cobranca',
+  TON: 'painel',
+};

@@ -13,6 +13,7 @@ import { OpenInNew } from '@mui/icons-material';
 import { ResponsiveModal } from '../../../../components/responsiveModal';
 import { ProviderLogo } from './providerLogo';
 import { WebhookUrls } from './webhookUrls';
+import { PROVIDER_WEBHOOK_SETUP } from '../constants';
 import { Input } from '../../../../components/input';
 import { SelectField } from '../../../../components/selectField';
 import { useSavePaymentProvider } from '../api/paymentProviderActions';
@@ -42,6 +43,9 @@ function ProviderForm({ churchId, integracao, onClose }: Props) {
   const [modo, setModo] = useState<PaymentProviderMode>('PRODUCTION');
   const [ligado, setLigado] = useState(true);
   const [padrao, setPadrao] = useState(false);
+
+  const precisaCadastrarWebhook =
+    !!integracao && PROVIDER_WEBHOOK_SETUP[integracao.provider] === 'painel';
 
   const { mutate: salvar, isLoading } = useSavePaymentProvider({
     onSuccess: onClose,
@@ -197,26 +201,17 @@ function ProviderForm({ churchId, integracao, onClose }: Props) {
         </Stack>
 
         {/*
-          Os endereços de notificação moram aqui, e não no cartão: eles são
-          papelada de instalação — copiados uma vez, colados no painel da casa
-          e nunca mais olhados. No cartão ocupavam espaço todo dia para servir
-          num dia só.
+          Quase nenhuma casa precisa de cadastro: PagBank, Mercado Pago e
+          InfinitePay recebem o endereço de notificação dentro da própria
+          chamada que cria a cobrança, e não há o que fazer em painel nenhum.
+          Mostrar a URL para elas só dava trabalho inventado a quem configura.
 
-          Só aparecem depois de a casa ter credencial salva, porque é o cadastro
-          que cria o segredo que vai na URL.
+          O Ton é a exceção — a API v5 da Pagar.me resolve webhook por conta, e
+          não por pedido — e é o único caso em que a URL aparece.
         */}
-        {integracao.webhooks.length > 0 && (
+        {precisaCadastrarWebhook && integracao.webhooks.length > 0 && (
           <Stack spacing={1}>
-            <Typography variant="subtitle2" fontWeight={700}>
-              Cadastre estes endereços no painel da {integracao.label}
-            </Typography>
-
             <WebhookUrls integracao={integracao} />
-
-            <Typography variant="caption" color="text.secondary">
-              Sem eles a casa recebe o dinheiro e não avisa o sistema: o
-              inscrito paga e a inscrição continua marcada como pendente.
-            </Typography>
           </Stack>
         )}
 

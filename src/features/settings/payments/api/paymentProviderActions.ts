@@ -5,7 +5,11 @@ import {
   handleResponseSuccess,
   handleResponseThrowError,
 } from '../../../../utils/service';
-import { GET_PAYMENT_PROVIDERS, PROVIDER_SLUG } from '../constants';
+import {
+  GET_PAYMENT_PROVIDERS,
+  PROVIDER_SLUG,
+  PROVIDER_WEBHOOK_SETUP,
+} from '../constants';
 import {
   GatewayHealth,
   PaymentProviderKey,
@@ -94,13 +98,20 @@ export const useTestProvider = (
 
 // ------------------------------------------------------- girar o segredo
 
+/**
+ * Só o Ton pede cadastro do endereço na conta. Nas outras o sistema manda a URL
+ * junto de cada cobrança, e mandar a pessoa abrir um painel que ela não precisa
+ * abrir é pior do que não dizer nada.
+ */
 const rotateWebhookSecret = ({ churchId, provider }: AcaoBase) =>
   apiClient
     .post(`${rota(churchId, provider)}/webhook-secret`)
     .then((response) => {
       handleResponseSuccess(
         response.data,
-        'Novo endereço gerado. Cadastre-o no painel do provedor.'
+        PROVIDER_WEBHOOK_SETUP[provider] === 'painel'
+          ? 'Novo endereço gerado. Cadastre-o no painel do provedor.'
+          : 'Novo endereço gerado. As próximas cobranças já saem com ele.'
       )();
       return response.data;
     })

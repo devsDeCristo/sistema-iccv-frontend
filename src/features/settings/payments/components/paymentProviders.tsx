@@ -63,9 +63,14 @@ function PaymentProviders() {
           <Box
             sx={{
               display: 'grid',
-              // duas colunas a partir do tablet; no celular uma, porque o
-              // cartão carrega URL longa e não sobrevive a metade da largura
-              gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+              // Três por linha no desktop. Cabe desde que o cartão não carregue
+              // texto largo — as URLs de notificação saíram dele justamente por
+              // isso, e a tabela de taxas vive recolhida.
+              gridTemplateColumns: {
+                xs: '1fr',
+                sm: '1fr 1fr',
+                lg: 'repeat(3, 1fr)',
+              },
               gap: 2,
               alignItems: 'stretch',
             }}

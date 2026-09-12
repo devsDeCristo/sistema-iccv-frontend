@@ -18,13 +18,16 @@ interface Props {
 }
 
 /**
- * Os endereços que precisam ser cadastrados no painel do provedor.
+ * O endereço de notificação, para a casa que depende de cadastro na conta.
  *
- * Cada URL carrega um segredo próprio desta igreja nesta casa — é ele que
- * prova, do lado de cá, que a notificação veio mesmo de lá. Por isso a tela
- * avisa que ela não deve ser compartilhada, e por isso o botão é de copiar e
- * não um link clicável: o endereço é para ser colado no painel do provedor, e
- * abrir no navegador só o joga no histórico.
+ * Só o Ton cai aqui. PagBank, Mercado Pago e InfinitePay recebem a URL dentro
+ * da chamada que cria a cobrança, não têm o que cadastrar, e para elas esta
+ * tela não aparece — ver `PROVIDER_WEBHOOK_SETUP`.
+ *
+ * A URL carrega um segredo próprio desta igreja nesta casa: é ele que prova,
+ * do lado de cá, que a notificação veio mesmo de lá. Daí o aviso de não
+ * compartilhar, e daí o botão ser de copiar e não um link clicável — abrir no
+ * navegador só joga o segredo no histórico.
  */
 function WebhookUrls({ integracao }: Props) {
   const theme = useTheme();
@@ -66,8 +69,14 @@ function WebhookUrls({ integracao }: Props) {
 
   return (
     <Stack spacing={1}>
-      <Typography variant="caption" color="text.secondary" fontWeight={600}>
-        Cadastre estes endereços no painel do provedor
+      <Typography variant="subtitle2" fontWeight={700}>
+        Cadastre no painel da {integracao.label}
+      </Typography>
+
+      <Typography variant="caption" color="text.secondary">
+        Esta é a única casa que exige o cadastro: a API dela resolve notificação
+        por conta, e não por cobrança. Sem isso o inscrito paga e a inscrição
+        continua marcada como pendente.
       </Typography>
 
       {integracao.webhooks.map((webhook) => (
