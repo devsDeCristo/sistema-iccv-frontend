@@ -1,9 +1,6 @@
 /** Espelha `PaymentProvider` no backend */
 export type PaymentProviderKey =
-  | 'PAGBANK'
-  | 'MERCADO_PAGO'
-  | 'INFINITEPAY'
-  | 'TON';
+  'PAGBANK' | 'MERCADO_PAGO' | 'INFINITEPAY' | 'TON';
 
 export type PaymentProviderMode = 'SANDBOX' | 'PRODUCTION';
 

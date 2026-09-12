@@ -94,7 +94,10 @@ function WebhookUrls({ integracao }: Props) {
         </Box>
       ))}
 
-      <Alert severity={integracao.signsWebhook ? 'info' : 'warning'} sx={{ py: 0.5 }}>
+      <Alert
+        severity={integracao.signsWebhook ? 'info' : 'warning'}
+        sx={{ py: 0.5 }}
+      >
         {integracao.signsWebhook
           ? 'O endereço contém um segredo desta igreja. Não compartilhe nem publique.'
           : `A ${integracao.label} não assina as notificações: o segredo deste endereço é a única coisa que impede alguém de marcar uma inscrição como paga. Trate-o como senha.`}

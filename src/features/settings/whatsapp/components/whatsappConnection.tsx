@@ -85,21 +85,30 @@ function formataNumero(numero?: string | null) {
   return `+${ddi} ${ddd} ${meio}-${resto.slice(meio.length)}`;
 }
 
+interface Props {
+  /** A igreja cujo número está sendo pareado. Ver `useIgrejaSelecionada`. */
+  churchId: string;
+}
+
 /**
- * Painel do número que dispara as mensagens.
+ * Painel do número que dispara as mensagens **desta igreja**.
  *
  * A tela é dividida em duas: em cima, quem é o número e como ele está; embaixo,
  * só enquanto não há ninguém conectado, o pareamento. São dois caminhos, os
  * mesmos que o WhatsApp oferece para conectar um aparelho — ler o QR ou digitar
  * um código de oito caracteres —, e cada um vem com os passos do lado do que
  * precisa ser feito, porque a metade difícil acontece no celular, não aqui.
+ *
+ * O `churchId` vem de cima e não de um estado daqui: quem escolhe a igreja é a
+ * faixa no topo da página, e as duas telas de configuração compartilham essa
+ * escolha.
  */
-function WhatsappConnection() {
+function WhatsappConnection({ churchId }: Props) {
   const theme = useTheme();
   const [numero, setNumero] = useState('');
   const [modo, setModo] = useState<Modo>('qr');
 
-  const { data: conexao, isLoading } = useGetWhatsappStatus();
+  const { data: conexao, isLoading } = useGetWhatsappStatus(churchId);
   const status = conexao?.status ?? 'DISCONNECTED';
 
   const { mutate: conectar, isLoading: conectando } = useConnectWhatsapp();
@@ -118,6 +127,13 @@ function WhatsappConnection() {
   });
 
   const ocupado = conectando || pedindoCodigo || desconectando || cancelando;
+
+  // Trocar de igreja recomeça o pareamento do zero: o número digitado era para
+  // a igreja anterior, e deixá-lo no campo convida a parear o telefone errado.
+  useEffect(() => {
+    setNumero('');
+    setModo('qr');
+  }, [churchId]);
 
   // Quem lê o QR está de olho no celular, não no monitor: sem este aviso a
   // pessoa volta para a tela e tem que deduzir, pelo card, que deu certo.
@@ -279,7 +295,7 @@ function WhatsappConnection() {
           <Button
             variant="contained"
             disabled={ocupado || numero.length < 12}
-            onClick={() => pedirCodigo(numero)}
+            onClick={() => pedirCodigo({ churchId, phoneNumber: numero })}
             sx={{ borderRadius: 2, textTransform: 'none', minWidth: 160 }}
           >
             {pedindoCodigo ? (
@@ -327,7 +343,7 @@ function WhatsappConnection() {
           variant="contained"
           startIcon={<QrCode2 />}
           disabled={ocupado}
-          onClick={() => conectar()}
+          onClick={() => conectar({ churchId })}
           sx={{ borderRadius: 2, textTransform: 'none', minWidth: 160 }}
         >
           {conectando ? (
@@ -375,7 +391,7 @@ function WhatsappConnection() {
                 color="error"
                 startIcon={<LinkOff />}
                 disabled={ocupado}
-                onClick={() => desconectar()}
+                onClick={() => desconectar({ churchId })}
                 sx={{ borderRadius: 2, textTransform: 'none' }}
               >
                 Desconectar
@@ -473,7 +489,7 @@ function WhatsappConnection() {
                 color="error"
                 startIcon={<Close />}
                 disabled={ocupado}
-                onClick={() => cancelar()}
+                onClick={() => cancelar({ churchId })}
                 sx={{ textTransform: 'none' }}
               >
                 Cancelar pareamento

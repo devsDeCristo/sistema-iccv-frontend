@@ -109,7 +109,6 @@ function EtiquetaNovo() {
     <Typography
       component="span"
       sx={{
-
         flexShrink: 0,
         fontSize: 12,
         fontWeight: 800,
@@ -184,7 +183,13 @@ function ItemNav({
 
       {/* a etiqueta anda junto do nome, e não encostada na parede direita da
           régua: colada no texto ela se lê como parte do item */}
-      <Stack width={"100%"} direction="row" alignItems="center" justifyContent={"space-between"} sx={{ minWidth: 0 }}>
+      <Stack
+        width={'100%'}
+        direction="row"
+        alignItems="center"
+        justifyContent={'space-between'}
+        sx={{ minWidth: 0 }}
+      >
         <Typography
           noWrap
           sx={{
@@ -287,9 +292,9 @@ const SideBar: React.FC<SideBarProps> = ({
           },
         ]
       : []),
-    // o número do WhatsApp é um só para todas as igrejas: quem mexe nele é o
-    // super admin
-    ...(isSuperAdmin
+    // o número do WhatsApp também é por igreja: quem administra a sua pareia o
+    // dela e não alcança as outras
+    ...(isAdminRole
       ? [
           {
             link: '/configuracoes/disparadores',
@@ -387,8 +392,8 @@ const SideBar: React.FC<SideBarProps> = ({
     areaAtual === 'configuracoes'
       ? 'Configurações'
       : areaAtual === 'admin'
-      ? 'Administrador'
-      : 'Inscrições';
+        ? 'Administrador'
+        : 'Inscrições';
 
   return (
     <>

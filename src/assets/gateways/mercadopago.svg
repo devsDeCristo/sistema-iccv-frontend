@@ -1,0 +1,5 @@
+<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Mercado Pago">
+  <rect width="48" height="48" rx="11" fill="#FFE600"/>
+  <path d="M8.9 33V15h4.6l5.1 9.6L23.7 15h4.6v18h-3.9V22.1l-4.3 8h-2.2l-4.3-8V33H8.9z" fill="#2D3277"/>
+  <path d="M30.6 33V15h6.6c3.6 0 6 2.4 6 5.9s-2.4 5.9-6.1 5.9h-2.6V33h-3.9zm3.9-9.6h2.3c1.6 0 2.5-.8 2.5-2.4s-.9-2.4-2.5-2.4h-2.3v4.8z" fill="#2D3277"/>
+</svg>

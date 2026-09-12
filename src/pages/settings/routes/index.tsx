@@ -2,19 +2,21 @@ import { Navigate, Route } from 'react-router-dom';
 import { Dispatchers } from '../dispatchers';
 import { PaymentsSettings } from '../payments';
 import { RequireRole } from '../../../components/requireRole';
-import { ADMIN_ROLES, Role } from '../../../constants/roles';
+import { ADMIN_ROLES } from '../../../constants/roles';
 
 /**
  * Configurações do sistema.
  *
- * As duas telas têm dono diferente, e é por isso que o perfil exigido não é o
- * mesmo. O número do WhatsApp é um só para todas as igrejas — parear ou
- * desconectar ali derruba o disparo de todas —, então é tela de super admin. A
- * cobrança é por igreja: quem administra a sua configura a dela, e o recorte
- * de verdade vem do `ChurchTenantGuard` na API.
+ * As duas são por igreja: a conta que recebe o dinheiro e o número que dispara
+ * o aviso. Quem administra a igreja configura a dela, e o recorte de verdade
+ * vem do `ChurchTenantGuard` na API — aqui é só usabilidade.
+ *
+ * `ADMIN_ROLES` e não `[Role.SUPER_ADMIN]`: o dev é super admin com outro
+ * rótulo, e o valor dele é `-1`. Comparar com o super admin puro o deixava de
+ * fora, e ele era jogado de volta para o painel ao tentar abrir Configurações.
  *
  * O financeiro fica de fora das duas: ele dá baixa em pagamento, mas não
- * decide para qual conta o dinheiro vai.
+ * decide para qual conta o dinheiro vai nem por qual número o aviso sai.
  */
 function RoutesSettings() {
   return (
@@ -26,7 +28,7 @@ function RoutesSettings() {
       <Route
         path="/configuracoes/disparadores"
         element={
-          <RequireRole allowedRoles={[Role.SUPER_ADMIN]}>
+          <RequireRole allowedRoles={ADMIN_ROLES}>
             <Dispatchers />
           </RequireRole>
         }

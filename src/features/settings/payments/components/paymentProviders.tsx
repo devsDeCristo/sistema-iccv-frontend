@@ -1,57 +1,30 @@
-import { useMemo, useState } from 'react';
-import {
-  Alert,
-  Box,
-  Skeleton,
-  Stack,
-  Typography,
-} from '@mui/material';
+import { useState } from 'react';
+import { Alert, Box, Skeleton, Stack, Typography } from '@mui/material';
 
-import { SelectField } from '../../../../components/selectField';
-import { useRole } from '../../../../hooks/useRole';
-import { useGetChurches } from '../../../admin/churches/api/getChurches';
+import { ChurchScopeBar } from '../../shared/churchScopeBar';
+import { useIgrejaSelecionada } from '../../shared/useIgrejaSelecionada';
 import { useGetPaymentProviders } from '../api/getPaymentProviders';
 import { ProviderCard } from './providerCard';
 import { ProviderForm } from './providerForm';
+import { RecebendoAgora } from './recebendoAgora';
 import { PaymentProviderIntegration } from '../types';
 
 /**
  * Por onde cada igreja cobra.
  *
- * A igreja vem antes de tudo na tela porque é ela que define de quem é o
- * dinheiro: a mesma pessoa pode administrar duas, e a credencial de uma não
- * vale na outra. Quem administra uma só não escolhe nada — o seletor some.
+ * A igreja vem antes de tudo na tela — ver `ChurchScopeBar`. É ela que define
+ * de quem é o dinheiro: a mesma pessoa pode administrar duas, e cadastrar a
+ * credencial de uma na outra manda a inscrição inteira para a conta errada.
  */
 function PaymentProviders() {
-  const { isSuperAdmin, igrejasQueAdministra } = useRole();
+  const escopo = useIgrejaSelecionada();
   const [editando, setEditando] = useState<PaymentProviderIntegration | null>(
     null
   );
 
-  // O super admin não tem vínculo: as igrejas dele vêm da listagem, e só ele
-  // alcança essa rota.
-  const { data: todasAsIgrejas, isLoading: carregandoIgrejas } = useGetChurches(
-    { enabled: isSuperAdmin }
-  );
+  const { data, isLoading } = useGetPaymentProviders(escopo.churchId);
 
-  const igrejas = useMemo(
-    () =>
-      isSuperAdmin
-        ? (todasAsIgrejas ?? []).map((i) => ({ id: i.id, name: i.name }))
-        : igrejasQueAdministra,
-    [isSuperAdmin, todasAsIgrejas, igrejasQueAdministra]
-  );
-
-  const [churchIdEscolhida, setChurchId] = useState<string | null>(null);
-  const churchId = churchIdEscolhida ?? igrejas[0]?.id ?? null;
-
-  const { data, isLoading } = useGetPaymentProviders(churchId);
-
-  if (carregandoIgrejas) {
-    return <Skeleton variant="rounded" height={180} />;
-  }
-
-  if (!igrejas.length) {
+  if (escopo.semIgreja) {
     return (
       <Alert severity="info">
         Você não administra nenhuma igreja. A forma de cobrança é configurada
@@ -60,63 +33,53 @@ function PaymentProviders() {
     );
   }
 
+  const padrao = data?.integracoes.find((i) => i.isDefault) ?? null;
+
   return (
     <Stack spacing={2.5}>
-      {igrejas.length > 1 && (
-        <Box sx={{ maxWidth: 360 }}>
-          <SelectField
-            label="Igreja"
-            value={churchId ?? ''}
-            onChange={setChurchId}
-            options={igrejas.map((igreja) => ({
-              value: igreja.id,
-              label: igreja.name,
-            }))}
-          />
-        </Box>
-      )}
+      <ChurchScopeBar
+        escopo={escopo}
+        oQueMuda="a própria conta de recebimento"
+      />
 
       {data && !data.cofreDisponivel && (
         <Alert severity="error">
-          O servidor está sem a chave que protege as credenciais
-          (<code>PAYMENT_CREDENTIALS_KEY</code>). Enquanto ela não for
+          O servidor está sem a chave que protege as credenciais (
+          <code>PAYMENT_CREDENTIALS_KEY</code>). Enquanto ela não for
           configurada, nenhuma integração pode ser cadastrada nem usada. Fale
           com o suporte técnico.
         </Alert>
       )}
 
-      {data && data.cofreDisponivel && !data.integracoes.some((i) => i.isDefault) && (
-        <Alert severity="warning">
-          Nenhuma casa está recebendo: os inscritos desta igreja não conseguem
-          pagar pelo sistema. Configure uma e marque como “Usar esta”.
-        </Alert>
-      )}
-
-      {isLoading ? (
+      {isLoading || escopo.carregando ? (
         <Stack spacing={2}>
-          <Skeleton variant="rounded" height={200} />
-          <Skeleton variant="rounded" height={200} />
+          <Skeleton variant="rounded" height={92} />
+          <Skeleton variant="rounded" height={220} />
         </Stack>
       ) : (
-        <Box
-          sx={{
-            display: 'grid',
-            // duas colunas a partir do tablet; no celular uma, porque o cartão
-            // carrega URL longa e não sobrevive a metade da largura
-            gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
-            gap: 2,
-            alignItems: 'stretch',
-          }}
-        >
-          {data?.integracoes.map((integracao) => (
-            <ProviderCard
-              key={integracao.provider}
-              churchId={churchId as string}
-              integracao={integracao}
-              onConfigurar={() => setEditando(integracao)}
-            />
-          ))}
-        </Box>
+        <>
+          <RecebendoAgora integracao={padrao} />
+
+          <Box
+            sx={{
+              display: 'grid',
+              // duas colunas a partir do tablet; no celular uma, porque o
+              // cartão carrega URL longa e não sobrevive a metade da largura
+              gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+              gap: 2,
+              alignItems: 'stretch',
+            }}
+          >
+            {data?.integracoes.map((integracao) => (
+              <ProviderCard
+                key={integracao.provider}
+                churchId={escopo.churchId as string}
+                integracao={integracao}
+                onConfigurar={() => setEditando(integracao)}
+              />
+            ))}
+          </Box>
+        </>
       )}
 
       <Typography variant="caption" color="text.secondary">
@@ -126,7 +89,7 @@ function PaymentProviders() {
       </Typography>
 
       <ProviderForm
-        churchId={churchId as string}
+        churchId={escopo.churchId as string}
         integracao={editando}
         onClose={() => setEditando(null)}
       />

@@ -5,17 +5,22 @@ import {
   Button,
   Chip,
   CircularProgress,
+  Collapse,
   Divider,
+  IconButton,
   Menu,
   MenuItem,
   Stack,
   Typography,
   useTheme,
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import {
   Autorenew,
   CheckCircle,
   DeleteOutline,
+  ExpandLess,
+  ExpandMore,
   MoreVert,
   NetworkCheck,
   Settings,
@@ -24,6 +29,7 @@ import {
 import CustomChip from '../../../../components/customChip';
 import { ConfirmModal } from '../../../../components/ConfirmModal';
 import { formatDateTime } from '../../../../utils';
+import { ProviderLogo } from './providerLogo';
 import { WebhookUrls } from './webhookUrls';
 import {
   useRemoveProvider,
@@ -47,8 +53,10 @@ interface Props {
  * O cartão de uma casa de pagamento.
  *
  * A hierarquia da tela é a da decisão que a pessoa toma: primeiro *qual* casa
- * recebe o dinheiro (o selo de padrão), depois se ela está no ar, e só então a
- * papelada — credenciais e endereços de notificação.
+ * recebe o dinheiro, depois se ela está no ar, e só então a papelada. Os
+ * endereços de notificação ficam recolhidos porque são consultados uma vez, na
+ * configuração inicial, e depois só atrapalham — quatro cartões com três linhas
+ * de URL cada viram uma parede de texto.
  */
 function ProviderCard({ churchId, integracao, onConfigurar }: Props) {
   const theme = useTheme();
@@ -56,6 +64,7 @@ function ProviderCard({ churchId, integracao, onConfigurar }: Props) {
   const [confirmandoRemocao, setConfirmandoRemocao] = useState(false);
   const [confirmandoGiro, setConfirmandoGiro] = useState(false);
   const [saude, setSaude] = useState<GatewayHealth | null>(null);
+  const [mostrandoEnderecos, setMostrandoEnderecos] = useState(false);
 
   const { mutate: definirPadrao, isLoading: definindo } =
     useSetDefaultProvider();
@@ -71,26 +80,27 @@ function ProviderCard({ churchId, integracao, onConfigurar }: Props) {
 
   const acao = { churchId, provider: integracao.provider };
 
-  const corDaBorda = integracao.isDefault
-    ? theme.palette.primary.main
-    : theme.palette.divider;
-
   const styles = {
     cartao: {
       p: 2.5,
       borderRadius: 2,
-      border: `1px solid ${corDaBorda}`,
+      border: `1px solid ${
+        integracao.isDefault
+          ? alpha(theme.palette.chips.success, 0.5)
+          : theme.palette.divider
+      }`,
       backgroundColor: theme.palette.background.paperSecondary,
       display: 'flex',
       flexDirection: 'column',
-      gap: 2,
+      gap: 1.75,
       height: '100%',
+      transition: 'border-color .15s, box-shadow .15s',
+      '&:hover': { boxShadow: `0 2px 12px ${alpha('#000', 0.08)}` },
     },
     topo: {
       display: 'flex',
       alignItems: 'flex-start',
-      justifyContent: 'space-between',
-      gap: 1,
+      gap: 1.5,
     },
   };
 
@@ -107,13 +117,36 @@ function ProviderCard({ churchId, integracao, onConfigurar }: Props) {
     Date.now() - new Date(integracao.updatedAt).getTime() > 60 * 60 * 1000;
 
   const semRetorno =
-    integracao.enabled && !integracao.lastWebhookAt && configuradoHaMaisDeUmaHora;
+    integracao.enabled &&
+    !integracao.lastWebhookAt &&
+    configuradoHaMaisDeUmaHora;
 
   return (
     <Box sx={styles.cartao}>
       <Box sx={styles.topo}>
-        <Box sx={{ minWidth: 0 }}>
-          <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
+        <ProviderLogo
+          provider={integracao.provider}
+          size={44}
+          // A casa desligada fica acinzentada: o cartão continua legível, e a
+          // diferença entre "no ar" e "guardada" se vê antes de ler qualquer
+          // palavra.
+          sx={{
+            opacity: integracao.configured && !integracao.enabled ? 0.45 : 1,
+            filter:
+              integracao.configured && !integracao.enabled
+                ? 'grayscale(1)'
+                : 'none',
+          }}
+        />
+
+        <Box sx={{ minWidth: 0, flex: 1 }}>
+          <Stack
+            direction="row"
+            spacing={0.75}
+            alignItems="center"
+            flexWrap="wrap"
+            useFlexGap
+          >
             <Typography fontWeight={600}>{integracao.label}</Typography>
 
             {integracao.isDefault && (
@@ -142,27 +175,26 @@ function ProviderCard({ churchId, integracao, onConfigurar }: Props) {
             )}
           </Stack>
 
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{ mt: 0.5, lineHeight: 1.45 }}
+          >
             {integracao.summary}
           </Typography>
         </Box>
 
         {integracao.configured && (
           <>
-            <Button
+            <IconButton
               size="small"
               onClick={(evento) => setMenu(evento.currentTarget)}
-              sx={{ minWidth: 32, px: 0.5 }}
-              color="inherit"
+              sx={{ mt: -0.5, mr: -0.5 }}
             >
               <MoreVert fontSize="small" />
-            </Button>
+            </IconButton>
 
-            <Menu
-              anchorEl={menu}
-              open={!!menu}
-              onClose={() => setMenu(null)}
-            >
+            <Menu anchorEl={menu} open={!!menu} onClose={() => setMenu(null)}>
               <MenuItem
                 onClick={() => {
                   setMenu(null);
@@ -194,6 +226,7 @@ function ProviderCard({ churchId, integracao, onConfigurar }: Props) {
             size="small"
             variant="outlined"
             label={PAYMENT_METHOD_LABEL[metodo] ?? metodo}
+            sx={{ height: 22, fontSize: 11 }}
           />
         ))}
       </Stack>
@@ -207,7 +240,11 @@ function ProviderCard({ churchId, integracao, onConfigurar }: Props) {
       )}
 
       {saude && (
-        <Alert severity={saude.ok ? 'success' : 'error'} sx={{ py: 0.5 }}>
+        <Alert
+          severity={saude.ok ? 'success' : 'error'}
+          sx={{ py: 0.5 }}
+          onClose={() => setSaude(null)}
+        >
           {saude.message}
           {saude.account && ` (${saude.account})`}
         </Alert>
@@ -216,21 +253,47 @@ function ProviderCard({ churchId, integracao, onConfigurar }: Props) {
       {integracao.configured && (
         <>
           <Divider />
-          <WebhookUrls integracao={integracao} />
 
-          {integracao.lastWebhookAt && (
-            <Typography variant="caption" color="text.secondary">
-              Último retorno recebido em{' '}
-              {formatDateTime(integracao.lastWebhookAt)}
+          <Box>
+            <Button
+              size="small"
+              color="inherit"
+              onClick={() => setMostrandoEnderecos((atual) => !atual)}
+              endIcon={
+                mostrandoEnderecos ? (
+                  <ExpandLess fontSize="small" />
+                ) : (
+                  <ExpandMore fontSize="small" />
+                )
+              }
+              sx={{ px: 0, textTransform: 'none', fontWeight: 600 }}
+            >
+              Endereços de notificação
+            </Button>
+
+            <Collapse in={mostrandoEnderecos} unmountOnExit>
+              <Box sx={{ pt: 1 }}>
+                <WebhookUrls integracao={integracao} />
+              </Box>
+            </Collapse>
+
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ display: 'block' }}
+            >
+              {integracao.lastWebhookAt
+                ? `Último retorno em ${formatDateTime(integracao.lastWebhookAt)}`
+                : 'Nenhum retorno recebido ainda'}
             </Typography>
-          )}
+          </Box>
         </>
       )}
 
       <Stack
         direction="row"
         spacing={1}
-        sx={{ mt: 'auto', pt: 1, flexWrap: 'wrap' }}
+        sx={{ mt: 'auto', pt: 0.5, flexWrap: 'wrap' }}
         useFlexGap
       >
         <Button
@@ -261,16 +324,18 @@ function ProviderCard({ churchId, integracao, onConfigurar }: Props) {
           </Button>
         )}
 
-        {integracao.configured && integracao.enabled && !integracao.isDefault && (
-          <Button
-            size="small"
-            variant="outlined"
-            disabled={definindo}
-            onClick={() => definirPadrao(acao)}
-          >
-            Usar esta
-          </Button>
-        )}
+        {integracao.configured &&
+          integracao.enabled &&
+          !integracao.isDefault && (
+            <Button
+              size="small"
+              variant="outlined"
+              disabled={definindo}
+              onClick={() => definirPadrao(acao)}
+            >
+              Usar esta
+            </Button>
+          )}
       </Stack>
 
       <ConfirmModal

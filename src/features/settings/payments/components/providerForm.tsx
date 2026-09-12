@@ -11,13 +11,11 @@ import {
 import { OpenInNew } from '@mui/icons-material';
 
 import { ResponsiveModal } from '../../../../components/responsiveModal';
+import { ProviderLogo } from './providerLogo';
 import { Input } from '../../../../components/input';
 import { SelectField } from '../../../../components/selectField';
 import { useSavePaymentProvider } from '../api/paymentProviderActions';
-import {
-  PaymentProviderIntegration,
-  PaymentProviderMode,
-} from '../types';
+import { PaymentProviderIntegration, PaymentProviderMode } from '../types';
 
 interface Props {
   churchId: string;
@@ -60,7 +58,7 @@ function ProviderForm({ churchId, integracao, onClose }: Props) {
       // começa vazio, e vazio significa "mantém o que já está lá".
       iniciais[campo.key] = campo.secret
         ? ''
-        : integracao.credentialsHint?.[campo.key] ?? '';
+        : (integracao.credentialsHint?.[campo.key] ?? '');
     });
 
     setValores(iniciais);
@@ -105,7 +103,12 @@ function ProviderForm({ churchId, integracao, onClose }: Props) {
       disableClose={isLoading}
       maxWidth="sm"
       fullWidth
-      title={`Configurar ${integracao.label}`}
+      title={
+        <Stack direction="row" spacing={1.5} alignItems="center">
+          <ProviderLogo provider={integracao.provider} size={32} />
+          <span>Configurar {integracao.label}</span>
+        </Stack>
+      }
       actions={
         <>
           <Button onClick={onClose} disabled={isLoading} color="inherit">

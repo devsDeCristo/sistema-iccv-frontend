@@ -33,7 +33,7 @@ export default function MenuAppBar({
 }) {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const { user, logout } = useUser();
-  const { canAccessAdminArea, isSuperAdmin } = useRole();
+  const { canAccessAdminArea, isAdmin: isAdminRole } = useRole();
   const { colorMode, toggleColorMode } = useThemeContext();
   const navigate = useNavigate();
   const [isAdminRoute, setIsAdminRoute] = React.useState(false);
@@ -189,11 +189,21 @@ export default function MenuAppBar({
                 </MenuItem>
               )}
 
-              {/* configurações do sistema: mesmo grupo de quem administra */}
-              {isSuperAdmin && (
+              {/*
+                Configurações da igreja: a cobrança e o número de disparo são
+                de quem administra a igreja, então o admin também entra — antes
+                só o super admin via esta entrada, e o admin não tinha por onde
+                chegar na própria configuração.
+
+                O destino é `/configuracoes`, que redireciona: apontar direto
+                para uma das telas mandava o dev para a de disparadores, que
+                exigia super admin puro, e ele voltava para o painel sem
+                explicação.
+              */}
+              {isAdminRole && (
                 <MenuItem
                   onClick={() => {
-                    navigate('/configuracoes/disparadores');
+                    navigate('/configuracoes');
                     handleClose();
                   }}
                 >

@@ -10,17 +10,30 @@ import { WhatsappConnection } from '../types';
 
 const invalidar = () => queryClient.invalidateQueries(GET_WHATSAPP_STATUS);
 
+/**
+ * Toda ação é sobre a sessão de uma igreja.
+ *
+ * O `churchId` não tem valor padrão em lugar nenhum aqui, de propósito: um
+ * padrão silencioso faria "desconectar" derrubar o número da primeira igreja
+ * da lista em vez do que está na tela.
+ */
+const rota = (churchId: string) => `/churches/${churchId}/whatsapp`;
+
+interface AcaoDaIgreja {
+  churchId: string;
+}
+
 /** Abre a sessão: a partir daí o status passa a trazer o QR. */
-const connectWhatsapp = () =>
+const connectWhatsapp = ({ churchId }: AcaoDaIgreja) =>
   apiClient
-    .post<WhatsappConnection>('/whatsapp/connect')
+    .post<WhatsappConnection>(`${rota(churchId)}/connect`)
     .then((response) => response.data)
     .catch(handleResponseThrowError());
 
 export const useConnectWhatsapp = ({
   onSuccess,
   ...options
-}: MutationOptions<WhatsappConnection, unknown, void> = {}) =>
+}: MutationOptions<WhatsappConnection, unknown, AcaoDaIgreja> = {}) =>
   useMutation({
     mutationFn: connectWhatsapp,
     onSuccess: (...args) => {
@@ -31,16 +44,25 @@ export const useConnectWhatsapp = ({
   });
 
 /** Pareamento sem QR: o admin digita o número e recebe o código de 8 caracteres. */
-const requestPairingCode = (phoneNumber: string) =>
+const requestPairingCode = ({
+  churchId,
+  phoneNumber,
+}: AcaoDaIgreja & { phoneNumber: string }) =>
   apiClient
-    .post<{ pairingCode: string }>('/whatsapp/pairing-code', { phoneNumber })
+    .post<{ pairingCode: string }>(`${rota(churchId)}/pairing-code`, {
+      phoneNumber,
+    })
     .then((response) => response.data)
     .catch(handleResponseThrowError());
 
 export const useRequestPairingCode = ({
   onSuccess,
   ...options
-}: MutationOptions<{ pairingCode: string }, unknown, string> = {}) =>
+}: MutationOptions<
+  { pairingCode: string },
+  unknown,
+  AcaoDaIgreja & { phoneNumber: string }
+> = {}) =>
   useMutation({
     mutationFn: requestPairingCode,
     onSuccess: (...args) => {
@@ -51,9 +73,9 @@ export const useRequestPairingCode = ({
   });
 
 /** Desiste do pareamento: fecha o QR e para as tentativas de conexão. */
-const cancelPairing = () =>
+const cancelPairing = ({ churchId }: AcaoDaIgreja) =>
   apiClient
-    .delete<WhatsappConnection>('/whatsapp/pairing')
+    .delete<WhatsappConnection>(`${rota(churchId)}/pairing`)
     .then((response) => {
       handleResponseSuccess(response.data, 'Pareamento cancelado')();
       return response.data;
@@ -63,7 +85,7 @@ const cancelPairing = () =>
 export const useCancelPairing = ({
   onSuccess,
   ...options
-}: MutationOptions<WhatsappConnection, unknown, void> = {}) =>
+}: MutationOptions<WhatsappConnection, unknown, AcaoDaIgreja> = {}) =>
   useMutation({
     mutationFn: cancelPairing,
     onSuccess: (...args) => {
@@ -73,10 +95,10 @@ export const useCancelPairing = ({
     ...options,
   });
 
-/** Desconecta e apaga a sessão gravada — o próximo uso pede pareamento de novo. */
-const disconnectWhatsapp = () =>
+/** Desconecta e apaga a sessão — o próximo uso pede pareamento de novo. */
+const disconnectWhatsapp = ({ churchId }: AcaoDaIgreja) =>
   apiClient
-    .delete<WhatsappConnection>('/whatsapp/session')
+    .delete<WhatsappConnection>(`${rota(churchId)}/session`)
     .then((response) => {
       handleResponseSuccess(response.data, 'WhatsApp desconectado')();
       return response.data;
@@ -86,7 +108,7 @@ const disconnectWhatsapp = () =>
 export const useDisconnectWhatsapp = ({
   onSuccess,
   ...options
-}: MutationOptions<WhatsappConnection, unknown, void> = {}) =>
+}: MutationOptions<WhatsappConnection, unknown, AcaoDaIgreja> = {}) =>
   useMutation({
     mutationFn: disconnectWhatsapp,
     onSuccess: (...args) => {
