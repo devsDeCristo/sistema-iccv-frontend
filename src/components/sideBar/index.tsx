@@ -10,6 +10,7 @@ import {
   People,
   Send,
   Church,
+  WhatsApp,
   SpaceDashboard,
 } from '@mui/icons-material';
 import { Link, useLocation } from 'react-router-dom';
@@ -40,6 +41,17 @@ type ItemMenu = {
   title: string;
   /** Marca a linha com a etiqueta "Novo!" — para estrear uma tela no menu */
   novo?: boolean;
+  /**
+   * Telas de dentro desta, recuadas sob ela na régua.
+   *
+   * Existe porque "Disparadores" é um grupo de canais, não uma tela: hoje só o
+   * WhatsApp, amanhã e-mail ou SMS. Isso era um `Tabs` dentro da página, e aba
+   * esconde o que existe atrás dela — quem abria a tela via "WhatsApp" e não
+   * tinha como saber que aquilo era uma escolha entre canais. Na régua os
+   * canais ficam listados, cada um com endereço próprio, que dá para favoritar
+   * e compartilhar.
+   */
+  filhos?: ItemMenu[];
 };
 
 /**
@@ -142,10 +154,13 @@ function ItemNav({
   item,
   ativo,
   onClick,
+  filho = false,
 }: {
   item: ItemMenu;
   ativo: boolean;
   onClick?: () => void;
+  /** Linha de dentro de outra: menor, mais baixa e sem peso de seção */
+  filho?: boolean;
 }) {
   const theme = useTheme();
   const destaque = corDestaque(theme);
@@ -159,7 +174,7 @@ function ItemNav({
       alignItems="center"
       gap={2}
       sx={{
-        minHeight: 44,
+        minHeight: filho ? 36 : 44,
         px: 2,
         mb: 0.5,
         borderRadius: 2,
@@ -176,7 +191,7 @@ function ItemNav({
           color: ativo ? destaque : theme.palette.text.primary,
         },
         // o ícone acompanha a cor do item; sem isto ele fica preso no tom padrão
-        '& svg': { fontSize: 22, color: 'inherit' },
+        '& svg': { fontSize: filho ? 18 : 22, color: 'inherit' },
       }}
     >
       {item.icon}
@@ -193,7 +208,7 @@ function ItemNav({
         <Typography
           noWrap
           sx={{
-            fontSize: 14,
+            fontSize: filho ? 13.5 : 14,
             fontWeight: ativo ? 600 : 500,
             color: 'inherit',
           }}
@@ -228,6 +243,16 @@ function ConteudoNav({
   const estaAtivo = (link: string) =>
     pathname === link || pathname.startsWith(`${link}/`);
 
+  /**
+   * Quem tem filho só se acende no encaixe exato.
+   *
+   * Pelo `startsWith` de sempre, abrir o WhatsApp acendia a linha dele **e** a
+   * de Disparadores, e duas faixas grudadas não dizem qual das duas é a tela
+   * aberta. O recuo já mostra a que grupo o filho pertence.
+   */
+  const acendeu = (item: ItemMenu) =>
+    item.filhos?.length ? pathname === item.link : estaAtivo(item.link);
+
   // `logout` do contexto já limpa o storage, zera o usuário e leva para o
   // login — antes a saída era um link que só limpava o storage, e o nome do
   // usuário anterior ficava no ar até a página ser recarregada
@@ -247,12 +272,37 @@ function ConteudoNav({
 
       <Box sx={{ px: 1.5 }}>
         {itens.map((item) => (
-          <ItemNav
-            key={item.link}
-            item={item}
-            ativo={estaAtivo(item.link)}
-            onClick={onNavigate}
-          />
+          <Box key={item.link}>
+            <ItemNav
+              item={item}
+              ativo={acendeu(item)}
+              onClick={onNavigate}
+            />
+
+            {/* Fio à esquerda em vez de só recuo: com o recuo sozinho, uma
+                lista de dois ou três canais lia como itens soltos tortos. */}
+            {item.filhos?.length ? (
+              <Box
+                sx={{
+                  ml: 3,
+                  pl: 1.5,
+                  mb: 0.5,
+                  borderLeft: 1,
+                  borderColor: 'divider',
+                }}
+              >
+                {item.filhos.map((canal) => (
+                  <ItemNav
+                    key={canal.link}
+                    item={canal}
+                    ativo={estaAtivo(canal.link)}
+                    onClick={onNavigate}
+                    filho
+                  />
+                ))}
+              </Box>
+            ) : null}
+          </Box>
         ))}
       </Box>
 
@@ -300,6 +350,13 @@ const SideBar: React.FC<SideBarProps> = ({
             link: '/configuracoes/disparadores',
             icon: <Send />,
             title: 'Disparadores',
+            filhos: [
+              {
+                link: '/configuracoes/disparadores/whatsapp',
+                icon: <WhatsApp />,
+                title: 'WhatsApp',
+              },
+            ],
           },
         ]
       : []),
