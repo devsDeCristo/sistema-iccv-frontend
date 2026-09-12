@@ -57,6 +57,14 @@ export interface PaymentProvidersResponse {
    * abrir o formulário: o salvar falharia.
    */
   cofreDisponivel: boolean;
+  /**
+   * O módulo de cobrança desta igreja está ligado?
+   *
+   * Fica acima de tudo: desligado, a igreja não cobra nem que tenha casa
+   * cadastrada, certa e marcada como padrão. Quem liga e desliga é dev ou
+   * super admin — substituiu uma variável de ambiente.
+   */
+  modulePayment: boolean;
   integracoes: PaymentProviderIntegration[];
 }
 

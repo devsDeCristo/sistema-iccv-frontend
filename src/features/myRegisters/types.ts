@@ -1,6 +1,8 @@
 export interface paymentsWithRoles{
     eventId: string;
     eventName: string;
+    /** A igreja dona deste evento cobra online? Ver `Church.modulePayment`. */
+    modulePayment: boolean;
     data: object
     registeredRoles: RegisteredRole[];
     waitlistRoles: RegisteredRole[];

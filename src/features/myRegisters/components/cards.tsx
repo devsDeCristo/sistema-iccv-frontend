@@ -22,7 +22,6 @@ import { useGetPayments } from '../api/getPaymentByUser';
 import { ModalPayment } from './modalPayment';
 import React from 'react';
 import CapaLogin from '../../../assets/capaLogin2.jpg';
-import { MODULE_PAYMENT } from '../../../config/env';
 
 interface PaymentData {
   coverUrl: string;
@@ -34,6 +33,11 @@ function EventCard({ payment }: { payment: paymentsWithRoles & { data: PaymentDa
   const navigate = useNavigate();
   const theme = useTheme();
   const [dataModal, setDataModal] = React.useState<any>(null);
+
+  // A igreja dona deste evento cobra online? Antes era uma variável do front
+  // inteiro; agora cada cartão responde pela igreja dele, e dois eventos de
+  // igrejas diferentes aparecem lado a lado com respostas diferentes.
+  const modulePayment = payment.modulePayment;
 
   function handleOpenModal(paymentData: paymentsWithRoles & { data: PaymentData }) {
     const dataArray=[...paymentData.registeredRoles,...paymentData.waitlistRoles].map((role:any)=>{
@@ -156,7 +160,7 @@ function EventCard({ payment }: { payment: paymentsWithRoles & { data: PaymentDa
 
         <Stack gap={1} bottom={0}>
 
-          {MODULE_PAYMENT && (
+          {modulePayment && (
             <Stack direction="row" alignItems="center" gap={1}>
               <AttachMoney sx={styles.icon} />
               <Typography sx={styles.infoText} color={fullPaid ? 'success.main' : 'warning.main'}>
@@ -190,7 +194,7 @@ function EventCard({ payment }: { payment: paymentsWithRoles & { data: PaymentDa
           >
             Ver Evento
           </Button>
-          {MODULE_PAYMENT && (
+          {modulePayment && (
             <Button
               fullWidth
               variant="contained"
@@ -204,7 +208,7 @@ function EventCard({ payment }: { payment: paymentsWithRoles & { data: PaymentDa
         </Stack>
       </CardContent>
     </Paper>
-      {MODULE_PAYMENT && (
+      {modulePayment && (
         <ModalPayment
           open={Boolean(dataModal)}
           handleClose={handleCloseModal}

@@ -24,6 +24,15 @@ export interface EventDetails {
   name: string;
   /** igreja dona do evento — só o super admin escolhe e altera */
   churchId?: string;
+  /**
+   * O módulo de cobrança da igreja dona do evento.
+   *
+   * Substituiu o `VITE_MODULE_PAYMENT`, que era do front inteiro. Opcional
+   * porque nem toda rota de evento traz a igreja junto; quem lê assume ligado
+   * na ausência, que é o padrão da coluna — e quem manda mesmo é o servidor,
+   * que recusa o checkout com 503 de qualquer jeito.
+   */
+  church?: { modulePayment: boolean };
   startDate: Date;
   endDate: Date;
   groupLink?: string;

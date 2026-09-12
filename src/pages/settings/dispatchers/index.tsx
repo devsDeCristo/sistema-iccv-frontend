@@ -23,17 +23,16 @@ function Dispatchers() {
 
   return (
     <PageStyle>
+      {/* Ver a nota na tela de Pagamentos: o alternador é o recorte da
+          página, não um passo dela, e por isso divide a linha do título. */}
       <Header
         title="Disparadores"
         description="Canais que a igreja usa para avisar os inscritos"
-      />
+      >
+        <ChurchScopeBar escopo={escopo} oQueMuda="o próprio número de disparo" />
+      </Header>
 
       <Stack spacing={2.5}>
-        <ChurchScopeBar
-          escopo={escopo}
-          oQueMuda="o próprio número de disparo"
-        />
-
         {escopo.semIgreja ? (
           <Alert severity="info">
             Você não administra nenhuma igreja. O número de disparo é

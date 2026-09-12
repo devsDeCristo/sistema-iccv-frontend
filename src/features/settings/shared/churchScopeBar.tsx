@@ -10,7 +10,8 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
-import { Check, Church, ExpandMore } from '@mui/icons-material';
+import { alpha } from '@mui/material/styles';
+import { Check, Church, UnfoldMore } from '@mui/icons-material';
 
 import { EscopoDeIgreja } from './useIgrejaSelecionada';
 
@@ -45,34 +46,50 @@ function ChurchScopeBar({ escopo, oQueMuda }: Props) {
   const atual = igrejas.find((igreja) => igreja.id === churchId);
 
   const styles = {
-    base: {
-      backgroundColor: theme.palette.background.paper,
+    /**
+     * Pílula, e não retângulo: o raio total afasta o desenho de um campo de
+     * formulário, que é a leitura errada — a igreja não é algo que se preenche
+     * aqui, é o recorte do que já está na tela.
+     */
+    botao: {
+      backgroundColor: theme.palette.background.paperSecondary,
       border: `1px solid ${theme.palette.divider}`,
       display: 'inline-flex',
       alignItems: 'center',
-      gap: 0.75,
-      px: 1.2,
-      py: 0.7,
-       // alinha o texto com o conteúdo da página, e não com o padding
-      mt:-1,
-      borderRadius: 1.5,
+      gap: 0.9,
+      // menos folga do lado do chevron, que já tem ar próprio no desenho dele
+      pl: 1.25,
+      pr: 0.75,
+      py: 0.6,
+      borderRadius: 999,
       maxWidth: '100%',
-    },
-    clicavel: {
-      transition: 'background-color .15s',
-      '&:hover': { backgroundColor: theme.palette.background.hover },
+      transition: 'background-color .15s, border-color .15s',
+      '&:hover': {
+        backgroundColor: theme.palette.background.hover,
+        borderColor: alpha(theme.palette.text.primary, 0.25),
+      },
       '&:focus-visible': {
         outline: `2px solid ${theme.palette.primary.main}`,
         outlineOffset: 2,
       },
     },
+    /**
+     * Com uma igreja só não há o que alternar, e aí o desenho perde a caixa:
+     * pílula sem chevron continuaria parecendo clicável, e a pessoa ficaria
+     * tentando abrir uma lista que não existe.
+     */
+    rotulo: {
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: 0.9,
+      maxWidth: '100%',
+    },
     nome: {
-      fontSize: 15,
+      fontSize: 14,
       fontWeight: 600,
       // a mesma altura de linha do ícone ao lado: sem isto o chevron e o texto
       // assentam em bases diferentes e a linha fica torta
       lineHeight: '18px',
-      color: theme.palette.text.primary,
       whiteSpace: 'nowrap',
       overflow: 'hidden',
       textOverflow: 'ellipsis',
@@ -93,26 +110,39 @@ function ChurchScopeBar({ escopo, oQueMuda }: Props) {
         Preenchido e não vazado: a 19px o contorno da igrejinha vira rabisco. É
         o mesmo ícone que a régua lateral usa para a tela de igrejas.
       */}
-      <Church sx={{ fontSize: 19, color: theme.palette.text.secondary }} />
+      <Church sx={{ fontSize: 17, color: theme.palette.text.secondary }} />
 
-      <Box component="span" sx={styles.nome}>
+      <Box
+        component="span"
+        sx={{
+          ...styles.nome,
+          color: podeTrocar
+            ? theme.palette.text.primary
+            : theme.palette.text.secondary,
+        }}
+      >
         {atual?.name ?? '—'}
       </Box>
 
+      {/*
+        Seta de duas pontas e não chevron para baixo: o de baixo promete
+        "abrir mais coisa embaixo", e o que acontece é trocar o recorte da
+        tela inteira. Este é o mesmo sinal que alternador de conta usa.
+      */}
       {podeTrocar && (
-        <ExpandMore sx={{ fontSize: 18, color: theme.palette.text.secondary }} />
+        <UnfoldMore sx={{ fontSize: 16, color: theme.palette.text.disabled }} />
       )}
     </>
   );
 
   if (!podeTrocar) {
-    return <Box sx={styles.base}>{conteudo}</Box>;
+    return <Box sx={styles.rotulo}>{conteudo}</Box>;
   }
 
   return (
     <Box>
       <ButtonBase
-        sx={{ ...styles.base, ...styles.clicavel }}
+        sx={styles.botao}
         onClick={(evento) => setMenu(evento.currentTarget)}
       >
         {conteudo}
@@ -122,8 +152,11 @@ function ChurchScopeBar({ escopo, oQueMuda }: Props) {
         anchorEl={menu}
         open={!!menu}
         onClose={() => setMenu(null)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-        transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+        // Alinhado pela direita, que é a borda em que o controle encosta no
+        // cabeçalho: ancorado pela esquerda, o menu crescia para fora da tela
+        // e o navegador o empurrava de volta, desencostando do botão.
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
         PaperProps={{ sx: { minWidth: 240, maxWidth: 320, mt: 0.5 } }}
       >
         <Typography
@@ -150,20 +183,31 @@ function ChurchScopeBar({ escopo, oQueMuda }: Props) {
               escolher(igreja.id);
               setMenu(null);
             }}
-            sx={{ py: 1 }}
+            // Sem faixa de fundo no item atual: o check já diz qual é, e a
+            // faixa do `selected` do MUI pesa mais que a própria escolha.
+            sx={{
+              py: 1,
+              '&.Mui-selected': {
+                backgroundColor: 'transparent',
+                '&:hover': { backgroundColor: theme.palette.background.hover },
+              },
+            }}
           >
             <ListItemIcon sx={{ minWidth: 30 }}>
               {igreja.id === churchId && (
                 <Check fontSize="small" color="primary" />
               )}
             </ListItemIcon>
-            <Typography noWrap fontSize={14}>
+            <Typography
+              noWrap
+              fontSize={14}
+              fontWeight={igreja.id === churchId ? 600 : 400}
+            >
               {igreja.name}
             </Typography>
           </MenuItem>
         ))}
       </Menu>
-      <Divider sx={{ my: 1 }} />
     </Box>
   );
 }

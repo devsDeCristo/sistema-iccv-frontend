@@ -21,4 +21,12 @@ export const isProd = FRONT_ENV === ENUM_NODE_ENV.ENV_PROD;
 
 // export const API_URL = getApiUrl();
 export const API_URL = import.meta.env.VITE_API_URL;
-export const MODULE_PAYMENT = import.meta.env.VITE_MODULE_PAYMENT === 'true';
+
+/*
+ * `MODULE_PAYMENT` saiu daqui.
+ *
+ * Era global: ligava e desligava a cobrança do sistema inteiro, e não havia
+ * como uma igreja cobrar e a outra não. Virou `Church.modulePayment`, que chega
+ * junto do evento (`event.church.modulePayment`) e da lista de inscrições
+ * (`modulePayment` em cada cartão).
+ */

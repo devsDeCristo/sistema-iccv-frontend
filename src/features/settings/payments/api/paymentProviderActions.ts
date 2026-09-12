@@ -52,6 +52,45 @@ export const useSavePaymentProvider = ({
     ...options,
   });
 
+// --------------------------------------------------------- módulo da igreja
+
+interface ModuloArgs {
+  churchId: string;
+  enabled: boolean;
+}
+
+/**
+ * Liga e desliga a cobrança online de uma igreja inteira.
+ *
+ * Rota de dev e super admin: substituiu as variáveis de ambiente que faziam
+ * isso para o sistema todo. Não mexe em credencial nenhuma — desligar pausa,
+ * religar devolve tudo como estava.
+ */
+const setPaymentModule = ({ churchId, enabled }: ModuloArgs) =>
+  apiClient
+    .patch(`/churches/${churchId}/payment-providers/module`, { enabled })
+    .then((response) => {
+      handleResponseSuccess(
+        response.data,
+        enabled ? 'Cobrança online ligada' : 'Cobrança online desligada'
+      )();
+      return response.data;
+    })
+    .catch(handleResponseThrowError());
+
+export const useSetPaymentModule = ({
+  onSuccess,
+  ...options
+}: MutationOptions<unknown, unknown, ModuloArgs> = {}) =>
+  useMutation({
+    mutationFn: setPaymentModule,
+    onSuccess: (...args) => {
+      invalidar();
+      onSuccess?.(...args);
+    },
+    ...options,
+  });
+
 // --------------------------------------------------------------- padrão
 
 const setDefaultProvider = ({ churchId, provider }: AcaoBase) =>

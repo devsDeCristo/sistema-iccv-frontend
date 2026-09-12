@@ -33,7 +33,6 @@ import { usePostRegisterUserInEvent } from '../../../features/admin/events/api/p
 import Swal from 'sweetalert2';
 import { useGetGroupsByUser } from '../../../features/admin/events/api/getGroupsByUser';
 import { usePostCreateCheckoutEvent } from '../../../features/admin/events/api/postCreateCheckoutEvent';
-import { MODULE_PAYMENT } from '../../../config/env';
 
 function Subscribe() {
   const { id } = useParams();
@@ -52,6 +51,10 @@ function Subscribe() {
   );
 
   const event = eventData as EventDetails;
+
+  // Sem a igreja na resposta, assume ligado: é o padrão da coluna, e quem
+  // recusa de fato é o servidor, que devolve 503 ao tentar abrir o checkout.
+  const modulePayment = event?.church?.modulePayment ?? true;
   const groups = groupsData as PayLoadGroup;
 
   const [currentStep, setCurrentStep] = useState(1);
@@ -130,7 +133,7 @@ function Subscribe() {
           return;
         }
 
-        if (!MODULE_PAYMENT) {
+        if (!modulePayment) {
           Swal.fire({
             title: 'Inscrição(ões) realizada(s) com sucesso!',
             text: allRegistered
