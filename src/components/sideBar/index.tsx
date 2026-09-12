@@ -6,6 +6,7 @@ import {
   Event,
   History,
   Logout,
+  Payments,
   People,
   Send,
   Church,
@@ -275,6 +276,17 @@ const SideBar: React.FC<SideBarProps> = ({
   const areaAtual: AreaSideBar = area ?? (isAdmin ? 'admin' : 'usuario');
 
   const itensConfiguracoes: ItemMenu[] = [
+    // a cobrança é por igreja: quem administra a sua configura a dela, e o
+    // super admin escolhe qual na própria tela
+    ...(isAdminRole
+      ? [
+          {
+            link: '/configuracoes/pagamentos',
+            icon: <Payments />,
+            title: 'Pagamentos',
+          },
+        ]
+      : []),
     // o número do WhatsApp é um só para todas as igrejas: quem mexe nele é o
     // super admin
     ...(isSuperAdmin
