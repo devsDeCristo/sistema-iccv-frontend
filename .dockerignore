@@ -25,3 +25,11 @@ Dockerfile
 .dockerignore
 docker-compose.yml
 ic.code-workspace
+
+# Nenhum .md entra na imagem: não servem em runtime e descrevem a estrutura
+# interna do sistema. Hoje não há nenhum no repositório — a regra é para o dia
+# em que houver, e para casar com a do backend.
+#
+# `**/` não é enfeite: no .dockerignore, `*.md` casa **só a raiz** do contexto,
+# e um doc em subpasta escaparia.
+**/*.md
