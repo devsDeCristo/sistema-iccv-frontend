@@ -9,12 +9,22 @@ import { ADMIN_ROLES } from '../../../constants/roles';
  *
  * As duas são por igreja: a conta que recebe o dinheiro e o número que dispara
  * o aviso. Os disparadores são um grupo de canais — hoje só o WhatsApp —, cada
- * um com endereço próprio, e é a régua lateral que os lista. Quem administra a igreja configura a dela, e o recorte de verdade
- * vem do `ChurchTenantGuard` na API — aqui é só usabilidade.
+ * um com endereço próprio, e é a régua lateral que os lista. Quem administra a
+ * igreja configura a dela, e o recorte de verdade vem do `ChurchTenantGuard`
+ * na API — aqui é só usabilidade.
  *
- * `ADMIN_ROLES` e não `[Role.SUPER_ADMIN]`: o dev é super admin com outro
- * rótulo, e o valor dele é `-1`. Comparar com o super admin puro o deixava de
- * fora, e ele era jogado de volta para o painel ao tentar abrir Configurações.
+ * `ADMIN_ROLES` e não `SUPER_ADMIN_ROLES`, e o motivo vale escrito porque a
+ * `main` ainda carrega o antigo: o número do WhatsApp já foi **um só** para o
+ * sistema inteiro, e enquanto foi assim parear ou desconectar aqui derrubava o
+ * aviso de todas as igrejas — por isso a tela nasceu de super admin. Hoje o
+ * número é da igreja (`churches/:churchId/whatsapp`, com `@Roles(...ADMIN_ROLES)`
+ * e `ChurchTenantGuard` do outro lado), então quem administra uma mexe na dela
+ * e não alcança ninguém. Voltar para `SUPER_ADMIN_ROLES` fecharia a tela para
+ * exatamente quem ela passou a ser.
+ *
+ * O dev continua entrando: `ADMIN_ROLES` o inclui. Ele é super admin com outro
+ * rótulo e valor `-1`, e comparar com o super admin puro o deixava de fora —
+ * era jogado de volta para o painel ao tentar abrir Configurações.
  *
  * O financeiro fica de fora das duas: ele dá baixa em pagamento, mas não
  * decide para qual conta o dinheiro vai nem por qual número o aviso sai.
