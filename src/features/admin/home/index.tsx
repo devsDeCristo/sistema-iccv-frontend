@@ -1,4 +1,5 @@
 import { Box, Stack } from '@mui/material';
+import { Header } from '../../../components/header';
 import { PageStyle } from '../../../components/pageStyle';
 import { useGetDashboard } from './api/getDashboard';
 import { ChurchBreakdown } from './components/churchBreakdown';
@@ -16,6 +17,15 @@ import { SystemInsights } from './components/systemInsights';
 import { SystemKpis } from './components/systemKpis';
 import { TreasuryKpis } from './components/treasuryKpis';
 import { UserOverview } from './components/userOverview';
+
+interface HomeProps {
+  /**
+   * Qual igreja abrir. Ausente é "a de quem entrou", que é o caso do
+   * `/admin/inicio`. Preenchido troca a faixa de saudação pelo nome da igreja,
+   * porque aí a página é sobre ela, e não sobre quem está olhando.
+   */
+  churchId?: string;
+}
 
 /**
  * Tela de abertura do painel.
@@ -35,9 +45,22 @@ import { UserOverview } from './components/userOverview';
  * preenchido. O recorte mora num lugar só, no serviço, e é o mesmo que barra a
  * consulta — assim não existe seção que apareça sem dado por trás nem dado que
  * chegue sem seção.
+ *
+ * É a mesma página nas duas portas da home da igreja. Ela não é a home de um
+ * perfil, e sim a da igreja: o admin cai nela ao entrar, e o super admin chega
+ * na de qualquer uma pela lista de igrejas, passando `churchId`. Duplicar a
+ * tela para a segunda porta significaria manter dois desenhos dos mesmos
+ * blocos, e é assim que um deles fica para trás.
  */
-export function Home() {
-  const { data } = useGetDashboard();
+export function Home({ churchId }: HomeProps = {}) {
+  const { data } = useGetDashboard(churchId);
+
+  /**
+   * A igreja aberta vem da própria resposta, e não da lista de igrejas: assim
+   * o título não depende de a pessoa ter passado pela lista antes — um link
+   * colado na barra de endereço abre com o nome certo do mesmo jeito.
+   */
+  const igreja = data?.churches?.[0];
 
   // quem vê várias igrejas precisa saber de qual é cada tarefa
   const varias = data?.scope === 'system';
@@ -54,7 +77,21 @@ export function Home() {
   return (
     <PageStyle>
       <Stack gap={3}>
-        <Hero churches={data?.churches} role={data?.role} />
+        {/*
+          A saudação é da home de quem entrou. Na home de uma igreja aberta
+          pela lista quem manda no topo é o nome dela — "Você é super admin e
+          acompanha todas as igrejas" seria uma frase sobre a pessoa errada.
+        */}
+        {churchId ? (
+          <Header
+            title={igreja?.name ?? 'Home da igreja'}
+            description="Eventos, inscrições e caixa desta igreja — a mesma tela que o admin dela abre ao entrar"
+            buttonBack
+            pageBack="/admin/igrejas"
+          />
+        ) : (
+          <Hero churches={data?.churches} role={data?.role} />
+        )}
 
         {/* a igreja em números: só os eventos em jogo */}
         {data?.events && !data.treasury && <ChurchKpis events={data.events} />}

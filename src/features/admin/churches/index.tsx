@@ -23,8 +23,10 @@ import {
   EditOutlined,
   Search,
   ChurchOutlined,
+  SpaceDashboard,
 } from '@mui/icons-material';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import { PageStyle } from '../../../components/pageStyle';
 import { Header } from '../../../components/header';
@@ -54,6 +56,7 @@ const temVinculos = (church: Church) =>
  */
 export function Churches() {
   const theme = useTheme();
+  const navigate = useNavigate();
   const { data, isLoading } = useGetChurches();
 
   const [busca, setBusca] = useState('');
@@ -158,13 +161,26 @@ export function Churches() {
       headerName: '',
       sortable: false,
       filterable: false,
-      width: 110,
+      width: 150,
       align: 'right',
       renderCell: (params) => {
         const church = params.row as Church;
 
         return (
           <Stack direction="row" gap={0.5} justifyContent="flex-end">
+            {/*
+              Primeiro da linha porque é o que se faz com uma igreja no dia a
+              dia: abri-la. Renomear e remover são as raras, e ficam depois.
+            */}
+            <Tooltip title="Abrir a home desta igreja">
+              <IconButton
+                size="small"
+                color="primary"
+                onClick={() => navigate(`/admin/igrejas/${church.id}`)}
+              >
+                <SpaceDashboard fontSize="small" />
+              </IconButton>
+            </Tooltip>
             <Tooltip title="Renomear">
               <IconButton size="small" onClick={() => abrirForm(church)}>
                 <EditOutlined fontSize="small" />
