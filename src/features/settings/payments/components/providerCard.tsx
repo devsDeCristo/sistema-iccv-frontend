@@ -28,7 +28,11 @@ import {
 import { ConfirmModal } from '../../../../components/ConfirmModal';
 import { ProviderLogo } from './providerLogo';
 import { ProviderFees } from './providerFees';
-import { PROVIDER_PRICING, PROVIDER_WEBHOOK_SETUP } from '../constants';
+import {
+  PROVIDER_EM_TESTE,
+  PROVIDER_PRICING,
+  PROVIDER_WEBHOOK_SETUP,
+} from '../constants';
 import {
   useRemoveProvider,
   useRotateWebhookSecret,
@@ -101,6 +105,7 @@ function ProviderCard({ churchId, integracao, onConfigurar }: Props) {
   const pricing = PROVIDER_PRICING[integracao.provider];
   const cadastradoNoPainel =
     PROVIDER_WEBHOOK_SETUP[integracao.provider] === 'painel';
+  const emTeste = !!PROVIDER_EM_TESTE[integracao.provider];
 
   const verde = theme.palette.chips.success;
   const ambar = theme.palette.chips.alert;
@@ -153,9 +158,36 @@ function ProviderCard({ churchId, integracao, onConfigurar }: Props) {
         />
 
         <Box sx={{ minWidth: 0, flex: 1 }}>
-          <Typography fontSize={15.5} fontWeight={600} noWrap>
-            {integracao.label}
-          </Typography>
+          {/*
+            A etiqueta fica colada no nome da casa, e não na linha de situação
+            logo abaixo: "em teste" é uma coisa da integração, que vale igual
+            antes e depois de configurar, enquanto aquela linha conta o estado
+            de agora. As duas juntas leriam como se a casa estivesse num estado
+            chamado "em teste".
+          */}
+          <Stack direction="row" spacing={0.75} alignItems="center">
+            <Typography fontSize={15.5} fontWeight={600} noWrap>
+              {integracao.label}
+            </Typography>
+
+            {emTeste && (
+              <Tooltip title="Integração recente, ainda em acompanhamento. Funciona normalmente — vale conferir no painel da casa se os primeiros pagamentos deram baixa sozinhos.">
+                <Chip
+                  size="small"
+                  label="Em teste"
+                  sx={{
+                    flexShrink: 0,
+                    height: 19,
+                    fontSize: 10.5,
+                    fontWeight: 600,
+                    color: ambar,
+                    backgroundColor: alpha(ambar, 0.14),
+                    '& .MuiChip-label': { px: 0.75 },
+                  }}
+                />
+              </Tooltip>
+            )}
+          </Stack>
 
           <Stack direction="row" spacing={0.75} alignItems="center">
             <Ponto cor={situacao.cor} />
@@ -325,7 +357,11 @@ function ProviderCard({ churchId, integracao, onConfigurar }: Props) {
             <CheckCircle sx={{ fontSize: 18, color: verde, mt: 0.2 }} />
           ) : (
             <ErrorOutline
-              sx={{ fontSize: 18, color: theme.palette.chips.canceled, mt: 0.2 }}
+              sx={{
+                fontSize: 18,
+                color: theme.palette.chips.canceled,
+                mt: 0.2,
+              }}
             />
           )}
 

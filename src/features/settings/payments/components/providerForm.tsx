@@ -13,7 +13,7 @@ import { OpenInNew } from '@mui/icons-material';
 import { ResponsiveModal } from '../../../../components/responsiveModal';
 import { ProviderLogo } from './providerLogo';
 import { WebhookUrls } from './webhookUrls';
-import { PROVIDER_WEBHOOK_SETUP } from '../constants';
+import { PROVIDER_EM_TESTE, PROVIDER_WEBHOOK_SETUP } from '../constants';
 import { Input } from '../../../../components/input';
 import { SelectField } from '../../../../components/selectField';
 import { useSavePaymentProvider } from '../api/paymentProviderActions';
@@ -46,6 +46,7 @@ function ProviderForm({ churchId, integracao, onClose }: Props) {
 
   const precisaCadastrarWebhook =
     !!integracao && PROVIDER_WEBHOOK_SETUP[integracao.provider] === 'painel';
+  const emTeste = !!integracao && !!PROVIDER_EM_TESTE[integracao.provider];
 
   const { mutate: salvar, isLoading } = useSavePaymentProvider({
     onSuccess: onClose,
@@ -141,6 +142,23 @@ function ProviderForm({ churchId, integracao, onClose }: Props) {
             Documentação <OpenInNew sx={{ fontSize: 14 }} />
           </Link>
         </Typography>
+
+        {/*
+          O aviso vem antes do formulário, e não junto do botão de salvar: ele
+          é material de escolha — ainda dá para fechar e ficar na casa que já
+          está rodando. Ao lado do Salvar, chegaria depois de a pessoa já ter
+          ido atrás das credenciais.
+        */}
+        {emTeste && (
+          <Alert severity="warning" >
+            <Typography variant="body2" fontWeight={600} sx={{ mb: 0.25 }}>
+              Integração em teste
+            </Typography>
+            Este banco é recente por aqui e ainda está em acompanhamento. Pode
+            usar normalmente — só vale conferir no painel dela se os primeiros
+            pagamentos deram baixa sozinhos.
+          </Alert>
+        )}
 
         <SelectField
           label="Ambiente"

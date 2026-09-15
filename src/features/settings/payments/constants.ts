@@ -129,3 +129,22 @@ export const PROVIDER_WEBHOOK_SETUP: Record<string, WebhookSetup> = {
   INFINITEPAY: 'por-cobranca',
   TON: 'painel',
 };
+
+/**
+ * As casas que ainda não foram usadas para receber dinheiro de verdade.
+ *
+ * Só o PagBank já rodou em produção com inscrição paga de ponta a ponta. As
+ * outras três estão implementadas e passam no teste de conexão, mas nenhuma
+ * igreja fechou um ciclo completo nelas — cobrança criada, paga e com baixa
+ * automática chegando.
+ *
+ * Isso aparece na tela porque é informação de decisão: quem escolhe a casa
+ * precisa saber que está sendo o primeiro, e não descobrir isso quando a baixa
+ * não chegar. Sai daqui assim que a casa fechar o primeiro ciclo em produção.
+ */
+export const PROVIDER_EM_TESTE: Record<string, boolean> = {
+  PAGBANK: false,
+  MERCADO_PAGO: true,
+  INFINITEPAY: true,
+  TON: true,
+};
