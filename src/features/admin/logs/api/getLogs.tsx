@@ -1,7 +1,11 @@
 import { UseQueryOptions, useQuery } from 'react-query';
 import { apiClient } from '../../../../config/lib/axios/api-client';
 import { handleResponseThrowError } from '../../../../utils/service';
-import { GET_LOGS, GET_LOG_OPERATIONS } from '../constants';
+import {
+  GET_LOGS,
+  GET_LOG_OPERATIONS,
+  GET_LOGIN_ATTEMPTS,
+} from '../constants';
 
 export type LogChange = {
   field: string;
@@ -127,3 +131,47 @@ export const useGetLogOperations = () => {
     { staleTime: Infinity }
   );
 };
+
+export type LoginAttempt = {
+  id: string;
+  document: string;
+  success: boolean;
+  reason: 'USER_NOT_FOUND' | 'WRONG_PASSWORD' | null;
+  ip: string | null;
+  userAgent: string | null;
+  createdAt: string;
+  user: LogPerson | null;
+};
+
+export type LoginAttemptsPage = {
+  items: LoginAttempt[];
+  total: number;
+  page: number;
+  limit: number;
+  summary: { success: number; failure: number };
+};
+
+export type GetLoginAttemptsParams = {
+  from?: string;
+  to?: string;
+  userId?: string;
+  document?: string;
+  success?: boolean;
+  page?: number;
+  limit?: number;
+};
+
+const getLoginAttempts = (params: GetLoginAttemptsParams) =>
+  apiClient
+    .get<LoginAttemptsPage>('/logs/login-attempts', { params })
+    .then((response) => response.data)
+    .catch(handleResponseThrowError());
+
+export const useGetLoginAttempts = (
+  params: GetLoginAttemptsParams
+) =>
+  useQuery<Awaited<ReturnType<typeof getLoginAttempts>>>(
+    [GET_LOGIN_ATTEMPTS, params],
+    () => getLoginAttempts(params),
+    { keepPreviousData: true }
+  );

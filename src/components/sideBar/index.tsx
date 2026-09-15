@@ -5,6 +5,7 @@ import {
   ConfirmationNumber,
   Event,
   History,
+  Login,
   Logout,
   Payments,
   People,
@@ -424,6 +425,12 @@ const SideBar: React.FC<SideBarProps> = ({
                 link: '/admin/atividades',
                 icon: <History />,
                 title: 'Registro de Atividades',
+                novo: true,
+              },
+              {
+                link: '/admin/logins',
+                icon: <Login />,
+                title: 'Registro de Login',
                 novo: true,
               },
             ]
