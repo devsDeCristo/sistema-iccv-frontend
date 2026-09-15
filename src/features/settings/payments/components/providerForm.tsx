@@ -26,8 +26,8 @@ interface Props {
 }
 
 const MODOS = [
-  { value: 'PRODUCTION', label: 'Produção — dinheiro de verdade' },
-  { value: 'SANDBOX', label: 'Sandbox — só para testar' },
+  { value: 'PRODUCTION', label: 'Produção — Movimentação real' },
+  { value: 'SANDBOX', label: 'Sandbox — Local de testes' },
 ];
 
 /**
