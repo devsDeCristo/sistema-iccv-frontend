@@ -265,7 +265,7 @@ function CartaoGrupo({
             />
           </Grid>
 
-          {/* <Grid item xs={12}>
+          <Grid item xs={12}>
             <Controller
               control={control}
               name={`groupRoles.${index}.link`}
@@ -277,14 +277,12 @@ function CartaoGrupo({
                   value={value ?? ''}
                   onChange={onChange}
                   error={Boolean(errosDoGrupo?.link)}
-                  errorMessage={
-                    errosDoGrupo?.link?.message
-                  }
+                  errorMessage={errosDoGrupo?.link?.message}
                   InputLabelProps={{ shrink: true }}
                 />
               )}
             />
-          </Grid> */}
+          </Grid>
 
           {temInscricoes && (
             <Grid item xs={12}>
