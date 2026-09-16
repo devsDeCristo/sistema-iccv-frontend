@@ -23,6 +23,9 @@ export function userToFormValues(user?: User | null): RegisterUsersFormType {
     worker: user?.worker ? 1 : 0,
     profession: user?.profession || '',
     neighborhood: user?.neighborhood || '',
+    zipCode: user?.zipCode || '',
+    street: user?.street || '',
+    number: user?.number || '',
     city: user?.city || '',
     state: user?.state || '',
     hypertensive: user?.hypertensive ? 1 : 0,
@@ -60,6 +63,11 @@ export function formValuesToUserPayload(data: RegisterUsersFormType) {
     emergencyContact: data.emergencyContact
       ? removeMask(data.emergencyContact)
       : undefined,
+    // colunas novas e opcionais no servidor: "" gravaria vazio no lugar de
+    // nulo, e o relatório não teria como separar "sem CEP" de "nunca perguntamos"
+    zipCode: semValor(data.zipCode),
+    street: semValor(data.street),
+    number: semValor(data.number),
     indicatedBy: semValor(data.indicatedBy),
     religion: semValor(data.religion),
     notes: semValor(data.notes),

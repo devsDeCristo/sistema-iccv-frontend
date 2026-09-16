@@ -68,6 +68,24 @@ export const REGISTER_USERS_SCHEMA = z.object({
   neighborhood: z.string({
     required_error: DEFAULT_MESSAGE,
   }),
+  // Guardado sem máscara, só os 8 dígitos. O formato é conferido apenas quando
+  // há algo digitado: obrigar o CEP no zod travaria a edição de todo cadastro
+  // anterior à coluna, que não tem o dado. Campo vazio é barrado pelo
+  // `required` do input, como nos outros campos do endereço.
+  zipCode: z
+    .string({
+      required_error: DEFAULT_MESSAGE,
+    })
+    .refine((valor) => valor === '' || valor.length === 8, {
+      message: 'CEP deve conter 8 dígitos',
+    }),
+  street: z.string({
+    required_error: DEFAULT_MESSAGE,
+  }),
+  // texto, e não número: endereço sem número é "s/n", e existe "120-A"
+  number: z.string({
+    required_error: DEFAULT_MESSAGE,
+  }),
   city: z.string({
     required_error: DEFAULT_MESSAGE,
   }),

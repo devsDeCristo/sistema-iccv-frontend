@@ -68,6 +68,11 @@ export interface User {
   hypertensive: boolean;
   profession: string;
   neighborhood: string;
+  /** Opcionais no servidor: os cadastros anteriores à coluna não têm o dado */
+  /** Só os 8 dígitos; a máscara é aplicada na exibição */
+  zipCode?: string;
+  street?: string;
+  number?: string;
   city: string;
   state: string;
   worker: boolean;

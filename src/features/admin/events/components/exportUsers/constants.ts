@@ -2,6 +2,7 @@ import {
   formatCPF,
   formatDate,
   formatPhoneNumber,
+  formatZipCode,
 } from '../../../../../utils';
 import {
   ExportColumn,
@@ -54,6 +55,13 @@ export const EXPORT_COLUMNS: ExportColumn[] = [
     label: 'Profissão',
     getValue: (user) => user.profession ?? '',
   },
+  {
+    field: 'zipCode',
+    label: 'CEP',
+    getValue: (user) => formatZipCode(user.zipCode),
+  },
+  { field: 'street', label: 'Rua', getValue: (user) => user.street ?? '' },
+  { field: 'number', label: 'Número', getValue: (user) => user.number ?? '' },
   { field: 'city', label: 'Cidade', getValue: (user) => user.city ?? '' },
   {
     field: 'neighborhood',

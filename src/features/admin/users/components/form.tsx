@@ -1,5 +1,15 @@
-import { Box, Divider, Grid, Stack, Typography } from '@mui/material';
-import { ReactNode } from 'react';
+import {
+  Box,
+  Button,
+  CircularProgress,
+  Divider,
+  Grid,
+  InputAdornment,
+  Stack,
+  Typography,
+} from '@mui/material';
+import { LockOutlined } from '@mui/icons-material';
+import { ReactNode, useState } from 'react';
 import { Input } from '../../../../components/input';
 import { InputDatePicker } from '../../../../components/inputDatePicker';
 import { InputSelect } from '../../../../components/inputSelect';
@@ -10,8 +20,11 @@ import {
   formatDate,
   formatPhoneNumber,
   formatState,
+  formatZipCode,
+  removeMask,
 } from '../../../../utils';
 import { OPTIONS_BOOLEAN, OPTIONS_LEADERSHIP } from '../constants';
+import { useBuscaCep } from '../../../../hooks/useBuscaCep';
 
 /** Bloco de campos agrupados por categoria (dados pessoais, endereço, etc.) */
 /**
@@ -67,6 +80,16 @@ function ViewField({ label, value }: { label: string; value?: ReactNode }) {
  */
 const VIEW_SIZE = { xs: 12, sm: 6, md: 3 };
 
+/** Campos de endereço que a consulta de CEP preenche — e portanto pode travar. */
+type CampoDoCep = 'street' | 'neighborhood' | 'city' | 'state';
+
+const NADA_TRAVADO: Record<CampoDoCep, boolean> = {
+  street: false,
+  neighborhood: false,
+  city: false,
+  state: false,
+};
+
 /** Converte o valor 0/1 dos selects de saúde para texto */
 function booleanLabel(value: unknown) {
   return OPTIONS_BOOLEAN.find((option) => option.value === Number(value))?.name;
@@ -76,9 +99,98 @@ function Form({ readOnly = false }: { readOnly?: boolean }) {
   const {
     control,
     watch,
+    setValue,
+    setError,
+    clearErrors,
     formState: { errors },
   } = useFormContext<RegisterUsersFormType>();
   const values = watch();
+
+  const { buscar: buscarCep, buscando: buscandoCep } = useBuscaCep();
+  /**
+   * Trava só o que a consulta trouxe preenchido, e só nesta sessão de
+   * preenchimento. Cadastro antigo aberto para edição abre destravado: o dado
+   * dele não veio de consulta nenhuma, e travar o que não se sabe de onde veio
+   * impediria a correção justamente do endereço errado.
+   */
+  const [travados, setTravados] =
+    useState<Record<CampoDoCep, boolean>>(NADA_TRAVADO);
+
+  const temCampoTravado = Object.values(travados).some(Boolean);
+
+  /**
+   * Campo travado fica em `readOnly`, e não `disabled`: desabilitado o texto
+   * some no cinza, sai da ordem de tabulação e não é lido por leitor de tela —
+   * o endereço que a pessoa acabou de buscar viraria um borrão. O cadeado diz
+   * por que não dá para digitar ali.
+   */
+  function travaDoCampo(campo: CampoDoCep) {
+    if (!travados[campo]) return undefined;
+
+    return {
+      readOnly: true,
+      endAdornment: (
+        <InputAdornment position="end">
+          <LockOutlined fontSize="small" color="disabled" />
+        </InputAdornment>
+      ),
+    };
+  }
+
+  async function aoDigitarCep(
+    digitado: string,
+    onChange: (valor: string) => void
+  ) {
+    // no formulário o CEP anda sem máscara, como cpf e cellphone: a máscara é
+    // só o que aparece no campo, e assim nada precisa ser limpo no envio
+    const digitos = removeMask(digitado).slice(0, 8);
+
+    onChange(digitos);
+    clearErrors('zipCode');
+
+    if (digitos.length < 8) {
+      // apagar um dígito para corrigir o CEP destrava tudo de novo: senão o
+      // endereço da consulta anterior fica preso na tela sem jeito de sair
+      setTravados(NADA_TRAVADO);
+      return;
+    }
+
+    const resultado = await buscarCep(digitos);
+
+    // consulta superada por outra mais nova: quem responde é a última
+    if (resultado.status === 'ignorado') return;
+
+    if (resultado.status !== 'ok') {
+      // ViaCEP fora do ar não pode impedir o cadastro: destrava e deixa a
+      // pessoa escrever o endereço à mão
+      setTravados(NADA_TRAVADO);
+      setError('zipCode', {
+        type: 'manual',
+        message:
+          resultado.status === 'nao-encontrado'
+            ? 'CEP não encontrado. Confira o número ou preencha o endereço à mão.'
+            : 'Não foi possível consultar o CEP agora. Preencha o endereço à mão.',
+      });
+      return;
+    }
+
+    const { endereco } = resultado;
+
+    setValue('street', endereco.street, { shouldValidate: true });
+    setValue('neighborhood', endereco.neighborhood, { shouldValidate: true });
+    setValue('city', endereco.city, { shouldValidate: true });
+    setValue('state', endereco.state, { shouldValidate: true });
+
+    // trava campo a campo, e não o bloco inteiro: em município de CEP único o
+    // ViaCEP devolve a rua vazia, e travá-la deixaria o endereço sem como ser
+    // completado
+    setTravados({
+      street: !!endereco.street,
+      neighborhood: !!endereco.neighborhood,
+      city: !!endereco.city,
+      state: !!endereco.state,
+    });
+  }
 
   return (
     // espaçamento maior entre os grupos: sem superfície, é o vão que separa
@@ -261,17 +373,85 @@ function Form({ readOnly = false }: { readOnly?: boolean }) {
 
       <Grid item xs={12}>
         <Section title="Endereço">
-          <Grid item {...(readOnly ? VIEW_SIZE : { xs: 12, sm: 6, md: 5 })}>
+          {/* O CEP vem primeiro porque é ele que preenche o resto: digitado
+              inteiro, a consulta traz rua, bairro, cidade e estado. */}
+          <Grid item {...(readOnly ? VIEW_SIZE : { xs: 12, sm: 4, md: 3 })}>
             {readOnly ? (
-              <ViewField label="Cidade" value={values.city} />
+              <ViewField label="CEP" value={formatZipCode(values.zipCode)} />
             ) : (
               <Controller
-                name="city"
+                name="zipCode"
                 control={control}
                 render={({ field: { onChange, value } }) => (
                   <Input
                     required
-                    label="Cidade"
+                    label="CEP"
+                    placeholder="00000-000"
+                    // no elemento do input, e não na raiz: é o que faz o
+                    // teclado numérico aparecer no celular
+                    inputProps={{ inputMode: 'numeric', maxLength: 9 }}
+                    value={formatZipCode(value)}
+                    error={!!errors.zipCode}
+                    errorMessage={errors.zipCode?.message}
+                    onChange={(event) =>
+                      aoDigitarCep(event.target.value, onChange)
+                    }
+                    InputProps={
+                      buscandoCep
+                        ? {
+                            endAdornment: (
+                              <InputAdornment position="end">
+                                <CircularProgress size={16} />
+                              </InputAdornment>
+                            ),
+                          }
+                        : undefined
+                    }
+                  />
+                )}
+              />
+            )}
+          </Grid>
+
+          <Grid item {...(readOnly ? VIEW_SIZE : { xs: 8, sm: 8, md: 6 })}>
+            {readOnly ? (
+              <ViewField label="Rua" value={values.street} />
+            ) : (
+              <Controller
+                name="street"
+                control={control}
+                render={({ field: { onChange, value } }) => (
+                  <Input
+                    required
+                    label="Rua"
+                    value={value}
+                    onChange={onChange}
+                    InputProps={travaDoCampo('street')}
+                    // o valor chega pela consulta, sem passar pelo foco do
+                    // campo, e sem isto o rótulo ficaria por cima do texto
+                    InputLabelProps={{ shrink: Boolean(value) || undefined }}
+                  />
+                )}
+              />
+            )}
+          </Grid>
+
+          {/* Divide a linha com a rua até no celular: o número é curto e uma
+              linha inteira só para ele empurraria o resto do bloco para baixo */}
+          <Grid item {...(readOnly ? VIEW_SIZE : { xs: 4, sm: 4, md: 3 })}>
+            {readOnly ? (
+              <ViewField label="Número" value={values.number} />
+            ) : (
+              <Controller
+                name="number"
+                control={control}
+                render={({ field: { onChange, value } }) => (
+                  <Input
+                    required
+                    label="Número"
+                    // texto livre de propósito: cabe "s/n" e "120-A". Nunca
+                    // trava, porque o CEP não conhece o número da casa
+                    placeholder="120 ou s/n"
                     value={value}
                     onChange={onChange}
                   />
@@ -280,7 +460,7 @@ function Form({ readOnly = false }: { readOnly?: boolean }) {
             )}
           </Grid>
 
-          <Grid item {...(readOnly ? VIEW_SIZE : { xs: 12, sm: 6, md: 5 })}>
+          <Grid item {...(readOnly ? VIEW_SIZE : { xs: 12, sm: 8, md: 5 })}>
             {readOnly ? (
               <ViewField label="Bairro" value={values.neighborhood} />
             ) : (
@@ -293,13 +473,36 @@ function Form({ readOnly = false }: { readOnly?: boolean }) {
                     label="Bairro"
                     value={value}
                     onChange={onChange}
+                    InputProps={travaDoCampo('neighborhood')}
+                    InputLabelProps={{ shrink: Boolean(value) || undefined }}
                   />
                 )}
               />
             )}
           </Grid>
 
-          <Grid item {...(readOnly ? VIEW_SIZE : { xs: 6, sm: 3, md: 2 })}>
+          <Grid item {...(readOnly ? VIEW_SIZE : { xs: 8, sm: 9, md: 5 })}>
+            {readOnly ? (
+              <ViewField label="Cidade" value={values.city} />
+            ) : (
+              <Controller
+                name="city"
+                control={control}
+                render={({ field: { onChange, value } }) => (
+                  <Input
+                    required
+                    label="Cidade"
+                    value={value}
+                    onChange={onChange}
+                    InputProps={travaDoCampo('city')}
+                    InputLabelProps={{ shrink: Boolean(value) || undefined }}
+                  />
+                )}
+              />
+            )}
+          </Grid>
+
+          <Grid item {...(readOnly ? VIEW_SIZE : { xs: 4, sm: 3, md: 2 })}>
             {readOnly ? (
               <ViewField label="Estado" value={values.state} />
             ) : (
@@ -315,11 +518,28 @@ function Form({ readOnly = false }: { readOnly?: boolean }) {
                     onChange={(event) =>
                       onChange(formatState(event.target.value)?.toUpperCase())
                     }
+                    InputProps={travaDoCampo('state')}
+                    InputLabelProps={{ shrink: Boolean(value) || undefined }}
                   />
                 )}
               />
             )}
           </Grid>
+
+          {/* Saída de emergência: o ViaCEP erra e desatualiza. Sem isto, um
+              endereço errado vindo da consulta não teria como ser corrigido. */}
+          {!readOnly && temCampoTravado ? (
+            <Grid item xs={12}>
+              <Button
+                variant="text"
+                size="small"
+                sx={{ textTransform: 'none', px: 0.5 }}
+                onClick={() => setTravados(NADA_TRAVADO)}
+              >
+                Endereço errado? Editar manualmente
+              </Button>
+            </Grid>
+          ) : null}
         </Section>
       </Grid>
 
