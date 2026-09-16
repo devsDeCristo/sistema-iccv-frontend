@@ -53,6 +53,8 @@ function RegisterUser() {
     leadershipPosition: '',
     indicatedBy: '',
     religion: '',
+    congregation: '',
+    pastorName: '',
   };
   const navigate = useNavigate();
   const theme = useTheme();
@@ -107,6 +109,8 @@ function RegisterUser() {
       number: data.number === '' ? undefined : data.number,
       indicatedBy: data.indicatedBy === '' ? undefined : data.indicatedBy,
       religion: data.religion === '' ? undefined : data.religion,
+      congregation: data.congregation === '' ? undefined : data.congregation,
+      pastorName: data.pastorName === '' ? undefined : data.pastorName,
       notes: data.notes === '' ? undefined : data.notes,
       leadershipPosition:
         data.leadershipPosition ===

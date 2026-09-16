@@ -35,6 +35,8 @@ export function userToFormValues(user?: User | null): RegisterUsersFormType {
     badgeName: user?.badgeName || '',
     notes: user?.notes || '',
     leadershipPosition: user?.leadershipPosition || '',
+    congregation: user?.congregation || '',
+    pastorName: user?.pastorName || '',
     role: user?.role ?? DEFAULT_USER_ROLE,
   };
 }
@@ -70,6 +72,8 @@ export function formValuesToUserPayload(data: RegisterUsersFormType) {
     number: semValor(data.number),
     indicatedBy: semValor(data.indicatedBy),
     religion: semValor(data.religion),
+    congregation: semValor(data.congregation),
+    pastorName: semValor(data.pastorName),
     notes: semValor(data.notes),
     leadershipPosition:
       data.leadershipPosition === ENUM_OPTION_LEADERSHIP_POSITION.NOT_POSITION

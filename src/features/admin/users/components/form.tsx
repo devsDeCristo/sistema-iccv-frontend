@@ -7,8 +7,10 @@ import {
   InputAdornment,
   Stack,
   Typography,
+  useTheme,
 } from '@mui/material';
-import { LockOutlined } from '@mui/icons-material';
+import { alpha } from '@mui/material/styles';
+import { LockOutlined, VolunteerActivismOutlined } from '@mui/icons-material';
 import { ReactNode, useState } from 'react';
 import { Input } from '../../../../components/input';
 import { InputDatePicker } from '../../../../components/inputDatePicker';
@@ -25,6 +27,7 @@ import {
 } from '../../../../utils';
 import { OPTIONS_BOOLEAN, OPTIONS_LEADERSHIP } from '../constants';
 import { useBuscaCep } from '../../../../hooks/useBuscaCep';
+import { degradeVivo } from '../../../../themes';
 
 /** Bloco de campos agrupados por categoria (dados pessoais, endereço, etc.) */
 /**
@@ -105,6 +108,8 @@ function Form({ readOnly = false }: { readOnly?: boolean }) {
     formState: { errors },
   } = useFormContext<RegisterUsersFormType>();
   const values = watch();
+  const theme = useTheme();
+  const escuro = theme.palette.mode === 'dark';
 
   const { buscar: buscarCep, buscando: buscandoCep } = useBuscaCep();
   /**
@@ -613,7 +618,7 @@ function Form({ readOnly = false }: { readOnly?: boolean }) {
       </Grid>
 
       <Grid item xs={12}>
-        <Section title="Outros">
+        <Section title="Congregação">
           <Grid item {...(readOnly ? VIEW_SIZE : { xs: 12, sm: 6, md: 4 })}>
             {readOnly ? (
               <ViewField label="Religião" value={values.religion} />
@@ -624,6 +629,7 @@ function Form({ readOnly = false }: { readOnly?: boolean }) {
                 render={({ field: { onChange, value } }) => (
                   <Input
                     label="Religião"
+                    placeholder="Ex.: Evangélica"
                     value={value}
                     error={!!errors.religion}
                     errorMessage={errors.religion?.message}
@@ -634,7 +640,121 @@ function Form({ readOnly = false }: { readOnly?: boolean }) {
             )}
           </Grid>
 
+          <Grid item {...(readOnly ? VIEW_SIZE : { xs: 12, sm: 6, md: 8 })}>
+            {readOnly ? (
+              <ViewField label="Igreja" value={values.congregation} />
+            ) : (
+              <Controller
+                name="congregation"
+                control={control}
+                render={({ field: { onChange, value } }) => (
+                  // texto livre, e não a lista de igrejas do sistema: quem se
+                  // inscreve pode vir de uma congregação que não está cadastrada
+                  <Input
+                    label="Igreja"
+                    placeholder="Nome da igreja que você frequenta"
+                    value={value}
+                    onChange={onChange}
+                  />
+                )}
+              />
+            )}
+          </Grid>
+
           <Grid item {...(readOnly ? VIEW_SIZE : { xs: 12, sm: 6, md: 4 })}>
+            {readOnly ? (
+              <ViewField label="Ministério" value={values.leadershipPosition} />
+            ) : (
+              <Controller
+                name="leadershipPosition"
+                control={control}
+                render={({ field: { onChange, value } }) => (
+                  <InputSelect
+                    label="Ministério"
+                    menuOptions={OPTIONS_LEADERSHIP}
+                    value={value}
+                    onChange={onChange}
+                    helperText={errors.leadershipPosition?.message}
+                  />
+                )}
+              />
+            )}
+          </Grid>
+
+          <Grid item {...(readOnly ? VIEW_SIZE : { xs: 12, sm: 6, md: 8 })}>
+            {readOnly ? (
+              <ViewField label="Nome do pastor" value={values.pastorName} />
+            ) : (
+              <Controller
+                name="pastorName"
+                control={control}
+                render={({ field: { onChange, value } }) => (
+                  <Input
+                    label="Nome do pastor"
+                    value={value}
+                    onChange={onChange}
+                  />
+                )}
+              />
+            )}
+          </Grid>
+        </Section>
+      </Grid>
+
+      {/* Indicação fora das seções e por último: é a única pergunta que não é
+          sobre a própria pessoa, e a caixa tingida separa isso do resto. */}
+      <Grid item xs={12}>
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: { xs: 'column', sm: 'row' },
+            alignItems: { xs: 'stretch', sm: 'center' },
+            gap: { xs: 2, sm: 3 },
+            p: { xs: 2.5, sm: 3 },
+            borderRadius: 3,
+            backgroundColor: alpha(
+              theme.palette.primary.main,
+              escuro ? 0.1 : 0.04
+            ),
+            // `backgroundImage`, e não `background`: o shorthand apagaria a cor
+            backgroundImage: degradeVivo(escuro, 120, 0.8),
+          }}
+        >
+          <Stack
+            direction="row"
+            spacing={2}
+            alignItems="center"
+            sx={{ flex: 1 }}
+          >
+            <Box
+              sx={{
+                flexShrink: 0,
+                width: 44,
+                height: 44,
+                borderRadius: '50%',
+                display: 'grid',
+                placeItems: 'center',
+                color: escuro ? 'text.primary' : 'primary.main',
+                backgroundColor: alpha(
+                  theme.palette.primary.main,
+                  escuro ? 0.3 : 0.1
+                ),
+              }}
+            >
+              <VolunteerActivismOutlined fontSize="small" />
+            </Box>
+
+            <Box>
+              <Typography fontWeight={600} fontSize="1.0625rem">
+                Quem fez o convite?
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Informe o nome da pessoa que indicou o evento.
+              </Typography>
+            </Box>
+          </Stack>
+
+          <Box sx={{ flex: { sm: '0 0 44%' } }}>
             {readOnly ? (
               <ViewField label="Indicado por" value={values.indicatedBy} />
             ) : (
@@ -650,35 +770,20 @@ function Form({ readOnly = false }: { readOnly?: boolean }) {
                     onChange={onChange}
                     error={!!errors.indicatedBy}
                     errorMessage={errors.indicatedBy?.message}
+                    // a caixa é tingida: sem fundo próprio o campo afundaria
+                    // na cor dela
+                    sx={{
+                      width: '100%',
+                      '& .MuiOutlinedInput-root': {
+                        backgroundColor: 'background.paperSecondary',
+                      },
+                    }}
                   />
                 )}
               />
             )}
-          </Grid>
-
-          <Grid item {...(readOnly ? VIEW_SIZE : { xs: 12, md: 4 })}>
-            {readOnly ? (
-              <ViewField
-                label="Ministério na igreja"
-                value={values.leadershipPosition}
-              />
-            ) : (
-              <Controller
-                name="leadershipPosition"
-                control={control}
-                render={({ field: { onChange, value } }) => (
-                  <InputSelect
-                    label="Ministério na igreja"
-                    menuOptions={OPTIONS_LEADERSHIP}
-                    value={value}
-                    onChange={onChange}
-                    helperText={errors.leadershipPosition?.message}
-                  />
-                )}
-              />
-            )}
-          </Grid>
-        </Section>
+          </Box>
+        </Box>
       </Grid>
     </Grid>
   );

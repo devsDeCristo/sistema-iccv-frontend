@@ -76,8 +76,18 @@ export const EXPORT_COLUMNS: ExportColumn[] = [
   },
   {
     field: 'leadershipPosition',
-    label: 'Cargo na igreja',
+    label: 'Ministério',
     getValue: (user) => user.leadershipPosition ?? '',
+  },
+  {
+    field: 'congregation',
+    label: 'Igreja',
+    getValue: (user) => user.congregation ?? '',
+  },
+  {
+    field: 'pastorName',
+    label: 'Nome do pastor',
+    getValue: (user) => user.pastorName ?? '',
   },
   {
     field: 'indicatedBy',

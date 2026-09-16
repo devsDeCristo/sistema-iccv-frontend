@@ -61,6 +61,8 @@ export const REGISTER_USERS_SCHEMA = z.object({
       message: 'Indicado por deve conter no mínimo 2 caracteres',
     }),
   leadershipPosition: z.string().optional(),
+  congregation: z.string().optional(),
+  pastorName: z.string().optional(),
   worker: z.number({
     required_error: DEFAULT_MESSAGE,
   }),

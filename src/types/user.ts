@@ -92,6 +92,9 @@ export interface User {
   emergencyContact?: string;
   indicatedBy?: string;
   leadershipPosition?: string;
+  /** Igreja que frequenta, texto livre — não é uma igreja do sistema */
+  congregation?: string;
+  pastorName?: string;
   religion?: string;
   notes?: string;
   eventId?: string;
