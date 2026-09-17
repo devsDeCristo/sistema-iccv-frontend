@@ -87,13 +87,13 @@ function ProductOffer({
     });
 
   const styles = {
-    /**
-     * Cartão horizontal, com miniatura: a foto 4:3 no topo fazia cada produto
-     * ocupar quase a tela inteira do celular, e a variante — que é o que se
-     * escolhe — ficava lá embaixo.
-     */
+    /** No celular, a imagem fica acima para dar mais largura ao conteúdo. */
     cartao: {
       p: { xs: 1.5, sm: 2 },
+      width: '100%',
+      minWidth: 0,
+      maxWidth: '100%',
+      boxSizing: 'border-box',
       borderRadius: 2.5,
       bgcolor: 'background.paperSecondary',
       boxShadow:
@@ -101,12 +101,13 @@ function ProductOffer({
           ? '0 0 0 1px rgba(255,255,255,.07)'
           : '0 1px 2px rgba(16,24,40,.05), 0 4px 12px -4px rgba(16,24,40,.10)',
       display: 'flex',
+      flexDirection: { xs: 'column', sm: 'row' },
       gap: { xs: 1.5, sm: 2 },
       alignItems: 'flex-start',
     },
     miniatura: {
-      width: { xs: 64, sm: 80 },
-      height: { xs: 64, sm: 80 },
+      width: { xs: '100%', sm: 80 },
+      height: { xs: 128, sm: 80 },
       flexShrink: 0,
       borderRadius: 2,
       objectFit: 'cover' as const,
@@ -121,10 +122,12 @@ function ProductOffer({
       WebkitLineClamp: 2,
       WebkitBoxOrient: 'vertical' as const,
       overflow: 'hidden',
+      overflowWrap: 'anywhere',
     },
     linhaVariante: {
       minHeight: 40,
-      alignItems: 'center',
+      flexDirection: { xs: 'column', sm: 'row' },
+      alignItems: { xs: 'stretch', sm: 'center' },
       justifyContent: 'space-between',
       gap: 1,
     },
@@ -199,8 +202,17 @@ function ProductOffer({
                 justifyContent="space-between"
                 alignItems="baseline"
                 gap={1}
+                sx={{ minWidth: 0, flexWrap: 'wrap', rowGap: 0.25 }}
               >
-                <Typography fontWeight={600} sx={{ minWidth: 0 }}>
+                <Typography
+                  fontWeight={600}
+                  sx={{
+                    minWidth: 0,
+                    flex: '1 1 120px',
+                    overflowWrap: 'anywhere',
+                    wordBreak: 'break-word',
+                  }}
+                >
                   {produto.name}
                 </Typography>
                 <Typography
@@ -244,11 +256,12 @@ function ProductOffer({
                           direction="row"
                           alignItems="center"
                           gap={1}
-                          sx={{ minWidth: 0 }}
+                          sx={{ minWidth: 0, flexWrap: 'wrap' }}
                         >
                           <Typography
                             variant="body2"
                             color={esgotado ? 'text.disabled' : 'text.primary'}
+                            sx={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}
                           >
                             {variante.name}
                           </Typography>
