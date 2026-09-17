@@ -47,11 +47,16 @@ import {
   EmailOutlined,
   ExpandMore,
   FilterAltOutlined,
+  GroupsOutlined,
+  HourglassEmptyOutlined,
   HowToReg,
+  PaymentsOutlined,
   People,
+  PeopleOutlined,
   QrCode2Outlined,
   QrCodeScannerOutlined,
   Search,
+  ShoppingBagOutlined,
   ViewModuleOutlined,
 } from '@mui/icons-material';
 import {
@@ -86,13 +91,42 @@ import { toast } from 'react-toastify';
 import { useEventRole } from '../../../../hooks/useEventRole';
 import { FINANCE_EVENT_TABS } from '../../../../constants/roles';
 
+/**
+ * Ícones em `small` (20px), o mesmo tamanho dos cards de status: em tamanho
+ * cheio eles esticavam a pílula e a régua ficava mais alta que as outras do
+ * sistema.
+ */
 const EVENT_TABS = [
-  { label: 'Inscritos', value: 'usuarios' },
-  { label: 'Lista de Espera', value: 'lista-espera' },
-  { label: 'Financeiro', value: 'pagamentos' },
-  { label: 'Pedidos de Produtos', value: 'produtos' },
-  { label: 'Quartos', value: 'quartos' },
-  { label: 'Equipes', value: 'equipes' },
+  {
+    label: 'Inscritos',
+    value: 'usuarios',
+    icon: <PeopleOutlined fontSize="small" />,
+  },
+  {
+    label: 'Lista de Espera',
+    value: 'lista-espera',
+    icon: <HourglassEmptyOutlined fontSize="small" />,
+  },
+  {
+    label: 'Financeiro',
+    value: 'pagamentos',
+    icon: <PaymentsOutlined fontSize="small" />,
+  },
+  {
+    label: 'Pedidos de Produtos',
+    value: 'produtos',
+    icon: <ShoppingBagOutlined fontSize="small" />,
+  },
+  {
+    label: 'Quartos',
+    value: 'quartos',
+    icon: <BedOutlined fontSize="small" />,
+  },
+  {
+    label: 'Equipes',
+    value: 'equipes',
+    icon: <GroupsOutlined fontSize="small" />,
+  },
 ];
 
 function Details() {
