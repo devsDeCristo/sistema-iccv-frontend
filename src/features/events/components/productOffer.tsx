@@ -1,17 +1,25 @@
 import {
   alpha,
+  Badge,
   Box,
   Button,
   CircularProgress,
-  Divider,
   IconButton,
+  Paper,
   Stack,
   Typography,
   useTheme,
 } from '@mui/material';
-import { Add, Remove, ShoppingBagOutlined } from '@mui/icons-material';
+import {
+  Add,
+  LocalMallOutlined,
+  Remove,
+  ShoppingBagOutlined,
+  StorefrontOutlined,
+} from '@mui/icons-material';
 import { useMemo, useState } from 'react';
 import { formatCurrency } from '../../../utils';
+import { AZUL_VIVO, degradeVivo } from '../../../themes';
 import { EventProduct } from '../../admin/events/types';
 import {
   QUANTIDADE_MAXIMA_POR_ITEM,
@@ -29,18 +37,27 @@ interface ProductOfferProps {
   onSkip: () => void;
   /** linha em destaque acima do título ("Inscrição confirmada") */
   eyebrow?: string;
+  /** capa do evento: com ela a loja abre com a arte do evento, em cartaz */
+  coverUrl?: string | null;
+  /** logo do evento, na placa sobre a capa */
+  logoUrl?: string | null;
+  /** nome do evento, o título do cartaz */
+  eventName?: string;
   title?: string;
   subtitle?: string;
   skipLabel?: string;
 }
 
 /**
- * Escolha de produtos do evento: logo depois da inscrição confirmada, ou
+ * Vitrine dos produtos do evento: logo depois da inscrição confirmada, ou
  * depois, pela página do evento.
  *
- * Variante com seletor de quantidade, e não um "escolha o tamanho": a pessoa
- * leva uma camisa P para ela e uma G para o marido na mesma compra. O total
- * fica à vista o tempo todo, porque é ele que vai somar no pagamento.
+ * É loja, não caixa. A foto é quem ocupa o cartão, o preço vai na etiqueta
+ * sobre ela e a conta só aparece na sacola, embaixo — antes a tela abria pelo
+ * total e comprar uma camisa parecia quitar boleto.
+ *
+ * A quantidade é por variante, e não um "escolha o tamanho": a pessoa leva uma
+ * camisa P para ela e uma G para o marido na mesma compra.
  */
 function ProductOffer({
   products,
@@ -49,11 +66,16 @@ function ProductOffer({
   onConfirm,
   onSkip,
   eyebrow,
+  coverUrl,
+  logoUrl,
+  eventName,
   title = 'Produtos do evento',
-  subtitle = 'Adicione itens à sua inscrição, se quiser. O valor é cobrado no mesmo pagamento.',
+  subtitle = 'Leve uma lembrança do evento. O valor entra no mesmo pagamento da inscrição.',
   skipLabel = 'Não, obrigado',
 }: ProductOfferProps) {
   const theme = useTheme();
+  const escuro = theme.palette.mode === 'dark';
+  const corDoTom = escuro ? theme.palette.primary.main : AZUL_VIVO;
   const [quantidades, setQuantidades] = useState<Record<string, number>>({});
 
   const precoPorVariante = useMemo(() => {
@@ -86,38 +108,167 @@ function ProductOffer({
       return { ...atual, [variantId]: proxima };
     });
 
+  /** o que já foi escolhido do produto, para o cartão fechar com o subtotal */
+  const escolhidasDoProduto = (produto: EventProduct) =>
+    produto.variants.reduce(
+      (soma, variante) => soma + (quantidades[variante.id!] ?? 0),
+      0
+    );
+
   const styles = {
-    /** No celular, a imagem fica acima para dar mais largura ao conteúdo. */
-    cartao: {
-      p: { xs: 1.5, sm: 2 },
-      width: '100%',
-      minWidth: 0,
-      maxWidth: '100%',
-      boxSizing: 'border-box',
-      borderRadius: 2.5,
-      bgcolor: 'background.paperSecondary',
-      boxShadow:
-        theme.palette.mode === 'dark'
-          ? '0 0 0 1px rgba(255,255,255,.07)'
-          : '0 1px 2px rgba(16,24,40,.05), 0 4px 12px -4px rgba(16,24,40,.10)',
+    faixa: {
+      p: { xs: 2, sm: 2.5 },
+      mb: { xs: 2, sm: 3 },
+      borderRadius: 3,
       display: 'flex',
-      flexDirection: { xs: 'column', sm: 'row' },
-      gap: { xs: 1.5, sm: 2 },
-      alignItems: 'flex-start',
+      alignItems: 'center',
+      gap: 2,
+      backgroundImage: degradeVivo(escuro, 120, 0.9),
     },
-    miniatura: {
-      width: { xs: '100%', sm: 80 },
-      height: { xs: 128, sm: 80 },
+    cartaz: {
+      position: 'relative',
+      overflow: 'hidden',
+      borderRadius: 3,
+      mb: { xs: 2, sm: 3 },
+      minHeight: { xs: 170, sm: 150 },
+      display: 'flex',
+      alignItems: 'flex-end',
+      p: { xs: 2, sm: 3 },
+      backgroundImage: `url(${coverUrl})`,
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+    },
+    /**
+     * Dois véus sobre a capa, e não uma cor chapada: um na diagonal, que
+     * escurece o lado do texto, e outro subindo do rodapé, onde o texto se
+     * apoia. A capa é foto de qualquer coisa — sem isso, o nome do evento some
+     * em cima de um céu claro.
+     */
+    veu: {
+      position: 'absolute',
+      inset: 0,
+      backgroundImage: `linear-gradient(105deg, ${alpha(
+        '#0B1220',
+        0.88
+      )}, ${alpha('#0B1220', 0.3)} 68%), linear-gradient(to top, ${alpha(
+        '#0B1220',
+        0.9
+      )}, transparent 62%)`,
+    },
+    // placa de vidro para a logo: o mesmo fundo leitoso vale para logo escura e
+    // para logo clara, que é o que a capa sozinha não garante
+    placa: {
+      width: { xs: 66, sm: 88 },
+      height: { xs: 66, sm: 88 },
       flexShrink: 0,
-      borderRadius: 2,
-      objectFit: 'cover' as const,
+      p: 1,
+      borderRadius: 2.5,
+      display: 'grid',
+      placeItems: 'center',
+      color: '#FFFFFF',
+      bgcolor: alpha('#FFFFFF', 0.16),
+      backdropFilter: 'blur(8px)',
+      boxShadow: `inset 0 0 0 1px ${alpha('#FFFFFF', 0.3)}`,
+    },
+    logo: {
+      width: '100%',
+      height: '100%',
+      objectFit: 'contain' as const,
+      filter: 'drop-shadow(0 2px 6px rgba(0,0,0,.45))',
+    },
+    sobrenome: {
+      display: 'block',
+      color: alpha('#FFFFFF', 0.82),
+      fontWeight: 700,
+      fontSize: '.6875rem',
+      letterSpacing: '.18em',
+      lineHeight: 1.6,
+    },
+    nomeDoEvento: {
+      color: '#FFFFFF',
+      fontWeight: 700,
+      lineHeight: 1.15,
+      overflowWrap: 'anywhere' as const,
+      fontSize: { xs: '1.5rem', sm: '2rem' },
+      textShadow: '0 2px 14px rgba(0,0,0,.45)',
+    },
+    pilula: {
+      px: 1.25,
+      py: 0.375,
+      borderRadius: 999,
+      fontSize: '.75rem',
+      fontWeight: 600,
+      color: alpha('#FFFFFF', 0.92),
+      bgcolor: alpha('#FFFFFF', 0.16),
+      backdropFilter: 'blur(6px)',
+      boxShadow: `inset 0 0 0 1px ${alpha('#FFFFFF', 0.2)}`,
+    },
+    selo: {
+      width: 48,
+      height: 48,
+      flexShrink: 0,
+      borderRadius: '50%',
+      display: 'grid',
+      placeItems: 'center',
+      color: corDoTom,
+      bgcolor: alpha(corDoTom, escuro ? 0.24 : 0.14),
+    },
+    /**
+     * `min(100%, 240px)` no lugar de `240px`: em tela estreita a coluna mínima
+     * passava da largura disponível e a grade vazava para o lado.
+     */
+    grade: {
+      display: 'grid',
+      gap: { xs: 2, sm: 2.5 },
+      gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 240px), 1fr))',
+      alignItems: 'stretch',
+    },
+    cartao: {
+      display: 'flex',
+      flexDirection: 'column',
+      height: '100%',
+      minWidth: 0,
+      overflow: 'hidden',
+      borderRadius: 3,
+      bgcolor: 'background.paperSecondary',
+      transition: 'transform .18s ease',
+      // levantar o cartão e aproximar a foto são gestos de mouse; no toque só
+      // atrapalhariam, por isso ficam do `md` para cima
+      '&:hover': { transform: { md: 'translateY(-3px)' } },
+      '&:hover .foto-do-produto': { transform: { md: 'scale(1.06)' } },
+    },
+    vitrine: {
+      position: 'relative',
+      aspectRatio: '4 / 3',
       display: 'grid',
       placeItems: 'center',
       color: 'text.disabled',
       bgcolor: alpha(theme.palette.text.primary, 0.05),
     },
+    foto: {
+      width: '100%',
+      height: '100%',
+      display: 'block',
+      objectFit: 'cover' as const,
+      transition: 'transform .45s ease',
+    },
+    // etiqueta sobre a foto, como em prateleira: o preço é do produto, não da
+    // variante, então ele pertence à imagem e não à lista de tamanhos
+    etiqueta: {
+      position: 'absolute',
+      left: 10,
+      bottom: 10,
+      px: 1.25,
+      py: 0.25,
+      borderRadius: 2,
+      color: '#FFFFFF',
+      fontWeight: 700,
+      fontVariantNumeric: 'tabular-nums',
+      bgcolor: alpha('#0B1220', 0.72),
+      backdropFilter: 'blur(4px)',
+    },
+    corpo: { flex: 1, gap: 0.5, p: { xs: 1.5, sm: 2 } },
     descricao: {
-      mt: 0.25,
       display: '-webkit-box',
       WebkitLineClamp: 2,
       WebkitBoxOrient: 'vertical' as const,
@@ -125,162 +276,222 @@ function ProductOffer({
       overflowWrap: 'anywhere',
     },
     linhaVariante: {
-      minHeight: 40,
-      flexDirection: { xs: 'column', sm: 'row' },
-      alignItems: { xs: 'stretch', sm: 'center' },
+      minHeight: 44,
+      px: 1,
+      borderRadius: 2,
+      alignItems: 'center',
       justifyContent: 'space-between',
       gap: 1,
     },
+    passo: {
+      flexShrink: 0,
+      borderRadius: 999,
+      bgcolor: alpha(theme.palette.text.primary, 0.06),
+    },
     contador: {
-      minWidth: 24,
+      minWidth: 22,
       textAlign: 'center' as const,
       fontWeight: 600,
       fontVariantNumeric: 'tabular-nums',
     },
-    // o resumo acompanha a rolagem no celular: com vários produtos o botão de
-    // seguir some lá embaixo e a pessoa não sabe quanto já somou
-    resumo: {
+    subtotal: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      gap: 1,
+      px: { xs: 1.5, sm: 2 },
+      py: 1,
+      bgcolor: alpha(corDoTom, escuro ? 0.18 : 0.08),
+    },
+    // a sacola acompanha a rolagem: com vários produtos o botão sumia lá
+    // embaixo e a pessoa não sabia quanto já tinha somado
+    sacola: {
       position: 'sticky' as const,
-      bottom: 0,
-      zIndex: 1,
-      mt: 3,
-      mx: { xs: -2, sm: -3 },
-      mb: { xs: -2, sm: -3 },
-      px: { xs: 2, sm: 3 },
-      py: 2,
-      bgcolor: 'background.paper',
-      borderTop: `1px solid ${theme.palette.divider}`,
+      bottom: { xs: 8, sm: 16 },
+      zIndex: 2,
+      mt: { xs: 2, sm: 3 },
+      p: { xs: 1.5, sm: 2 },
+      borderRadius: 3,
+      backgroundImage: degradeVivo(escuro, 120, 0.5),
     },
   };
 
   return (
     <Box>
-      <Stack gap={0.5} sx={{ mb: 3 }}>
-        {eyebrow && (
-          <Typography
-            variant="overline"
-            color="success.main"
-            sx={{ fontWeight: 600, lineHeight: 1.6 }}
+      {/* Com capa, o topo é um cartaz: a arte do evento inteira, o nome grande
+          sobre ela e o recado em pílulas. Um bloco só, no lugar da faixa com
+          ícone mais a capa — que eram duas apresentações empilhadas. */}
+      {coverUrl ? (
+        <Paper sx={styles.cartaz}>
+          <Box sx={styles.veu} />
+
+          {/* no celular a placa vai por cima do texto: lado a lado, sobrava
+              pouco mais de meia tela para o nome do evento */}
+          <Stack
+            direction={{ xs: 'column', sm: 'row' }}
+            alignItems={{ xs: 'flex-start', sm: 'center' }}
+            gap={{ xs: 1.5, sm: 2.5 }}
+            sx={{ position: 'relative', minWidth: 0 }}
           >
-            {eyebrow}
-          </Typography>
-        )}
-        <Typography variant="h6" sx={{ fontWeight: 600, lineHeight: 1.3 }}>
-          {title}
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          {subtitle}
-        </Typography>
-      </Stack>
+            <Box sx={styles.placa}>
+              {logoUrl ? (
+                <Box
+                  component="img"
+                  src={logoUrl}
+                  alt="Logo do evento"
+                  sx={styles.logo}
+                />
+              ) : (
+                <StorefrontOutlined sx={{ fontSize: { xs: 28, sm: 36 } }} />
+              )}
+            </Box>
 
-      <Box
-        sx={{
-          display: 'grid',
-          gap: 1.5,
-          gridTemplateColumns: { xs: '1fr', md: 'repeat(2, minmax(0, 1fr))' },
-          alignItems: 'start',
-        }}
-      >
-        {products.map((produto) => (
-          <Box key={produto.id} sx={styles.cartao}>
-            {produto.image ? (
-              <Box
-                component="img"
-                src={produto.image}
-                alt={produto.name}
-                sx={styles.miniatura}
-              />
-            ) : (
-              <Box sx={styles.miniatura}>
-                <ShoppingBagOutlined />
-              </Box>
-            )}
+            <Box sx={{ minWidth: 0 }}>
+              <Typography component="span" sx={styles.sobrenome}>
+                {eyebrow ?? 'LOJA OFICIAL'}
+              </Typography>
+              <Typography sx={styles.nomeDoEvento}>
+                {eventName || title}
+              </Typography>
 
-            <Box sx={{ flex: 1, minWidth: 0 }}>
               <Stack
                 direction="row"
-                justifyContent="space-between"
-                alignItems="baseline"
-                gap={1}
-                sx={{ minWidth: 0, flexWrap: 'wrap', rowGap: 0.25 }}
+                gap={0.75}
+                sx={{ mt: 1.25, flexWrap: 'wrap' }}
               >
+                <Box sx={styles.pilula}>
+                  {products.length}{' '}
+                  {products.length === 1 ? 'produto' : 'produtos'}
+                </Box>
+                {subtitle && <Box sx={styles.pilula}>{subtitle}</Box>}
+              </Stack>
+            </Box>
+          </Stack>
+        </Paper>
+      ) : (
+        <Paper sx={styles.faixa}>
+          <Box sx={styles.selo}>
+            <StorefrontOutlined />
+          </Box>
+          <Box sx={{ minWidth: 0 }}>
+            {eyebrow && (
+              <Typography
+                variant="overline"
+                color="success.main"
+                sx={{ display: 'block', fontWeight: 600, lineHeight: 1.6 }}
+              >
+                {eyebrow}
+              </Typography>
+            )}
+            <Typography variant="h6" sx={{ fontWeight: 600, lineHeight: 1.3 }}>
+              {title}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              {subtitle}
+            </Typography>
+          </Box>
+        </Paper>
+      )}
+
+      <Box sx={styles.grade}>
+        {products.map((produto) => {
+          const escolhidas = escolhidasDoProduto(produto);
+
+          return (
+            <Paper key={produto.id} sx={styles.cartao}>
+              <Box sx={styles.vitrine}>
+                {produto.image ? (
+                  <Box
+                    component="img"
+                    src={produto.image}
+                    alt={produto.name}
+                    loading="lazy"
+                    className="foto-do-produto"
+                    sx={styles.foto}
+                  />
+                ) : (
+                  <ShoppingBagOutlined sx={{ fontSize: 44 }} />
+                )}
+                <Box sx={styles.etiqueta}>{formatCurrency(produto.price)}</Box>
+              </Box>
+
+              <Stack sx={styles.corpo}>
                 <Typography
                   fontWeight={600}
-                  sx={{
-                    minWidth: 0,
-                    flex: '1 1 120px',
-                    overflowWrap: 'anywhere',
-                    wordBreak: 'break-word',
-                  }}
+                  sx={{ lineHeight: 1.3, overflowWrap: 'anywhere' }}
                 >
                   {produto.name}
                 </Typography>
-                <Typography
-                  fontWeight={600}
-                  sx={{ flexShrink: 0, fontVariantNumeric: 'tabular-nums' }}
-                >
-                  {formatCurrency(produto.price)}
-                </Typography>
-              </Stack>
 
-              {produto.description && (
-                <Typography
-                  variant="body2"
-                  color="text.secondary"
-                  title={produto.description}
-                  sx={styles.descricao}
-                >
-                  {produto.description}
-                </Typography>
-              )}
+                {produto.description && (
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    title={produto.description}
+                    sx={styles.descricao}
+                  >
+                    {produto.description}
+                  </Typography>
+                )}
 
-              <Stack sx={{ mt: 1 }}>
-                {produto.variants.map((variante, index) => {
-                  const quantidade = quantidades[variante.id!] ?? 0;
-                  const disponivel = variante.available;
-                  const esgotado = !temDisponivel(disponivel);
-                  const maximo = Math.min(
-                    QUANTIDADE_MAXIMA_POR_ITEM,
-                    disponivel ?? QUANTIDADE_MAXIMA_POR_ITEM
-                  );
-                  const ultimas =
-                    typeof disponivel === 'number' &&
-                    disponivel > 0 &&
-                    disponivel <= 5;
+                {/* as opções encostam no rodapé do cartão para os seletores
+                    ficarem na mesma linha em toda a grade */}
+                <Stack sx={{ mt: 'auto', pt: 1 }}>
+                  {produto.variants.map((variante) => {
+                    const quantidade = quantidades[variante.id!] ?? 0;
+                    const disponivel = variante.available;
+                    const esgotado = !temDisponivel(disponivel);
+                    const maximo = Math.min(
+                      QUANTIDADE_MAXIMA_POR_ITEM,
+                      disponivel ?? QUANTIDADE_MAXIMA_POR_ITEM
+                    );
+                    const ultimas =
+                      typeof disponivel === 'number' &&
+                      disponivel > 0 &&
+                      disponivel <= 5;
 
-                  return (
-                    <Box key={variante.id}>
-                      {index > 0 && <Divider />}
-                      <Stack direction="row" sx={styles.linhaVariante}>
-                        <Stack
-                          direction="row"
-                          alignItems="center"
-                          gap={1}
-                          sx={{ minWidth: 0, flexWrap: 'wrap' }}
-                        >
+                    return (
+                      <Stack
+                        key={variante.id}
+                        direction="row"
+                        sx={{
+                          ...styles.linhaVariante,
+                          bgcolor:
+                            quantidade > 0
+                              ? alpha(corDoTom, escuro ? 0.18 : 0.08)
+                              : 'transparent',
+                        }}
+                      >
+                        <Box sx={{ minWidth: 0 }}>
                           <Typography
                             variant="body2"
                             color={esgotado ? 'text.disabled' : 'text.primary'}
-                            sx={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}
+                            sx={{ overflowWrap: 'anywhere' }}
                           >
                             {variante.name}
                           </Typography>
-                          {esgotado && (
-                            <Typography variant="caption" color="text.disabled">
-                              Esgotado
+                          {(esgotado || ultimas) && (
+                            <Typography
+                              variant="caption"
+                              color={
+                                esgotado ? 'text.disabled' : 'warning.main'
+                              }
+                              sx={{ display: 'block', lineHeight: 1.2 }}
+                            >
+                              {esgotado
+                                ? 'Esgotado'
+                                : disponivel === 1
+                                  ? 'Última unidade'
+                                  : `Últimas ${disponivel}`}
                             </Typography>
                           )}
-                          {ultimas && (
-                            <Typography variant="caption" color="warning.main">
-                              {disponivel === 1
-                                ? 'Última unidade'
-                                : `Últimas ${disponivel}`}
-                            </Typography>
-                          )}
-                        </Stack>
+                        </Box>
 
                         {!esgotado && (
-                          <Stack direction="row" alignItems="center">
+                          <Stack
+                            direction="row"
+                            alignItems="center"
+                            sx={styles.passo}
+                          >
                             <IconButton
                               size="small"
                               aria-label={`Remover uma unidade de ${produto.name} ${variante.name}`}
@@ -308,37 +519,68 @@ function ProductOffer({
                           </Stack>
                         )}
                       </Stack>
-                    </Box>
-                  );
-                })}
+                    );
+                  })}
+                </Stack>
               </Stack>
-            </Box>
-          </Box>
-        ))}
+
+              {escolhidas > 0 && (
+                <Box sx={styles.subtotal}>
+                  <Typography variant="body2" color="text.secondary">
+                    {escolhidas} {escolhidas === 1 ? 'unidade' : 'unidades'}
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    sx={{ fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}
+                  >
+                    {formatCurrency(produto.price * escolhidas)}
+                  </Typography>
+                </Box>
+              )}
+            </Paper>
+          );
+        })}
       </Box>
 
-      <Box sx={styles.resumo}>
+      <Paper sx={styles.sacola}>
         <Stack
           direction={{ xs: 'column', sm: 'row' }}
           alignItems={{ xs: 'stretch', sm: 'center' }}
           justifyContent="space-between"
           gap={2}
         >
-          <Box>
-            <Typography variant="body2" color="text.secondary">
-              {unidades === 0
-                ? 'Nenhum produto escolhido'
-                : `${unidades} ${unidades === 1 ? 'item' : 'itens'} escolhido${
-                    unidades === 1 ? '' : 's'
-                  }`}
-            </Typography>
-            <Typography
-              variant="h6"
-              sx={{ fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}
-            >
-              {formatCurrency(total)}
-            </Typography>
-          </Box>
+          <Stack
+            direction="row"
+            alignItems="center"
+            gap={1.5}
+            sx={{ minWidth: 0 }}
+          >
+            <Badge badgeContent={unidades} color="primary" overlap="circular">
+              <Box sx={styles.selo}>
+                <LocalMallOutlined />
+              </Box>
+            </Badge>
+
+            <Box sx={{ minWidth: 0 }}>
+              <Typography variant="body2" color="text.secondary">
+                {unidades === 0
+                  ? 'Sua sacola está vazia'
+                  : `${unidades} ${
+                      unidades === 1 ? 'item' : 'itens'
+                    } na sacola`}
+              </Typography>
+              <Typography
+                variant="h6"
+                sx={{
+                  fontWeight: 700,
+                  lineHeight: 1.2,
+                  fontVariantNumeric: 'tabular-nums',
+                }}
+              >
+                {formatCurrency(total)}
+              </Typography>
+            </Box>
+          </Stack>
 
           <Stack direction={{ xs: 'column-reverse', sm: 'row' }} gap={1}>
             <Button
@@ -354,19 +596,19 @@ function ProductOffer({
               variant="contained"
               disabled={unidades === 0 || loading}
               onClick={() => onConfirm(itens)}
-              sx={{ minWidth: 220 }}
+              sx={{ minWidth: { sm: 220 } }}
             >
               {loading ? (
                 <CircularProgress size={20} color="inherit" />
               ) : modulePayment ? (
-                'Ir para o pagamento'
+                'Finalizar compra'
               ) : (
                 'Confirmar compra'
               )}
             </Button>
           </Stack>
         </Stack>
-      </Box>
+      </Paper>
     </Box>
   );
 }
