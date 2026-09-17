@@ -78,6 +78,8 @@ import { NavTabs } from '../../../../components/navTabs';
 import { User } from '../../../../types/user';
 import { ListUsersWaitList } from '../../../../features/admin/events/components/listUsersWaitList';
 import { ListPayments } from '../../../../features/admin/events/components/listPayments';
+import { CardsPayments } from '../../../../features/admin/events/components/cardsPayments';
+import { CardsRegistrations } from '../../../../features/admin/events/components/cardsRegistrations';
 import { toast } from 'react-toastify';
 import { useEventRole } from '../../../../hooks/useEventRole';
 import { FINANCE_EVENT_TABS } from '../../../../constants/roles';
@@ -252,7 +254,8 @@ function Details() {
       flexWrap: 'wrap',
       width: '100%',
       gap: 2,
-      mt: 2,
+      // sem `mt`: quem separa o bloco das abas é o `Stack` da aba, e aqui o
+      // espaçamento já vem do `gap` dele — somados, davam vão dobrado
       p: 2,
       ...superficieSx,
     },
@@ -539,7 +542,15 @@ function Details() {
       />
 
       {pageValue === 'usuarios' && (
-        <Stack gap={2}>
+        <Stack gap={2} sx={{ mt: 2 }}>
+          {/* acima da busca: o resumo é do evento inteiro, e não do que a
+              busca deixou na tela */}
+          <CardsRegistrations
+            event={event}
+            users={users}
+            isLoading={loadingEventDetails || loadingUsers}
+          />
+
           <Paper component="div" sx={styles.boxFilterAndPdf}>
             <TextField
               placeholder="Pesquisar usuário por nome ou CPF"
@@ -639,7 +650,7 @@ function Details() {
         </Stack>
       )}
       {pageValue === 'lista-espera' && (
-        <Stack gap={2}>
+        <Stack gap={2} sx={{ mt: 2 }}>
           <Paper component="div" sx={styles.boxFilterAndPdf}>
             <TextField
               placeholder="Pesquisar usuário por nome ou CPF"
@@ -666,7 +677,9 @@ function Details() {
         </Stack>
       )}
       {pageValue === 'pagamentos' && (
-        <Stack gap={2}>
+        <Stack gap={2} sx={{ mt: 2 }}>
+          <CardsPayments eventId={eventId} />
+
           <Paper component="div" sx={styles.boxFilterAndPdf}>
             <TextField
               placeholder="Pesquisar usuário por nome ou CPF"
@@ -705,7 +718,7 @@ function Details() {
       )}
 
       {pageValue === 'quartos' && (
-        <Stack gap={2}>
+        <Stack gap={2} sx={{ mt: 2 }}>
           <Paper sx={styles.boxFilterAndPdf} component="div">
             <TextField
               label="Pesquisar quarto"
@@ -750,7 +763,7 @@ function Details() {
       )}
 
       {pageValue === 'equipes' && (
-        <Stack gap={2}>
+        <Stack gap={2} sx={{ mt: 2 }}>
           <Paper component="div" sx={styles.boxFilterAndPdf}>
             <TextField
               label="Pesquisar equipe"

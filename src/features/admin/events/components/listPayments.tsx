@@ -25,17 +25,8 @@ import {
   selectedGridRowsSelector,
 } from '@mui/x-data-grid';
 import { useParams } from 'react-router-dom';
-import {
-  AccountBalanceWallet,
-  Edit,
-  History,
-  MoreVert,
-  Paid,
-  PendingActions,
-  Reply,
-} from '@mui/icons-material';
+import { Edit, History, MoreVert, Reply } from '@mui/icons-material';
 import { PaymentResponse } from '../../../../types/user';
-import { StatusCard, StatusCards } from '../../../../components/statusCards';
 import { useEffect, useMemo, useState } from 'react';
 import CustomChip from '../../../../components/customChip';
 import { ABA_COMPRAS_DE_PRODUTOS, itensDoPagamento } from '../products';
@@ -294,45 +285,8 @@ function ListPayments({
     filtered = filteredByGroup(filtered);
     return filtered;
   };
-  const soma = (filtro?: (payment: PaymentResponse) => boolean) =>
-    (payments || [])
-      .filter((payment) => (filtro ? filtro(payment) : true))
-      .reduce((acc, payment) => acc + payment.amount, 0);
-  /**
-   * Mesma régua de cards do resto do sistema. `compact` porque valor em reais é
-   * texto longo e no tamanho dos contadores estouraria a largura do card.
-   */
-  const cardsResumo: StatusCard[] = [
-    {
-      title: 'Montante total',
-      value: formatCurrency(soma()),
-      subtitle: 'Somando todas as inscrições',
-      icon: <AccountBalanceWallet sx={{ fontSize: 20 }} />,
-      color: theme.palette.primary.main,
-      compact: true,
-    },
-    {
-      title: 'Receita realizada',
-      value: formatCurrency(soma((payment) => payment.status === 'PAID')),
-      subtitle: 'Pagamentos confirmados',
-      icon: <Paid sx={{ fontSize: 20 }} />,
-      color: theme.palette.chips.success,
-      compact: true,
-    },
-    {
-      title: 'Receita pendente',
-      value: formatCurrency(soma((payment) => payment.status !== 'PAID')),
-      subtitle: 'Ainda não confirmados',
-      icon: <PendingActions sx={{ fontSize: 20 }} />,
-      color: theme.palette.chips.alert,
-      compact: true,
-    },
-  ];
   return (
     <>
-      {/* sem vão embaixo: as abas de grupo vêm colado, formando um bloco com
-          a tabela */}
-      <StatusCards cards={cardsResumo} isLoading={isLoading} sx={{ mb: 0 }} />
       {Array.isArray(groupsRules) && groupsRules.length > 0 && (
         <NavTabs
           fullWidth
