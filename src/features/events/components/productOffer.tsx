@@ -12,6 +12,7 @@ import {
 } from '@mui/material';
 import {
   Add,
+  EditOutlined,
   LocalMallOutlined,
   Remove,
   ShoppingBagOutlined,
@@ -25,6 +26,7 @@ import {
   QUANTIDADE_MAXIMA_POR_ITEM,
   temDisponivel,
 } from '../../admin/events/products';
+import { VariantPickerDialog } from './variantPickerDialog';
 
 type ItemEscolhido = { variantId: string; quantity: number };
 
@@ -89,6 +91,8 @@ function ProductOffer({
   const fundoDoCartaz = escuro ? '#0B1220' : '#CBD5E1';
   const tintaDoCartaz = escuro ? '#FFFFFF' : theme.palette.text.primary;
   const [quantidades, setQuantidades] = useState<Record<string, number>>({});
+  /** produto com o diálogo de opções aberto */
+  const [produtoAberto, setProdutoAberto] = useState<string | null>(null);
 
   const precoPorVariante = useMemo(() => {
     const mapa = new Map<string, number>();
@@ -248,6 +252,10 @@ function ProductOffer({
       display: 'grid',
       gap: { xs: 2, sm: 2.5 },
       gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 240px), 1fr))',
+      // `1fr` nas linhas iguala a altura de todos os cartões da grade, e não só
+      // dos que estão lado a lado: a fileira de baixo sai do mesmo tamanho da
+      // de cima. Quem tem menos tamanhos sobra espaço em vez de encolher
+      gridAutoRows: '1fr',
       alignItems: 'stretch',
     },
     cartao: {
@@ -264,19 +272,30 @@ function ProductOffer({
       '&:hover': { transform: { md: 'translateY(-3px)' } },
       '&:hover .foto-do-produto': { transform: { md: 'scale(1.06)' } },
     },
+    /**
+     * Altura fixa, e não proporção: a moldura é a mesma em todo cartão, venha a
+     * foto quadrada, deitada ou em pé. `flexShrink: 0` porque o cartão é uma
+     * coluna flex — sem isso a foto cede altura para o texto do vizinho mais
+     * alto e a fileira ficava com molduras de tamanhos diferentes.
+     */
     vitrine: {
       position: 'relative',
-      aspectRatio: '4 / 3',
+      height: { xs: 170, sm: 180 },
+      flexShrink: 0,
       display: 'grid',
       placeItems: 'center',
+      overflow: 'hidden',
       color: 'text.disabled',
       bgcolor: alpha(theme.palette.text.primary, 0.05),
     },
+    // `cover` é o corte: a foto preenche a moldura pelo centro e o que sobra
+    // fica de fora, em vez de deformar ou deixar tarja
     foto: {
       width: '100%',
       height: '100%',
       display: 'block',
       objectFit: 'cover' as const,
+      objectPosition: 'center',
       transition: 'transform .45s ease',
     },
     // etiqueta sobre a foto, como em prateleira: o preço é do produto, não da
@@ -295,6 +314,16 @@ function ProductOffer({
       backdropFilter: 'blur(4px)',
     },
     corpo: { flex: 1, gap: 0.5, p: { xs: 1.5, sm: 2 } },
+    // nome comprido para em duas linhas: solto, ele empurrava o cartão inteiro
+    // para baixo e a fileira desalinhava
+    nomeDoProduto: {
+      lineHeight: 1.3,
+      display: '-webkit-box',
+      WebkitLineClamp: 2,
+      WebkitBoxOrient: 'vertical' as const,
+      overflow: 'hidden',
+      overflowWrap: 'anywhere' as const,
+    },
     descricao: {
       display: '-webkit-box',
       WebkitLineClamp: 2,
@@ -302,13 +331,35 @@ function ProductOffer({
       overflow: 'hidden',
       overflowWrap: 'anywhere',
     },
-    linhaVariante: {
+    tamanhos: { display: 'flex', flexWrap: 'wrap', gap: 0.75 },
+    // etiqueta do que já foi escolhido — só leitura; quem muda é o diálogo
+    chipEscolhido: {
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: 0.5,
+      px: 1,
+      py: 0.625,
+      borderRadius: 2,
+      fontSize: '.8125rem',
+      fontWeight: 600,
+      lineHeight: 1,
+      color: corDoTom,
+      bgcolor: alpha(corDoTom, escuro ? 0.22 : 0.12),
+    },
+    multiplicador: { fontWeight: 700, fontVariantNumeric: 'tabular-nums' },
+    botaoOpcoes: {
+      borderRadius: 2,
+      textTransform: 'none',
+      justifyContent: 'center',
+    },
+    linhaQuantidade: {
       minHeight: 44,
       px: 1,
       borderRadius: 2,
       alignItems: 'center',
       justifyContent: 'space-between',
       gap: 1,
+      bgcolor: alpha(theme.palette.text.primary, 0.04),
     },
     passo: {
       flexShrink: 0,
@@ -422,6 +473,25 @@ function ProductOffer({
       <Box sx={styles.grade}>
         {products.map((produto) => {
           const escolhidas = escolhidasDoProduto(produto);
+          const noCartao = produto.variants.filter(
+            (variante) => (quantidades[variante.id!] ?? 0) > 0
+          );
+          const semEstoque = !produto.variants.some((variante) =>
+            temDisponivel(variante.available)
+          );
+
+          // produto de opção única não abre diálogo: seria um toque a mais para
+          // escolher o que já estava escolhido
+          const opcaoUnica =
+            produto.variants.length === 1 ? produto.variants[0] : null;
+          const disponivel = opcaoUnica?.available;
+          const maximo = Math.min(
+            QUANTIDADE_MAXIMA_POR_ITEM,
+            disponivel ?? QUANTIDADE_MAXIMA_POR_ITEM
+          );
+          const ultimas =
+            typeof disponivel === 'number' && disponivel > 0 && disponivel <= 5;
+          const quantidade = quantidades[opcaoUnica?.id ?? ''] ?? 0;
 
           return (
             <Paper key={produto.id} sx={styles.cartao}>
@@ -444,7 +514,8 @@ function ProductOffer({
               <Stack sx={styles.corpo}>
                 <Typography
                   fontWeight={600}
-                  sx={{ lineHeight: 1.3, overflowWrap: 'anywhere' }}
+                  title={produto.name}
+                  sx={styles.nomeDoProduto}
                 >
                   {produto.name}
                 </Typography>
@@ -460,94 +531,108 @@ function ProductOffer({
                   </Typography>
                 )}
 
-                {/* as opções encostam no rodapé do cartão para os seletores
-                    ficarem na mesma linha em toda a grade */}
-                <Stack sx={{ mt: 'auto', pt: 1 }}>
-                  {produto.variants.map((variante) => {
-                    const quantidade = quantidades[variante.id!] ?? 0;
-                    const disponivel = variante.available;
-                    const esgotado = !temDisponivel(disponivel);
-                    const maximo = Math.min(
-                      QUANTIDADE_MAXIMA_POR_ITEM,
-                      disponivel ?? QUANTIDADE_MAXIMA_POR_ITEM
-                    );
-                    const ultimas =
-                      typeof disponivel === 'number' &&
-                      disponivel > 0 &&
-                      disponivel <= 5;
+                {/* As opções saíram do cartão e foram para o diálogo: o
+                    cartão fica só com o que foi escolhido, e produto de oito
+                    tamanhos deixa de esticar a grade inteira. */}
+                <Stack sx={{ mt: 'auto', pt: 1, gap: 1 }}>
+                  {opcaoUnica ? (
+                    <Stack direction="row" sx={styles.linhaQuantidade}>
+                      <Box sx={{ minWidth: 0 }}>
+                        <Typography
+                          variant="body2"
+                          color={semEstoque ? 'text.disabled' : 'text.primary'}
+                        >
+                          Quantidade
+                        </Typography>
+                        {(semEstoque || ultimas) && (
+                          <Typography
+                            variant="caption"
+                            color={
+                              semEstoque ? 'text.disabled' : 'warning.main'
+                            }
+                            sx={{ display: 'block', lineHeight: 1.2 }}
+                          >
+                            {semEstoque
+                              ? 'Esgotado'
+                              : disponivel === 1
+                                ? 'Última unidade'
+                                : `Últimas ${disponivel}`}
+                          </Typography>
+                        )}
+                      </Box>
 
-                    return (
-                      <Stack
-                        key={variante.id}
-                        direction="row"
-                        sx={{
-                          ...styles.linhaVariante,
-                          bgcolor:
-                            quantidade > 0
-                              ? alpha(corDoTom, escuro ? 0.18 : 0.08)
-                              : 'transparent',
-                        }}
-                      >
-                        <Box sx={{ minWidth: 0 }}>
+                      {!semEstoque && (
+                        <Stack
+                          direction="row"
+                          alignItems="center"
+                          sx={styles.passo}
+                        >
+                          <IconButton
+                            size="small"
+                            aria-label={`Remover uma unidade de ${produto.name}`}
+                            disabled={quantidade === 0 || loading}
+                            onClick={() => alterar(opcaoUnica.id!, -1, maximo)}
+                          >
+                            <Remove fontSize="small" />
+                          </IconButton>
                           <Typography
                             variant="body2"
-                            color={esgotado ? 'text.disabled' : 'text.primary'}
-                            sx={{ overflowWrap: 'anywhere' }}
+                            sx={styles.contador}
+                            aria-live="polite"
                           >
-                            {variante.name}
+                            {quantidade}
                           </Typography>
-                          {(esgotado || ultimas) && (
-                            <Typography
-                              variant="caption"
-                              color={
-                                esgotado ? 'text.disabled' : 'warning.main'
-                              }
-                              sx={{ display: 'block', lineHeight: 1.2 }}
-                            >
-                              {esgotado
-                                ? 'Esgotado'
-                                : disponivel === 1
-                                  ? 'Última unidade'
-                                  : `Últimas ${disponivel}`}
-                            </Typography>
-                          )}
-                        </Box>
-
-                        {!esgotado && (
-                          <Stack
-                            direction="row"
-                            alignItems="center"
-                            sx={styles.passo}
+                          <IconButton
+                            size="small"
+                            color="primary"
+                            aria-label={`Adicionar uma unidade de ${produto.name}`}
+                            disabled={quantidade >= maximo || loading}
+                            onClick={() => alterar(opcaoUnica.id!, 1, maximo)}
                           >
-                            <IconButton
-                              size="small"
-                              aria-label={`Remover uma unidade de ${produto.name} ${variante.name}`}
-                              disabled={quantidade === 0 || loading}
-                              onClick={() => alterar(variante.id!, -1, maximo)}
-                            >
-                              <Remove fontSize="small" />
-                            </IconButton>
-                            <Typography
-                              variant="body2"
-                              sx={styles.contador}
-                              aria-live="polite"
-                            >
-                              {quantidade}
-                            </Typography>
-                            <IconButton
-                              size="small"
-                              color="primary"
-                              aria-label={`Adicionar uma unidade de ${produto.name} ${variante.name}`}
-                              disabled={quantidade >= maximo || loading}
-                              onClick={() => alterar(variante.id!, 1, maximo)}
-                            >
-                              <Add fontSize="small" />
-                            </IconButton>
-                          </Stack>
-                        )}
-                      </Stack>
-                    );
-                  })}
+                            <Add fontSize="small" />
+                          </IconButton>
+                        </Stack>
+                      )}
+                    </Stack>
+                  ) : (
+                    <>
+                      {noCartao.length > 0 && (
+                        <Box sx={styles.tamanhos}>
+                          {noCartao.map((variante) => (
+                            <Box key={variante.id} sx={styles.chipEscolhido}>
+                              {variante.name}
+                              <Box
+                                component="span"
+                                sx={styles.multiplicador}
+                              >{`×${quantidades[variante.id!]}`}</Box>
+                            </Box>
+                          ))}
+                        </Box>
+                      )}
+
+                      <Button
+                        fullWidth
+                        size="small"
+                        variant={escolhidas > 0 ? 'text' : 'outlined'}
+                        disabled={loading || semEstoque}
+                        startIcon={
+                          escolhidas > 0 ? (
+                            <EditOutlined fontSize="small" />
+                          ) : (
+                            <LocalMallOutlined fontSize="small" />
+                          )
+                        }
+                        onClick={() => setProdutoAberto(produto.id!)}
+                        sx={styles.botaoOpcoes}
+                      >
+                        {semEstoque
+                          ? 'Esgotado'
+                          : escolhidas > 0
+                            ? 'Alterar escolha'
+                            : 'Adicionar à sacola'}
+                      </Button>
+                    </>
+                  )}
                 </Stack>
               </Stack>
 
@@ -636,6 +721,14 @@ function ProductOffer({
           </Stack>
         </Stack>
       </Paper>
+
+      <VariantPickerDialog
+        produto={products.find((p) => p.id === produtoAberto) ?? null}
+        quantidades={quantidades}
+        loading={loading}
+        onAlterar={alterar}
+        onClose={() => setProdutoAberto(null)}
+      />
     </Box>
   );
 }

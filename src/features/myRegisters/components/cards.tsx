@@ -12,6 +12,7 @@ import {
   DialogContent,
   DialogActions,
   Tooltip,
+  alpha,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 
@@ -20,6 +21,8 @@ import {
   HourglassBottom,
   LocalActivity,
   AttachFile,
+  CheckCircleOutline,
+  ErrorOutline,
 } from '@mui/icons-material';
 
 import { paymentsWithRoles } from '../types';
@@ -29,6 +32,7 @@ import React from 'react';
 import CapaLogin from '../../../assets/capaLogin2.jpg';
 import { usePostGuardianTerm } from '../../admin/events/api/postGuardianTerm';
 import CustomChip from '../../../components/customChip';
+import { pagamentosEmAberto, separarPorPagamento } from '../utils';
 
 interface PaymentData {
   coverUrl: string;
@@ -114,6 +118,10 @@ function EventCard({ payment }: { payment: paymentsWithRoles & { data: PaymentDa
   // igrejas diferentes aparecem lado a lado com respostas diferentes.
   const modulePayment = payment.modulePayment;
 
+  // compra de produto em aberto também é dívida: sem ela aqui o cartão diria
+  // "tudo pago" com a camisa ainda por pagar
+  const emAberto = pagamentosEmAberto(payment);
+
   function handleOpenModal(paymentData: paymentsWithRoles & { data: PaymentData }) {
     const dataArray=[...paymentData.registeredRoles,...paymentData.waitlistRoles].map((role:any)=>{
       
@@ -166,7 +174,9 @@ function EventCard({ payment }: { payment: paymentsWithRoles & { data: PaymentDa
       maxWidth: 320,
       position: 'relative',
       width: '100%',
-
+      // aro em vez de borda: `outline` não desloca o conteúdo e não apaga a
+      // sombra do Paper, que é o que a borda de 1px faria
+      
     },
     imageBox: { position: 'relative' },
     cardMedia: { objectFit: 'cover' },
@@ -217,13 +227,6 @@ function EventCard({ payment }: { payment: paymentsWithRoles & { data: PaymentDa
       borderRadius: 2,
     },
   };
-  // compra de produto em aberto também é dívida: sem ela aqui o cartão diria
-  // "tudo pago" com a camisa ainda por pagar
-  const fullPaid = [
-    ...(payment?.registeredRoles ?? []).map((role) => role.paymentStatus),
-    ...(payment?.productPurchases ?? []).map((compra) => compra.status),
-  ].every((status) => status === 'PAID');
-
   return (<>
     <Paper sx={styles.card}>
       <Box sx={styles.imageBox}>
@@ -255,11 +258,13 @@ function EventCard({ payment }: { payment: paymentsWithRoles & { data: PaymentDa
 
         <Stack gap={1} bottom={0}>
 
+  
+
           {modulePayment && (
             <Stack direction="row" alignItems="center" gap={1}>
               <AttachMoney sx={styles.icon} />
-              <Typography sx={styles.infoText} color={fullPaid ? 'success.main' : 'warning.main'}>
-                {fullPaid ?"Todas as inscrições pagas":"Inscrições aguardando pagamento"}
+              <Typography sx={styles.infoText} color={emAberto === 0 ? 'success.main' : 'warning.main'}>
+                {emAberto === 0 ?"Pagamento(s) concluído(s)":`${emAberto} Pagamento(s) pendente(s)`}
               </Typography>
             </Stack>
           )}
@@ -350,23 +355,89 @@ function EventCard({ payment }: { payment: paymentsWithRoles & { data: PaymentDa
 }
 
 
+/**
+ * Título de uma das duas listas da página.
+ *
+ * O contador fica no chip ao lado do título, e não dentro do texto: é o número
+ * que a pessoa procura quando abre a tela devendo alguma coisa.
+ */
+function Secao({
+  icone,
+  titulo,
+  descricao,
+  quantidade,
+  cor,
+  children,
+}: {
+  icone: React.ReactNode;
+  titulo: string;
+  descricao: string;
+  quantidade: number;
+  cor: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <Box>
+      <Stack direction="row" alignItems="center" gap={1}>
+        {icone}
+        <Typography fontWeight={600}>{titulo}</Typography>
+        <CustomChip size="small" label={quantidade} customColor={cor} />
+      </Stack>
+      <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, mb: 2 }}>
+        {descricao}
+      </Typography>
+      {children}
+    </Box>
+  );
+}
+
 function Cards() {
   const { id } =JSON.parse(localStorage.getItem('user') || '{}');
-  
+  const theme = useTheme();
+
   const { data = [] } = useGetPayments({ userId: id || '' });
   const payments = data as paymentsWithRoles[];
-  
+  const { pendentes, emDia } = separarPorPagamento(payments);
+
+  const grade = (lista: paymentsWithRoles[]) => (
+    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
+      {lista.map((payment: paymentsWithRoles) => (
+        <EventCard
+          key={payment.eventId}
+          payment={payment as paymentsWithRoles & { data: PaymentData }}
+        />
+      ))}
+    </Box>
+  );
+
+  // sem nada pendente não há o que separar: dois títulos para uma lista só
+  // seriam moldura em volta de nada
+  if (pendentes.length === 0) return grade(emDia);
 
   return (
-    <>
-      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
-        {Array.isArray(payments)
-        ? payments
-            .map((payment: paymentsWithRoles) => <EventCard key={payment.eventId} payment={payment as paymentsWithRoles & { data: PaymentData }} />)
-        : null}
-      </Box>
-     
-    </>
+    <Stack gap={4}>
+      <Secao
+        icone={<ErrorOutline sx={{ color: theme.palette.chips.alert }} />}
+        titulo="Aguardando pagamento"
+        descricao="Inscrição ou compra de produto ainda em aberto nestes eventos."
+        quantidade={pendentes.length}
+        cor={theme.palette.chips.alert}
+      >
+        {grade(pendentes)}
+      </Secao>
+
+      {emDia.length > 0 && (
+        <Secao
+          icone={<CheckCircleOutline sx={{ color: theme.palette.chips.success }} />}
+          titulo="Em dia"
+          descricao="Nada a pagar por aqui."
+          quantidade={emDia.length}
+          cor={theme.palette.chips.success}
+        >
+          {grade(emDia)}
+        </Secao>
+      )}
+    </Stack>
   );
 }
 
