@@ -17,7 +17,11 @@ export interface NavTabOption<T> {
 }
 
 interface NavTabsProps<T> {
-  value: T;
+  /**
+   * `false` quando nenhuma aba está selecionada — é como o MUI representa
+   * isso, e serve para telas onde a seleção pode estar fora desta régua.
+   */
+  value: T | false;
   onChange: (value: T) => void;
   options: NavTabOption<T>[];
   /**

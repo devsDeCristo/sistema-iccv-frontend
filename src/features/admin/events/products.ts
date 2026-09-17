@@ -66,7 +66,7 @@ export const descreverItem = (item: PaymentProductItem) =>
   `${item.variant.product.name} (${item.variant.name}) ×${item.quantity}`;
 
 /** Aba do painel de pagamentos com as compras de produto feitas fora da inscrição */
-export const ABA_COMPRAS_DE_PRODUTOS = 'Compras de produtos';
+export const ABA_COMPRAS_DE_PRODUTOS = 'Produtos Avulsos';
 
 /**
  * O que um pagamento comprou, uma linha por item — com o ingresso listado

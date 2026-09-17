@@ -1,7 +1,9 @@
 import {
   Box,
+  Button,
   Card,
   IconButton,
+  Paper,
   ListItemIcon,
   ListItemText,
   Menu,
@@ -25,7 +27,13 @@ import {
   selectedGridRowsSelector,
 } from '@mui/x-data-grid';
 import { useParams } from 'react-router-dom';
-import { Edit, History, MoreVert, Reply } from '@mui/icons-material';
+import {
+  Edit,
+  History,
+  MoreVert,
+  Reply,
+  ShoppingBagOutlined,
+} from '@mui/icons-material';
 import { PaymentResponse } from '../../../../types/user';
 import { useEffect, useMemo, useState } from 'react';
 import CustomChip from '../../../../components/customChip';
@@ -107,13 +115,16 @@ function ListPayments({
   const handleClose = () => {
     setAnchorEl(null);
   };
-  const groupsRules = useMemo(() => {
-    const grupos = event?.groupRoles?.map((g: any) => g.name) ?? [];
-    // compra avulsa não tem grupo: sem aba própria ela sumiria da tabela
-    return event?.products?.length
-      ? [...grupos, ABA_COMPRAS_DE_PRODUTOS]
-      : grupos;
-  }, [event]) as string[];
+  const groupsRules = useMemo(
+    () => event?.groupRoles?.map((g: any) => g.name) ?? [],
+    [event]
+  ) as string[];
+  /**
+   * Compra avulsa de produto não pertence a grupo nenhum, então fica fora da
+   * régua de grupos: misturada com eles, ela se lia como se fosse mais um
+   * grupo de inscrição.
+   */
+  const temComprasAvulsas = !!event?.products?.length;
   useEffect(() => {
     if (groupsRules.length > 0) {
       setPanel(groupsRules[0]);
@@ -285,18 +296,74 @@ function ListPayments({
     filtered = filteredByGroup(filtered);
     return filtered;
   };
+  const comprasAvulsasAtivas = panel === ABA_COMPRAS_DE_PRODUTOS;
+
   return (
     <>
       {Array.isArray(groupsRules) && groupsRules.length > 0 && (
-        <NavTabs
-          fullWidth
-          value={panel}
-          onChange={setPanel}
-          options={groupsRules.map((groupName) => ({
-            value: groupName,
-            label: groupName,
-          }))}
-        />
+        <Stack
+          direction={{ xs: 'column', sm: 'row' }}
+          alignItems="stretch"
+          gap={1}
+        >
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <NavTabs
+              fullWidth
+              // a régua fica com o grupo ativo; nas compras avulsas nenhum
+              // grupo está selecionado, e `false` é como o MUI diz isso
+              value={comprasAvulsasAtivas ? false : panel}
+              onChange={setPanel}
+              options={groupsRules.map((groupName) => ({
+                value: groupName,
+                label: groupName,
+              }))}
+            />
+          </Box>
+
+          {/* flex para o botão preencher a superfície: ela estica junto com a
+              régua de abas (`alignItems="stretch"`), e o botão sozinho parava
+              na altura mínima dele, sobrando faixa vazia embaixo */}
+          {temComprasAvulsas && (
+            <Paper
+              sx={{
+                borderRadius: 3,
+                p: 0.5,
+                flexShrink: 0,
+                display: 'flex',
+              }}
+            >
+              {/* mesma pílula das abas, em superfície própria: é um recorte
+                  ao lado dos grupos, não mais um deles */}
+              <Button
+                fullWidth
+                onClick={() =>
+                  setPanel(
+                    comprasAvulsasAtivas
+                      ? groupsRules[0]
+                      : ABA_COMPRAS_DE_PRODUTOS
+                  )
+                }
+                startIcon={<ShoppingBagOutlined />}
+                sx={{
+                  flex: 1,
+                  borderRadius: 2,
+                  minHeight: 36,
+                  px: 1.5,
+                  textTransform: 'capitalize',
+                  whiteSpace: 'nowrap',
+                  color: comprasAvulsasAtivas
+                    ? 'text.primary'
+                    : 'text.disabled',
+                  backgroundColor: comprasAvulsasAtivas
+                    ? theme.palette.background.hover
+                    : 'transparent',
+                }}
+              >
+                {ABA_COMPRAS_DE_PRODUTOS}
+              </Button>
+            </Paper>
+          )}
+        </Stack>
       )}
       <Card sx={cardTabelaSx}>
         <DataGrid
