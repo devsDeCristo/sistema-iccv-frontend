@@ -12,7 +12,6 @@ import {
   DialogContent,
   DialogActions,
   Tooltip,
-  alpha,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 
@@ -174,9 +173,6 @@ function EventCard({ payment }: { payment: paymentsWithRoles & { data: PaymentDa
       maxWidth: 320,
       position: 'relative',
       width: '100%',
-      // aro em vez de borda: `outline` não desloca o conteúdo e não apaga a
-      // sombra do Paper, que é o que a borda de 1px faria
-      
     },
     imageBox: { position: 'relative' },
     cardMedia: { objectFit: 'cover' },

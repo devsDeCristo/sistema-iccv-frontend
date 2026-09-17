@@ -57,6 +57,8 @@ export interface PaymentResponse {
   purchaseType?: 'REGISTRATION' | 'PRODUCTS';
   /** descrição da regra de inscrição; só nas linhas de inscrição */
   roleName?: string;
+  /** quando os produtos desta compra foram entregues; null é "ainda não" */
+  productsDeliveredAt?: string | null;
   /** produtos comprados junto deste ingresso */
   productItems?: {
     id: string;

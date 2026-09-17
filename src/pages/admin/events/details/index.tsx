@@ -78,6 +78,8 @@ import { NavTabs } from '../../../../components/navTabs';
 import { User } from '../../../../types/user';
 import { ListUsersWaitList } from '../../../../features/admin/events/components/listUsersWaitList';
 import { ListPayments } from '../../../../features/admin/events/components/listPayments';
+import { ListProductOrders } from '../../../../features/admin/events/components/listProductOrders';
+import { statusPaymentOptions } from '../../../../features/admin/events/constants';
 import { CardsPayments } from '../../../../features/admin/events/components/cardsPayments';
 import { CardsRegistrations } from '../../../../features/admin/events/components/cardsRegistrations';
 import { toast } from 'react-toastify';
@@ -87,7 +89,8 @@ import { FINANCE_EVENT_TABS } from '../../../../constants/roles';
 const EVENT_TABS = [
   { label: 'Inscritos', value: 'usuarios' },
   { label: 'Lista de Espera', value: 'lista-espera' },
-  { label: 'Pagamentos', value: 'pagamentos' },
+  { label: 'Financeiro', value: 'pagamentos' },
+  { label: 'Pedidos de Produtos', value: 'produtos' },
   { label: 'Quartos', value: 'quartos' },
   { label: 'Equipes', value: 'equipes' },
 ];
@@ -123,6 +126,9 @@ function Details() {
   const [pdfType, setPdfType] = useState<PdfDocType | null>(null);
   const [gridFilteredUsers, setGridFilteredUsers] = useState<User[]>([]);
   const [gridSelectedUsers, setGridSelectedUsers] = useState<User[]>([]);
+  // filtros da aba Produtos; vazio é "todos"
+  const [produtoFiltro, setProdutoFiltro] = useState('');
+  const [statusProdutoFiltro, setStatusProdutoFiltro] = useState('');
   const [openModalQrCode, setOpenModalQrCode] = useState(false);
   const [openQrScanner, setOpenQrScanner] = useState(false);
 
@@ -270,6 +276,10 @@ function Details() {
     },
     textField: {
       width: { xs: '100%', sm: '350px' },
+      ...campoBuscaSx(theme),
+    },
+    selectFiltro: {
+      width: { xs: '100%', sm: 210 },
       ...campoBuscaSx(theme),
     },
   };
@@ -713,6 +723,75 @@ function Details() {
             apiRef={apiRefUsers}
             search={searchUser}
             event={event}
+          />
+        </Stack>
+      )}
+
+      {pageValue === 'produtos' && (
+        <Stack gap={2} sx={{ mt: 2 }}>
+          <Paper component="div" sx={styles.boxFilterAndPdf}>
+            <TextField
+              placeholder="Pesquisar por nome, CPF ou produto"
+              variant="outlined"
+              size="small"
+              value={searchUser}
+              sx={styles.textField}
+              onChange={(e) => setSearchUser(e.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Search />
+                  </InputAdornment>
+                ),
+              }}
+            />
+
+            <Stack sx={styles.stackButtons}>
+              <TextField
+                select
+                size="small"
+                label="Produto"
+                value={produtoFiltro}
+                sx={styles.selectFiltro}
+                onChange={(e) => setProdutoFiltro(e.target.value)}
+              >
+                <MenuItem value="">Todos os produtos</MenuItem>
+                {(event?.products ?? []).map((produto) => (
+                  <MenuItem key={produto.id} value={produto.id}>
+                    {produto.name}
+                  </MenuItem>
+                ))}
+              </TextField>
+
+              <TextField
+                select
+                size="small"
+                label="Status do pagamento"
+                value={statusProdutoFiltro}
+                sx={styles.selectFiltro}
+                onChange={(e) => setStatusProdutoFiltro(e.target.value)}
+              >
+                <MenuItem value="">Todos os status</MenuItem>
+                {statusPaymentOptions.map((opcao) => (
+                  <MenuItem key={opcao.value} value={opcao.value}>
+                    {opcao.label}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Stack>
+          </Paper>
+
+          {/* o status leva para a aba de pagamentos já procurando por quem
+              comprou: o CPF é o que a busca de lá entende sem ambiguidade */}
+          <ListProductOrders
+            search={searchUser}
+            produtoId={produtoFiltro}
+            status={statusProdutoFiltro}
+            products={event?.products}
+            onVerPagamento={(pedido) => {
+              setSearchUser(pedido.cpf || pedido.fullName || '');
+              handleChange('pagamentos');
+            }}
           />
         </Stack>
       )}

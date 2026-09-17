@@ -85,3 +85,89 @@ export function itensDoPagamento(pagamento: PaymentResponse): string[] {
 
   return [...ingresso, ...(pagamento.productItems ?? []).map(descreverItem)];
 }
+
+/** Um item dentro de uma compra */
+export interface ItemDoPedido {
+  id: string;
+  /** id do produto: é por ele que a tabela acha a foto já carregada do evento */
+  produtoId: string;
+  produto: string;
+  opcao: string;
+  quantidade: number;
+}
+
+/** Uma linha da aba Produtos: uma compra, com tudo o que veio nela */
+export interface PedidoDeProduto {
+  /** id do pagamento — a compra é a linha, e cada compra é um pagamento */
+  id: string;
+  userId: string;
+  fullName: string;
+  cpf: string;
+  email: string;
+  profilePhotoUrl?: string;
+  itens: ItemDoPedido[];
+  /** unidades somadas de todos os itens da compra */
+  unidades: number;
+  status: PaymentResponse['status'];
+  /** comprado fora da inscrição, em pagamento próprio */
+  avulsa: boolean;
+  /** quando os produtos foram entregues; null é "ainda não" */
+  entregueEm: string | null;
+}
+
+/** "Camisa (M) ×2" — a mesma frase de `descreverItem`, para o item já agrupado */
+export const descreverItemDoPedido = (item: ItemDoPedido) =>
+  `${item.produto} (${item.opcao}) ×${item.quantidade}`;
+
+/**
+ * As compras de produto do evento, uma por pagamento.
+ *
+ * Agrupado por compra, e não por item: quem leva duas camisas paga uma vez só,
+ * e duas linhas separadas diriam que são dois pedidos com dois status — sendo
+ * que o status é um, do pagamento que as carrega.
+ *
+ * O ingresso não entra e o valor também não: aqui a pergunta é quem comprou o
+ * quê, e dinheiro é assunto da aba de pagamentos. Pagamento sem produto nenhum
+ * fica de fora da lista.
+ */
+export function pedidosDeProdutos(
+  pagamentos?: PaymentResponse[] | null
+): PedidoDeProduto[] {
+  if (!Array.isArray(pagamentos)) return [];
+
+  return pagamentos
+    .filter((pagamento) => pagamento.productItems?.length)
+    .map((pagamento) => {
+      const itens = (pagamento.productItems ?? [])
+        .map((item) => ({
+          id: item.id,
+          produtoId: item.variant.product.id,
+          produto: item.variant.product.name,
+          opcao: item.variant.name,
+          quantidade: item.quantity,
+        }))
+        // dentro da compra, produto e depois opção: é a ordem de quem separa
+        .sort(
+          (a, b) =>
+            a.produto.localeCompare(b.produto, 'pt-BR') ||
+            a.opcao.localeCompare(b.opcao, 'pt-BR')
+        );
+
+      return {
+        id: pagamento.id,
+        userId: pagamento.userId,
+        fullName: pagamento.fullName,
+        cpf: pagamento.cpf,
+        email: pagamento.email,
+        profilePhotoUrl: pagamento.profilePhotoUrl,
+        itens,
+        unidades: itens.reduce((soma, item) => soma + item.quantidade, 0),
+        status: pagamento.status,
+        avulsa: pagamento.purchaseType === 'PRODUCTS',
+        entregueEm: pagamento.productsDeliveredAt ?? null,
+      };
+    })
+    .sort((a, b) =>
+      (a.fullName ?? '').localeCompare(b.fullName ?? '', 'pt-BR')
+    );
+}
