@@ -76,6 +76,18 @@ function ProductOffer({
   const theme = useTheme();
   const escuro = theme.palette.mode === 'dark';
   const corDoTom = escuro ? theme.palette.primary.main : AZUL_VIVO;
+  /**
+   * O cartaz segue o tema: no escuro o véu escurece a capa e a letra é branca;
+   * no claro ele é um cinza-ardósia e a letra é a do tema. Os dois andam juntos
+   * — véu claro com letra branca não se lê em cima de foto nenhuma.
+   *
+   * O cinza do claro não é quase-branco de propósito: contra a folha branca da
+   * página o cartaz precisa de peso próprio, senão a capa some. Ele ainda é
+   * claro o bastante para a letra quase-preta do tema passar longe do limite de
+   * contraste.
+   */
+  const fundoDoCartaz = escuro ? '#0B1220' : '#CBD5E1';
+  const tintaDoCartaz = escuro ? '#FFFFFF' : theme.palette.text.primary;
   const [quantidades, setQuantidades] = useState<Record<string, number>>({});
 
   const precoPorVariante = useMemo(() => {
@@ -139,24 +151,31 @@ function ProductOffer({
       backgroundPosition: 'center',
     },
     /**
-     * Dois véus sobre a capa, e não uma cor chapada: um na diagonal, que
-     * escurece o lado do texto, e outro subindo do rodapé, onde o texto se
-     * apoia. A capa é foto de qualquer coisa — sem isso, o nome do evento some
-     * em cima de um céu claro.
+     * Dois véus sobre a capa, e não uma cor chapada: um na diagonal, que cobre
+     * o lado do texto, e outro subindo do rodapé, onde o texto se apoia. A capa
+     * é foto de qualquer coisa — sem isso, o nome do evento some em cima de um
+     * céu claro.
+     *
+     * No claro o véu é mais fechado: letra escura sobre foto exige mais cobertura
+     * que letra branca para o contraste se manter.
      */
     veu: {
       position: 'absolute',
       inset: 0,
       backgroundImage: `linear-gradient(105deg, ${alpha(
-        '#0B1220',
-        0.88
-      )}, ${alpha('#0B1220', 0.3)} 68%), linear-gradient(to top, ${alpha(
-        '#0B1220',
-        0.9
+        fundoDoCartaz,
+        escuro ? 0.88 : 0.93
+      )}, ${alpha(
+        fundoDoCartaz,
+        escuro ? 0.3 : 0.45
+      )} 68%), linear-gradient(to top, ${alpha(
+        fundoDoCartaz,
+        escuro ? 0.9 : 0.94
       )}, transparent 62%)`,
     },
-    // placa de vidro para a logo: o mesmo fundo leitoso vale para logo escura e
-    // para logo clara, que é o que a capa sozinha não garante
+    // placa de vidro para a logo: o fundo leitoso vale para logo escura e para
+    // logo clara, que é o que a capa sozinha não garante. No claro ela é quase
+    // branca, que é o fundo para o qual a maioria das logos foi desenhada
     placa: {
       width: { xs: 66, sm: 88 },
       height: { xs: 66, sm: 88 },
@@ -165,32 +184,37 @@ function ProductOffer({
       borderRadius: 2.5,
       display: 'grid',
       placeItems: 'center',
-      color: '#FFFFFF',
-      bgcolor: alpha('#FFFFFF', 0.16),
+      color: tintaDoCartaz,
+      bgcolor: alpha('#FFFFFF', escuro ? 0.16 : 0.72),
       backdropFilter: 'blur(8px)',
-      boxShadow: `inset 0 0 0 1px ${alpha('#FFFFFF', 0.3)}`,
+      boxShadow: `inset 0 0 0 1px ${alpha(
+        escuro ? '#FFFFFF' : tintaDoCartaz,
+        escuro ? 0.3 : 0.12
+      )}`,
     },
     logo: {
       width: '100%',
       height: '100%',
       objectFit: 'contain' as const,
-      filter: 'drop-shadow(0 2px 6px rgba(0,0,0,.45))',
+      filter: escuro ? 'drop-shadow(0 2px 6px rgba(0,0,0,.45))' : 'none',
     },
     sobrenome: {
       display: 'block',
-      color: alpha('#FFFFFF', 0.82),
+      color: alpha(tintaDoCartaz, escuro ? 0.82 : 0.68),
       fontWeight: 700,
       fontSize: '.6875rem',
       letterSpacing: '.18em',
       lineHeight: 1.6,
     },
     nomeDoEvento: {
-      color: '#FFFFFF',
+      color: tintaDoCartaz,
       fontWeight: 700,
       lineHeight: 1.15,
       overflowWrap: 'anywhere' as const,
       fontSize: { xs: '1.5rem', sm: '2rem' },
-      textShadow: '0 2px 14px rgba(0,0,0,.45)',
+      // a sombra é o que descola a letra branca da foto; com letra escura sobre
+      // véu claro ela só sujaria o texto
+      textShadow: escuro ? '0 2px 14px rgba(0,0,0,.45)' : 'none',
     },
     pilula: {
       px: 1.25,
@@ -198,10 +222,13 @@ function ProductOffer({
       borderRadius: 999,
       fontSize: '.75rem',
       fontWeight: 600,
-      color: alpha('#FFFFFF', 0.92),
-      bgcolor: alpha('#FFFFFF', 0.16),
+      color: alpha(tintaDoCartaz, escuro ? 0.92 : 0.8),
+      bgcolor: alpha('#FFFFFF', escuro ? 0.16 : 0.66),
       backdropFilter: 'blur(6px)',
-      boxShadow: `inset 0 0 0 1px ${alpha('#FFFFFF', 0.2)}`,
+      boxShadow: `inset 0 0 0 1px ${alpha(
+        escuro ? '#FFFFFF' : tintaDoCartaz,
+        escuro ? 0.2 : 0.1
+      )}`,
     },
     selo: {
       width: 48,
