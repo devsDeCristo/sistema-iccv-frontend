@@ -1,0 +1,706 @@
+import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
+  Alert,
+  alpha,
+  Box,
+  Button,
+  Chip,
+  CircularProgress,
+  Grid,
+  IconButton,
+  InputAdornment,
+  Stack,
+  Tooltip,
+  Typography,
+  useTheme,
+} from '@mui/material';
+import {
+  Add,
+  AddPhotoAlternateOutlined,
+  DeleteOutline,
+  ExpandMore,
+  ShoppingBagOutlined,
+} from '@mui/icons-material';
+import { useRef, useState } from 'react';
+import { Controller, useFormContext, useWatch } from 'react-hook-form';
+import Swal from 'sweetalert2';
+import { toast } from 'react-toastify';
+import { Input } from '../../../../components/input';
+import {
+  formatCurrency,
+  sanitizeInteger,
+  sanitizePrice,
+} from '../../../../utils';
+import { reduzirFotoParaDataUrl } from '../../../../utils/image';
+import { EventProduct, ProductsFormType } from '../types';
+import { TAMANHO_MAXIMO_DA_FOTO, produtoVazio } from '../products';
+
+function plural(quantidade: number, singular: string, plural: string) {
+  return `${quantidade} ${quantidade === 1 ? singular : plural}`;
+}
+
+const vendidosDoProduto = (produto: EventProduct) =>
+  produto.variants.reduce((total, variante) => total + (variante.sold ?? 0), 0);
+
+type CartaoProdutoProps = {
+  index: number;
+  produto: EventProduct;
+  expandido: boolean;
+  onAlternar: () => void;
+  onRemover: () => void;
+  onAdicionarVariante: () => void;
+  onRemoverVariante: (indexVariante: number) => void;
+};
+
+/**
+ * Um produto por acordeão, no mesmo desenho dos grupos de inscrição: o
+ * cabeçalho resume (foto, nome, preço, variantes, vendidos) e o corpo abre o
+ * cadastro.
+ */
+function CartaoProduto({
+  index,
+  produto,
+  expandido,
+  onAlternar,
+  onRemover,
+  onAdicionarVariante,
+  onRemoverVariante,
+}: CartaoProdutoProps) {
+  const theme = useTheme();
+  const {
+    control,
+    setValue,
+    formState: { errors },
+  } = useFormContext<ProductsFormType>();
+  const entradaDaFoto = useRef<HTMLInputElement>(null);
+  const [processandoFoto, setProcessandoFoto] = useState(false);
+
+  const variantes = produto.variants ?? [];
+  const vendidos = vendidosDoProduto(produto);
+  const foiVendido = vendidos > 0;
+  const errosDoProduto = errors.products?.[index];
+
+  async function aoEscolherFoto(arquivo?: File) {
+    if (!arquivo) return;
+
+    setProcessandoFoto(true);
+    try {
+      const foto = await reduzirFotoParaDataUrl(arquivo);
+
+      if (foto.length > TAMANHO_MAXIMO_DA_FOTO) {
+        toast.error('A foto continua grande demais. Tente outra imagem.');
+        return;
+      }
+
+      setValue(`products.${index}.image`, foto, { shouldDirty: true });
+    } catch {
+      toast.error('Não foi possível ler esta imagem. Use PNG, JPG ou WebP.');
+    } finally {
+      setProcessandoFoto(false);
+      // limpa o input: escolher a mesma foto de novo precisa disparar o change
+      if (entradaDaFoto.current) entradaDaFoto.current.value = '';
+    }
+  }
+
+  const styles = {
+    cartao: {
+      boxShadow:
+        theme.palette.mode == 'dark' ? '' : '0px 0px 5px 2px rgba(0,0,0,0.1)',
+      borderRadius: 2,
+      '&:first-of-type, &:last-of-type': { borderRadius: 2 },
+      '&:before': { display: 'none' },
+    },
+    resumo: {
+      '& .MuiAccordionSummary-content': {
+        alignItems: 'center',
+        gap: 1,
+        flexWrap: 'wrap',
+        my: 1,
+        mr: 1,
+      },
+    },
+    miniatura: {
+      width: 36,
+      height: 36,
+      borderRadius: 1.5,
+      flexShrink: 0,
+      objectFit: 'cover' as const,
+      display: 'grid',
+      placeItems: 'center',
+      bgcolor: alpha(theme.palette.text.primary, 0.06),
+      color: 'text.secondary',
+    },
+    foto: {
+      position: 'relative',
+      width: { xs: '100%', sm: 148 },
+      aspectRatio: '1 / 1',
+      borderRadius: 2,
+      overflow: 'hidden',
+      border: `1px dashed ${theme.palette.divider}`,
+      bgcolor: alpha(theme.palette.text.primary, 0.03),
+      display: 'grid',
+      placeItems: 'center',
+      cursor: 'pointer',
+      // a área inteira é o botão de escolher; o foco precisa aparecer
+      '&:focus-visible': {
+        outline: `2px solid ${theme.palette.primary.main}`,
+        outlineOffset: 2,
+      },
+    },
+    linhaVariante: {
+      p: 1.5,
+      borderRadius: 2,
+      border: `1px solid ${theme.palette.divider}`,
+      bgcolor: alpha(theme.palette.text.primary, 0.02),
+    },
+    semVariantes: {
+      p: 2,
+      borderRadius: 2,
+      border: `1px dashed ${theme.palette.divider}`,
+      textAlign: 'center',
+    },
+  };
+
+  return (
+    <Accordion
+      expanded={expandido}
+      onChange={onAlternar}
+      disableGutters
+      sx={styles.cartao}
+    >
+      <AccordionSummary expandIcon={<ExpandMore />} sx={styles.resumo}>
+        {produto.image ? (
+          <Box
+            component="img"
+            src={produto.image}
+            alt=""
+            sx={styles.miniatura}
+          />
+        ) : (
+          <Box sx={styles.miniatura}>
+            <ShoppingBagOutlined fontSize="small" />
+          </Box>
+        )}
+
+        <Typography fontWeight={600} sx={{ mr: 'auto' }}>
+          {produto.name?.trim() || `Produto ${index + 1}`}
+        </Typography>
+
+        {typeof produto.price === 'number' && (
+          <Chip
+            size="small"
+            variant="outlined"
+            label={formatCurrency(produto.price)}
+          />
+        )}
+        <Chip
+          size="small"
+          variant="outlined"
+          label={plural(variantes.length, 'variante', 'variantes')}
+          color={variantes.length ? 'default' : 'warning'}
+        />
+        {foiVendido && (
+          <Chip
+            size="small"
+            variant="outlined"
+            color="warning"
+            label={plural(vendidos, 'vendido', 'vendidos')}
+          />
+        )}
+
+        <Tooltip
+          title={
+            foiVendido
+              ? 'Produto já vendido não pode ser removido'
+              : 'Remover produto'
+          }
+        >
+          <span>
+            <IconButton
+              size="small"
+              disabled={foiVendido}
+              aria-label="Remover produto"
+              onClick={(event) => {
+                event.stopPropagation();
+                onRemover();
+              }}
+              sx={{ '&:hover': { color: theme.palette.error.main } }}
+            >
+              <DeleteOutline fontSize="small" />
+            </IconButton>
+          </span>
+        </Tooltip>
+      </AccordionSummary>
+
+      <AccordionDetails sx={{ pt: 0, mt: 1 }}>
+        <Stack direction={{ xs: 'column', sm: 'row' }} gap={2}>
+          <Box sx={{ flexShrink: 0 }}>
+            <Box
+              role="button"
+              tabIndex={0}
+              aria-label={produto.image ? 'Trocar foto' : 'Adicionar foto'}
+              sx={styles.foto}
+              onClick={() => entradaDaFoto.current?.click()}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault();
+                  entradaDaFoto.current?.click();
+                }
+              }}
+            >
+              {processandoFoto ? (
+                <CircularProgress size={24} />
+              ) : produto.image ? (
+                <Box
+                  component="img"
+                  src={produto.image}
+                  alt={produto.name || 'Foto do produto'}
+                  sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
+              ) : (
+                <Stack alignItems="center" gap={0.5} sx={{ p: 1 }}>
+                  <AddPhotoAlternateOutlined color="action" />
+                  <Typography variant="caption" color="text.secondary">
+                    Adicionar foto
+                  </Typography>
+                </Stack>
+              )}
+            </Box>
+            <input
+              ref={entradaDaFoto}
+              type="file"
+              hidden
+              accept="image/png,image/jpeg,image/webp"
+              onChange={(event) => aoEscolherFoto(event.target.files?.[0])}
+            />
+            {produto.image && (
+              <Button
+                size="small"
+                color="inherit"
+                fullWidth
+                sx={{ mt: 0.5, textTransform: 'none', color: 'text.secondary' }}
+                onClick={() =>
+                  setValue(`products.${index}.image`, null, {
+                    shouldDirty: true,
+                  })
+                }
+              >
+                Remover foto
+              </Button>
+            )}
+          </Box>
+
+          <Grid
+            container
+            spacing={2}
+            sx={{ flex: 1, alignContent: 'flex-start' }}
+          >
+            <Grid item xs={12} sm={8}>
+              <Controller
+                control={control}
+                name={`products.${index}.name`}
+                render={({ field: { onChange, value } }) => (
+                  <Input
+                    size="small"
+                    required
+                    label="Nome do produto"
+                    placeholder="Ex: Camisa do evento"
+                    value={value ?? ''}
+                    onChange={onChange}
+                    error={Boolean(errosDoProduto?.name)}
+                    errorMessage={errosDoProduto?.name?.message}
+                    InputLabelProps={{ shrink: true }}
+                  />
+                )}
+              />
+            </Grid>
+
+            <Grid item xs={12} sm={4}>
+              <Controller
+                control={control}
+                name={`products.${index}.price`}
+                render={({ field: { onChange, value } }) => (
+                  <Input
+                    size="small"
+                    required
+                    type="number"
+                    label="Preço"
+                    placeholder="0,00"
+                    value={value ?? ''}
+                    onChange={(e) => {
+                      const digitado = e.target.value;
+                      onChange(digitado ? sanitizePrice(digitado) : null);
+                    }}
+                    onKeyDown={(e) => {
+                      if (['e', 'E', '+', '-'].includes(e.key)) {
+                        e.preventDefault();
+                      }
+                    }}
+                    error={Boolean(errosDoProduto?.price)}
+                    errorMessage={errosDoProduto?.price?.message}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">R$</InputAdornment>
+                      ),
+                    }}
+                    InputLabelProps={{ shrink: true }}
+                  />
+                )}
+              />
+            </Grid>
+
+            <Grid item xs={12}>
+              <Controller
+                control={control}
+                name={`products.${index}.description`}
+                render={({ field: { onChange, value } }) => (
+                  <Input
+                    size="small"
+                    multiline
+                    minRows={2}
+                    label="Descrição (opcional)"
+                    placeholder="Ex: Malha 100% algodão, estampa frente e costas"
+                    value={value ?? ''}
+                    onChange={onChange}
+                    inputProps={{ maxLength: 300 }}
+                    InputLabelProps={{ shrink: true }}
+                  />
+                )}
+              />
+            </Grid>
+          </Grid>
+        </Stack>
+
+        {foiVendido && (
+          <Alert
+            severity="warning"
+            variant="outlined"
+            sx={{ mt: 2, bgcolor: alpha(theme.palette.warning.main, 0.08) }}
+          >
+            Este produto já foi vendido: ele e as variantes vendidas não podem
+            ser removidos. Mudar o preço não altera o que já foi comprado.
+          </Alert>
+        )}
+
+        <Stack
+          direction="row"
+          alignItems="center"
+          justifyContent="space-between"
+          gap={1}
+          sx={{ mt: 3, mb: 1.5 }}
+        >
+          <Box>
+            <Typography variant="subtitle2">Variantes</Typography>
+            <Typography variant="caption" color="text.secondary">
+              Tamanhos, cores ou modelos. O preço é o mesmo para todas.
+            </Typography>
+          </Box>
+          <Button
+            size="small"
+            variant="outlined"
+            startIcon={<Add />}
+            onClick={onAdicionarVariante}
+            sx={{ flexShrink: 0 }}
+          >
+            Adicionar variante
+          </Button>
+        </Stack>
+
+        {errosDoProduto?.variants?.message && (
+          <Typography
+            variant="caption"
+            color="error"
+            sx={{ display: 'block', mb: 1 }}
+          >
+            {errosDoProduto.variants.message}
+          </Typography>
+        )}
+
+        {variantes.length === 0 ? (
+          <Box sx={styles.semVariantes}>
+            <Typography variant="body2" color="text.secondary">
+              Sem variante o produto não pode ser comprado. Se não há escolha a
+              fazer, crie uma só — por exemplo, “Único”.
+            </Typography>
+          </Box>
+        ) : (
+          <Stack gap={1.5}>
+            {variantes.map((variante, indexVariante) => {
+              const errosDaVariante = errosDoProduto?.variants?.[indexVariante];
+              const vendidosDaVariante = variante.sold ?? 0;
+              const abaixoDoVendido =
+                variante.stock !== null &&
+                variante.stock !== undefined &&
+                variante.stock < vendidosDaVariante;
+
+              return (
+                <Box
+                  key={variante.id ?? `variante-${indexVariante}`}
+                  sx={styles.linhaVariante}
+                >
+                  <Stack
+                    direction={{ xs: 'column', sm: 'row' }}
+                    alignItems={{ sm: 'flex-start' }}
+                    gap={2}
+                  >
+                    <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+                      <Controller
+                        control={control}
+                        name={`products.${index}.variants.${indexVariante}.name`}
+                        render={({ field: { onChange, value } }) => (
+                          <Input
+                            size="small"
+                            required
+                            label="Variante"
+                            placeholder="Ex: P, M, G ou Único"
+                            value={value ?? ''}
+                            onChange={onChange}
+                            error={Boolean(errosDaVariante?.name)}
+                            errorMessage={errosDaVariante?.name?.message}
+                            InputLabelProps={{ shrink: true }}
+                          />
+                        )}
+                      />
+                    </Box>
+
+                    <Box sx={{ width: { xs: '100%', sm: 170 }, flexShrink: 0 }}>
+                      <Controller
+                        control={control}
+                        name={`products.${index}.variants.${indexVariante}.stock`}
+                        render={({ field: { onChange, value } }) => (
+                          <Input
+                            size="small"
+                            label="Estoque"
+                            placeholder="Sem limite"
+                            value={value ?? ''}
+                            onChange={(e) => {
+                              const limpo = sanitizeInteger(e.target.value);
+                              // vazio é sem limite, e não zero: zero esgotaria
+                              onChange(limpo === '' ? null : Number(limpo));
+                            }}
+                            error={Boolean(errosDaVariante?.stock)}
+                            errorMessage={
+                              errosDaVariante?.stock?.message ??
+                              (abaixoDoVendido
+                                ? `Abaixo do já vendido (${vendidosDaVariante}): a venda para`
+                                : undefined)
+                            }
+                            FormHelperTextProps={{
+                              sx: abaixoDoVendido
+                                ? { color: 'warning.main' }
+                                : undefined,
+                            }}
+                            inputProps={{ inputMode: 'numeric' }}
+                            InputLabelProps={{ shrink: true }}
+                          />
+                        )}
+                      />
+                    </Box>
+
+                    <Stack
+                      direction="row"
+                      alignItems="center"
+                      justifyContent="flex-end"
+                      gap={0.5}
+                      sx={{ flexShrink: 0, pt: { sm: 0.5 } }}
+                    >
+                      {vendidosDaVariante > 0 && (
+                        <Tooltip title="Unidades vendidas">
+                          <Chip
+                            size="small"
+                            variant="outlined"
+                            color="warning"
+                            label={vendidosDaVariante}
+                          />
+                        </Tooltip>
+                      )}
+                      <Tooltip
+                        title={
+                          vendidosDaVariante > 0
+                            ? 'Variante vendida não pode ser removida'
+                            : 'Remover variante'
+                        }
+                      >
+                        <span>
+                          <IconButton
+                            size="small"
+                            aria-label="Remover variante"
+                            disabled={vendidosDaVariante > 0}
+                            onClick={() => onRemoverVariante(indexVariante)}
+                            sx={{
+                              '&:hover': { color: theme.palette.error.main },
+                            }}
+                          >
+                            <DeleteOutline fontSize="small" />
+                          </IconButton>
+                        </span>
+                      </Tooltip>
+                    </Stack>
+                  </Stack>
+                </Box>
+              );
+            })}
+          </Stack>
+        )}
+      </AccordionDetails>
+    </Accordion>
+  );
+}
+
+function FormProducts() {
+  const { control, setValue } = useFormContext<ProductsFormType>();
+  const theme = useTheme();
+
+  const produtos = (useWatch({ control, name: 'products' }) ??
+    []) as EventProduct[];
+
+  // mesmo controle de expansão dos grupos: um booleano por posição
+  const [expandidos, setExpandidos] = useState<boolean[]>(() =>
+    produtos.map(() => false)
+  );
+  const estaExpandido = (index: number) => expandidos[index] ?? true;
+
+  const alternar = (index: number) =>
+    setExpandidos((atual) => {
+      const proximos = produtos.map((_, i) => atual[i] ?? true);
+      proximos[index] = !estaExpandido(index);
+      return proximos;
+    });
+
+  const atualizar = (proximos: EventProduct[]) =>
+    setValue('products', proximos as ProductsFormType['products'], {
+      shouldValidate: false,
+      shouldDirty: true,
+    });
+
+  const adicionarProduto = () => {
+    atualizar([...produtos, produtoVazio()]);
+    setExpandidos((atual) => [
+      ...produtos.map((_, i) => atual[i] ?? true),
+      true,
+    ]);
+  };
+
+  const removerProduto = (index: number) => {
+    Swal.fire({
+      title: 'Remover produto?',
+      text: 'O produto e as variantes dele saem do evento.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Sim, remover',
+      cancelButtonText: 'Cancelar',
+    }).then((resultado) => {
+      if (!resultado.isConfirmed) return;
+
+      atualizar(produtos.filter((_, i) => i !== index));
+      setExpandidos((atual) =>
+        produtos.map((_, i) => atual[i] ?? true).filter((_, i) => i !== index)
+      );
+    });
+  };
+
+  const adicionarVariante = (index: number) =>
+    atualizar(
+      produtos.map((produto, i) =>
+        i === index
+          ? {
+              ...produto,
+              variants: [...produto.variants, { name: '', stock: null }],
+            }
+          : produto
+      )
+    );
+
+  const removerVariante = (index: number, indexVariante: number) =>
+    atualizar(
+      produtos.map((produto, i) =>
+        i === index
+          ? {
+              ...produto,
+              variants: produto.variants.filter((_, v) => v !== indexVariante),
+            }
+          : produto
+      )
+    );
+
+  return (
+    <Stack gap={2} sx={{ mb: 1 }}>
+      <Stack
+        direction={{ xs: 'column', sm: 'row' }}
+        justifyContent="space-between"
+        alignItems={{ xs: 'stretch', sm: 'flex-start' }}
+        gap={2}
+      >
+        <Box>
+          <Typography variant="h6" fontSize={18}>
+            Produtos do evento
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Oferecidos depois da inscrição confirmada e pagos junto com o
+            ingresso.
+          </Typography>
+        </Box>
+
+        {produtos.length > 0 && (
+          <Button
+            variant="contained"
+            startIcon={<Add />}
+            onClick={adicionarProduto}
+            sx={{ flexShrink: 0 }}
+          >
+            Adicionar produto
+          </Button>
+        )}
+      </Stack>
+
+      {produtos.length === 0 ? (
+        <Box
+          sx={{
+            p: 4,
+            borderRadius: 2,
+            border: `1px dashed ${theme.palette.divider}`,
+            textAlign: 'center',
+          }}
+        >
+          <ShoppingBagOutlined sx={{ fontSize: 40, color: 'text.secondary' }} />
+          <Typography fontWeight={500} sx={{ mt: 1 }}>
+            Nenhum produto
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Opcional. Sem produtos, a inscrição segue direto para o pagamento.
+          </Typography>
+          <Button
+            variant="contained"
+            startIcon={<Add />}
+            onClick={adicionarProduto}
+          >
+            Adicionar produto
+          </Button>
+        </Box>
+      ) : (
+        <Stack gap={1.5}>
+          {produtos.map((produto, index) => (
+            <CartaoProduto
+              key={produto.id ?? `produto-${index}`}
+              index={index}
+              produto={produto}
+              expandido={estaExpandido(index)}
+              onAlternar={() => alternar(index)}
+              onRemover={() => removerProduto(index)}
+              onAdicionarVariante={() => adicionarVariante(index)}
+              onRemoverVariante={(indexVariante) =>
+                removerVariante(index, indexVariante)
+              }
+            />
+          ))}
+        </Stack>
+      )}
+    </Stack>
+  );
+}
+
+export { FormProducts };

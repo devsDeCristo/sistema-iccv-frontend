@@ -29,6 +29,10 @@ const postCreateEvent = ({ data, files }: PostCreateEventProps) => {
   formData.append('type', data.type);
   formData.append('data', JSON.stringify(data.data));
   formData.append('groupRoles', JSON.stringify(data.groupRoles));
+  // ausente, o servidor não mexe nos produtos; lista vazia remove todos
+  if (data.products !== undefined) {
+    formData.append('products', JSON.stringify(data.products));
+  }
   if (data.groupLink) formData.append('groupLink', data.groupLink);
   // vazio para admin e financeiro: o backend usa a igreja do perfil deles
   if (data.churchId) formData.append('churchId', data.churchId);

@@ -8,12 +8,19 @@ import {
 type PostCreateCheckoutEventProps = {
   eventId: string;
   userId: string;
-  data: any;
+  /**
+   * `roleId`: ingressos, pela regra de inscrição. `paymentIds`: compras
+   * avulsas de produto, que não têm regra.
+   */
+  data: { roleId?: string[]; paymentIds?: string[] };
 };
 
 const postCreateCheckoutEvent = ({ data, eventId, userId }: PostCreateCheckoutEventProps) =>
   apiClient
-    .post<boolean>(`/events/${eventId}/users/${userId}/payments`, {roleRegistrationId: data.roleId})
+    .post<boolean>(`/events/${eventId}/users/${userId}/payments`, {
+      roleRegistrationId: data.roleId ?? [],
+      paymentIds: data.paymentIds ?? [],
+    })
     .then((response) => {
       handleResponseSuccess(response.data, 'Sala de pagamento criada com sucesso!')();
       return response.data;

@@ -20,9 +20,14 @@ import GoogleMap from '../../../components/mapWord';
 import { useGetEvents } from '../../../features/admin/events/api/getEvents';
 import { EventDetails } from '../../../features/admin/events/types';
 import CapaLogin from '../../../assets/capaLogin2.jpg';
-import { ConfirmationNumber, WhatsApp } from '@mui/icons-material';
+import {
+  ConfirmationNumber,
+  ShoppingBagOutlined,
+  WhatsApp,
+} from '@mui/icons-material';
 import { useGetGroupsByUser } from '../../../features/admin/events/api/getGroupsByUser';
 import ReactQuillViewer from '../../../components/reactQuill';
+import { temDisponivel } from '../../../features/admin/events/products';
 
 function EventsDetails() {
   const { id = '' } = useParams();
@@ -53,6 +58,24 @@ function EventsDetails() {
         !!group.link?.trim() &&
         event.groupRoles?.some((eventGroup) => eventGroup.id === group.id)
     );
+  }, [event, groups]);
+
+  /**
+   * Comprar produto fora da inscrição é só para quem está confirmado no
+   * evento — a mesma regra que o servidor aplica. Estar só na lista de espera
+   * não conta: `present` são os grupos com vaga garantida.
+   */
+  const podeComprarProdutos = useMemo(() => {
+    if (!event) return false;
+
+    const inscrito = groups.some((group) =>
+      event.groupRoles?.some((eventGroup) => eventGroup.id === group.id)
+    );
+    const temProdutoAVenda = (event.products ?? []).some((produto) =>
+      produto.variants.some((variante) => temDisponivel(variante.available))
+    );
+
+    return inscrito && temProdutoAVenda;
   }, [event, groups]);
 
   const scrollToTop = () => {
@@ -365,6 +388,18 @@ function EventsDetails() {
             >
               Inscreva-se
             </Button>
+
+            {podeComprarProdutos && (
+              <Button
+                variant="outlined"
+                fullWidth
+                startIcon={<ShoppingBagOutlined />}
+                sx={{ ...styles.button, textTransform: 'none' }}
+                onClick={() => navigate(`/eventos/${event.id}/produtos`)}
+              >
+                Comprar produtos do evento
+              </Button>
+            )}
 
             {registeredGroupsWithLink.map((group) => (
               <Button

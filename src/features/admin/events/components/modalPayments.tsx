@@ -221,7 +221,9 @@ export function ModalPayment({
                 'groupName',
               ].map((field) => {
                 const value =
-                  field === 'amount'
+                  field === 'groupName' && payment?.purchaseType === 'PRODUCTS'
+                    ? 'Compra de produtos'
+                    : field === 'amount'
                     ? formatCurrency(payment?.[field])
                     : field === 'codeTransaction'
                     ? payment?.payload?.[field]?.replace('CHAR_', '')
@@ -306,32 +308,34 @@ export function ModalPayment({
                   )}
                 />
               </Grid>
-              {/*Discount*/}
-              <Grid item xs={12} md={4}>
-                <Controller
-                  name="discountsAppliedId"
-                  control={control}
-                  render={({ field }) => (
-                    <>
-                      <Title title="Desconto Aplicado" />
-                      <TextField
-                        {...field}
-                        select
-                        SelectProps={{ native: true }}
-                        fullWidth
-                        size="small"
-                      >
-                        <option value="">Nenhum</option>
-                        {discounts.map((option) => (
-                          <option key={option.id} value={option.id}>
-                            {option.description}
-                          </option>
-                        ))}
-                      </TextField>
-                    </>
-                  )}
-                />
-              </Grid>
+              {/* desconto é da inscrição: a compra avulsa de produto não tem */}
+              {payment?.purchaseType !== 'PRODUCTS' && (
+                <Grid item xs={12} md={4}>
+                  <Controller
+                    name="discountsAppliedId"
+                    control={control}
+                    render={({ field }) => (
+                      <>
+                        <Title title="Desconto Aplicado" />
+                        <TextField
+                          {...field}
+                          select
+                          SelectProps={{ native: true }}
+                          fullWidth
+                          size="small"
+                        >
+                          <option value="">Nenhum</option>
+                          {discounts.map((option) => (
+                            <option key={option.id} value={option.id}>
+                              {option.description}
+                            </option>
+                          ))}
+                        </TextField>
+                      </>
+                    )}
+                  />
+                </Grid>
+              )}
 
               {(status === 'PAID' || existingReceiptUrl) && (
                 <Grid item xs={12}>

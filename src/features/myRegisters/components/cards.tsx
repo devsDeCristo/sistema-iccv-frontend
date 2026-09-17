@@ -43,16 +43,31 @@ function EventCard({ payment }: { payment: paymentsWithRoles & { data: PaymentDa
     const dataArray=[...paymentData.registeredRoles,...paymentData.waitlistRoles].map((role:any)=>{
       
       return {
+        key: `inscricao:${role.roleId}`,
         method: role.paymentMethod||'',
         roleId: role.roleId,
         tipo: paymentData.registeredRoles.includes(role) ? 'REGISTERED' : 'WAITLIST',
         status: role.paymentStatus||'WAITING',
         name: role.description || "aaaa",
         groupName: role.group,
+        products: role.products ?? [],
       };
     });
    
-    setDataModal(dataArray);
+    // compras de produto feitas depois da inscrição: cada uma é um pagamento
+    // próprio, e vai para o checkout pelo id dele
+    const compras = (paymentData.productPurchases ?? []).map((compra) => ({
+      key: `compra:${compra.id}`,
+      paymentId: compra.id,
+      method: compra.method || '',
+      tipo: 'REGISTERED' as const,
+      status: compra.status || 'WAITING',
+      name: 'Compra de produtos',
+      groupName: '',
+      products: compra.productItems,
+    }));
+
+    setDataModal([...dataArray, ...compras]);
   }
 
   const handleCloseModal = () => {
@@ -127,7 +142,12 @@ function EventCard({ payment }: { payment: paymentsWithRoles & { data: PaymentDa
       borderRadius: 2,
     },
   };
-  const fullPaid = (payment?.registeredRoles.every((role) => role.paymentStatus === 'PAID'));
+  // compra de produto em aberto também é dívida: sem ela aqui o cartão diria
+  // "tudo pago" com a camisa ainda por pagar
+  const fullPaid = [
+    ...(payment?.registeredRoles ?? []).map((role) => role.paymentStatus),
+    ...(payment?.productPurchases ?? []).map((compra) => compra.status),
+  ].every((status) => status === 'PAID');
 
   return (<>
     <Paper sx={styles.card}>

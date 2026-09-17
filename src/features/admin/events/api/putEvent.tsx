@@ -33,6 +33,10 @@ const putUpdateEvent = ({ data, id, files }: PutUpdateEventProps) => {
   formData.append('type', data.type);
   formData.append('data', JSON.stringify(data.data));
   formData.append('groupRoles', JSON.stringify(data.groupRoles));
+  // ausente, o servidor não mexe nos produtos; lista vazia remove todos
+  if (data.products !== undefined) {
+    formData.append('products', JSON.stringify(data.products));
+  }
   if (data.groupLink) formData.append('groupLink', data.groupLink);
   // mudar a igreja do evento é do super admin; dos outros perfis o campo nem
   // sai da tela, e o backend ignora se vier

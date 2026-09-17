@@ -5,6 +5,7 @@ import {
   Event,
   Photo,
   Settings,
+  ShoppingBag,
 } from '@mui/icons-material';
 import { z } from 'zod';
 import { GroupRole } from './types';
@@ -145,6 +146,52 @@ export const REGISTRATION_SETTINGS_SCHEMA = z.object({
     })
   ),
 });
+export const PRODUCTS_SCHEMA = z.object({
+  products: z.array(
+    z
+      .object({
+        id: z.string().optional(),
+        name: z.string().trim().min(1, DEFAULT_MESSAGE),
+        description: z.string().optional().nullable(),
+        // `invalid_type_error` porque o campo nasce `null` e é o tipo que falha
+        price: z
+          .number({
+            required_error: DEFAULT_MESSAGE,
+            invalid_type_error: DEFAULT_MESSAGE,
+          })
+          .min(0, 'O preço não pode ser negativo'),
+        image: z.string().optional().nullable(),
+        variants: z
+          .array(
+            z.object({
+              id: z.string().optional(),
+              name: z.string().trim().min(1, DEFAULT_MESSAGE),
+              stock: z.number().int().min(0).nullable(),
+              sold: z.number().optional(),
+              available: z.number().nullable().optional(),
+            })
+          )
+          .min(1, 'Adicione pelo menos uma variante'),
+      })
+      // mesma regra do servidor: "P" e "p" são a mesma escolha para quem compra
+      .superRefine((produto, ctx) => {
+        const vistos = new Set<string>();
+        produto.variants.forEach((variante, index) => {
+          const chave = variante.name.trim().toLocaleLowerCase('pt-BR');
+          if (!chave) return;
+          if (vistos.has(chave)) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              path: ['variants', index, 'name'],
+              message: 'Variante repetida',
+            });
+          }
+          vistos.add(chave);
+        });
+      })
+  ),
+});
+
 export const EVENT_LOGO_SCHEMA = z.object({
   eventLogo: z.any().optional(),
   eventCover: z.any().optional(),
@@ -218,6 +265,11 @@ export const STEPS = [
     label: 'Configurações de inscrição',
     icon: Settings,
   },
+  {
+    id: 6,
+    label: 'Produtos',
+    icon: ShoppingBag,
+  },
 ];
 
 export const PANELS = [
@@ -240,6 +292,11 @@ export const PANELS = [
     id: 4,
     label: 'Configurações de inscrição',
     icon: Settings,
+  },
+  {
+    id: 5,
+    label: 'Produtos',
+    icon: ShoppingBag,
   },
 ];
 export const STEPS_SUB = [

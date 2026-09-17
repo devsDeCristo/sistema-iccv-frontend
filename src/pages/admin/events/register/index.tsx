@@ -10,6 +10,7 @@ import {
   EventType,
   GeneralInfoFormType,
   GroupRole,
+  ProductsFormType,
   RegistrationSettingsFormType,
 } from '../../../../features/admin/events/types';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -18,6 +19,7 @@ import {
   DATE_AND_LOCAL_SCHEMA,
   EVENT_LOGO_SCHEMA,
   GENERAL_INFO_SCHEMA,
+  PRODUCTS_SCHEMA,
   REGISTRATION_SETTINGS_SCHEMA,
   STEPS,
   GROUP_ROLE_RETIRO,
@@ -35,6 +37,8 @@ import { FormLogoAndCover } from '../../../../features/admin/events/components/f
 import { toast } from 'react-toastify';
 import { queryClient } from '../../../../config/lib/react-query/query-client';
 import { useRole } from '../../../../hooks/useRole';
+import { FormProducts } from '../../../../features/admin/events/components/formProducts';
+import { produtosParaEnvio } from '../../../../features/admin/events/products';
 
 function Register() {
   const navigate = useNavigate();
@@ -82,6 +86,10 @@ function Register() {
       groupRoles: defaultGroupRoles,
     });
   }, [eventTypeSelected]);
+  const methodsProducts = useForm<ProductsFormType>({
+    resolver: zodResolver(PRODUCTS_SCHEMA),
+    defaultValues: { products: [] },
+  });
   const { mutate: mutatePostCreateEvent, isLoading: isCreatingEvent } =
     usePostCreateEvent({
       onSuccess: () => {
@@ -128,10 +136,25 @@ function Register() {
     });
   }
   function registrationSettingsSubmit() {
+    methodsRegistrationSettings.trigger().then((isValid) => {
+      if (isValid) {
+        handleNext();
+      }
+    });
+  }
+  /**
+   * Última etapa: produtos são opcionais, e a lista vazia passa direto. Os
+   * grupos já foram conferidos na etapa anterior, mas são conferidos de novo —
+   * o stepper deixa clicar nas etapas e voltar a mexer neles.
+   */
+  function productsSubmit() {
     if (isCreatingEvent) return;
 
-    methodsRegistrationSettings.trigger().then(async (isValid) => {
-      if (isValid) {
+    Promise.all([
+      methodsRegistrationSettings.trigger(),
+      methodsProducts.trigger(),
+    ]).then(async ([gruposValidos, produtosValidos]) => {
+      if (gruposValidos && produtosValidos) {
         const generalInfoData = methodsGeneralInfo.getValues();
         const dateAndTimeData = methodsDateAndTime.getValues();
         const registrationSettingsData =
@@ -162,6 +185,7 @@ function Register() {
             endDate: new Date(dateAndTimeData.endDate),
             type: eventTypeSelected!,
             groupRoles: registrationSettingsData.groupRoles,
+            products: produtosParaEnvio(methodsProducts.getValues().products),
             data: {
               description: generalInfoData.description,
               shortDescription: generalInfoData.shortDescription,
@@ -247,6 +271,13 @@ function Register() {
       component: FormRegistrationSettings,
       props: {},
     },
+    {
+      step: 6,
+      formMethods: methodsProducts,
+      onSubmit: productsSubmit,
+      component: FormProducts,
+      props: {},
+    },
   ];
 
   const canProceedToNextStep = () => {
@@ -261,6 +292,8 @@ function Register() {
         return methodsEventLogo.formState.isValid;
       case 5:
         return methodsRegistrationSettings.formState.isValid;
+      case 6:
+        return methodsProducts.formState.isValid;
       default:
         return false;
     }

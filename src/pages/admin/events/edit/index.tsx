@@ -15,6 +15,7 @@ import {
   DateAndLocalFormType,
   EventLogoFormType,
   GeneralInfoFormType,
+  ProductsFormType,
   RegistrationSettingsFormType,
 } from '../../../../features/admin/events/types';
 import {
@@ -22,8 +23,14 @@ import {
   EVENT_LOGO_SCHEMA,
   GENERAL_INFO_SCHEMA,
   PANELS,
+  PRODUCTS_SCHEMA,
   REGISTRATION_SETTINGS_SCHEMA,
 } from '../../../../features/admin/events/constants';
+import { FormProducts } from '../../../../features/admin/events/components/formProducts';
+import {
+  produtosParaEnvio,
+  produtosParaFormulario,
+} from '../../../../features/admin/events/products';
 import { FormRegistrationSettings } from '../../../../features/admin/events/components/formRegistrationSettings';
 import { FormDateAndLocal } from '../../../../features/admin/events/components/formDateAndLocal';
 
@@ -130,6 +137,11 @@ function Edit() {
     defaultValues: getDefaultEventLogoValues(event),
     mode: 'onChange',
   });
+  const methodsProducts = useForm<ProductsFormType>({
+    resolver: zodResolver(PRODUCTS_SCHEMA),
+    defaultValues: { products: produtosParaFormulario(event?.products) },
+    mode: 'onChange',
+  });
   const eventTypeSelected = useMemo(() => event?.type, [event]);
   useEffect(() => {
     if (event) {
@@ -139,6 +151,9 @@ function Edit() {
         getDefaultRegistrationSettingsValues(event)
       );
       methodsEventLogo.reset(getDefaultEventLogoValues(event));
+      methodsProducts.reset({
+        products: produtosParaFormulario(event.products),
+      });
     }
   }, [event]);
   const { mutate: mutatePutUpdateEvent, isLoading: isLoadingEdit } =
@@ -154,18 +169,21 @@ function Edit() {
       validGeneralInfo,
       validEventLogo,
       validRegistrationSettings,
+      validProducts,
     ] = await Promise.all([
       methodsDateAndTime.trigger(),
       methodsGeneralInfo.trigger(),
       methodsEventLogo.trigger(),
       methodsRegistrationSettings.trigger(),
+      methodsProducts.trigger(),
     ]);
 
     if (
       !validDateAndTime ||
       !validGeneralInfo ||
       !validEventLogo ||
-      !validRegistrationSettings
+      !validRegistrationSettings ||
+      !validProducts
     ) {
       console.log(
         methodsDateAndTime.formState.errors,
@@ -210,6 +228,7 @@ function Edit() {
             endDate: new Date(dateAndTimeData.endDate),
             type: eventTypeSelected!,
             groupRoles: registrationSettingsData.groupRoles,
+            products: produtosParaEnvio(methodsProducts.getValues().products),
             data: {
               description: generalInfoData.description,
               shortDescription: generalInfoData.shortDescription,
@@ -286,6 +305,13 @@ function Edit() {
       formMethods: methodsRegistrationSettings,
       onSubmit: registrationSettingsSubmit,
       component: FormRegistrationSettings,
+      props: {},
+    },
+    {
+      step: 5,
+      formMethods: methodsProducts,
+      onSubmit: registrationSettingsSubmit,
+      component: FormProducts,
       props: {},
     },
   ];

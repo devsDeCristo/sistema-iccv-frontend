@@ -19,17 +19,26 @@ import {
 import { usePostCreateCheckoutEvent } from '../../admin/events/api/postCreateCheckoutEvent';
 import { useState } from 'react';
 import CustomChip from '../../../components/customChip';
+import { PaymentProductItem } from '../../admin/events/types';
+import { descreverItem } from '../../admin/events/products';
 
 interface ModalPaymentProps {
   open: boolean;
   handleClose: () => void;
   payments: {
-    roleId: string;
+    /** identifica o item na seleção: inscrição e compra avulsa não colidem */
+    key: string;
+    /** ingresso: vai para o checkout pela regra */
+    roleId?: string;
+    /** compra avulsa de produto: vai para o checkout pelo id do pagamento */
+    paymentId?: string;
     method: string;
     tipo: 'WAITLIST' | 'REGISTERED';
     status: String;
     name: string;
     groupName: string;
+    /** produtos comprados junto deste ingresso: são pagos com ele */
+    products?: PaymentProductItem[];
   }[];
   userId: string;
   eventId: string;
@@ -45,10 +54,10 @@ export function ModalPayment({
   const theme = useTheme();
   const { control, handleSubmit, watch } = useForm({
     defaultValues: {
-      selectedRoleIds: [] as string[],
+      selecionados: [] as string[],
     },
   });
-  const selectedRoleIds = watch('selectedRoleIds');
+  const selecionados = watch('selecionados');
   const [loading, setLoading] = useState(false);
 
   const { mutate: mutateCreateCheckoutEvent } = usePostCreateCheckoutEvent({
@@ -63,10 +72,17 @@ export function ModalPayment({
     },
   });
 
-  const onSubmit = (data: any) => {
+  const onSubmit = (data: { selecionados: string[] }) => {
+    const escolhidos = payments.filter((item) =>
+      data.selecionados.includes(item.key)
+    );
+
     setLoading(true);
     mutateCreateCheckoutEvent({
-      data: { roleId: data.selectedRoleIds },
+      data: {
+        roleId: escolhidos.flatMap((item) => item.roleId ?? []),
+        paymentIds: escolhidos.flatMap((item) => item.paymentId ?? []),
+      },
       eventId: eventId,
       userId: userId,
     });
@@ -126,7 +142,7 @@ export function ModalPayment({
 
             <Box sx={{ overflowY: 'auto', maxHeight: '55vh', mt: 2 }}>
               <Controller
-                name="selectedRoleIds"
+                name="selecionados"
                 control={control}
                 render={({ field }) => (
                   <Stack spacing={1.5}>
@@ -137,17 +153,17 @@ export function ModalPayment({
                         item.tipo === 'WAITLIST' ||
                         (item.status === 'WAITING' && item.method !== 'OTHER');
 
-                      const selected = field.value.includes(item.roleId);
+                      const selected = field.value.includes(item.key);
 
                       const toggle = () => {
                         if (isPaid) return;
 
                         if (selected) {
                           field.onChange(
-                            field.value.filter((id) => id !== item.roleId)
+                            field.value.filter((key) => key !== item.key)
                           );
                         } else {
-                          field.onChange([...field.value, item.roleId]);
+                          field.onChange([...field.value, item.key]);
                         }
                       };
 
@@ -184,16 +200,27 @@ export function ModalPayment({
                               {item.name}
                             </Typography>
 
-                            <Typography fontSize={13} color="text.secondary">
-                              {item.groupName}
-                            </Typography>
+                            {item.groupName && (
+                              <Typography fontSize={13} color="text.secondary">
+                                {item.groupName}
+                              </Typography>
+                            )}
+
+                            {!!item.products?.length && (
+                              <Typography fontSize={13} color="text.secondary">
+                                Produtos:{' '}
+                                {item.products.map(descreverItem).join(', ')}
+                              </Typography>
+                            )}
 
                             <Stack direction="row" spacing={1} mt={1}>
                               <CustomChip
                                 label={
-                                  item.tipo === 'REGISTERED'
-                                    ? 'Inscrito'
-                                    : 'Lista de espera'
+                                  item.paymentId
+                                    ? 'Compra avulsa'
+                                    : item.tipo === 'REGISTERED'
+                                      ? 'Inscrito'
+                                      : 'Lista de espera'
                                 }
                                 customColor={
                                   item.tipo === 'REGISTERED'
@@ -233,7 +260,7 @@ export function ModalPayment({
                       return isPaid ? (
                         <Box>{Card}</Box>
                       ) : (
-                        <Box key={item.roleId}>{Card}</Box>
+                        <Box key={item.key}>{Card}</Box>
                       );
                     })}
                   </Stack>
@@ -243,7 +270,7 @@ export function ModalPayment({
             <Stack direction="row" justifyContent="flex-end" spacing={1} mt={3}>
               <Button onClick={handleClose}>Cancelar</Button>
               <Button
-                disabled={!selectedRoleIds || selectedRoleIds.length === 0}
+                disabled={!selecionados || selecionados.length === 0}
                 variant="contained"
                 onClick={handleSubmit(onSubmit)}
               >

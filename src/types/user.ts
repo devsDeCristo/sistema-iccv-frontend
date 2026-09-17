@@ -50,6 +50,24 @@ export interface PaymentResponse {
 
   payload: Record<string, any> | null;
   discountsAppliedId?: string;
+  /**
+   * `REGISTRATION`: o pagamento de uma inscrição (e dos produtos que foram
+   * junto). `PRODUCTS`: compra avulsa de produto, sem grupo nem regra.
+   */
+  purchaseType?: 'REGISTRATION' | 'PRODUCTS';
+  /** descrição da regra de inscrição; só nas linhas de inscrição */
+  roleName?: string;
+  /** produtos comprados junto deste ingresso */
+  productItems?: {
+    id: string;
+    quantity: number;
+    unitPrice: number;
+    variant: {
+      id: string;
+      name: string;
+      product: { id: string; name: string };
+    };
+  }[];
 }
 /** O perfil que uma pessoa tem em uma igreja. */
 export interface ChurchRole {

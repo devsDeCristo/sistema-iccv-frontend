@@ -38,6 +38,7 @@ import { PaymentResponse } from '../../../../types/user';
 import { StatusCard, StatusCards } from '../../../../components/statusCards';
 import { useEffect, useMemo, useState } from 'react';
 import CustomChip from '../../../../components/customChip';
+import { ABA_COMPRAS_DE_PRODUTOS, itensDoPagamento } from '../products';
 import {
   PAYMENT_METHODS,
   PAYMENT_STATUS,
@@ -115,10 +116,13 @@ function ListPayments({
   const handleClose = () => {
     setAnchorEl(null);
   };
-  const groupsRules = useMemo(
-    () => event?.groupRoles?.map((g: any) => g.name) ?? [],
-    [event]
-  ) as string[];
+  const groupsRules = useMemo(() => {
+    const grupos = event?.groupRoles?.map((g: any) => g.name) ?? [];
+    // compra avulsa não tem grupo: sem aba própria ela sumiria da tabela
+    return event?.products?.length
+      ? [...grupos, ABA_COMPRAS_DE_PRODUTOS]
+      : grupos;
+  }, [event]) as string[];
   useEffect(() => {
     if (groupsRules.length > 0) {
       setPanel(groupsRules[0]);
@@ -216,17 +220,35 @@ function ListPayments({
         renderCellWithCopy(formatCurrency(params.value as number)),
     },
     {
-      field: 'groupName',
-      headerName: 'Ingresso',
-      width: 140,
-      renderCell: (params) => (
-        <Stack direction="column" gap={1} sx={{ p: 0.5 }}>
-          <Typography>{params.value}</Typography>
-          <Typography sx={{ mt: -1.5, fontWeight: 300, fontSize: '0.85rem' }}>
-            {params.row.roleName}
-          </Typography>
-        </Stack>
-      ),
+      // ingresso e produtos na mesma coluna: cada linha é uma compra, e o
+      // ingresso é um dos itens dela
+      field: 'itens',
+      headerName: 'Produtos',
+      width: 230,
+      sortable: false,
+      // é o texto que a exportação lê; sem isto a planilha sairia vazia — e é
+      // por ela que se separa a entrega das camisas
+      valueGetter: (params) =>
+        itensDoPagamento(params.row as PaymentResponse).join('; '),
+      renderCell: (params) => {
+        const pagamento = params.row as PaymentResponse;
+        const itens = itensDoPagamento(pagamento);
+
+        return (
+          <Stack gap={0.25} sx={{ py: 0.75 }}>
+            {pagamento.purchaseType === 'PRODUCTS' && (
+              <Typography variant="caption" color="text.secondary">
+                Compra avulsa
+              </Typography>
+            )}
+            {itens.map((item) => (
+              <Typography key={item} variant="body2">
+                {item}
+              </Typography>
+            ))}
+          </Stack>
+        );
+      },
     },
     {
       field: 'actions',
@@ -253,6 +275,9 @@ function ListPayments({
   const filteredByGroup = (payments: PaymentResponse[]) => {
     if (!panel || groupsRules.length === 0) return payments;
     return payments.filter((payment) => {
+      if (panel === ABA_COMPRAS_DE_PRODUTOS) {
+        return payment.purchaseType === 'PRODUCTS';
+      }
       return payment.groupName === panel;
     });
   };

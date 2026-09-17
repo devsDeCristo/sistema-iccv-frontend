@@ -7,6 +7,7 @@ import {
   GENERAL_INFO_SCHEMA,
   GROUP_ROLE_SELECT_SCHEMA,
   REGISTER_EVENT_SCHEMA,
+  PRODUCTS_SCHEMA,
   REGISTRATION_SETTINGS_SCHEMA,
   ROLE_SELECT_SCHEMA,
 } from './constants';
@@ -40,6 +41,8 @@ export interface EventDetails {
   data: EventDataJson;
   type: EventType;
   groupRoles: GroupRole[];
+  /** produtos vendidos na inscrição; o preço é do produto, não da variante */
+  products?: EventProduct[];
   createdAt: Date;
   updateAt: Date;
 }
@@ -124,6 +127,35 @@ export interface GroupRole {
   }[];
 }
 
+export interface EventProductVariant {
+  id?: string;
+  name: string;
+  /** unidades à venda; `null` é sem limite */
+  stock: number | null;
+  /** unidades já reservadas em pagamentos que valem — só leitura */
+  sold?: number;
+  /** quanto ainda dá para vender; `null` é sem limite — só leitura */
+  available?: number | null;
+}
+
+export interface EventProduct {
+  id?: string;
+  name: string;
+  description?: string | null;
+  price: number;
+  /** data URL base64 da foto */
+  image?: string | null;
+  variants: EventProductVariant[];
+}
+
+/** Um produto comprado, como volta nas listas de pagamento */
+export interface PaymentProductItem {
+  id: string;
+  quantity: number;
+  unitPrice: number;
+  variant: { id: string; name: string; product: { id: string; name: string } };
+}
+
 export interface EventDataJson {
   description?: string;
   shortDescription?: string;
@@ -150,6 +182,7 @@ export interface CreateEventPayload {
   startDate: Date;
   endDate: Date;
   groupRoles: GroupRole[];
+  products?: EventProduct[];
   data: EventDataJson;
   type: EventType;
 }
@@ -169,4 +202,5 @@ export type EventLogoFormType = z.infer<typeof EVENT_LOGO_SCHEMA>;
 export type RegistrationSettingsFormType = z.infer<
   typeof REGISTRATION_SETTINGS_SCHEMA
 >;
+export type ProductsFormType = z.infer<typeof PRODUCTS_SCHEMA>;
 export type CategoryEventFormType = z.infer<typeof CATEGORY_EVENT_SCHEMA>;
