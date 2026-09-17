@@ -53,6 +53,7 @@ import { GET_EVENT_USERS } from '../constants';
 import { queryClient } from '../../../../config/lib/react-query/query-client';
 import { toast } from 'react-toastify';
 import { ModalAddUserOnEvent } from './modalAddUser';
+import { ModalGuardianApproval } from './modalGuardianApproval';
 import { UserAvatar } from '../../../../components/userAvatar';
 import {
   cardTabelaSx,
@@ -122,6 +123,10 @@ function ListUsers({
   const [openModalEditWork, setOpenModalEditWork] = useState(false);
   /** inscrito cujo crachá está sendo gerado; o modal abre com ele */
   const [badgeUser, setBadgeUser] = useState<User | null>(null);
+  /** inscrito cuja liberação de menor de idade está sendo revisada */
+  const [guardianReviewUser, setGuardianReviewUser] = useState<User | null>(
+    null
+  );
   // já inicia no primeiro grupo: com '1' nenhuma aba casa no primeiro render
   const [panel, setPanel] = useState<string>(
     () => event?.groupRoles?.[0]?.name ?? '1'
@@ -247,6 +252,37 @@ function ListUsers({
       headerName: 'Nascimento',
       width: 130,
       valueGetter: (params) => formatDate(params.row.birthday),
+    },
+    {
+      field: 'minorApprovalStatus',
+      headerName: 'Liberação',
+      width: 190,
+      sortable: false,
+      renderCell: (params) => {
+        const status = params.row.minorApprovalStatus || 'NOT_REQUIRED';
+        const config: Record<string, { label: string; color: string }> = {
+          NOT_REQUIRED: { label: 'Maior de idade', color: theme.palette.chips.default },
+          PENDING: { label: 'Aguardando liberação', color: theme.palette.chips.pending },
+          APPROVED: { label: 'Liberado', color: theme.palette.chips.success },
+          REJECTED: { label: 'Recusado', color: theme.palette.chips.canceled },
+        };
+        const { label, color } = config[status];
+        const clickable = status !== 'NOT_REQUIRED' && isAdminDoEvento;
+
+        return (
+          <CustomChip
+            label={label}
+            customColor={color}
+            size="small"
+            onClick={
+              clickable
+                ? () => setGuardianReviewUser(params.row as User)
+                : undefined
+            }
+            sx={clickable ? { cursor: 'pointer' } : undefined}
+          />
+        );
+      },
     },
     {
       field: 'city',
@@ -572,6 +608,12 @@ function ListUsers({
           usersAdded={filteredByGroup(usersData)}
           roleRegistrationId={groupsRulesIds[panel]}
           roleName={panel}
+        />
+        <ModalGuardianApproval
+          open={!!guardianReviewUser}
+          user={guardianReviewUser}
+          eventId={eventId}
+          onClose={() => setGuardianReviewUser(null)}
         />
         <Menu
           id="basic-menu"

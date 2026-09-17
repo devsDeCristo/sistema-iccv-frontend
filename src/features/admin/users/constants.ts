@@ -1,5 +1,9 @@
 import { z } from 'zod';
+import { calculateAge } from '../../../utils';
 export const GET_USERS = 'GET_USERS';
+
+/** Idade a partir da qual o cadastro deixa de exigir dados do responsável */
+export const GUARDIAN_REQUIRED_BELOW_AGE = 16;
 
 const DEFAULT_MESSAGE = 'Campo obrigatório';
 
@@ -63,6 +67,7 @@ export const REGISTER_USERS_SCHEMA = z.object({
   leadershipPosition: z.string().optional(),
   congregation: z.string().optional(),
   pastorName: z.string().optional(),
+  guardianName: z.string().optional(),
   worker: z.number({
     required_error: DEFAULT_MESSAGE,
   }),
@@ -101,6 +106,23 @@ export const REGISTER_USERS_SCHEMA = z.object({
     required_error: DEFAULT_MESSAGE,
   }),
   eventId: z.string().optional(),
+}).superRefine((values, ctx) => {
+  if (!values.birthday) return;
+
+  const isMinor =
+    calculateAge(values.birthday, new Date()) < GUARDIAN_REQUIRED_BELOW_AGE;
+
+  if (!isMinor) return;
+
+  // O telefone do responsável usa `emergencyContact`, que já é obrigatório
+  // no schema base para qualquer idade — só falta exigir o nome.
+  if (!values.guardianName?.trim()) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: DEFAULT_MESSAGE,
+      path: ['guardianName'],
+    });
+  }
 });
 
 export const OPTIONS_BOOLEAN = [

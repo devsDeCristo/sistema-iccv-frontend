@@ -25,7 +25,12 @@ import {
   formatZipCode,
   removeMask,
 } from '../../../../utils';
-import { OPTIONS_BOOLEAN, OPTIONS_LEADERSHIP } from '../constants';
+import {
+  GUARDIAN_REQUIRED_BELOW_AGE,
+  OPTIONS_BOOLEAN,
+  OPTIONS_LEADERSHIP,
+} from '../constants';
+import { calculateAge } from '../../../../utils';
 import { useBuscaCep } from '../../../../hooks/useBuscaCep';
 import { degradeVivo } from '../../../../themes';
 
@@ -108,6 +113,40 @@ function Form({ readOnly = false }: { readOnly?: boolean }) {
     formState: { errors },
   } = useFormContext<RegisterUsersFormType>();
   const values = watch();
+  const isMinor = values.birthday
+    ? calculateAge(values.birthday, new Date()) < GUARDIAN_REQUIRED_BELOW_AGE
+    : false;
+  // Em leitura, um cadastro salvo quando a pessoa era menor continua
+  // mostrando os dados do responsável mesmo que a idade calculada hoje já
+  // tenha passado de 16 — o dado gravado não deveria desaparecer da tela.
+  const showGuardianSection = isMinor || (readOnly && !!values.guardianName);
+
+  /**
+   * O telefone do responsável usa o mesmo campo do contato de emergência —
+   * só muda o rótulo. Uma função em vez de duplicar o Controller: o campo
+   * aparece em posições diferentes dependendo de `showGuardianSection`, nunca
+   * as duas ao mesmo tempo.
+   */
+  const emergencyContactField = (label: string) =>
+    readOnly ? (
+      <ViewField label={label} value={values.emergencyContact} />
+    ) : (
+      <Controller
+        name="emergencyContact"
+        control={control}
+        render={({ field: { onChange, value } }) => (
+          <Input
+            required
+            label={label}
+            value={value}
+            error={!!errors.emergencyContact}
+            errorMessage={errors.emergencyContact?.message}
+            onChange={(event) => onChange(formatPhoneNumber(event.target.value))}
+          />
+        )}
+      />
+    );
+
   const theme = useTheme();
   const escuro = theme.palette.mode === 'dark';
 
@@ -285,6 +324,7 @@ function Form({ readOnly = false }: { readOnly?: boolean }) {
             )}
           </Grid>
 
+
           <Grid item {...(readOnly ? VIEW_SIZE : { xs: 12, sm: 6, md: 3 })}>
             {readOnly ? (
               <ViewField label="Celular" value={values.cellphone} />
@@ -308,31 +348,11 @@ function Form({ readOnly = false }: { readOnly?: boolean }) {
             )}
           </Grid>
 
-          <Grid item {...(readOnly ? VIEW_SIZE : { xs: 12, sm: 6, md: 3 })}>
-            {readOnly ? (
-              <ViewField
-                label="Contato de emergência"
-                value={values.emergencyContact}
-              />
-            ) : (
-              <Controller
-                name="emergencyContact"
-                control={control}
-                render={({ field: { onChange, value } }) => (
-                  <Input
-                    required
-                    label="Contato de emergência"
-                    value={value}
-                    error={!!errors.emergencyContact}
-                    errorMessage={errors.emergencyContact?.message}
-                    onChange={(event) =>
-                      onChange(formatPhoneNumber(event.target.value))
-                    }
-                  />
-                )}
-              />
-            )}
-          </Grid>
+          {!showGuardianSection && (
+            <Grid item {...(readOnly ? VIEW_SIZE : { xs: 12, sm: 6, md: 3 })}>
+              {emergencyContactField('Contato de emergência')}
+            </Grid>
+          )}
 
           <Grid item {...(readOnly ? VIEW_SIZE : { xs: 12, md: 7 })}>
             {readOnly ? (
@@ -373,6 +393,44 @@ function Form({ readOnly = false }: { readOnly?: boolean }) {
               />
             )}
           </Grid>
+          {showGuardianSection && (
+            <>
+              <Grid item xs={12}>
+                <Typography
+                  variant="subtitle1"
+                  fontWeight={600}
+                  sx={{ mt: 1 }}
+                >
+                  Dados do responsável do menor
+                </Typography>
+              </Grid>
+
+              <Grid item {...(readOnly ? VIEW_SIZE : { xs: 12, sm: 6, md: 6 })}>
+                {readOnly ? (
+                  <ViewField label="Nome do responsável" value={values.guardianName} />
+                ) : (
+                  <Controller
+                    name="guardianName"
+                    control={control}
+                    render={({ field: { onChange, value } }) => (
+                      <Input
+                        required
+                        label="Nome do responsável"
+                        value={value}
+                        error={!!errors.guardianName}
+                        errorMessage={errors.guardianName?.message}
+                        onChange={onChange}
+                      />
+                    )}
+                  />
+                )}
+              </Grid>
+
+              <Grid item {...(readOnly ? VIEW_SIZE : { xs: 12, sm: 6, md: 6 })}>
+                {emergencyContactField('Telefone do responsável')}
+              </Grid>
+            </>
+          )}
         </Section>
       </Grid>
 

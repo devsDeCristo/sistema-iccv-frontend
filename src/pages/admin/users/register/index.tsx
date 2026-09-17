@@ -22,7 +22,7 @@ function RegisterUser() {
   const DEFAULT_VALUES: RegisterUsersFormType = {
     fullName: '',
     cpf: formatCPF(cpfLogin) ? formatCPF(cpfLogin) : '',
-    birthday: new Date(),
+    birthday: null,
     cellphone: '',
     emergencyContact: '',
     email: '',

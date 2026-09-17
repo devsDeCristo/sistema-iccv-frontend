@@ -108,6 +108,9 @@ function Edit() {
   ): EventLogoFormType => ({
     logoUrl: event?.data?.logoUrl ? event?.data?.logoUrl : undefined,
     coverUrl: event?.data?.coverUrl ? event?.data?.coverUrl : undefined,
+    minorTermUrl: event?.data?.minorTermUrl
+      ? event?.data?.minorTermUrl
+      : undefined,
   });
 
   const [currentStep, setCurrentStep] = useState(1);
@@ -264,6 +267,7 @@ function Edit() {
             files: {
               logoFile: methodsEventLogo.getValues().eventLogo?.[0],
               coverFile: methodsEventLogo.getValues().eventCover?.[0],
+              termFile: methodsEventLogo.getValues().eventTerm?.[0],
             },
           });
         } catch (error) {

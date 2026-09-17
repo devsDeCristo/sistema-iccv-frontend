@@ -37,6 +37,7 @@ export function userToFormValues(user?: User | null): RegisterUsersFormType {
     leadershipPosition: user?.leadershipPosition || '',
     congregation: user?.congregation || '',
     pastorName: user?.pastorName || '',
+    guardianName: user?.guardianName || '',
     role: user?.role ?? DEFAULT_USER_ROLE,
   };
 }
@@ -74,6 +75,7 @@ export function formValuesToUserPayload(data: RegisterUsersFormType) {
     religion: semValor(data.religion),
     congregation: semValor(data.congregation),
     pastorName: semValor(data.pastorName),
+    guardianName: semValor(data.guardianName),
     notes: semValor(data.notes),
     leadershipPosition:
       data.leadershipPosition === ENUM_OPTION_LEADERSHIP_POSITION.NOT_POSITION

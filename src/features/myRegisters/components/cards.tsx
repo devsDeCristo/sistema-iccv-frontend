@@ -7,6 +7,11 @@ import {
   useTheme,
   Button,
   CardMedia,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Tooltip,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 
@@ -14,7 +19,7 @@ import {
   AttachMoney,
   HourglassBottom,
   LocalActivity,
-  
+  AttachFile,
 } from '@mui/icons-material';
 
 import { paymentsWithRoles } from '../types';
@@ -22,6 +27,8 @@ import { useGetPayments } from '../api/getPaymentByUser';
 import { ModalPayment } from './modalPayment';
 import React from 'react';
 import CapaLogin from '../../../assets/capaLogin2.jpg';
+import { usePostGuardianTerm } from '../../admin/events/api/postGuardianTerm';
+import CustomChip from '../../../components/customChip';
 
 interface PaymentData {
   coverUrl: string;
@@ -29,10 +36,78 @@ interface PaymentData {
   name?: string;
 }
 
+const GUARDIAN_STATUS_LABEL: Record<string, string> = {
+  PENDING: 'Aguardando liberação (menor de idade)',
+  APPROVED: 'Menor de idade liberado',
+  REJECTED: 'Termo recusado — reenvie',
+};
+
+function GuardianTermDialog({
+  open,
+  eventId,
+  userId,
+  onClose,
+}: {
+  open: boolean;
+  eventId: string;
+  userId: string;
+  onClose: () => void;
+}) {
+  const [file, setFile] = React.useState<File | null>(null);
+  const { mutate, isLoading } = usePostGuardianTerm({
+    onSuccess: () => {
+      setFile(null);
+      onClose();
+    },
+  });
+
+  return (
+    <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
+      <DialogTitle>Anexar termo de autorização assinado</DialogTitle>
+      <DialogContent>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          Envie o termo assinado pelos pais/responsáveis. O admin do evento
+          precisa conferir e liberar a inscrição.
+        </Typography>
+        <Button component="label" variant="outlined" startIcon={<AttachFile />} fullWidth>
+          {file ? file.name : 'Escolher arquivo (PDF ou imagem)'}
+          <input
+            hidden
+            type="file"
+            accept="application/pdf,image/*"
+            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+          />
+        </Button>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose}>Cancelar</Button>
+        <Button
+          variant="contained"
+          disabled={!file || isLoading}
+          onClick={() => file && mutate({ eventId, userId, termFile: file })}
+        >
+          {isLoading ? 'Enviando...' : 'Enviar'}
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+}
+
 function EventCard({ payment }: { payment: paymentsWithRoles & { data: PaymentData } }) {
   const navigate = useNavigate();
   const theme = useTheme();
   const [dataModal, setDataModal] = React.useState<any>(null);
+  const [guardianModalOpen, setGuardianModalOpen] = React.useState(false);
+  const userId = JSON.parse(localStorage.getItem('user') || '{}')?.id || '';
+
+  const requiresGuardianApproval =
+    !!payment.minorApprovalStatus && payment.minorApprovalStatus !== 'NOT_REQUIRED';
+  const guardianChipColor =
+    payment.minorApprovalStatus === 'APPROVED'
+      ? theme.palette.chips.success
+      : payment.minorApprovalStatus === 'REJECTED'
+      ? theme.palette.chips.canceled
+      : theme.palette.chips.pending;
 
   // A igreja dona deste evento cobra online? Antes era uma variável do front
   // inteiro; agora cada cartão responde pela igreja dele, e dois eventos de
@@ -201,6 +276,29 @@ function EventCard({ payment }: { payment: paymentsWithRoles & { data: PaymentDa
             </Typography>
           </Stack>
 
+          {requiresGuardianApproval && (
+            <Stack direction="row" alignItems="center" gap={1} flexWrap="wrap">
+              <Tooltip title={payment.minorApprovalRejectionReason || ''}>
+                <span>
+                  <CustomChip
+                    label={GUARDIAN_STATUS_LABEL[payment.minorApprovalStatus!]}
+                    customColor={guardianChipColor}
+                    size="small"
+                  />
+                </span>
+              </Tooltip>
+              {payment.minorApprovalStatus !== 'APPROVED' && (
+                <Button
+                  size="small"
+                  variant="text"
+                  onClick={() => setGuardianModalOpen(true)}
+                >
+                  {payment.signedTermUrl ? 'Reenviar termo' : 'Anexar termo'}
+                </Button>
+              )}
+            </Stack>
+          )}
+
         </Stack>
 
         <Stack sx={styles.stackButton} direction="row" justifyContent="space-between" gap={1}>
@@ -236,7 +334,16 @@ function EventCard({ payment }: { payment: paymentsWithRoles & { data: PaymentDa
           eventId={payment.eventId}
           userId={JSON.parse(localStorage.getItem('user') || '{}').id}
         />
-      )} </>
+      )}
+      {requiresGuardianApproval && (
+        <GuardianTermDialog
+          open={guardianModalOpen}
+          eventId={payment.eventId}
+          userId={userId}
+          onClose={() => setGuardianModalOpen(false)}
+        />
+      )}
+    </>
 
 
   );

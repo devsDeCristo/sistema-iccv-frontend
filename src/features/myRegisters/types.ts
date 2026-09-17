@@ -9,6 +9,10 @@ export interface paymentsWithRoles{
     /** compras de produto feitas depois da inscrição, cada uma com seu pagamento */
     productPurchases?: ProductPurchase[];
     
+    /** Liberação de menor de idade neste evento — NOT_REQUIRED é maior de idade */
+    minorApprovalStatus?: 'NOT_REQUIRED' | 'PENDING' | 'APPROVED' | 'REJECTED';
+    signedTermUrl?: string | null;
+    minorApprovalRejectionReason?: string | null;
 }
 export interface RegisteredRole {
     roleId: string;
