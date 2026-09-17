@@ -197,6 +197,9 @@ export const EVENT_LOGO_SCHEMA = z.object({
   eventCover: z.any().optional(),
   logoUrl: z.string().optional().nullable(),
   coverUrl: z.string().optional().nullable(),
+  /** Termo de autorização em branco (menores de 16 anos) */
+  eventTerm: z.any().optional(),
+  minorTermUrl: z.string().optional().nullable(),
   // .refine(
   //   (files) => {
   //     if (!files || files.length === 0) return true;

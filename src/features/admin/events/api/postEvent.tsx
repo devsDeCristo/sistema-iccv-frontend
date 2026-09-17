@@ -10,6 +10,7 @@ import { CreateEventPayload } from '../types';
 interface FileUpload {
   logoFile?: File;
   coverFile?: File;
+  termFile?: File;
 }
 type PostCreateEventProps = {
   data: CreateEventPayload;
@@ -21,6 +22,7 @@ const postCreateEvent = ({ data, files }: PostCreateEventProps) => {
   //files das imagens do evento
   if (files.logoFile) formData.append('logoFile', files.logoFile);
   if (files.coverFile) formData.append('coverFile', files.coverFile);
+  if (files.termFile) formData.append('termFile', files.termFile);
   //resto dos dados do evento
   formData.append('name', data.name);
   formData.append('status', data.status);

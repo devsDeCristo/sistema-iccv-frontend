@@ -35,7 +35,7 @@ function RegisterUser() {
     // controlado e troca de tipo na primeira digitada
     badgeName: '',
     cpf: formatCPF(cpfLogin) ? formatCPF(cpfLogin) : '',
-    birthday: new Date(),
+    birthday: null,
     cellphone: '',
     emergencyContact: '',
     email: '',

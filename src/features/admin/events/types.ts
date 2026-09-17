@@ -172,6 +172,8 @@ export interface EventDataJson {
   coverUrl?: string;
   coverBase64?: string;
   hideVacancies?: boolean;
+  /** Termo de autorização em branco, para pais de menores de 16 anos baixarem e assinarem */
+  minorTermUrl?: string;
 }
 export interface CreateEventPayload {
   name: string;

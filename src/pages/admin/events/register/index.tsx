@@ -210,6 +210,7 @@ function Register() {
             files: {
               logoFile: eventLogoData.eventLogo?.[0],
               coverFile: eventLogoData.eventCover?.[0],
+              termFile: eventLogoData.eventTerm?.[0],
             },
           });
         } catch (error) {

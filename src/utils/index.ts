@@ -29,10 +29,50 @@ export function stringAvatar(name: string) {
   };
 }
 
+/**
+ * Baixa uma `data:`/`blob:` URI como arquivo. O termo de autorização é salvo
+ * como base64 no banco (ver backend), e navegador bloqueia navegação direta
+ * para `data:` URI em nova aba — só o download via `<a download>` é confiável.
+ */
+export function triggerDownload(url: string, filename: string) {
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+/** Extensão a partir do mime type de uma `data:` URI, para nome de arquivo. */
+export function extensionFromDataUri(dataUri: string): string {
+  const mime = /^data:([^;]+);/.exec(dataUri)?.[1] ?? '';
+  const subtype = mime.split('/')[1]?.split('+')[0];
+  if (!subtype) return 'bin';
+  return subtype === 'jpeg' ? 'jpg' : subtype;
+}
+
 export function formatDate(date: Date) {
   return new Date(date).toLocaleDateString('pt-BR', {
     timeZone: 'UTC',
   });
+}
+
+/**
+ * Idade completa (anos) que `birthday` tem em `atDate`. Sem padrão para
+ * `atDate` de propósito: quem chama decide se a base é hoje (cadastro do
+ * usuário) ou a data de um evento (elegibilidade de menor de idade para
+ * aquela inscrição).
+ */
+export function calculateAge(birthday: Date, atDate: Date): number {
+  let age = atDate.getFullYear() - birthday.getFullYear();
+  const beforeBirthdayThisYear =
+    atDate.getMonth() < birthday.getMonth() ||
+    (atDate.getMonth() === birthday.getMonth() &&
+      atDate.getDate() < birthday.getDate());
+
+  if (beforeBirthdayThisYear) age -= 1;
+
+  return age;
 }
 
 export function formatDateTime(date?: Date | string | null) {

@@ -113,6 +113,11 @@ export interface User {
   /** Igreja que frequenta, texto livre — não é uma igreja do sistema */
   congregation?: string;
   pastorName?: string;
+  /**
+   * Nome do responsável — preenchido só quando o usuário é menor de 16 anos.
+   * O telefone do responsável usa `emergencyContact`, mesmo campo.
+   */
+  guardianName?: string;
   religion?: string;
   notes?: string;
   eventId?: string;
@@ -125,6 +130,15 @@ export interface User {
   bedrooms?: any[];
   teams?: any[];
   groupsRegistration?: any[];
+  /**
+   * Liberação de menor de idade para o evento desta linha — devolvido por
+   * `GET /events/:idEvent/users`. `NOT_REQUIRED` é maior de idade.
+   */
+  minorApprovalStatus?: 'NOT_REQUIRED' | 'PENDING' | 'APPROVED' | 'REJECTED';
+  signedTermUrl?: string | null;
+  minorApprovalReviewedById?: string | null;
+  minorApprovalReviewedAt?: string | null;
+  minorApprovalRejectionReason?: string | null;
   /** Inscrições do usuário — o `/users` devolve o evento de cada uma */
   events?: {
     event: { id: string; name: string; status: 'ACTIVE' | 'INACTIVE' | 'TEST' };

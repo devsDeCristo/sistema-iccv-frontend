@@ -129,7 +129,7 @@ function Login() {
         navigate('/usuario/cadastrar');
         Swal.fire({
           title: 'Atenção',
-          text: 'Você não possui cadastro ainda, se cadastre para se inscrever no cursilho',
+          text: 'Você não possui cadastro ainda, se cadastre para se inscrever no(s) evento(s)',
           icon: 'info',
           confirmButtonText: 'Ok',
         });

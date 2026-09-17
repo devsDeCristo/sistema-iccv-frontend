@@ -37,6 +37,10 @@ import { usePostBuyEventProducts } from '../../../features/admin/events/api/post
 import { temDisponivel } from '../../../features/admin/events/products';
 import { ProductOffer } from '../../../features/events/components/productOffer';
 import { ExitProductOfferDialog } from '../../../features/events/components/exitProductOfferDialog';
+import { usePostGuardianTerm } from '../../../features/admin/events/api/postGuardianTerm';
+import { useGetUsers } from '../../../features/admin/users/api/getUsers';
+import { calculateAge } from '../../../utils';
+import { User } from '../../../types/user';
 
 function Subscribe() {
   const { id } = useParams();
@@ -54,8 +58,21 @@ function Subscribe() {
     { userId },
     { enabled: !!userId }
   );
+  const { data: loggedUserData } = useGetUsers(
+    { userId },
+    { enabled: !!userId }
+  );
+  const loggedUser = loggedUserData as User | undefined;
 
   const event = eventData as EventDetails;
+
+  const isMinor = Boolean(
+    loggedUser?.birthday &&
+      event?.startDate &&
+      calculateAge(new Date(loggedUser.birthday), new Date(event.startDate)) < 16
+  );
+  const [signedTermFile, setSignedTermFile] = useState<File | null>(null);
+  const { mutate: mutatePostGuardianTerm } = usePostGuardianTerm();
 
   // Sem a igreja na resposta, assume ligado: é o padrão da coluna, e quem
   // recusa de fato é o servidor, que devolve 503 ao tentar abrir o checkout.
@@ -233,6 +250,14 @@ function Subscribe() {
   const { mutate: mutateRegisterUserInEvent, isLoading: isLoadingRegister } =
     usePostRegisterUserInEvent({
       onSuccess: (data: any) => {
+        if (isMinor && signedTermFile && event?.id) {
+          mutatePostGuardianTerm({
+            eventId: event.id,
+            userId,
+            termFile: signedTermFile,
+          });
+        }
+
         const payload = data as any[];
         const roleId = payload.map((i) => i.roleId);
         const allRegistered = payload.every((i) => i.type === 'REGISTERED');
@@ -314,7 +339,13 @@ function Subscribe() {
       formMethods: methodsSelectRole,
       onSubmit: selectRoleSubmit,
       component: FormSelectRole,
-      props: { groupRoles: groupRolesSelected || null },
+      props: {
+        groupRoles: groupRolesSelected || null,
+        isMinor,
+        minorTermUrl: event?.data?.minorTermUrl,
+        signedTermFile,
+        onSignedTermFileChange: setSignedTermFile,
+      },
     },
   ];
 
