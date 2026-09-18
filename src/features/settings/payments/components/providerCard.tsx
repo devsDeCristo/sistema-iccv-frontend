@@ -171,7 +171,7 @@ function ProviderCard({ churchId, integracao, onConfigurar }: Props) {
             </Typography>
 
             {emTeste && (
-              <Tooltip title="Integração recente, ainda em acompanhamento. Funciona normalmente — vale conferir no painel da casa se os primeiros pagamentos deram baixa sozinhos.">
+              <Tooltip title="Integração recente, ainda em acompanhamento. Funciona normalmente — vale conferir no painel do gateway se os primeiros pagamentos deram baixa sozinhos.">
                 <Chip
                   size="small"
                   label="Em teste"

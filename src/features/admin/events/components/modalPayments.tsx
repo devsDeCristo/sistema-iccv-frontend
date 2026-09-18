@@ -69,6 +69,16 @@ export function ModalPayment({
   // O comprovante já enviado vive no payload do pagamento (URL do Firebase,
   // gravada pelo PUT). `receiptFile` é só o arquivo novo escolhido agora —
   // sozinho, ele nunca revela que já existe anexo.
+  /**
+   * Pagamento que entrou pelo checkout não se edita à mão.
+   *
+   * Quem mandou nele foi o gateway, e o retorno dele é reconferido na origem:
+   * mudar o status aqui criaria uma verdade paralela — "pago" na tela e
+   * "aguardando" no gateway — que a próxima notificação desfaz sem avisar.
+   * Lançamento manual continua editável, que é o motivo de ele existir.
+   */
+  const doSistema = payment?.receivedFrom === 'SYSTEM';
+
   const existingReceiptUrl: string | undefined =
     payment?.payload?.comprovanteFileUrl;
   // Comprovantes antigos não guardaram o mime type, e a URL não tem extensão
@@ -206,6 +216,23 @@ export function ModalPayment({
             </IconButton>
           </Stack>
 
+          {doSistema && (
+            <Box
+              sx={{
+                mt: 2,
+                p: 1.5,
+                borderRadius: 2,
+                bgcolor: alpha(theme.palette.info.main, 0.1),
+              }}
+            >
+              <Typography fontSize={13} color="text.secondary">
+                Pagamento recebido pelo checkout: os dados vêm do gateway de
+                pagamento e são conferidos com ele a cada retorno. Para corrigir
+                algo, o caminho é o lançamento manual.
+              </Typography>
+            </Box>
+          )}
+
           <form onSubmit={handleSubmit(onSubmit)}>
             <Grid
               container
@@ -271,6 +298,7 @@ export function ModalPayment({
                         SelectProps={{ native: true }}
                         fullWidth
                         size="small"
+                        disabled={doSistema}
                       >
                         {statusPaymentOptions.map((option) => (
                           <option key={option.value} value={option.value}>
@@ -297,6 +325,7 @@ export function ModalPayment({
                         SelectProps={{ native: true }}
                         fullWidth
                         size="small"
+                        disabled={doSistema}
                       >
                         {methodPaymentOptions.map((option) => (
                           <option key={option.value} value={option.value}>
@@ -323,6 +352,7 @@ export function ModalPayment({
                           SelectProps={{ native: true }}
                           fullWidth
                           size="small"
+                          disabled={doSistema}
                         >
                           <option value="">Nenhum</option>
                           {discounts.map((option) => (
@@ -516,15 +546,17 @@ export function ModalPayment({
                               </Box>
                             </Stack>
 
-                            <Tooltip title="Substituir comprovante">
-                              <IconButton
-                                onClick={() => fileRef.current?.click()}
-                              >
-                                <Upload />
-                              </IconButton>
-                            </Tooltip>
+                            {!doSistema && (
+                              <Tooltip title="Substituir comprovante">
+                                <IconButton
+                                  onClick={() => fileRef.current?.click()}
+                                >
+                                  <Upload />
+                                </IconButton>
+                              </Tooltip>
+                            )}
                           </Box>
-                        ) : (
+                        ) : doSistema ? null : (
                           <Box
                             sx={styles.uploadBox}
                             onClick={() => fileRef.current?.click()}
@@ -556,20 +588,24 @@ export function ModalPayment({
               )}
             </Grid>
 
-            <Button
-              fullWidth
-              type="submit"
-              variant="contained"
-              sx={{ mt: 3 }}
-              disabled={
-                status === 'PAID' &&
-                !receiptFile &&
-                !codeTransaction &&
-                !existingReceiptUrl
-              }
-            >
-              Salvar alterações
-            </Button>
+            {/* sem nada editável, o botão só ofereceria uma ação que não
+                existe — e o servidor recusaria de qualquer jeito */}
+            {!doSistema && (
+              <Button
+                fullWidth
+                type="submit"
+                variant="contained"
+                sx={{ mt: 3 }}
+                disabled={
+                  status === 'PAID' &&
+                  !receiptFile &&
+                  !codeTransaction &&
+                  !existingReceiptUrl
+                }
+              >
+                Salvar alterações
+              </Button>
+            )}
           </form>
 
           <ReceiptPreviewModal

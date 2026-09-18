@@ -214,7 +214,7 @@ function ProviderForm({ churchId, integracao, onClose }: Props) {
                 onChange={(evento) => setPadrao(evento.target.checked)}
               />
             }
-            label="Usar esta casa para cobrar os inscritos"
+            label="Usar este gateway para cobrar os inscritos"
           />
         </Stack>
 
