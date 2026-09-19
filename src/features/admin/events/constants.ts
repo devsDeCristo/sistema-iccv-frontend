@@ -3,6 +3,7 @@ import {
   Category,
   Check,
   Event,
+  Gavel,
   Photo,
   Settings,
   ShoppingBag,
@@ -197,9 +198,6 @@ export const EVENT_LOGO_SCHEMA = z.object({
   eventCover: z.any().optional(),
   logoUrl: z.string().optional().nullable(),
   coverUrl: z.string().optional().nullable(),
-  /** Termo de autorização em branco (menores de 16 anos) */
-  eventTerm: z.any().optional(),
-  minorTermUrl: z.string().optional().nullable(),
   // .refine(
   //   (files) => {
   //     if (!files || files.length === 0) return true;
@@ -220,10 +218,27 @@ export const EVENT_LOGO_SCHEMA = z.object({
   // ),
 });
 
+/**
+ * Os dois termos do evento, que antes moravam na etapa da capa.
+ *
+ * São coisas diferentes: o de menores é um arquivo em branco para o
+ * responsável baixar, assinar e reenviar; o do evento é texto escrito aqui
+ * mesmo, que a pessoa lê e aceita para conseguir se inscrever. Evento sem
+ * texto nenhum não pede aceite nenhum.
+ */
+export const TERMS_SCHEMA = z.object({
+  /** Termo de autorização em branco (menores de 16 anos) */
+  eventTerm: z.any().optional(),
+  minorTermUrl: z.string().optional().nullable(),
+  /** Termo do evento, em HTML do editor */
+  registrationTerm: z.string().optional().nullable(),
+});
+
 export const REGISTER_EVENT_SCHEMA = GENERAL_INFO_SCHEMA.merge(
   DATE_AND_LOCAL_SCHEMA
 )
   .merge(EVENT_LOGO_SCHEMA)
+  .merge(TERMS_SCHEMA)
   .merge(REGISTRATION_SETTINGS_SCHEMA);
 
 export const OPTIONS_STATUS = [
@@ -265,11 +280,16 @@ export const STEPS = [
   },
   {
     id: 5,
+    label: 'Termos',
+    icon: Gavel,
+  },
+  {
+    id: 6,
     label: 'Configurações de inscrição',
     icon: Settings,
   },
   {
-    id: 6,
+    id: 7,
     label: 'Produtos',
     icon: ShoppingBag,
   },
@@ -293,11 +313,16 @@ export const PANELS = [
   },
   {
     id: 4,
+    label: 'Termos',
+    icon: Gavel,
+  },
+  {
+    id: 5,
     label: 'Configurações de inscrição',
     icon: Settings,
   },
   {
-    id: 5,
+    id: 6,
     label: 'Produtos',
     icon: ShoppingBag,
   },

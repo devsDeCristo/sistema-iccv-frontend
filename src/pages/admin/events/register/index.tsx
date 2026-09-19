@@ -12,6 +12,7 @@ import {
   GroupRole,
   ProductsFormType,
   RegistrationSettingsFormType,
+  TermsFormType,
 } from '../../../../features/admin/events/types';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -22,6 +23,7 @@ import {
   PRODUCTS_SCHEMA,
   REGISTRATION_SETTINGS_SCHEMA,
   STEPS,
+  TERMS_SCHEMA,
   GROUP_ROLE_RETIRO,
   GROUP_ROLE_CURSILHO,
 } from '../../../../features/admin/events/constants';
@@ -34,11 +36,13 @@ import { FormRegistrationSettings } from '../../../../features/admin/events/comp
 import { FormDateAndLocal } from '../../../../features/admin/events/components/formDateAndLocal';
 import { SelectCategoryEvent } from '../../../../features/admin/events/components/selectCategoryEvent';
 import { FormLogoAndCover } from '../../../../features/admin/events/components/formLogoAndCover';
+import { FormTerms } from '../../../../features/admin/events/components/formTerms';
 import { toast } from 'react-toastify';
 import { queryClient } from '../../../../config/lib/react-query/query-client';
 import { useRole } from '../../../../hooks/useRole';
 import { FormProducts } from '../../../../features/admin/events/components/formProducts';
 import { produtosParaEnvio } from '../../../../features/admin/events/products';
+import { textoDoTermo } from '../../../../features/admin/events/terms';
 
 function Register() {
   const navigate = useNavigate();
@@ -62,6 +66,9 @@ function Register() {
 
   const methodsEventLogo = useForm<EventLogoFormType>({
     resolver: zodResolver(EVENT_LOGO_SCHEMA),
+  });
+  const methodsTerms = useForm<TermsFormType>({
+    resolver: zodResolver(TERMS_SCHEMA),
   });
   const [eventTypeSelected, setEventTypeSelected] = useState<
     EventType | undefined
@@ -135,6 +142,13 @@ function Register() {
       }
     });
   }
+  function termsSubmit() {
+    methodsTerms.trigger().then((isValid) => {
+      if (isValid) {
+        handleNext();
+      }
+    });
+  }
   function registrationSettingsSubmit() {
     methodsRegistrationSettings.trigger().then((isValid) => {
       if (isValid) {
@@ -160,6 +174,7 @@ function Register() {
         const registrationSettingsData =
           methodsRegistrationSettings.getValues();
         const eventLogoData = methodsEventLogo.getValues();
+        const termsData = methodsTerms.getValues();
 
         try {
           // OPÇÃO 2: Converter para Base64 e enviar como JSON
@@ -198,6 +213,7 @@ function Register() {
               address: dateAndTimeData.address,
               number: dateAndTimeData.number,
               linkMaps: dateAndTimeData.linkMaps,
+              registrationTerm: textoDoTermo(termsData.registrationTerm),
               // logoUrl: logoSvgText,
               // coverUrl: coverSvgText,
               // logoFile: logoSvgText, // Base64 string
@@ -210,7 +226,7 @@ function Register() {
             files: {
               logoFile: eventLogoData.eventLogo?.[0],
               coverFile: eventLogoData.eventCover?.[0],
-              termFile: eventLogoData.eventTerm?.[0],
+              termFile: termsData.eventTerm?.[0],
             },
           });
         } catch (error) {
@@ -267,13 +283,20 @@ function Register() {
     },
     {
       step: 5,
+      formMethods: methodsTerms,
+      onSubmit: termsSubmit,
+      component: FormTerms,
+      props: {},
+    },
+    {
+      step: 6,
       formMethods: methodsRegistrationSettings,
       onSubmit: registrationSettingsSubmit,
       component: FormRegistrationSettings,
       props: {},
     },
     {
-      step: 6,
+      step: 7,
       formMethods: methodsProducts,
       onSubmit: productsSubmit,
       component: FormProducts,
@@ -292,8 +315,10 @@ function Register() {
       case 4:
         return methodsEventLogo.formState.isValid;
       case 5:
-        return methodsRegistrationSettings.formState.isValid;
+        return methodsTerms.formState.isValid;
       case 6:
+        return methodsRegistrationSettings.formState.isValid;
+      case 7:
         return methodsProducts.formState.isValid;
       default:
         return false;

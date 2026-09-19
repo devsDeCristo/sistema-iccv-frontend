@@ -37,6 +37,8 @@ import { usePostBuyEventProducts } from '../../../features/admin/events/api/post
 import { temDisponivel } from '../../../features/admin/events/products';
 import { ProductOffer } from '../../../features/events/components/productOffer';
 import { ExitProductOfferDialog } from '../../../features/events/components/exitProductOfferDialog';
+import { EventTermsDialog } from '../../../features/events/components/eventTermsDialog';
+import { temTermo } from '../../../features/admin/events/terms';
 import { usePostGuardianTerm } from '../../../features/admin/events/api/postGuardianTerm';
 import { useGetUsers } from '../../../features/admin/users/api/getUsers';
 import { calculateAge } from '../../../utils';
@@ -73,6 +75,17 @@ function Subscribe() {
   );
   const [signedTermFile, setSignedTermFile] = useState<File | null>(null);
   const { mutate: mutatePostGuardianTerm } = usePostGuardianTerm();
+
+  const termoDoEvento = event?.data?.registrationTerm || '';
+  const exigeTermo = temTermo(termoDoEvento);
+  /**
+   * As regras escolhidas, esperando o aceite do termo. Enquanto está aqui a
+   * inscrição ainda não foi enviada: evento com termo não cria inscrição para
+   * depois pedir o aceite — sem aceite não há inscrição nenhuma.
+   */
+  const [inscricaoAguardandoTermo, setInscricaoAguardandoTermo] = useState<
+    string[] | null
+  >(null);
 
   // Sem a igreja na resposta, assume ligado: é o padrão da coluna, e quem
   // recusa de fato é o servidor, que devolve 503 ao tentar abrir o checkout.
@@ -250,6 +263,8 @@ function Subscribe() {
   const { mutate: mutateRegisterUserInEvent, isLoading: isLoadingRegister } =
     usePostRegisterUserInEvent({
       onSuccess: (data: any) => {
+        setInscricaoAguardandoTermo(null);
+
         if (isMinor && signedTermFile && event?.id) {
           mutatePostGuardianTerm({
             eventId: event.id,
@@ -287,6 +302,7 @@ function Subscribe() {
       },
 
       onError: () => {
+        setInscricaoAguardandoTermo(null);
         Swal.fire({
           title: 'Erro!',
           text: 'Ocorreu um erro ao realizar a inscrição, tente novamente.',
@@ -316,14 +332,29 @@ function Subscribe() {
       },
     });
 
+  const enviarInscricao = (roleIds: string[], aceitouTermo: boolean) => {
+    mutateRegisterUserInEvent({
+      eventId: event.id,
+      userId,
+      data: {
+        roleId: roleIds,
+        ...(aceitouTermo ? { acceptedTerms: true } : {}),
+      },
+    });
+  };
+
   const selectRoleSubmit = (data: SelectRoleFormType) => {
     if (event && event.id && data.groupRole) {
       const roleIds = data.groupRole.flatMap((gr) => gr.roleIds);
-      mutateRegisterUserInEvent({
-        eventId: event.id,
-        userId,
-        data: { roleId: roleIds },
-      });
+
+      // com termo, nada é enviado antes do aceite; sem termo, o fluxo é o de
+      // sempre e a pessoa não vê diálogo nenhum
+      if (exigeTermo) {
+        setInscricaoAguardandoTermo(roleIds);
+        return;
+      }
+
+      enviarInscricao(roleIds, false);
     }
   };
   const stepMethods = [
@@ -487,6 +518,18 @@ function Subscribe() {
           )}
         </Paper>
       )}
+      <EventTermsDialog
+        open={!!inscricaoAguardandoTermo}
+        term={termoDoEvento}
+        eventName={event?.name}
+        loading={isLoadingRegister}
+        onAccept={() => {
+          if (inscricaoAguardandoTermo) {
+            enviarInscricao(inscricaoAguardandoTermo, true);
+          }
+        }}
+        onCancel={() => setInscricaoAguardandoTermo(null)}
+      />
       <ExitProductOfferDialog
         open={bloqueioDeRota.state === 'blocked'}
         onStay={() => bloqueioDeRota.reset?.()}

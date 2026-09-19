@@ -17,6 +17,7 @@ import {
   GeneralInfoFormType,
   ProductsFormType,
   RegistrationSettingsFormType,
+  TermsFormType,
 } from '../../../../features/admin/events/types';
 import {
   DATE_AND_LOCAL_SCHEMA,
@@ -25,6 +26,7 @@ import {
   PANELS,
   PRODUCTS_SCHEMA,
   REGISTRATION_SETTINGS_SCHEMA,
+  TERMS_SCHEMA,
 } from '../../../../features/admin/events/constants';
 import { FormProducts } from '../../../../features/admin/events/components/formProducts';
 import {
@@ -35,6 +37,8 @@ import { FormRegistrationSettings } from '../../../../features/admin/events/comp
 import { FormDateAndLocal } from '../../../../features/admin/events/components/formDateAndLocal';
 
 import { FormLogoAndCover } from '../../../../features/admin/events/components/formLogoAndCover';
+import { FormTerms } from '../../../../features/admin/events/components/formTerms';
+import { textoDoTermo } from '../../../../features/admin/events/terms';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useGetEvents } from '../../../../features/admin/events/api/getEvents';
 import { usePutUpdateEvent } from '../../../../features/admin/events/api/putEvent';
@@ -108,9 +112,12 @@ function Edit() {
   ): EventLogoFormType => ({
     logoUrl: event?.data?.logoUrl ? event?.data?.logoUrl : undefined,
     coverUrl: event?.data?.coverUrl ? event?.data?.coverUrl : undefined,
+  });
+  const getDefaultTermsValues = (event?: EventDetails): TermsFormType => ({
     minorTermUrl: event?.data?.minorTermUrl
       ? event?.data?.minorTermUrl
       : undefined,
+    registrationTerm: event?.data?.registrationTerm || '',
   });
 
   const [currentStep, setCurrentStep] = useState(1);
@@ -140,6 +147,11 @@ function Edit() {
     defaultValues: getDefaultEventLogoValues(event),
     mode: 'onChange',
   });
+  const methodsTerms = useForm<TermsFormType>({
+    resolver: zodResolver(TERMS_SCHEMA),
+    defaultValues: getDefaultTermsValues(event),
+    mode: 'onChange',
+  });
   const methodsProducts = useForm<ProductsFormType>({
     resolver: zodResolver(PRODUCTS_SCHEMA),
     defaultValues: { products: produtosParaFormulario(event?.products) },
@@ -154,6 +166,7 @@ function Edit() {
         getDefaultRegistrationSettingsValues(event)
       );
       methodsEventLogo.reset(getDefaultEventLogoValues(event));
+      methodsTerms.reset(getDefaultTermsValues(event));
       methodsProducts.reset({
         products: produtosParaFormulario(event.products),
       });
@@ -171,12 +184,14 @@ function Edit() {
       validDateAndTime,
       validGeneralInfo,
       validEventLogo,
+      validTerms,
       validRegistrationSettings,
       validProducts,
     ] = await Promise.all([
       methodsDateAndTime.trigger(),
       methodsGeneralInfo.trigger(),
       methodsEventLogo.trigger(),
+      methodsTerms.trigger(),
       methodsRegistrationSettings.trigger(),
       methodsProducts.trigger(),
     ]);
@@ -185,6 +200,7 @@ function Edit() {
       !validDateAndTime ||
       !validGeneralInfo ||
       !validEventLogo ||
+      !validTerms ||
       !validRegistrationSettings ||
       !validProducts
     ) {
@@ -244,6 +260,9 @@ function Edit() {
               address: dateAndTimeData.address,
               number: dateAndTimeData.number,
               linkMaps: dateAndTimeData.linkMaps,
+              registrationTerm: textoDoTermo(
+                methodsTerms.getValues().registrationTerm
+              ),
               // ...(methodsEventLogo.getValues().eventLogo?.[0]
               //   ? methodsEventLogo.getValues().logoUrl
               //     ? {
@@ -267,7 +286,7 @@ function Edit() {
             files: {
               logoFile: methodsEventLogo.getValues().eventLogo?.[0],
               coverFile: methodsEventLogo.getValues().eventCover?.[0],
-              termFile: methodsEventLogo.getValues().eventTerm?.[0],
+              termFile: methodsTerms.getValues().eventTerm?.[0],
             },
           });
         } catch (error) {
@@ -306,13 +325,20 @@ function Edit() {
     },
     {
       step: 4,
+      formMethods: methodsTerms,
+      onSubmit: registrationSettingsSubmit,
+      component: FormTerms,
+      props: {},
+    },
+    {
+      step: 5,
       formMethods: methodsRegistrationSettings,
       onSubmit: registrationSettingsSubmit,
       component: FormRegistrationSettings,
       props: {},
     },
     {
-      step: 5,
+      step: 6,
       formMethods: methodsProducts,
       onSubmit: registrationSettingsSubmit,
       component: FormProducts,
