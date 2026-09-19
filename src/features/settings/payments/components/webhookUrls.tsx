@@ -79,8 +79,8 @@ function WebhookUrls({ integracao }: Props) {
 
       <Typography variant="caption" color="text.secondary">
         {soPeloPainel
-          ? `A API da ${integracao.label} resolve notificação por conta, e não por cobrança. Sem este cadastro o inscrito paga e a inscrição continua marcada como pendente.`
-          : `O endereço já vai dentro de cada cobrança, mas em modo de teste a ${integracao.label} só avisa o que estiver cadastrado no painel, em Webhooks › URL modo teste. É da mesma tela que sai a assinatura secreta.`}
+          ? 'Sem este cadastro, o inscrito paga e a inscrição continua pendente.'
+          : 'Em modo de teste, só o endereço cadastrado no painel recebe aviso.'}
       </Typography>
 
       {integracao.webhooks.map((webhook) => (
@@ -107,14 +107,20 @@ function WebhookUrls({ integracao }: Props) {
         </Box>
       ))}
 
-      <Alert
-        severity={integracao.signsWebhook ? 'info' : 'warning'}
-        sx={{ py: 0.5 }}
-      >
-        {integracao.signsWebhook
-          ? 'O endereço contém um segredo desta igreja. Não compartilhe nem publique.'
-          : `A ${integracao.label} não assina as notificações: o segredo deste endereço é a única coisa que impede alguém de marcar uma inscrição como paga. Trate-o como senha.`}
-      </Alert>
+      {/*
+         Quem assina leva uma legenda; quem não assina continua levando alerta.
+         Sem assinatura, o segredo da URL é a única coisa entre um POST forjado
+         e uma inscrição marcada como paga — e isso não é nota de rodapé.
+      */}
+      {integracao.signsWebhook ? (
+        <Typography variant="caption" color="text.secondary">
+          Contém um segredo desta igreja: não compartilhe.
+        </Typography>
+      ) : (
+        <Alert severity="warning" sx={{ py: 0.25, alignItems: 'center' }}>
+          Trate como senha: sem assinatura, este segredo é a única tranca.
+        </Alert>
+      )}
     </Stack>
   );
 }

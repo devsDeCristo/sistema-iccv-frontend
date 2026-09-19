@@ -1,14 +1,16 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   Alert,
+  Box,
   Button,
   FormControlLabel,
   Link,
   Stack,
   Switch,
   Typography,
+  useTheme,
 } from '@mui/material';
-import { OpenInNew } from '@mui/icons-material';
+import { Lock, OpenInNew } from '@mui/icons-material';
 
 import { ResponsiveModal } from '../../../../components/responsiveModal';
 import { ProviderLogo } from './providerLogo';
@@ -17,6 +19,7 @@ import { PROVIDER_EM_TESTE, PROVIDER_WEBHOOK_SETUP } from '../constants';
 import { Input } from '../../../../components/input';
 import { SelectField } from '../../../../components/selectField';
 import { useSavePaymentProvider } from '../api/paymentProviderActions';
+import { useRole } from '../../../../hooks/useRole';
 import { PaymentProviderIntegration, PaymentProviderMode } from '../types';
 
 interface Props {
@@ -41,6 +44,8 @@ const MODOS = [
 function ProviderForm({ churchId, integracao, onClose }: Props) {
   const [valores, setValores] = useState<Record<string, string>>({});
   const [modo, setModo] = useState<PaymentProviderMode>('PRODUCTION');
+  const { isDev } = useRole();
+  const theme = useTheme();
   const [ligado, setLigado] = useState(true);
   const [padrao, setPadrao] = useState(false);
 
@@ -88,11 +93,32 @@ function ProviderForm({ churchId, integracao, onClose }: Props) {
 
   if (!integracao) return null;
 
+  const styles = {
+    // aviso de uma linha não precisa do respiro de um bloco de texto
+    aviso: { py: 0.25, alignItems: 'center' },
+    chaves: {
+      border: `1px solid ${theme.palette.divider}`,
+      borderRadius: 2,
+      px: 1.5,
+    },
+    chave: {
+      ml: 0,
+      mr: 0,
+      width: '100%',
+      justifyContent: 'space-between',
+      py: 0.25,
+      '& + &': { borderTop: `1px solid ${theme.palette.divider}` },
+    },
+  };
+
   const enviar = () => {
     salvar({
       churchId,
       provider: integracao.provider,
-      mode: modo,
+      // sem o campo na tela, o modo também não vai no corpo: o servidor
+      // mantém o que já está gravado, em vez de a edição empurrar tudo para
+      // produção sem ninguém ter pedido
+      ...(isDev ? { mode: modo } : {}),
       enabled: ligado,
       makeDefault: padrao && ligado,
       // Só o que a pessoa digitou. O campo secreto em branco não vai no corpo,
@@ -131,7 +157,7 @@ function ProviderForm({ churchId, integracao, onClose }: Props) {
         </>
       }
     >
-      <Stack spacing={2.5}>
+      <Stack spacing={2}>
         <Typography variant="body2" color="text.secondary">
           {integracao.summary}{' '}
           <Link
@@ -146,27 +172,44 @@ function ProviderForm({ churchId, integracao, onClose }: Props) {
 
         {/*
           O aviso vem antes do formulário, e não junto do botão de salvar: ele
-          é material de escolha — ainda dá para fechar e ficar na casa que já
-          está rodando. Ao lado do Salvar, chegaria depois de a pessoa já ter
-          ido atrás das credenciais.
+          é material de escolha — ainda dá para fechar e ficar no gateway que
+          já está rodando. Ao lado do Salvar, chegaria depois de a pessoa já
+          ter ido atrás das credenciais.
         */}
         {emTeste && (
-          <Alert severity="warning" >
-            <Typography variant="body2" fontWeight={600} sx={{ mb: 0.25 }}>
-              Integração em teste
-            </Typography>
-            Este banco é recente por aqui e ainda está em acompanhamento. Pode
-            usar normalmente — só vale conferir no painel dela se os primeiros
+          <Alert severity="warning" sx={styles.aviso}>
+            Integração recente: confira no painel dela se os primeiros
             pagamentos deram baixa sozinhos.
           </Alert>
         )}
 
-        <SelectField
-          label="Ambiente"
-          value={modo}
-          onChange={(valor) => setModo(valor as PaymentProviderMode)}
-          options={MODOS}
-        />
+        {/*
+          O ambiente é escolha de dev, e a rota recusa o resto.
+
+          Quem administra a igreja cadastra para receber de verdade: uma
+          integração em sandbox aceita inscrição, devolve link, e o dinheiro
+          nunca chega — com a tela inteira dizendo que está tudo certo. É um
+          erro caro e silencioso, e a única razão para colocar uma igreja em
+          sandbox é desenvolvimento.
+
+          Quem não é dev também não muda o que já está gravado: o formulário
+          simplesmente não manda o campo, e o servidor mantém o que estava lá.
+        */}
+        {isDev ? (
+          <SelectField
+            label="Ambiente"
+            value={modo}
+            onChange={(valor) => setModo(valor as PaymentProviderMode)}
+            options={MODOS}
+          />
+        ) : (
+          modo === 'SANDBOX' && (
+            <Alert severity="warning" sx={styles.aviso}>
+              Em <strong>sandbox</strong>: pagamento de teste, o dinheiro não
+              entra. Só o dev altera.
+            </Alert>
+          )
+        )}
 
         {integracao.fields.map((campo) => (
           <Input
@@ -194,8 +237,19 @@ function ProviderForm({ churchId, integracao, onClose }: Props) {
           />
         ))}
 
-        <Stack>
+        {/*
+          Rótulo à esquerda e chave à direita, dentro de um bloco só.
+
+          Empilhadas com a chave na frente, as duas liam como dois campos
+          soltos no meio do formulário, e a segunda — que decide quem cobra de
+          verdade — passava como detalhe. Aqui elas viram uma seção, na ordem em
+          que dependem uma da outra: sem a de cima ligada, a de baixo nem pode
+          ser marcada.
+        */}
+        <Box sx={styles.chaves}>
           <FormControlLabel
+            labelPlacement="start"
+            sx={styles.chave}
             control={
               <Switch
                 checked={ligado}
@@ -205,9 +259,11 @@ function ProviderForm({ churchId, integracao, onClose }: Props) {
                 }}
               />
             }
-            label="Integração ativa"
+            label={<Typography variant="body2">Integração ativa</Typography>}
           />
           <FormControlLabel
+            labelPlacement="start"
+            sx={styles.chave}
             control={
               <Switch
                 checked={padrao}
@@ -215,9 +271,16 @@ function ProviderForm({ churchId, integracao, onClose }: Props) {
                 onChange={(evento) => setPadrao(evento.target.checked)}
               />
             }
-            label="Usar este gateway para cobrar os inscritos"
+            label={
+              <Typography
+                variant="body2"
+                color={ligado ? 'text.primary' : 'text.disabled'}
+              >
+                Cobrar os inscritos por aqui
+              </Typography>
+            }
           />
-        </Stack>
+        </Box>
 
         {/*
           PagBank e InfinitePay recebem o endereço dentro da própria chamada que
@@ -229,15 +292,17 @@ function ProviderForm({ churchId, integracao, onClose }: Props) {
           teste o endereço cadastrado no painel.
         */}
         {precisaCadastrarWebhook && integracao.webhooks.length > 0 && (
-          <Stack spacing={1}>
-            <WebhookUrls integracao={integracao} />
-          </Stack>
+          <WebhookUrls integracao={integracao} />
         )}
 
-        <Alert severity="info" sx={{ py: 0.5 }}>
-          As credenciais são gravadas cifradas e não voltam para esta tela — só
-          a máscara.
-        </Alert>
+        <Typography
+          variant="caption"
+          color="text.secondary"
+          sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
+        >
+          <Lock sx={{ fontSize: 13 }} />
+          Credenciais são gravadas cifradas e não voltam para a tela.
+        </Typography>
       </Stack>
     </ResponsiveModal>
   );
