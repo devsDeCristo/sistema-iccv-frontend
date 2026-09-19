@@ -117,15 +117,21 @@ export const PROVIDER_PRICING: Record<string, ProviderPricing> = {
  * webhook por conta, não por pedido. Sem esse cadastro a cobrança é criada e
  * paga normalmente, e a baixa nunca chega.
  *
+ * `por-cobranca-e-painel`: manda a URL na cobrança e ainda assim precisa do
+ * cadastro. É o Mercado Pago: em produção o `notification_url` da preferência
+ * resolve, mas o painel tem uma URL separada para modo de teste, e é só ela
+ * que recebe notificação enquanto a integração roda com credencial de teste.
+ * Sem cadastrar, o teste passa a vida inteira sem nenhum retorno.
+ *
  * Espelha o que cada adapter faz em `createCheckout`. Mudar o adapter sem
  * mudar aqui deixa a tela mandando a pessoa fazer trabalho à toa — ou, pior,
  * calada sobre um cadastro que ela precisa fazer.
  */
-export type WebhookSetup = 'por-cobranca' | 'painel';
+export type WebhookSetup = 'por-cobranca' | 'painel' | 'por-cobranca-e-painel';
 
 export const PROVIDER_WEBHOOK_SETUP: Record<string, WebhookSetup> = {
   PAGBANK: 'por-cobranca',
-  MERCADO_PAGO: 'por-cobranca',
+  MERCADO_PAGO: 'por-cobranca-e-painel',
   INFINITEPAY: 'por-cobranca',
   TON: 'painel',
 };

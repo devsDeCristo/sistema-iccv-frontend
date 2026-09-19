@@ -12,17 +12,19 @@ import { Check, ContentCopy } from '@mui/icons-material';
 import { toast } from 'react-toastify';
 
 import { PaymentProviderIntegration } from '../types';
+import { PROVIDER_WEBHOOK_SETUP } from '../constants';
 
 interface Props {
   integracao: PaymentProviderIntegration;
 }
 
 /**
- * O endereço de notificação, para a casa que depende de cadastro na conta.
+ * O endereço de notificação, para quem depende de cadastro na conta.
  *
- * Só o Ton cai aqui. PagBank, Mercado Pago e InfinitePay recebem a URL dentro
- * da chamada que cria a cobrança, não têm o que cadastrar, e para elas esta
- * tela não aparece — ver `PROVIDER_WEBHOOK_SETUP`.
+ * Dois casos caem aqui: o Ton, cuja API resolve webhook por conta e não por
+ * pedido, e o Mercado Pago, que aceita a URL na cobrança mas só notifica em
+ * modo de teste o endereço cadastrado no painel. PagBank e InfinitePay não têm
+ * o que cadastrar e não veem esta parte — ver `PROVIDER_WEBHOOK_SETUP`.
  *
  * A URL carrega um segredo próprio desta igreja nesta casa: é ele que prova,
  * do lado de cá, que a notificação veio mesmo de lá. Daí o aviso de não
@@ -34,6 +36,8 @@ function WebhookUrls({ integracao }: Props) {
   const [copiada, setCopiada] = useState<string | null>(null);
 
   if (!integracao.webhooks.length) return null;
+
+  const soPeloPainel = PROVIDER_WEBHOOK_SETUP[integracao.provider] === 'painel';
 
   const copiar = async (url: string, key: string) => {
     try {
@@ -74,9 +78,9 @@ function WebhookUrls({ integracao }: Props) {
       </Typography>
 
       <Typography variant="caption" color="text.secondary">
-        Esta é a única casa que exige o cadastro: a API dela resolve notificação
-        por conta, e não por cobrança. Sem isso o inscrito paga e a inscrição
-        continua marcada como pendente.
+        {soPeloPainel
+          ? `A API da ${integracao.label} resolve notificação por conta, e não por cobrança. Sem este cadastro o inscrito paga e a inscrição continua marcada como pendente.`
+          : `O endereço já vai dentro de cada cobrança, mas em modo de teste a ${integracao.label} só avisa o que estiver cadastrado no painel, em Webhooks › URL modo teste. É da mesma tela que sai a assinatura secreta.`}
       </Typography>
 
       {integracao.webhooks.map((webhook) => (

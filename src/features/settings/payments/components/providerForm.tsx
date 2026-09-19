@@ -45,7 +45,8 @@ function ProviderForm({ churchId, integracao, onClose }: Props) {
   const [padrao, setPadrao] = useState(false);
 
   const precisaCadastrarWebhook =
-    !!integracao && PROVIDER_WEBHOOK_SETUP[integracao.provider] === 'painel';
+    !!integracao &&
+    PROVIDER_WEBHOOK_SETUP[integracao.provider] !== 'por-cobranca';
   const emTeste = !!integracao && !!PROVIDER_EM_TESTE[integracao.provider];
 
   const { mutate: salvar, isLoading } = useSavePaymentProvider({
@@ -219,13 +220,13 @@ function ProviderForm({ churchId, integracao, onClose }: Props) {
         </Stack>
 
         {/*
-          Quase nenhuma casa precisa de cadastro: PagBank, Mercado Pago e
-          InfinitePay recebem o endereço de notificação dentro da própria
-          chamada que cria a cobrança, e não há o que fazer em painel nenhum.
-          Mostrar a URL para elas só dava trabalho inventado a quem configura.
+          PagBank e InfinitePay recebem o endereço dentro da própria chamada que
+          cria a cobrança, e não há o que fazer em painel nenhum. Mostrar a URL
+          para elas só dava trabalho inventado a quem configura.
 
-          O Ton é a exceção — a API v5 da Pagar.me resolve webhook por conta, e
-          não por pedido — e é o único caso em que a URL aparece.
+          Aparece no Ton, cuja API resolve webhook por conta e não por pedido, e
+          no Mercado Pago, que manda na cobrança mas só notifica em modo de
+          teste o endereço cadastrado no painel.
         */}
         {precisaCadastrarWebhook && integracao.webhooks.length > 0 && (
           <Stack spacing={1}>

@@ -53,10 +53,11 @@ function EventTermsDialog({
   const theme = useTheme();
   const [aceito, setAceito] = useState(false);
   const [leuAteOFim, setLeuAteOFim] = useState(false);
-  const caixaDoTermo = useRef<HTMLDivElement>(null);
+  const caixaDoTermo = useRef<HTMLDivElement | null>(null);
   /** os mesmos valores do estado, para a medição não depender de render */
   const liberado = useRef(false);
   const alturaLida = useRef(0);
+  const observador = useRef<ResizeObserver | null>(null);
 
   const conferirRolagem = useCallback(() => {
     const caixa = caixaDoTermo.current;
@@ -84,30 +85,50 @@ function EventTermsDialog({
     }
   }, []);
 
+  /**
+   * Ref de função, e não um efeito lendo `ref.current`.
+   *
+   * O efeito rodava antes de o nó existir e desistia no `if (!caixa) return`:
+   * ficava sem observador e sem medição inicial. Com rolagem ninguém percebia,
+   * porque o `onScroll` media por ele — mas termo curto não gera rolagem
+   * nenhuma, e o aceite ficava travado para sempre. Aqui a medição acontece no
+   * instante em que o nó entra no DOM, que é o único momento em que dá para
+   * ter certeza de que ele existe.
+   *
+   * A altura ainda vai mudar depois (imagem que carrega, fonte que troca,
+   * janela que gira), e é o observador que refaz a conta — ele entrega uma
+   * primeira medição por conta própria assim que começa a observar, já com o
+   * layout pronto.
+   */
+  const montarCaixa = useCallback(
+    (no: HTMLDivElement | null) => {
+      observador.current?.disconnect();
+      observador.current = null;
+      caixaDoTermo.current = no;
+
+      if (!no) return;
+
+      const observando = new ResizeObserver(conferirRolagem);
+      observando.observe(no);
+      Array.from(no.children).forEach((filho) => observando.observe(filho));
+      observador.current = observando;
+
+      conferirRolagem();
+    },
+    [conferirRolagem]
+  );
+
+  // reabrir depois de cancelar não pode trazer o aceite anterior marcado
   useEffect(() => {
-    // reabrir depois de cancelar não pode trazer o aceite anterior marcado
-    if (!open) {
-      setAceito(false);
-      setLeuAteOFim(false);
-      liberado.current = false;
-      alturaLida.current = 0;
-      return;
-    }
+    if (open) return;
 
-    const caixa = caixaDoTermo.current;
-    if (!caixa) return;
+    setAceito(false);
+    setLeuAteOFim(false);
+    liberado.current = false;
+    alturaLida.current = 0;
+  }, [open]);
 
-    // a altura do termo ainda vai mudar — imagem que termina de carregar,
-    // fonte que troca, janela que gira. O observador refaz a conta a cada
-    // mudança, e é ele quem libera o termo curto, que nunca recebe rolagem
-    const observador = new ResizeObserver(conferirRolagem);
-    observador.observe(caixa);
-    Array.from(caixa.children).forEach((filho) => observador.observe(filho));
-
-    conferirRolagem();
-
-    return () => observador.disconnect();
-  }, [open, conferirRolagem]);
+  useEffect(() => () => observador.current?.disconnect(), []);
 
   return (
     <Dialog
@@ -150,7 +171,7 @@ function EventTermsDialog({
 
       <DialogContent
         dividers
-        ref={caixaDoTermo}
+        ref={montarCaixa}
         onScroll={conferirRolagem}
         sx={{ maxHeight: '55vh' }}
       >
