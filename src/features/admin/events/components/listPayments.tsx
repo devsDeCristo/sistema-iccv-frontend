@@ -204,9 +204,10 @@ function ListPayments({
       // "Ação" dizia que ali havia um verbo; o campo guarda de onde o dinheiro
       // veio — pelo checkout ou lançado à mão
       headerName: 'Origem',
-      // 190: "Lançamento manual" é a etiqueta mais longa e o chip do MUI corta
-      // com reticências antes de deixar o texto vazar
-      width: 190,
+      // 200: "Aguardando pagamento" e "Gateway de pagamento" são as etiquetas
+      // mais longas, e o chip do MUI corta com reticências antes de deixar o
+      // texto vazar
+      width: 200,
       renderCell: (params) => (
         <CustomChip
           label={PAYMENT_ORIGIN(params.value)}

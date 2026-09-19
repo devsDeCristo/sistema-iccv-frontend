@@ -76,6 +76,11 @@ export function ModalPayment({
    * mudar o status aqui criaria uma verdade paralela — "pago" na tela e
    * "aguardando" no gateway — que a próxima notificação desfaz sem avisar.
    * Lançamento manual continua editável, que é o motivo de ele existir.
+   *
+   * `SYSTEM` é carimbado quando o gateway responde, e não quando a cobrança
+   * nasce — ela nasce em `PENDING`. Antes toda cobrança nascia `SYSTEM`, e o
+   * resultado era a tela travada justamente nos pagamentos que só a mão
+   * resolve: os que nunca chegaram a passar por um checkout.
    */
   const doSistema = payment?.receivedFrom === 'SYSTEM';
 

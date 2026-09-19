@@ -452,7 +452,8 @@ export const PAYMENT_STATUS_COLOR = (
  */
 export const PAYMENT_ORIGIN = (origem: PaymentReceived): string => {
   const map: Record<PaymentReceived, string> = {
-    SYSTEM: 'Sistema',
+    PENDING: 'Aguardando pagamento',
+    SYSTEM: 'Gateway de pagamento',
     EXTERNAL: 'Lançamento manual',
   };
 
