@@ -3,6 +3,7 @@ import { PageStyle } from '../../../../components/pageStyle';
 import {
   Box,
   Button,
+  CircularProgress,
   Stack,
   TextField,
   Paper,
@@ -57,6 +58,7 @@ import {
   QrCodeScannerOutlined,
   Search,
   ShoppingBagOutlined,
+  Sync,
   ViewModuleOutlined,
 } from '@mui/icons-material';
 import {
@@ -69,6 +71,8 @@ import { ModalGeneratePdf } from '../../../../features/admin/events/components/p
 import { PdfDocType } from '../../../../features/admin/events/components/pdfGenerator/types';
 import { ExportFormat } from '../../../../features/admin/events/components/exportUsers/types';
 import { useGetUsers } from '../../../../features/admin/events/api/getUsers';
+import { usePostReconcilePayments } from '../../../../features/admin/events/api/postReconcilePayments';
+import { useRole } from '../../../../hooks/useRole';
 import FilterModal from '../../../../features/admin/events/components/filtersUserModal';
 import PdfTeams from '../../../../components/pdfTeams';
 
@@ -138,6 +142,9 @@ function Details() {
   const [searchBedroom, setSearchBedroom] = useState('');
   const [searchTeam, setSearchTeam] = useState('');
   const [searchUser, setSearchUser] = useState('');
+  const { isDev } = useRole();
+  const { mutate: reconciliar, isLoading: reconciliando } =
+    usePostReconcilePayments();
   const [pageValue, setPageValue] = useState(subPage || 'usuarios');
   const [openModalAddUser, setOpenModalAddUser] = useState(false);
   const [openModalFilter, setOpenModalFilter] = useState(false);
@@ -743,6 +750,38 @@ function Details() {
             />
             {/* <Typography color="#000">Usuários</Typography> */}
             <Stack sx={styles.stackButtons}>
+              {/*
+                Para o retorno que se perdeu: o inscrito pagou, o gateway não
+                avisou, e a cobrança continua pendente na tela. A rotina que
+                roda sozinha de três em três horas resolveria — este botão é
+                para não esperar por ela.
+
+                Só para o dev, e a rota recusa o resto: cada clique fala com o
+                gateway uma vez por cobrança pendente, e numa fila grande isso
+                vira uma rajada de chamadas na conta da igreja. Quem administra
+                espera o relógio ou lança a baixa manual.
+              */}
+              {isDev && (
+                <Tooltip title="Pergunta ao gateway o que aconteceu com as cobranças pendentes deste evento">
+                  <span>
+                    <Button
+                      variant="outlined"
+                      onClick={() => reconciliar({ eventId })}
+                      disabled={reconciliando}
+                      startIcon={
+                        reconciliando ? (
+                          <CircularProgress size={16} color="inherit" />
+                        ) : (
+                          <Sync />
+                        )
+                      }
+                    >
+                      Conferir no gateway
+                    </Button>
+                  </span>
+                </Tooltip>
+              )}
+
               <Button
                 variant="outlined"
                 onClick={handleExportPayments}
