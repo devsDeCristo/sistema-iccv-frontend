@@ -72,6 +72,7 @@ import { PdfDocType } from '../../../../features/admin/events/components/pdfGene
 import { ExportFormat } from '../../../../features/admin/events/components/exportUsers/types';
 import { useGetUsers } from '../../../../features/admin/events/api/getUsers';
 import { usePostReconcilePayments } from '../../../../features/admin/events/api/postReconcilePayments';
+import { CardsProductOrders } from '../../../../features/admin/events/components/cardsProductOrders';
 import { useRole } from '../../../../hooks/useRole';
 import FilterModal from '../../../../features/admin/events/components/filtersUserModal';
 import PdfTeams from '../../../../components/pdfTeams';
@@ -802,6 +803,13 @@ function Details() {
 
       {pageValue === 'produtos' && (
         <Stack gap={2} sx={{ mt: 2 }}>
+          <CardsProductOrders
+            eventId={eventId}
+            products={event?.products}
+            produtoId={produtoFiltro}
+            onSelecionarProduto={setProdutoFiltro}
+          />
+
           <Paper component="div" sx={styles.boxFilterAndPdf}>
             <TextField
               placeholder="Pesquisar por nome, CPF ou produto"
