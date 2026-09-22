@@ -74,6 +74,14 @@ function Subscribe() {
       calculateAge(new Date(loggedUser.birthday), new Date(event.startDate)) < 16
   );
   const [signedTermFile, setSignedTermFile] = useState<File | null>(null);
+  /**
+   * O aviso do termo de menor foi lido.
+   *
+   * Estado da página, e não campo do formulário: o schema de seleção de regra
+   * é o mesmo para todo mundo, e exigir o aceite nele travaria também a
+   * inscrição de quem é maior de idade — que nem chega a ver o aviso.
+   */
+  const [avisoMenorLido, setAvisoMenorLido] = useState(false);
   const { mutate: mutatePostGuardianTerm } = usePostGuardianTerm();
 
   const termoDoEvento = event?.data?.registrationTerm || '';
@@ -376,6 +384,8 @@ function Subscribe() {
         minorTermUrl: event?.data?.minorTermUrl,
         signedTermFile,
         onSignedTermFileChange: setSignedTermFile,
+        avisoLido: avisoMenorLido,
+        onAvisoLidoChange: setAvisoMenorLido,
       },
     },
   ];
@@ -385,7 +395,10 @@ function Subscribe() {
       case 1:
         return methodsSelectGroupRole.formState.isValid;
       case 2:
-        return methodsSelectRole.formState.isValid;
+        // menor de 16 só avança depois de marcar que leu o aviso do termo
+        return (
+          methodsSelectRole.formState.isValid && (!isMinor || avisoMenorLido)
+        );
       default:
         return false;
     }
