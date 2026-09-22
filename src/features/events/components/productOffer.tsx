@@ -4,17 +4,14 @@ import {
   Box,
   Button,
   CircularProgress,
-  IconButton,
   Paper,
   Stack,
   Typography,
   useTheme,
 } from '@mui/material';
 import {
-  Add,
   EditOutlined,
   LocalMallOutlined,
-  Remove,
   ShoppingBagOutlined,
   StorefrontOutlined,
 } from '@mui/icons-material';
@@ -22,10 +19,7 @@ import { useMemo, useState } from 'react';
 import { formatCurrency } from '../../../utils';
 import { AZUL_VIVO, degradeVivo } from '../../../themes';
 import { EventProduct } from '../../admin/events/types';
-import {
-  QUANTIDADE_MAXIMA_POR_ITEM,
-  temDisponivel,
-} from '../../admin/events/products';
+import { temDisponivel } from '../../admin/events/products';
 import { VariantPickerDialog } from './variantPickerDialog';
 
 type ItemEscolhido = { variantId: string; quantity: number };
@@ -352,26 +346,6 @@ function ProductOffer({
       textTransform: 'none',
       justifyContent: 'center',
     },
-    linhaQuantidade: {
-      minHeight: 44,
-      px: 1,
-      borderRadius: 2,
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      gap: 1,
-      bgcolor: alpha(theme.palette.text.primary, 0.04),
-    },
-    passo: {
-      flexShrink: 0,
-      borderRadius: 999,
-      bgcolor: alpha(theme.palette.text.primary, 0.06),
-    },
-    contador: {
-      minWidth: 22,
-      textAlign: 'center' as const,
-      fontWeight: 600,
-      fontVariantNumeric: 'tabular-nums',
-    },
     subtotal: {
       display: 'flex',
       justifyContent: 'space-between',
@@ -480,19 +454,6 @@ function ProductOffer({
             temDisponivel(variante.available)
           );
 
-          // produto de opção única não abre diálogo: seria um toque a mais para
-          // escolher o que já estava escolhido
-          const opcaoUnica =
-            produto.variants.length === 1 ? produto.variants[0] : null;
-          const disponivel = opcaoUnica?.available;
-          const maximo = Math.min(
-            QUANTIDADE_MAXIMA_POR_ITEM,
-            disponivel ?? QUANTIDADE_MAXIMA_POR_ITEM
-          );
-          const ultimas =
-            typeof disponivel === 'number' && disponivel > 0 && disponivel <= 5;
-          const quantidade = quantidades[opcaoUnica?.id ?? ''] ?? 0;
-
           return (
             <Paper key={produto.id} sx={styles.cartao}>
               <Box sx={styles.vitrine}>
@@ -533,106 +494,49 @@ function ProductOffer({
 
                 {/* As opções saíram do cartão e foram para o diálogo: o
                     cartão fica só com o que foi escolhido, e produto de oito
-                    tamanhos deixa de esticar a grade inteira. */}
+                    tamanhos deixa de esticar a grade inteira.
+
+                    Vale para qualquer quantidade de variantes, inclusive uma.
+                    O atalho que existia aqui — produto de opção única com o
+                    contador direto no cartão — fazia dois cartões vizinhos se
+                    comportarem de formas diferentes ao mesmo clique, e o da
+                    esquerda ensinava errado o da direita. */}
                 <Stack sx={{ mt: 'auto', pt: 1, gap: 1 }}>
-                  {opcaoUnica ? (
-                    <Stack direction="row" sx={styles.linhaQuantidade}>
-                      <Box sx={{ minWidth: 0 }}>
-                        <Typography
-                          variant="body2"
-                          color={semEstoque ? 'text.disabled' : 'text.primary'}
-                        >
-                          Quantidade
-                        </Typography>
-                        {(semEstoque || ultimas) && (
-                          <Typography
-                            variant="caption"
-                            color={
-                              semEstoque ? 'text.disabled' : 'warning.main'
-                            }
-                            sx={{ display: 'block', lineHeight: 1.2 }}
-                          >
-                            {semEstoque
-                              ? 'Esgotado'
-                              : disponivel === 1
-                                ? 'Última unidade'
-                                : `Últimas ${disponivel}`}
-                          </Typography>
-                        )}
-                      </Box>
-
-                      {!semEstoque && (
-                        <Stack
-                          direction="row"
-                          alignItems="center"
-                          sx={styles.passo}
-                        >
-                          <IconButton
-                            size="small"
-                            aria-label={`Remover uma unidade de ${produto.name}`}
-                            disabled={quantidade === 0 || loading}
-                            onClick={() => alterar(opcaoUnica.id!, -1, maximo)}
-                          >
-                            <Remove fontSize="small" />
-                          </IconButton>
-                          <Typography
-                            variant="body2"
-                            sx={styles.contador}
-                            aria-live="polite"
-                          >
-                            {quantidade}
-                          </Typography>
-                          <IconButton
-                            size="small"
-                            color="primary"
-                            aria-label={`Adicionar uma unidade de ${produto.name}`}
-                            disabled={quantidade >= maximo || loading}
-                            onClick={() => alterar(opcaoUnica.id!, 1, maximo)}
-                          >
-                            <Add fontSize="small" />
-                          </IconButton>
-                        </Stack>
-                      )}
-                    </Stack>
-                  ) : (
-                    <>
-                      {noCartao.length > 0 && (
-                        <Box sx={styles.tamanhos}>
-                          {noCartao.map((variante) => (
-                            <Box key={variante.id} sx={styles.chipEscolhido}>
-                              {variante.name}
-                              <Box
-                                component="span"
-                                sx={styles.multiplicador}
-                              >{`×${quantidades[variante.id!]}`}</Box>
-                            </Box>
-                          ))}
+                  {noCartao.length > 0 && (
+                    <Box sx={styles.tamanhos}>
+                      {noCartao.map((variante) => (
+                        <Box key={variante.id} sx={styles.chipEscolhido}>
+                          {variante.name}
+                          <Box
+                            component="span"
+                            sx={styles.multiplicador}
+                          >{`×${quantidades[variante.id!]}`}</Box>
                         </Box>
-                      )}
-
-                      <Button
-                        fullWidth
-                        size="small"
-                        variant={escolhidas > 0 ? 'text' : 'outlined'}
-                        disabled={loading || semEstoque}
-                        startIcon={
-                          escolhidas > 0 ? (
-                            <EditOutlined fontSize="small" />
-                          ) : (
-                            <LocalMallOutlined fontSize="small" />
-                          )
-                        }
-                        onClick={() => setProdutoAberto(produto.id!)}
-                        sx={styles.botaoOpcoes}
-                      >
-                        {semEstoque
-                          ? 'Esgotado'
-                          : escolhidas > 0
-                            ? 'Alterar escolha'
-                            : 'Adicionar à sacola'}
-                      </Button>
-                    </>
+                      ))}
+                    </Box>
                   )}
+
+                  <Button
+                    fullWidth
+                    size="small"
+                    variant={escolhidas > 0 ? 'text' : 'outlined'}
+                    disabled={loading || semEstoque}
+                    startIcon={
+                      escolhidas > 0 ? (
+                        <EditOutlined fontSize="small" />
+                      ) : (
+                        <LocalMallOutlined fontSize="small" />
+                      )
+                    }
+                    onClick={() => setProdutoAberto(produto.id!)}
+                    sx={styles.botaoOpcoes}
+                  >
+                    {semEstoque
+                      ? 'Esgotado'
+                      : escolhidas > 0
+                        ? 'Alterar escolha'
+                        : 'Adicionar à sacola'}
+                  </Button>
                 </Stack>
               </Stack>
 

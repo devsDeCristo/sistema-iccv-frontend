@@ -107,12 +107,36 @@ function MinorTermNotice({
     arquivoRef.current?.click();
   };
 
+  const tinta = alpha(theme.palette.warning.main, 0.06);
+  const papel = theme.palette.background.paper;
+  const listra = alpha(theme.palette.warning.main, 0.55);
+
   const styles = {
+    /**
+     * A borda zebrada é feita de camadas de fundo, e não de `border-image`.
+     *
+     * `border-image` desenharia as listras, mas o navegador ignora o
+     * `border-radius` quando ela existe — o cartão perderia os cantos
+     * arredondados de todo o resto do sistema.
+     *
+     * Então a borda fica transparente, só reservando a faixa, e o desenho vem
+     * do fundo em três camadas: as listras recortadas na borda inteira, e
+     * sobre elas o papel opaco e a tinta de aviso recortados só na área
+     * interna. O papel precisa ser opaco no meio — sem ele as listras
+     * apareceriam por baixo do texto, que é justamente o que não se quer.
+     */
     caixa: {
       p: { xs: 2, sm: 2.5 },
       borderRadius: 2,
-      borderColor: alpha(theme.palette.warning.main, 0.5),
-      backgroundColor: alpha(theme.palette.warning.main, 0.06),
+      border: '3px solid transparent',
+      backgroundColor: papel,
+      backgroundImage: [
+        `linear-gradient(${tinta}, ${tinta})`,
+        `linear-gradient(${papel}, ${papel})`,
+        `repeating-linear-gradient(45deg, ${listra} 0 5px, transparent 5px 10px)`,
+      ].join(', '),
+      backgroundOrigin: 'border-box',
+      backgroundClip: 'padding-box, padding-box, border-box',
     },
     selo: {
       flexShrink: 0,
@@ -228,8 +252,8 @@ function MinorTermNotice({
                 color="text.secondary"
                 sx={{ display: 'block', mt: 0.5 }}
               >
-                Se ainda não tem em mãos, pode enviar depois em Minhas
-                Inscrições — sua vaga fica guardada.
+                Se ainda não tem em mãos, pode enviar depois em <b>Minhas
+                Inscrições</b> ou enviar a organização — sua vaga fica guardada.
               </Typography>
             </>
           )}
