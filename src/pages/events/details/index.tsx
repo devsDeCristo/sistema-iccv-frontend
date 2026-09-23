@@ -4,9 +4,7 @@ import {
   alpha,
   Box,
   Button,
-  darken,
   IconButton,
-  lighten,
   LinearProgress,
   Paper,
   Skeleton,
@@ -143,21 +141,6 @@ function EventsDetails() {
     ehCorHex(paleta?.primary) ||
     ehCorHex(paleta?.secondary) ||
     ehCorHex(paleta?.tertiary);
-  const escuroDoTema = theme.palette.mode === 'dark';
-
-  /**
-   * Degradê de uma cor só: o mesmo tom em duas pontas, uma clareada e outra
-   * escurecida. `invertido` é o hover — a luz troca de lado, em vez de a cor
-   * mudar.
-   */
-  const degradeDaCor = (cor: string, invertido = false) => {
-    const claro = lighten(cor, escuroDoTema ? 0.22 : 0.12);
-    const fechado = darken(cor, escuroDoTema ? 0.14 : 0.24);
-    const pontas = invertido ? [fechado, claro] : [claro, fechado];
-
-    return `linear-gradient(120deg, ${pontas[0]}, ${pontas[1]})`;
-  };
-
   const corPrimaria = corOuPadrao(paleta?.primary, AZUL_VIVO);
   const corSecundaria = corOuPadrao(paleta?.secondary, corPrimaria);
   const corTerciaria = corOuPadrao(paleta?.tertiary, corPrimaria);
@@ -293,32 +276,19 @@ function EventsDetails() {
         fontSize: '1rem',
         fontWeight: 700,
         color: '#fff',
-        boxShadow: `0 10px 26px -8px ${alpha(corPrimaria, 0.8)}`,
-        /**
-         * Com paleta, o degradê é feito da própria cor do evento — clareada de
-         * um lado, escurecida do outro —, e não do azul-violeta do sistema, que
-         * por cima de uma marca vermelha viraria uma terceira cor que não é de
-         * ninguém.
-         *
-         * A dosagem muda com o tema: no escuro o degradê parte de um tom mais
-         * claro, porque um botão que só escurece sobre fundo escuro perde o
-         * relevo; no claro ele fecha mais, para a letra branca se sustentar.
-         */
-        ...(temPaleta
-          ? {
-              backgroundImage: degradeDaCor(corPrimaria),
-              '&:hover': {
-                backgroundImage: degradeDaCor(corPrimaria, true),
-                boxShadow: `0 12px 30px -8px ${alpha(corPrimaria, 0.85)}`,
-              },
-            }
-          : {
-              backgroundImage: `linear-gradient(120deg, ${AZUL_VIVO}, ${VIOLETA_VIVO})`,
-              '&:hover': {
-                backgroundImage: `linear-gradient(120deg, ${VIOLETA_VIVO}, ${AZUL_VIVO})`,
-                boxShadow: `0 12px 30px -8px ${alpha(VIOLETA_VIVO, 0.85)}`,
-              },
-            }),
+        // o botão fica fora da paleta do evento, no azul-violeta do sistema: a
+        // cor cadastrada pinta as fichas e os detalhes, e não a ação principal
+        boxShadow: `0 10px 26px -8px ${alpha(AZUL_VIVO, 0.8)}`,
+        backgroundImage: `linear-gradient(120deg, ${AZUL_VIVO}, ${VIOLETA_VIVO})`,
+        // no hover o botão cresce um pouco e a sombra acompanha; o fundo fica
+        // onde está
+        transition: theme.transitions.create(['transform', 'box-shadow'], {
+          duration: 220,
+        }),
+        '&:hover, &:focus-visible': {
+          transform: 'scale(1.035)',
+          boxShadow: `0 14px 34px -8px ${alpha(VIOLETA_VIVO, 0.85)}`,
+        },
       },
       botaoVidro: {
         height: 50,
@@ -721,7 +691,21 @@ function EventsDetails() {
           >
             <Button
               startIcon={<ConfirmationNumber />}
-              sx={styles.botaoPrincipal}
+              /**
+               * Aqui em cima a sombra é branca, e só aqui: a da cor do botão
+               * cai sobre uma foto escura e colorida e simplesmente some. O
+               * halo claro separa o botão do que está atrás sem inventar cor
+               * nova. O resto — degradê e o crescer no hover — é o do estilo
+               * base, igual ao da coluna dos grupos.
+               */
+              sx={{
+                ...styles.botaoPrincipal,
+                boxShadow: `0 10px 30px -6px ${alpha('#fff', 0.5)}`,
+                '&:hover, &:focus-visible': {
+                  ...styles.botaoPrincipal['&:hover, &:focus-visible'],
+                  boxShadow: `0 14px 38px -6px ${alpha('#fff', 0.65)}`,
+                },
+              }}
               onClick={irParaInscricao}
             >
               Inscreva-se

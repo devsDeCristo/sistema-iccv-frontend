@@ -32,7 +32,7 @@ const CAMPOS: { nome: CampoDeCor; rotulo: string; pinta: string }[] = [
   {
     nome: 'primaryColor',
     rotulo: 'Primária',
-    pinta: 'Botões, barras e detalhes · card Quando',
+    pinta: 'Barras e detalhes · card Quando',
   },
   { nome: 'secondaryColor', rotulo: 'Secundária', pinta: 'Card Onde' },
   {
