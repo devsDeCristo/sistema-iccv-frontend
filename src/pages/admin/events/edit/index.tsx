@@ -321,7 +321,10 @@ function Edit() {
       formMethods: methodsEventLogo,
       onSubmit: registrationSettingsSubmit,
       component: FormLogoAndCover,
-      props: { eventName: methodsGeneralInfo.getValues().name },
+      props: {
+        eventName: methodsGeneralInfo.getValues().name,
+        eventType: eventTypeSelected,
+      },
     },
     {
       step: 4,

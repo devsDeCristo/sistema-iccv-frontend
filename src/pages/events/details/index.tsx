@@ -103,6 +103,8 @@ function EventsDetails() {
   const fundo = theme.palette.background.default;
   /** Evento com texto de apresentação: é ele que ocupa a coluna larga */
   const temSobre = !!event?.data?.description?.trim();
+  /** Evento com logo: é ela que dá altura ao bloco sobre a capa */
+  const temLogo = !!event?.data?.logoUrl;
 
   const styles = useMemo(
     () => ({
@@ -120,7 +122,13 @@ function EventsDetails() {
         mt: -4,
         minHeight: { xs: 400, sm: 440, md: 480 },
         display: 'flex',
-        alignItems: 'flex-end',
+        /**
+         * Com logo, o bloco é alto e se apoia no rodapé do cartaz. Sem ela, ele
+         * encolhe e o mesmo apoio deixava um vazio em cima do primeiro selo —
+         * então o bloco vai para o meio da capa, e a sobra se divide em cima e
+         * embaixo em vez de ficar toda de um lado.
+         */
+        alignItems: temLogo ? 'flex-end' : 'center',
         overflow: 'hidden',
       },
       botaoVoltar: {
@@ -167,8 +175,11 @@ function EventsDetails() {
         maxWidth: 1200,
         mx: 'auto',
         px: 0,
-        pt: 6,
-        pb: { xs: 6, md: 8 },
+        // centrado, o bloco pede o mesmo respiro dos dois lados; no rodapé ele
+        // ganha mais folga por baixo, onde a capa vira página
+        ...(temLogo
+          ? { pt: 6, pb: { xs: 6, md: 8 } }
+          : { py: { xs: 5, md: 6 } }),
       },
       logo: {
         maxHeight: { xs: 56, sm: 72 },
@@ -395,7 +406,7 @@ function EventsDetails() {
         '&:hover': { backgroundColor: '#1ebe5d' },
       },
     }),
-    [theme, escuro, fundo, temSobre]
+    [theme, escuro, fundo, temSobre, temLogo]
   );
 
   const contagem = contagemRegressiva(event?.startDate, event?.endDate);

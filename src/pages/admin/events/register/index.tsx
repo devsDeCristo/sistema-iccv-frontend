@@ -279,7 +279,10 @@ function Register() {
       formMethods: methodsEventLogo,
       onSubmit: eventLogoSubmit,
       component: FormLogoAndCover,
-      props: { eventName: methodsGeneralInfo.getValues().name },
+      props: {
+        eventName: methodsGeneralInfo.getValues().name,
+        eventType: eventTypeSelected,
+      },
     },
     {
       step: 5,

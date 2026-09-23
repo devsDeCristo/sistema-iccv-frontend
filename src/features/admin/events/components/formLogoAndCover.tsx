@@ -18,8 +18,10 @@ import { EventLogoFormType } from '../types';
 import {
   Close,
   CloudUpload,
+  ConfirmationNumber,
   DesktopWindows,
   PhoneAndroid,
+  ShoppingBagOutlined,
   SwapHoriz,
 } from '@mui/icons-material';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -38,12 +40,12 @@ const LIMITE_ARQUIVO = 2 * 1024 * 1024;
  * vai ficar. O que o admin precisa enxergar é o **recorte** — a capa entra em
  * `cover`, então imagem alta perde topo e base.
  *
- * Se o cartaz mudar de novo, estes números, o tingimento e o véu mudam com
- * ele, ou a prévia passa a mostrar um enquadramento que não existe.
+ * Se o cartaz mudar de novo, estes números, o filtro, o véu, o apoio do bloco
+ * de texto e os controles emulados mudam com ele, ou a prévia passa a mostrar
+ * um enquadramento que não existe.
  */
 const PROPORCAO_DESKTOP = '5 / 2';
 const PROPORCAO_CELULAR = '9 / 10';
-const ALTURA_LOGO = 64;
 /** largura de um celular comum, para a prévia no modo estreito */
 const LARGURA_CELULAR = 360;
 
@@ -53,13 +55,22 @@ type PreviaCabecalhoProps = {
   capa: string | null;
   logo: string | null;
   nomeEvento?: string;
+  /** categoria do evento: é ela que vira o selo sobre a capa */
+  tipoEvento?: string | null;
 };
 
 /** A prévia do cabeçalho como ele aparece na página do evento. */
-function PreviaCabecalho({ capa, logo, nomeEvento }: PreviaCabecalhoProps) {
+function PreviaCabecalho({
+  capa,
+  logo,
+  nomeEvento,
+  tipoEvento,
+}: PreviaCabecalhoProps) {
   const theme = useTheme();
   const [largura, setLargura] = useState<'desktop' | 'celular'>('desktop');
   const semCapa = !capa;
+  const pequeno = largura === 'celular';
+  const fundo = theme.palette.background.default;
 
   const styles = {
     paper: {
@@ -93,76 +104,136 @@ function PreviaCabecalho({ capa, logo, nomeEvento }: PreviaCabecalhoProps) {
       backgroundPosition: '0 0, 8px 8px',
     },
     pagina: {
-      width: largura === 'celular' ? LARGURA_CELULAR : '100%',
+      width: pequeno ? LARGURA_CELULAR : '100%',
       maxWidth: '100%',
       transition: theme.transitions.create('width'),
     },
     banner: {
       position: 'relative',
-      aspectRatio:
-        largura === 'celular' ? PROPORCAO_CELULAR : PROPORCAO_DESKTOP,
+      aspectRatio: pequeno ? PROPORCAO_CELULAR : PROPORCAO_DESKTOP,
       borderRadius: 3,
       overflow: 'hidden',
       display: 'flex',
-      alignItems: 'flex-end',
+      // como na página: sem logo o bloco encolhe e vai para o meio da capa, em
+      // vez de ficar no rodapé deixando um vazio sobre o nome
+      alignItems: logo ? 'flex-end' : 'center',
       bgcolor: theme.palette.background.default,
     },
-    // o tingimento da página: é ele que tira a capa do genérico, e sem ele
-    // aqui o admin escolhe a foto contra um fundo que não vai existir
-    tinta: {
+    // as duas camadas da página, na ordem de lá: um filtro que assenta a foto
+    // e o véu que dissolve a capa no fundo da página. É por eles que o admin vê
+    // se a logo clara vai sumir no topo ou o nome no rodapé
+    filtro: {
       position: 'absolute',
       inset: 0,
-      backgroundImage: `linear-gradient(135deg, ${alpha(
-        AZUL_VIVO,
-        theme.palette.mode === 'dark' ? 0.5 : 0.42
-      )}, ${alpha(
-        VIOLETA_VIVO,
-        theme.palette.mode === 'dark' ? 0.42 : 0.3
-      )} 70%)`,
+      backgroundColor: alpha('#000', 0.2),
     },
-    // o véu da página: capa clara com logo clara sumia, e é por ele que o
-    // admin vê como a logo e o nome vão pousar de verdade
     veu: {
       position: 'absolute',
       inset: 0,
-      backgroundImage: `linear-gradient(180deg, ${alpha(
-        '#000',
-        theme.palette.mode === 'dark' ? 0.45 : 0.28
-      )} 0%, ${alpha(
-        '#000',
-        theme.palette.mode === 'dark' ? 0.2 : 0.1
-      )} 42%, ${alpha(
-        '#000',
-        theme.palette.mode === 'dark' ? 0.72 : 0.55
-      )} 100%)`,
+      backgroundImage: `linear-gradient(180deg, transparent 42%, ${alpha(
+        fundo,
+        0.18
+      )} 68%, ${fundo} 100%)`,
     },
+    // a capa é camada de fundo, como na página: solta no `flex` do banner ela
+    // virava item da linha e dividia a largura com o nome do evento — metade
+    // do cartaz com foto, metade sem
     capa: {
+      position: 'absolute',
+      inset: 0,
       display: 'block',
       width: '100%',
       height: '100%',
       objectFit: 'cover',
-      
     },
+    /**
+     * Daqui para baixo são os números da página, e não versões reduzidas deles:
+     * o admin está escolhendo a arte contra o que vai ficar por cima dela — o
+     * bloco de texto e os botões ocupam o rodapé, e é no que sobra que a foto
+     * pode ter detalhe. Com texto menor a prévia diria que sobra espaço onde
+     * não sobra.
+     *
+     * `pequeno` é o `xs` da página, e a prévia larga é o `md` — o que manda é a
+     * largura simulada, não a da janela do admin.
+     */
     logo: {
-      maxHeight: ALTURA_LOGO,
-      maxWidth: '55%',
+      maxHeight: pequeno ? 56 : 72,
+      maxWidth: '60%',
       objectFit: 'contain',
-      mb: 1,
+      mb: 0.5,
       filter: 'drop-shadow(0 4px 14px rgba(0,0,0,0.5))',
     },
     // o conteúdo do cartaz mora sobre a capa, e não num cartão abaixo dela
     textoDoCartaz: {
       position: 'relative',
-      width: '100%',
-      p: { xs: 1.5, sm: 2.5 },
+      width: 'calc(100% - 64px)',
+      mx: 'auto',
+      // centrado, o bloco pede o mesmo respiro dos dois lados; no rodapé ele
+      // ganha mais folga por baixo, onde a capa vira página
+      ...(logo ? { pt: 6, pb: pequeno ? 6 : 8 } : { py: pequeno ? 5 : 6 }),
+    },
+    selo: {
+      display: 'inline-block',
+      px: 1.25,
+      py: 0.4,
+      borderRadius: 999,
+      fontSize: 11,
+      fontWeight: 800,
+      letterSpacing: '0.08em',
+      textTransform: 'uppercase',
+      color: '#fff',
+      backgroundColor: alpha('#fff', 0.18),
+      border: `1px solid ${alpha('#fff', 0.35)}`,
+      backdropFilter: 'blur(6px)',
     },
     nomeNoCartaz: {
       color: '#fff',
       fontWeight: 800,
       letterSpacing: '-0.02em',
-      lineHeight: 1.1,
-      fontSize: largura === 'celular' ? '1.25rem' : '1.6rem',
+      lineHeight: 1.05,
+      fontSize: pequeno ? '2rem' : '3.4rem',
       textShadow: '0 2px 18px rgba(0,0,0,0.45)',
+      maxWidth: 760,
+      // duas linhas no máximo: nome comprido empurrava os botões para fora do
+      // recorte e a prévia mentia sobre o espaço que sobra
+      display: '-webkit-box',
+      WebkitLineClamp: 2,
+      WebkitBoxOrient: 'vertical' as const,
+      overflow: 'hidden',
+    },
+    botoes: {
+      display: 'flex',
+      flexDirection: pequeno ? 'column' : 'row',
+      alignItems: pequeno ? 'flex-start' : 'center',
+      gap: 1.5,
+      mt: 1.5,
+    },
+    botaoPrincipal: {
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: 1,
+      height: 50,
+      px: 3.5,
+      borderRadius: 1.5,
+      fontSize: '1rem',
+      fontWeight: 700,
+      color: '#fff',
+      backgroundImage: `linear-gradient(120deg, ${AZUL_VIVO}, ${VIOLETA_VIVO})`,
+      boxShadow: `0 10px 26px -8px ${alpha(AZUL_VIVO, 0.8)}`,
+    },
+    botaoVidro: {
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: 1,
+      height: 50,
+      px: 3,
+      borderRadius: 999,
+      fontSize: '1rem',
+      fontWeight: 600,
+      color: '#fff',
+      border: `1px solid ${alpha('#fff', 0.5)}`,
+      backgroundColor: alpha('#000', 0.2),
+      backdropFilter: 'blur(6px)',
     },
   };
 
@@ -211,12 +282,13 @@ function PreviaCabecalho({ capa, logo, nomeEvento }: PreviaCabecalhoProps) {
               alt="Prévia da capa do evento"
               sx={styles.capa}
             />
-            <Box sx={styles.tinta} />
+            <Box sx={styles.filtro} />
             <Box sx={styles.veu} />
 
-            {/* nome e logo sobre a capa, como na página: é essa sobreposição
-                que decide se a foto pode ter detalhe no canto de baixo */}
-            <Box sx={styles.textoDoCartaz}>
+            {/* a página inteira sobre a capa — selo, nome e os dois botões — e
+                não só a logo: é essa sobreposição que decide onde a foto pode
+                ter detalhe e onde ela precisa ser fundo */}
+            <Box sx={styles.textoDoCartaz} aria-hidden>
               {logo && (
                 <Box
                   component="img"
@@ -225,9 +297,27 @@ function PreviaCabecalho({ capa, logo, nomeEvento }: PreviaCabecalhoProps) {
                   sx={styles.logo}
                 />
               )}
-              <Typography sx={styles.nomeNoCartaz} noWrap>
+
+              {tipoEvento && (
+                <Box sx={{ mb: 1.5 }}>
+                  <Box sx={styles.selo}>{tipoEvento}</Box>
+                </Box>
+              )}
+
+              <Typography component="p" sx={styles.nomeNoCartaz}>
                 {nomeEvento || 'Nome do evento'}
               </Typography>
+
+              <Box sx={styles.botoes}>
+                <Box sx={styles.botaoPrincipal}>
+                  <ConfirmationNumber sx={{ fontSize: 20 }} />
+                  Inscreva-se
+                </Box>
+                <Box sx={styles.botaoVidro}>
+                  <ShoppingBagOutlined sx={{ fontSize: 20 }} />
+                  Produtos do evento
+                </Box>
+              </Box>
             </Box>
           </Box>
         </Box>
@@ -459,9 +549,11 @@ function CampoImagem({
 type FormLogoAndCoverProps = {
   /** nome vindo do passo de informações gerais, só para dar contexto à prévia */
   eventName?: string;
+  /** categoria escolhida no primeiro passo: vira o selo sobre a capa */
+  eventType?: string | null;
 };
 
-function FormLogoAndCover({ eventName }: FormLogoAndCoverProps) {
+function FormLogoAndCover({ eventName, eventType }: FormLogoAndCoverProps) {
   const {
     control,
     setError,
@@ -538,6 +630,7 @@ function FormLogoAndCover({ eventName }: FormLogoAndCoverProps) {
           capa={coverImagem}
           logo={logoImagem}
           nomeEvento={eventName}
+          tipoEvento={eventType}
         />
       </Grid>
 
