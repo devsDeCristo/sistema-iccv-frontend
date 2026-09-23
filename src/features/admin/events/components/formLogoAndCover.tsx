@@ -6,7 +6,6 @@ import {
   Grid,
   IconButton,
   Paper,
-  Skeleton,
   Stack,
   ToggleButton,
   ToggleButtonGroup,
@@ -26,17 +25,25 @@ import {
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
 import CapaLogin from '../../../../assets/capaLogin2.jpg';
+import { AZUL_VIVO, VIOLETA_VIVO } from '../../../../themes';
 import { formatarTamanho, usePreviaArquivo } from './uploadHelpers';
 
 const LIMITE_ARQUIVO = 2 * 1024 * 1024;
 
 /**
- * Medidas do banner da página do evento (src/pages/events/details). A prévia
- * copia elas para que o admin veja o recorte real — a faixa é baixa e a capa
- * entra em `cover`, então imagem alta perde topo e base.
+ * Proporções do cartaz da página do evento (src/pages/events/details).
+ *
+ * Proporção e não altura fixa: a prévia é mais estreita que a página de
+ * verdade, e repetir os pixels de lá faria a capa parecer bem mais alta do que
+ * vai ficar. O que o admin precisa enxergar é o **recorte** — a capa entra em
+ * `cover`, então imagem alta perde topo e base.
+ *
+ * Se o cartaz mudar de novo, estes números, o tingimento e o véu mudam com
+ * ele, ou a prévia passa a mostrar um enquadramento que não existe.
  */
-const ALTURA_BANNER = 150;
-const ALTURA_LOGO = 130;
+const PROPORCAO_DESKTOP = '5 / 2';
+const PROPORCAO_CELULAR = '9 / 10';
+const ALTURA_LOGO = 64;
 /** largura de um celular comum, para a prévia no modo estreito */
 const LARGURA_CELULAR = 360;
 
@@ -92,10 +99,42 @@ function PreviaCabecalho({ capa, logo, nomeEvento }: PreviaCabecalhoProps) {
     },
     banner: {
       position: 'relative',
-      height: ALTURA_BANNER,
-      borderRadius: '5px',
+      aspectRatio:
+        largura === 'celular' ? PROPORCAO_CELULAR : PROPORCAO_DESKTOP,
+      borderRadius: 3,
       overflow: 'hidden',
+      display: 'flex',
+      alignItems: 'flex-end',
       bgcolor: theme.palette.background.default,
+    },
+    // o tingimento da página: é ele que tira a capa do genérico, e sem ele
+    // aqui o admin escolhe a foto contra um fundo que não vai existir
+    tinta: {
+      position: 'absolute',
+      inset: 0,
+      backgroundImage: `linear-gradient(135deg, ${alpha(
+        AZUL_VIVO,
+        theme.palette.mode === 'dark' ? 0.5 : 0.42
+      )}, ${alpha(
+        VIOLETA_VIVO,
+        theme.palette.mode === 'dark' ? 0.42 : 0.3
+      )} 70%)`,
+    },
+    // o véu da página: capa clara com logo clara sumia, e é por ele que o
+    // admin vê como a logo e o nome vão pousar de verdade
+    veu: {
+      position: 'absolute',
+      inset: 0,
+      backgroundImage: `linear-gradient(180deg, ${alpha(
+        '#000',
+        theme.palette.mode === 'dark' ? 0.45 : 0.28
+      )} 0%, ${alpha(
+        '#000',
+        theme.palette.mode === 'dark' ? 0.2 : 0.1
+      )} 42%, ${alpha(
+        '#000',
+        theme.palette.mode === 'dark' ? 0.72 : 0.55
+      )} 100%)`,
     },
     capa: {
       display: 'block',
@@ -105,21 +144,25 @@ function PreviaCabecalho({ capa, logo, nomeEvento }: PreviaCabecalhoProps) {
       
     },
     logo: {
-      position: 'absolute',
-      top: '50%',
-      left: '50%',
-      transform: 'translate(-50%, -50%)',
-      height: ALTURA_LOGO,
-      maxHeight: '88%',
-      maxWidth: '80%',
+      maxHeight: ALTURA_LOGO,
+      maxWidth: '55%',
       objectFit: 'contain',
+      mb: 1,
+      filter: 'drop-shadow(0 4px 14px rgba(0,0,0,0.5))',
     },
-    cartaoTitulo: {
-      mt: 1.5,
-      p: 2,
-      border: `1px solid ${theme.palette.divider}`,
-      borderRadius: 2,
-      bgcolor: theme.palette.background.paper,
+    // o conteúdo do cartaz mora sobre a capa, e não num cartão abaixo dela
+    textoDoCartaz: {
+      position: 'relative',
+      width: '100%',
+      p: { xs: 1.5, sm: 2.5 },
+    },
+    nomeNoCartaz: {
+      color: '#fff',
+      fontWeight: 800,
+      letterSpacing: '-0.02em',
+      lineHeight: 1.1,
+      fontSize: largura === 'celular' ? '1.25rem' : '1.6rem',
+      textShadow: '0 2px 18px rgba(0,0,0,0.45)',
     },
   };
 
@@ -168,24 +211,24 @@ function PreviaCabecalho({ capa, logo, nomeEvento }: PreviaCabecalhoProps) {
               alt="Prévia da capa do evento"
               sx={styles.capa}
             />
-            {logo && (
-              <Box
-                component="img"
-                src={logo}
-                alt="Prévia da logo do evento"
-                sx={styles.logo}
-              />
-            )}
-          </Box>
+            <Box sx={styles.tinta} />
+            <Box sx={styles.veu} />
 
-          {/* o cartão de título vem logo abaixo do banner na página do evento:
-              sem ele a prévia perde a noção de escala */}
-          <Box sx={styles.cartaoTitulo}>
-            <Typography fontWeight={600} noWrap>
-              {nomeEvento || 'Nome do evento'}
-            </Typography>
-            <Skeleton variant="text" animation={false} width="45%" />
-            <Skeleton variant="text" animation={false} width="70%" />
+            {/* nome e logo sobre a capa, como na página: é essa sobreposição
+                que decide se a foto pode ter detalhe no canto de baixo */}
+            <Box sx={styles.textoDoCartaz}>
+              {logo && (
+                <Box
+                  component="img"
+                  src={logo}
+                  alt="Prévia da logo do evento"
+                  sx={styles.logo}
+                />
+              )}
+              <Typography sx={styles.nomeNoCartaz} noWrap>
+                {nomeEvento || 'Nome do evento'}
+              </Typography>
+            </Box>
           </Box>
         </Box>
       </Box>

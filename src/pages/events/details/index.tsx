@@ -1,19 +1,17 @@
-import { useEffect, useMemo } from 'react';
+import { ReactNode, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
+  alpha,
   Box,
   Button,
-  Divider,
-  Grid,
+  LinearProgress,
   Paper,
   Skeleton,
   Stack,
-  Tooltip,
   Typography,
   useTheme,
 } from '@mui/material';
 
-import { Header } from '../../../components/header';
 import { PageStyle } from '../../../components/pageStyle';
 import GoogleMap from '../../../components/mapWord';
 
@@ -21,13 +19,22 @@ import { useGetEvents } from '../../../features/admin/events/api/getEvents';
 import { EventDetails } from '../../../features/admin/events/types';
 import CapaLogin from '../../../assets/capaLogin2.jpg';
 import {
+  CalendarMonthOutlined,
+  ArrowBack,
   ConfirmationNumber,
+  PlaceOutlined,
   ShoppingBagOutlined,
   WhatsApp,
 } from '@mui/icons-material';
 import { useGetGroupsByUser } from '../../../features/admin/events/api/getGroupsByUser';
 import ReactQuillViewer from '../../../components/reactQuill';
 import { temDisponivel } from '../../../features/admin/events/products';
+import {
+  contagemRegressiva,
+  formatarPeriodo,
+  ocupacao,
+} from '../../../features/events/utils';
+import { AZUL_VIVO, VIOLETA_VIVO } from '../../../themes';
 
 function EventsDetails() {
   const { id = '' } = useParams();
@@ -91,113 +98,266 @@ function EventsDetails() {
     scrollToTop();
   }, []);
 
+  const escuro = theme.palette.mode === 'dark';
+  const fundo = theme.palette.background.default;
+  /** Evento com texto de apresentação: é ele que ocupa a coluna larga */
+  const temSobre = !!event?.data?.description?.trim();
+
   const styles = useMemo(
     () => ({
-      title: {
-        fontSize: '1.3rem',
-        fontWeight: 'bold',
-        mb: '0.5rem',
-      },
-      subtitle: {
-        fontSize: '0.9rem',
-        color: theme.palette.text.secondary,
-        mt: '-0.7rem',
-        mb: '0.7rem',
-        maxWidth: '100%',
+      /**
+       * O cartaz sangra até a borda da tela.
+       *
+       * `PageStyle` dá 32px de respiro à página inteira, e é justamente esse
+       * respiro que fazia a capa parecer uma figura colada num formulário. As
+       * margens negativas devolvem a largura cheia — a imagem encosta nas
+       * bordas e a página começa por ela, não por uma moldura.
+       */
+      cartaz: {
+        position: 'relative',
+        mx: -4,
+        mt: -4,
+        minHeight: { xs: 400, sm: 440, md: 480 },
+        display: 'flex',
+        alignItems: 'flex-end',
         overflow: 'hidden',
-        textOverflow: 'ellipsis',
       },
-      text: {
-        fontSize: '0.9rem',
-      },
-      textGroup: {
-        fontSize: '1rem',
-        fontWeight: 500,
-      },
-      paper: {
-        p: 3,
-      },
-      error: {
-        color: theme.palette.warning.main,
-        fontWeight: 500,
-      },
-
-      stackRight: { width: { xs: '100%', lg: '65%' } },
-      stackLeft: { width: { xs: '100%', lg: '35%' }, gap: 4 },
-
-      stackContainer: {
-        position: 'relative',
-        /**
-         * No celular a ordem é a do documento: nome e descrição primeiro,
-         * depois inscrições e localização. Era `column-reverse`, que jogava a
-         * coluna lateral para cima do nome do evento.
-         */
-        flexDirection: { xs: 'column', lg: 'row' },
-        width: { xs: '100%', lg: '80%' },
-        ml: 'auto',
-        mr: 'auto',
-        gap: 4,
-      },
-
-      /* Banner */
-      bannerContainer: {
-        mt: 3,
-        width: { xs: '100%', lg: '80%' },
-        ml: 'auto',
-        mr: 'auto',
-        position: 'relative',
-
-        height: 150,
-        mb: 4,
-      },
-      bannerImage: {
-        width: '100%',
-        height: '100%',
-        objectFit: 'cover',
-        borderRadius: 5,
-      },
-      bannerLogo: {
+      botaoVoltar: {
         position: 'absolute',
-        top: '50%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)',
-        height: 130,
-
-        p: '6px',
-        borderRadius: 2,
-      },
-
-      /* Inscrições */
-      vacancyBox: {
-        borderRadius: 2,
-        border: '1px solid',
-        borderColor: theme.palette.divider,
-        mb: 2,
-        p: 2,
-      },
-      gridRow: {
-        mb: 1,
-      },
-      divider: {
-        mb: 1.5,
-      },
-      button: {
-        mt: 2,
-        height: 40,
+        top: { xs: 32, sm: 40 },
+        left: 'max(32px, calc((100% - 1120px) / 2))',
+        zIndex: 2,
+        minWidth: 'auto',
+        px: 1.5,
+        py: 0.75,
+        borderRadius: 1.5,
+        fontSize: '1rem',
+        color: '#fff',
         textTransform: 'none',
+        backgroundColor: alpha('#000', 0.28),
+        backdropFilter: 'blur(6px)',
+        '&:hover': {
+          color: '#fff',
+          backgroundColor: alpha('#000', 0.5),
+        },
+      },
+      capa: {
+        position: 'absolute',
+        inset: 0,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      },
+      filtro: {
+        position: 'absolute',
+        inset: 0,
+        backgroundColor: alpha('#000', 0.2),
+      },
+      veu: {
+        position: 'absolute',
+        inset: 0,
+        backgroundImage: `linear-gradient(180deg, transparent 42%, ${alpha(
+          fundo,
+          0.18
+        )} 68%, ${fundo} 100%)`,
+      },
+      conteudoDoCartaz: {
+        position: 'relative',
+        width: 'calc(100% - 64px)',
+        maxWidth: 1120,
+        mx: 'auto',
+        px: 0,
+        pt: 6,
+        pb: { xs: 6, md: 8 },
+      },
+      logo: {
+        maxHeight: { xs: 56, sm: 72 },
+        maxWidth: '60%',
+        objectFit: 'contain',
+        mb: 0.5,
+        filter: 'drop-shadow(0 4px 14px rgba(0,0,0,0.5))',
+      },
+      nome: {
+        color: '#fff',
+        fontWeight: 800,
+        letterSpacing: '-0.02em',
+        lineHeight: 1.05,
+        fontSize: { xs: '2rem', sm: '2.8rem', md: '3.4rem' },
+        textShadow: '0 2px 18px rgba(0,0,0,0.45)',
+        maxWidth: 760,
+      },
+      selo: {
+        px: 1.25,
+        py: 0.4,
+        borderRadius: 999,
+        fontSize: 11,
+        fontWeight: 800,
+        letterSpacing: '0.08em',
+        textTransform: 'uppercase',
+        color: '#fff',
+        backgroundColor: alpha('#fff', 0.18),
+        border: `1px solid ${alpha('#fff', 0.35)}`,
+        backdropFilter: 'blur(6px)',
+        whiteSpace: 'nowrap',
+      },
+      botaoPrincipal: {
+        height: 50,
+        px: 3.5,
+        borderRadius: 1.5,
+        textTransform: 'none',
+        fontSize: '1rem',
+        fontWeight: 700,
+        color: '#fff',
+        backgroundImage: `linear-gradient(120deg, ${AZUL_VIVO}, ${VIOLETA_VIVO})`,
+        boxShadow: `0 10px 26px -8px ${alpha(AZUL_VIVO, 0.8)}`,
+        '&:hover': {
+          backgroundImage: `linear-gradient(120deg, ${VIOLETA_VIVO}, ${AZUL_VIVO})`,
+          boxShadow: `0 12px 30px -8px ${alpha(VIOLETA_VIVO, 0.85)}`,
+        },
+      },
+      botaoVidro: {
+        height: 50,
+        px: 3,
+        borderRadius: 999,
+        textTransform: 'none',
+        fontWeight: 600,
+        color: '#fff',
+        borderColor: alpha('#fff', 0.5),
+        backgroundColor: alpha('#000', 0.2),
+        backdropFilter: 'blur(6px)',
+        '&:hover': {
+          borderColor: '#fff',
+          backgroundColor: alpha('#000', 0.35),
+        },
+      },
+
+      /** O conteúdo volta para a régua da página, já sem o sangramento */
+      corpo: {
+        maxWidth: 1120,
+        mx: 'auto',
+        mt: 0,
+        position: 'relative',
+        zIndex: 1,
+      },
+      /**
+       * As fichas montam na borda do cartaz: elas são o resumo que a pessoa
+       * procura primeiro — quando, onde, quanto ainda cabe.
+       */
+      fichas: {
+        display: 'grid',
+        gap: 1.25,
+        gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' },
+      },
+      ficha: {
+        p: { xs: 1.25, sm: 1.5 },
+        borderRadius: 2,
+        display: 'flex',
+        gap: 1,
+        alignItems: 'flex-start',
+        // vidro: deixa a cor do cartaz atravessar por baixo, e é o que amarra
+        // as fichas à imagem em vez de as deixar boiando
+        backgroundColor: alpha(theme.palette.background.paper, 0.86),
+        backdropFilter: 'blur(10px)',
+        border: `1px solid ${alpha(theme.palette.common.white, escuro ? 0.12 : 0.6)}`,
+        boxShadow: `0 12px 28px -22px ${alpha('#000', 0.55)}`,
+      },
+      selinho: {
+        width: 32,
+        height: 32,
+        flexShrink: 0,
+        borderRadius: 1.5,
+        display: 'grid',
+        placeItems: 'center',
+        color: AZUL_VIVO,
+        backgroundColor: alpha(AZUL_VIVO, 0.12),
+      },
+
+      secao: { mt: { xs: 5, md: 7 } },
+      tituloDeSecao: {
+        fontSize: { xs: '1.3rem', sm: '1.6rem' },
+        fontWeight: 800,
+        letterSpacing: '-0.01em',
+      },
+      risco: {
+        width: 46,
+        height: 4,
+        borderRadius: 999,
+        mb: 1.5,
+        backgroundImage: `linear-gradient(90deg, ${AZUL_VIVO}, ${VIOLETA_VIVO})`,
+      },
+
+      /**
+       * Descrição e grupos lado a lado: são as duas perguntas de quem chega —
+       * o que é isso, e onde eu entro. Empilhados, a lista de grupos ficava
+       * depois de um texto que pode ser longo, e o convite sumia da dobra.
+       *
+       * Sem descrição não há o que emparelhar: aí os grupos tomam a largura
+       * toda, em vez de deixar metade da tela vazia.
+       */
+      duasColunas: {
+        display: 'grid',
+        gap: { xs: 4, md: 4 },
+        alignItems: 'start',
+        gridTemplateColumns: {
+          xs: '1fr',
+          md: 'minmax(0, 1.85fr) minmax(250px, 0.75fr)',
+        },
+      },
+      sobre: {
+        minHeight: temSobre ? undefined : { xs: 160, md: 260 },
+      },
+      grade: {
+        display: 'grid',
+        gap: 1,
+        gridTemplateColumns: {
+          xs: '1fr',
+          sm: '1fr',
+        },
+      },
+      cartaoDeGrupo: {
+        px: 1.5,
+        py: 1.25,
+        borderRadius: 2,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 0.75,
+        cursor: 'pointer',
+        border: `1px solid ${theme.palette.divider}`,
+        transition: theme.transitions.create([
+          'border-color',
+          'background-color',
+        ]),
+        '&:hover, &:focus-visible': {
+          borderColor: alpha(AZUL_VIVO, 0.6),
+          backgroundColor: theme.palette.action.hover,
+        },
+      },
+      barra: {
+        height: 5,
+        borderRadius: 999,
+        backgroundColor: alpha(theme.palette.text.primary, 0.08),
+      },
+      moldura: {
+        borderRadius: 3,
+        overflow: 'hidden',
+        border: `1px solid ${theme.palette.divider}`,
+      },
+      botao: {
+        height: 46,
+        borderRadius: 999,
+        textTransform: 'none',
+        fontWeight: 600,
+      },
+      whatsapp: {
+        color: 'white',
+        backgroundColor: '#25D366',
+        '&:hover': { backgroundColor: '#1ebe5d' },
       },
     }),
-    [theme]
+    [theme, escuro, fundo, temSobre]
   );
 
-  const getVagasRestantes = (group: EventDetails['groupRoles'][0]) => {
-    const totalRegistrados = group.roles.reduce(
-      (sum, role) => sum + (role?.registered || 0),
-      0
-    );
+  const contagem = contagemRegressiva(event?.startDate, event?.endDate);
 
-    return Math.max((group.capacity || 0) - totalRegistrados, 0);
-  };
   const havaOneFieldLocal = !!(
     event?.data?.localName ||
     event?.data?.address ||
@@ -206,185 +366,164 @@ function EventsDetails() {
     event?.data?.state ||
     event?.data?.zipCode
   );
-  const stringLocal = () => {
-    let local = 'Local:';
-    if (event?.data?.localName) local += ` ${event.data.localName}`;
-    if (event?.data?.address) local += ` - ${event.data.address}`;
-    if (event?.data?.neighborhood) local += ` - ${event.data.neighborhood} `;
-    if (event?.data?.city) local += ` - ${event.data.city}  `;
-    if (event?.data?.state) local += ` - ${event.data.state} `;
-    if (event?.data?.zipCode) local += ` - ${event.data.zipCode}`;
 
-    return local;
-  };
+  /** O endereço em uma linha só, sem os campos que o evento não preencheu */
+  const enderecoCompleto = [
+    event?.data?.address,
+    event?.data?.neighborhood,
+    event?.data?.city,
+    event?.data?.state,
+    event?.data?.zipCode,
+  ]
+    .filter((parte) => !!parte?.trim())
+    .join(' · ');
+
+  const cidade =
+    [event?.data?.city, event?.data?.state]
+      .filter((parte) => !!parte?.trim())
+      .join(' · ') || event?.data?.localName;
+
+  /** Vagas restantes somando todos os grupos — o número da ficha */
+  const vagasRestantes = (event?.groupRoles ?? []).reduce((soma, group) => {
+    const inscritos = group.roles.reduce(
+      (total, role) => total + (role?.registered || 0),
+      0
+    );
+
+    return soma + ocupacao(inscritos, group.capacity).restantes;
+  }, 0);
+
+  const irParaInscricao = () => navigate(`/eventos/${event.id}/inscricao`);
+
+  const Ficha = ({
+    icone,
+    rotulo,
+    valor,
+    apoio,
+  }: {
+    icone: ReactNode;
+    rotulo: string;
+    valor: string;
+    apoio?: string | null;
+  }) => (
+    <Paper elevation={0} sx={styles.ficha}>
+      <Box sx={styles.selinho}>{icone}</Box>
+      <Box sx={{ minWidth: 0 }}>
+        <Typography
+          variant="caption"
+          color="text.secondary"
+          sx={{ textTransform: 'uppercase', letterSpacing: '0.06em' }}
+        >
+          {rotulo}
+        </Typography>
+        <Typography fontWeight={700} sx={{ lineHeight: 1.3 }}>
+          {valor}
+        </Typography>
+        {apoio && (
+          <Typography variant="caption" color="text.secondary">
+            {apoio}
+          </Typography>
+        )}
+      </Box>
+    </Paper>
+  );
 
   if (isLoading) {
     return (
       <PageStyle>
-        <Header title="Detalhes do Evento" buttonBack pageBack="/home" />
+        <Skeleton variant="rectangular" sx={{ ...styles.cartaz, mb: 0 }} />
 
-        <Stack sx={styles.bannerContainer}>
-          <Skeleton
-            variant="rectangular"
-            width="100%"
-            height="100%"
-            sx={{ borderRadius: 5 }}
-          />
-        </Stack>
+        <Box sx={styles.corpo}>
+          <Box sx={styles.fichas}>
+            {[0, 1, 2].map((item) => (
+              <Skeleton key={item} variant="rounded" height={86} />
+            ))}
+          </Box>
 
-        <Stack sx={styles.stackContainer}>
-          <Stack gap={3} sx={styles.stackRight}>
-            <Paper sx={styles.paper}>
-              <Skeleton variant="text" width="60%" height={32} />
-              <Skeleton variant="text" width="40%" />
-              <Skeleton variant="text" width="100%" />
-              <Skeleton variant="text" width="80%" />
-            </Paper>
-            <Paper sx={styles.paper}>
-              <Skeleton variant="text" width="40%" height={32} />
-              <Skeleton variant="text" width="100%" />
-              <Skeleton variant="text" width="100%" />
-              <Skeleton variant="text" width="90%" />
-              <Skeleton variant="text" width="70%" />
-            </Paper>
-          </Stack>
+          <Box sx={styles.secao}>
+            <Skeleton variant="text" width="40%" height={36} />
+            <Skeleton variant="text" width="100%" />
+            <Skeleton variant="text" width="92%" />
+            <Skeleton variant="text" width="70%" />
+          </Box>
 
-          <Stack sx={styles.stackLeft}>
-            <Paper sx={styles.paper}>
-              <Skeleton variant="text" width="50%" height={32} />
-              <Skeleton variant="text" width="70%" />
-              <Box sx={styles.vacancyBox}>
-                {[0, 1, 2].map((item) => (
-                  <Box key={item}>
-                    <Grid container sx={styles.gridRow}>
-                      <Grid item xs={5}>
-                        <Skeleton variant="text" width="80%" />
-                      </Grid>
-                      <Grid item xs={7}>
-                        <Skeleton variant="text" width="60%" />
-                      </Grid>
-                    </Grid>
-                    {item < 2 && <Divider sx={styles.divider} />}
-                  </Box>
-                ))}
-              </Box>
-              <Skeleton
-                variant="rectangular"
-                width="100%"
-                height={40}
-                sx={{ ...styles.button, borderRadius: 1 }}
-              />
-            </Paper>
-          </Stack>
-        </Stack>
+          <Box sx={{ ...styles.secao, ...styles.grade }}>
+            {[0, 1, 2].map((item) => (
+              <Skeleton key={item} variant="rounded" height={120} />
+            ))}
+          </Box>
+        </Box>
       </PageStyle>
     );
   }
 
   return (
     <PageStyle>
-      <Header
-        title="Detalhes do Evento"
-        // só admin e super admin chegam num evento em teste: o aviso é para
-        // não confundir o ensaio com um evento que já está no ar
-        description={`${event?.type || ''}${
-          event?.status === 'TEST' ? ' · Evento de teste' : ''
-        }`}
-        buttonBack
-        pageBack="/home"
-      />
-
-      {/* Banner */}
-      <Stack sx={styles.bannerContainer}>
-        {/* {event?.data?.coverUrl && ( */}
-        <img
-          src={event?.data?.coverUrl || CapaLogin}
-          alt="Banner do Evento"
-          style={styles.bannerImage as any}
+      <Box sx={styles.cartaz}>
+        <Button
+          startIcon={<ArrowBack />}
+          aria-label="Voltar"
+          onClick={() => navigate('/home')}
+          sx={styles.botaoVoltar}
+        >
+          Voltar
+        </Button>
+        <Box
+          sx={{
+            ...styles.capa,
+            backgroundImage: `url(${event?.data?.coverUrl || CapaLogin})`,
+          }}
+          role="img"
+          aria-label={`Capa de ${event?.name ?? 'evento'}`}
         />
-        {/* )} */}
-        {event?.data?.logoUrl && (
-          <img
-            src={event?.data?.logoUrl}
-            alt="Logo do Evento"
-            style={styles.bannerLogo as any}
-          />
-        )}
-      </Stack>
+        <Box sx={styles.filtro} />
+        <Box sx={styles.veu} />
 
-      <Stack sx={styles.stackContainer}>
-        {/* Coluna principal: à esquerda no desktop, no topo no celular */}
-        <Stack gap={3} sx={styles.stackRight}>
-          <Paper sx={styles.paper}>
-            <Typography sx={styles.title}>{event?.name}</Typography>
-            <Typography sx={styles.subtitle}>
-              {`Período: ${new Date(
-                event?.startDate || ''
-              ).toLocaleDateString()} - ${new Date(
-                event?.endDate || ''
-              ).toLocaleDateString()}`}
-            </Typography>
-            <Typography sx={styles.text}>
-              {event?.data?.shortDescription}
-            </Typography>
-          </Paper>
-          <Paper sx={styles.paper}>
-            <Typography sx={styles.title}>Sobre o Evento</Typography>
-            <ReactQuillViewer value={event?.data?.description || ''} />
-          </Paper>
-        </Stack>
+        <Box sx={styles.conteudoDoCartaz}>
+          {event?.data?.logoUrl && (
+            <Box
+              component="img"
+              src={event.data.logoUrl}
+              alt={`Logo de ${event?.name ?? 'evento'}`}
+              sx={styles.logo}
+            />
+          )}
 
-        {/* Coluna lateral: à direita no desktop, embaixo no celular */}
-        <Stack sx={styles.stackLeft}>
-          <Paper sx={styles.paper}>
-            <Typography sx={styles.title}>Inscrições</Typography>
-            <Typography sx={styles.subtitle}>
-              Informações sobre vagas disponíveis
-            </Typography>
-            <Box sx={styles.vacancyBox}>
-              {true
-                ? event?.groupRoles?.map((group, index) => {
-                    const vagas = getVagasRestantes(group);
+          <Stack direction="row" gap={1} flexWrap="wrap" sx={{ mb: 1.5 }}>
+            {event?.type && <Box sx={styles.selo}>{event.type}</Box>}
+            {contagem && <Box sx={styles.selo}>{contagem}</Box>}
+            {event?.status === 'TEST' && (
+              <Box sx={styles.selo}>Evento de teste</Box>
+            )}
+          </Stack>
 
-                    return (
-                      <Box key={group.id}>
-                        <Grid container sx={styles.gridRow}>
-                          <Grid item xs={!event.data?.hideVacancies ? 5 : 12}>
-                            <Typography sx={styles.textGroup}>
-                              {group.name}
-                            </Typography>
-                          </Grid>
-                          {!event.data?.hideVacancies && (
-                            <Grid item xs={7}>
-                              {vagas > 0 ? (
-                                <Typography>
-                                  {vagas} vaga(s) restante(s)
-                                </Typography>
-                              ) : (
-                                <Typography sx={styles.error}>
-                                  Lista de Espera!
-                                </Typography>
-                              )}
-                            </Grid>
-                          )}
-                        </Grid>
+          <Typography component="h1" sx={styles.nome}>
+            {event?.name}
+          </Typography>
 
-                        {index < (event?.groupRoles?.length || 0) - 1 && (
-                          <Divider sx={styles.divider} />
-                        )}
-                      </Box>
-                    );
-                  })
-                : null}
-            </Box>
-            <Button
-              variant="contained"
-              fullWidth
-              startIcon={<ConfirmationNumber />}
-              sx={{ ...styles.button, textTransform: 'none' }}
-              onClick={() => {
-                navigate(`/eventos/${event.id}/inscricao`);
+          {event?.data?.shortDescription && (
+            <Typography
+              sx={{
+                mt: 1,
+                maxWidth: 620,
+                color: alpha('#fff', 0.88),
+                fontSize: { xs: '0.95rem', sm: '1.05rem' },
+                lineHeight: 1.55,
               }}
+            >
+              {event.data.shortDescription}
+            </Typography>
+          )}
+
+          <Stack
+            direction={{ xs: 'column', sm: 'row' }}
+            gap={1.5}
+            sx={{ mt: 1.5 }}
+          >
+            <Button
+              startIcon={<ConfirmationNumber />}
+              sx={styles.botaoPrincipal}
+              onClick={irParaInscricao}
             >
               Inscreva-se
             </Button>
@@ -392,58 +531,230 @@ function EventsDetails() {
             {podeComprarProdutos && (
               <Button
                 variant="outlined"
-                fullWidth
                 startIcon={<ShoppingBagOutlined />}
-                sx={{ ...styles.button, textTransform: 'none' }}
+                sx={styles.botaoVidro}
                 onClick={() => navigate(`/eventos/${event.id}/produtos`)}
               >
-                Comprar produtos do evento
+                Produtos do evento
               </Button>
             )}
+          </Stack>
+        </Box>
+      </Box>
 
-            {registeredGroupsWithLink.map((group) => (
-              <Button
-                key={group.id}
-                variant="contained"
-                fullWidth
-                startIcon={<WhatsApp />}
-                sx={{
-                  ...styles.button,
-                  textTransform: 'none',
-                  color: 'white',
-                  backgroundColor: '#25D366',
-                  '&:hover': { backgroundColor: '#1ebe5d' },
-                }}
-                onClick={() => {
-                  window.open(
-                    group.link || '',
-                    '_blank',
-                    'noopener,noreferrer'
+      <Box sx={styles.corpo}>
+        <Box sx={styles.fichas}>
+          <Ficha
+            icone={<CalendarMonthOutlined fontSize="small" />}
+            rotulo="Quando"
+            valor={formatarPeriodo(event?.startDate, event?.endDate)}
+            apoio={contagem}
+          />
+          <Ficha
+            icone={<PlaceOutlined fontSize="small" />}
+            rotulo="Onde"
+            valor={cidade || 'Local a definir'}
+            apoio={
+              event?.data?.localName !== cidade ? event?.data?.localName : null
+            }
+          />
+          <Ficha
+            icone={<ConfirmationNumber fontSize="small" />}
+            rotulo="Tipos de ingresso"
+            valor={
+              event?.groupRoles?.length
+                ? `${event.groupRoles.length} ${
+                    event.groupRoles.length === 1
+                      ? 'tipo disponível'
+                      : 'tipos disponíveis'
+                  }`
+                : 'Ingressos em breve'
+            }
+            apoio={
+              event?.data?.hideVacancies
+                ? 'Inscrições abertas'
+                : vagasRestantes > 0
+                  ? 'Vagas disponíveis'
+                  : 'Lista de espera'
+            }
+          />
+        </Box>
+
+        <Box sx={{ ...styles.secao, ...styles.duasColunas }}>
+          <Box sx={styles.sobre}>
+              <Box sx={styles.risco} />
+              <Typography sx={styles.tituloDeSecao}>Sobre o evento</Typography>
+              {temSobre && (
+                <Box sx={{ mt: 1.5 }}>
+                  <ReactQuillViewer value={event?.data?.description ?? ''} />
+                </Box>
+              )}
+          </Box>
+
+          <Box>
+            <Box sx={styles.risco} />
+            <Typography sx={styles.tituloDeSecao}>Escolha seu ingresso</Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+              Escolha o tipo de ingresso e veja a disponibilidade de cada opção.
+            </Typography>
+
+            {event?.groupRoles?.length ? (
+              <Box sx={styles.grade}>
+                {event.groupRoles.map((group) => {
+                  const inscritos = group.roles.reduce(
+                    (soma, role) => soma + (role?.registered || 0),
+                    0
                   );
-                }}
+                  const { percentual, restantes, situacao } = ocupacao(
+                    inscritos,
+                    group.capacity
+                  );
+                  const esgotado = situacao === 'esgotado';
+
+                  return (
+                    // o cartão inteiro é o botão: com o nome, a barra e as vagas
+                    // já dizendo tudo, um "Quero este" dentro de cada um só
+                    // acrescentava altura à lista
+                    <Paper
+                      key={group.id}
+                      elevation={0}
+                      role="button"
+                      tabIndex={0}
+                      sx={styles.cartaoDeGrupo}
+                      onClick={irParaInscricao}
+                      onKeyDown={(evento: React.KeyboardEvent) => {
+                        if (evento.key === 'Enter' || evento.key === ' ') {
+                          evento.preventDefault();
+                          irParaInscricao();
+                        }
+                      }}
+                    >
+                      <Stack
+                        direction="row"
+                        alignItems="center"
+                        justifyContent="space-between"
+                        gap={1}
+                      >
+                        <Typography
+                          variant="body2"
+                          fontWeight={700}
+                          noWrap
+                          sx={{ minWidth: 0 }}
+                        >
+                          {group.name}
+                        </Typography>
+
+                        {!event.data?.hideVacancies && (
+                          <Typography
+                            variant="caption"
+                            fontWeight={700}
+                            sx={{ flexShrink: 0 }}
+                            color={
+                              esgotado || situacao === 'ultimas'
+                                ? 'warning.main'
+                                : 'text.secondary'
+                            }
+                          >
+                            {esgotado
+                              ? 'Lista de espera'
+                              : `${restantes} vagas`}
+                          </Typography>
+                        )}
+                      </Stack>
+
+                      {/* a barra mostra o quanto já foi tomado: número sozinho
+                        não diz se 20 vagas é muito ou pouco */}
+                      {!event.data?.hideVacancies && (
+                        <LinearProgress
+                          variant="determinate"
+                          value={percentual}
+                          color={esgotado ? 'warning' : 'primary'}
+                          sx={styles.barra}
+                        />
+                      )}
+                    </Paper>
+                  );
+                })}
+              </Box>
+            ) : (
+              <Typography variant="body2" color="text.secondary">
+                As inscrições deste evento ainda não foram abertas.
+              </Typography>
+            )}
+
+            {/* empilhados: a coluna é estreita, e lado a lado os dois
+                botões perderiam o rótulo em reticências */}
+            <Stack gap={1} sx={{ mt: 2 }}>
+              <Button
+                fullWidth
+                startIcon={<ConfirmationNumber />}
+                sx={styles.botaoPrincipal}
+                onClick={irParaInscricao}
               >
-                {registeredGroupsWithLink.length > 1
-                  ? `Entre no Grupo: ${group.name}`
-                  : 'Entre no Grupo do Evento!'}
+                Inscreva-se
               </Button>
-            ))}
-          </Paper>
-          {havaOneFieldLocal && (
-            <Paper sx={styles.paper}>
-              <Typography sx={styles.title}>Localização</Typography>
-              <Tooltip title={stringLocal()} arrow placement="right-end">
-                <Typography sx={styles.subtitle}>{stringLocal()}</Typography>
-              </Tooltip>
-              {event?.data?.linkMaps && (
+
+              {registeredGroupsWithLink.map((group) => (
+                <Button
+                  key={group.id}
+                  fullWidth
+                  variant="contained"
+                  startIcon={<WhatsApp />}
+                  sx={{ ...styles.botao, ...styles.whatsapp }}
+                  onClick={() =>
+                    window.open(
+                      group.link || '',
+                      '_blank',
+                      'noopener,noreferrer'
+                    )
+                  }
+                >
+                  {registeredGroupsWithLink.length > 1
+                    ? `Ingresso: ${group.name}`
+                    : 'Entre no grupo do evento'}
+                </Button>
+              ))}
+            </Stack>
+          </Box>
+        </Box>
+
+        {havaOneFieldLocal && (
+          <Box sx={styles.secao}>
+            <Box sx={styles.risco} />
+            <Typography sx={styles.tituloDeSecao}>Como chegar</Typography>
+
+            <Stack
+              direction="row"
+              alignItems="center"
+              gap={1}
+              sx={{ mt: 1, mb: 1.5 }}
+            >
+              <PlaceOutlined sx={{ fontSize: 18, color: 'text.secondary' }} />
+              <Box sx={{ minWidth: 0 }}>
+                {event?.data?.localName && (
+                  <Typography fontWeight={600}>
+                    {event.data.localName}
+                  </Typography>
+                )}
+                {enderecoCompleto && (
+                  <Typography variant="body2" color="text.secondary">
+                    {enderecoCompleto}
+                  </Typography>
+                )}
+              </Box>
+            </Stack>
+
+            {event?.data?.linkMaps && (
+              <Box sx={styles.moldura}>
                 <GoogleMap
                   linkMap={event?.data?.linkMaps as string}
                   width="100%"
                 />
-              )}
-            </Paper>
-          )}
-        </Stack>
-      </Stack>
+              </Box>
+            )}
+          </Box>
+        )}
+      </Box>
     </PageStyle>
   );
 }
