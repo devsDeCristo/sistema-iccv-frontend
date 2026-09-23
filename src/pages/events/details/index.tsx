@@ -232,11 +232,17 @@ function EventsDetails() {
         maxWidth: 1200,
         mx: 'auto',
         px: 0,
-        // centrado, o bloco pede o mesmo respiro dos dois lados; no rodapé ele
-        // ganha mais folga por baixo, onde a capa vira página
+        /**
+         * O respiro de cima reserva a faixa do botão Voltar, que flutua sobre a
+         * capa: com nome de duas linhas o bloco cresce para cima, e a logo ia
+         * parar atrás do botão.
+         *
+         * Centrado, o bloco pede o mesmo respiro dos dois lados; apoiado no
+         * rodapé, ganha mais folga por baixo, onde a capa vira página.
+         */
         ...(temLogo
-          ? { pt: 6, pb: { xs: 6, md: 8 } }
-          : { py: { xs: 5, md: 6 } }),
+          ? { pt: { xs: 11, sm: 12 }, pb: { xs: 6, md: 8 } }
+          : { py: { xs: 11, sm: 12 } }),
       },
       logo: {
         maxHeight: { xs: 72, sm: 96 },
@@ -730,7 +736,9 @@ function EventsDetails() {
           <Ficha
             icone={<CalendarMonthOutlined fontSize="small" />}
             rotulo="Quando"
-            valor={formatarPeriodo(event?.startDate, event?.endDate)}
+            valor={formatarPeriodo(event?.startDate, event?.endDate, {
+              comAno: true,
+            })}
             apoio={contagem}
           />
           <Ficha
