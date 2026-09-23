@@ -20,6 +20,12 @@ import {
 import { useNavigate, useParams } from 'react-router-dom';
 import { ListTeams } from '../../../../features/admin/events/components/listTeams';
 import { ListBedRooms } from '../../../../features/admin/events/components/listBedRooms';
+import { ListTransports } from '../../../../features/admin/events/components/listTransports';
+import { ModalTransport } from '../../../../features/admin/events/components/modalTransport';
+import {
+  ModuloDoEvento,
+  moduloAtivo,
+} from '../../../../features/admin/events/eventModules';
 import { ModalBedRoom } from '../../../../features/admin/events/components/modalBedRoom';
 import { useEffect, useMemo, useState } from 'react';
 import { useQueryClient } from 'react-query';
@@ -48,6 +54,7 @@ import {
   EmailOutlined,
   ExpandMore,
   FilterAltOutlined,
+  DirectionsBusOutlined,
   GroupsOutlined,
   HourglassEmptyOutlined,
   HowToReg,
@@ -132,7 +139,19 @@ const EVENT_TABS = [
     value: 'equipes',
     icon: <GroupsOutlined fontSize="small" />,
   },
+  {
+    label: 'Transporte',
+    value: 'transporte',
+    icon: <DirectionsBusOutlined fontSize="small" />,
+  },
 ];
+
+/** Abas que só existem quando o módulo correspondente está ligado no evento */
+const ABA_DO_MODULO: Record<string, ModuloDoEvento> = {
+  quartos: 'bedrooms',
+  equipes: 'teams',
+  transporte: 'transport',
+};
 
 function Details() {
   const { id, subPage } = useParams();
@@ -141,6 +160,8 @@ function Details() {
   const [openModalBedRoom, setOpenModalBedRoom] = useState(false);
   const [openModalTeam, setOpenModalTeam] = useState(false);
   const [searchBedroom, setSearchBedroom] = useState('');
+  const [openModalTransport, setOpenModalTransport] = useState(false);
+  const [searchTransport, setSearchTransport] = useState('');
   const [searchTeam, setSearchTeam] = useState('');
   const [searchUser, setSearchUser] = useState('');
   const { isDev } = useRole();
@@ -428,13 +449,20 @@ function Details() {
    * Inscritos e Pagamentos: começar pelo conjunto menor e abrir depois nunca
    * chega a oferecer uma aba que a API vai recusar.
    */
-  const visibleTabs = useMemo(
-    () =>
-      isAdminDoEvento
-        ? EVENT_TABS
-        : EVENT_TABS.filter((tab) => FINANCE_EVENT_TABS.includes(tab.value)),
-    [isAdminDoEvento]
-  );
+  const visibleTabs = useMemo(() => {
+    const porPerfil = isAdminDoEvento
+      ? EVENT_TABS
+      : EVENT_TABS.filter((tab) => FINANCE_EVENT_TABS.includes(tab.value));
+
+    /**
+     * Módulo desligado tira a aba do ar. Evento sem a chave `modules` — todos
+     * os que existem hoje — continua com as três, porque ausente é ligado.
+     */
+    return porPerfil.filter((tab) => {
+      const modulo = ABA_DO_MODULO[tab.value];
+      return !modulo || moduloAtivo(event?.data, modulo);
+    });
+  }, [isAdminDoEvento, event?.data]);
 
   // acesso direto pela URL a uma aba bloqueada volta para a primeira liberada.
   // Só depois do evento chegar: antes disso todo mundo parece financeiro, e um
@@ -985,6 +1013,36 @@ function Details() {
         </Stack>
       )}
 
+      {pageValue === 'transporte' && (
+        <Stack gap={2} sx={{ mt: 2 }}>
+          <Paper component="div" sx={styles.boxFilterAndPdf}>
+            <TextField
+              label="Pesquisar transporte"
+              variant="outlined"
+              size="small"
+              value={searchTransport}
+              sx={styles.textField}
+              onChange={(e) => setSearchTransport(e.target.value)}
+            />
+
+            <Stack sx={styles.stackButtons}>
+              <Button
+                variant="contained"
+                disabled={loadingEventDetails}
+                onClick={() => setOpenModalTransport(true)}
+              >
+                Adicionar transporte
+              </Button>
+            </Stack>
+          </Paper>
+
+          <ListTransports
+            search={searchTransport}
+            groupNames={(event?.groupRoles || []).map((grupo) => grupo.name)}
+          />
+        </Stack>
+      )}
+
       <FilterModal
         open={openModalFilter}
         onClose={() => setOpenModalFilter(false)}
@@ -997,6 +1055,13 @@ function Details() {
       <ModalBedRoom
         open={openModalBedRoom}
         handleClose={() => setOpenModalBedRoom(false)}
+        eventId={id || ''}
+        groupNames={(event?.groupRoles || []).map((grupo) => grupo.name)}
+      />
+
+      <ModalTransport
+        open={openModalTransport}
+        handleClose={() => setOpenModalTransport(false)}
         eventId={id || ''}
         groupNames={(event?.groupRoles || []).map((grupo) => grupo.name)}
       />

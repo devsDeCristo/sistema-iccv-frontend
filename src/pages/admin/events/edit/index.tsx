@@ -17,6 +17,7 @@ import {
   GeneralInfoFormType,
   ProductsFormType,
   RegistrationSettingsFormType,
+  ModulesFormType,
   TermsFormType,
 } from '../../../../features/admin/events/types';
 import {
@@ -26,6 +27,7 @@ import {
   PANELS,
   PRODUCTS_SCHEMA,
   REGISTRATION_SETTINGS_SCHEMA,
+  MODULES_SCHEMA,
   TERMS_SCHEMA,
 } from '../../../../features/admin/events/constants';
 import { FormProducts } from '../../../../features/admin/events/components/formProducts';
@@ -38,7 +40,9 @@ import { FormDateAndLocal } from '../../../../features/admin/events/components/f
 
 import { FormLogoAndCover } from '../../../../features/admin/events/components/formLogoAndCover';
 import { FormTerms } from '../../../../features/admin/events/components/formTerms';
+import { FormEventModules } from '../../../../features/admin/events/components/formEventModules';
 import { textoDoTermo } from '../../../../features/admin/events/terms';
+import { moduloAtivo } from '../../../../features/admin/events/eventModules';
 import { coresParaSalvar } from '../../../../features/admin/events/eventColors';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useGetEvents } from '../../../../features/admin/events/api/getEvents';
@@ -117,6 +121,15 @@ function Edit() {
     secondaryColor: event?.data?.colors?.secondary,
     tertiaryColor: event?.data?.colors?.tertiary,
   });
+  /**
+   * Evento sem a chave `modules` é evento anterior ao passo: tudo ligado, como
+   * ele sempre esteve.
+   */
+  const getDefaultModulesValues = (event?: EventDetails): ModulesFormType => ({
+    moduleBedrooms: moduloAtivo(event?.data, 'bedrooms'),
+    moduleTeams: moduloAtivo(event?.data, 'teams'),
+    moduleTransport: moduloAtivo(event?.data, 'transport'),
+  });
   const getDefaultTermsValues = (event?: EventDetails): TermsFormType => ({
     minorTermUrl: event?.data?.minorTermUrl
       ? event?.data?.minorTermUrl
@@ -156,6 +169,11 @@ function Edit() {
     defaultValues: getDefaultTermsValues(event),
     mode: 'onChange',
   });
+  const methodsModules = useForm<ModulesFormType>({
+    resolver: zodResolver(MODULES_SCHEMA),
+    defaultValues: getDefaultModulesValues(event),
+    mode: 'onChange',
+  });
   const methodsProducts = useForm<ProductsFormType>({
     resolver: zodResolver(PRODUCTS_SCHEMA),
     defaultValues: { products: produtosParaFormulario(event?.products) },
@@ -171,6 +189,7 @@ function Edit() {
       );
       methodsEventLogo.reset(getDefaultEventLogoValues(event));
       methodsTerms.reset(getDefaultTermsValues(event));
+      methodsModules.reset(getDefaultModulesValues(event));
       methodsProducts.reset({
         products: produtosParaFormulario(event.products),
       });
@@ -188,6 +207,7 @@ function Edit() {
       validDateAndTime,
       validGeneralInfo,
       validEventLogo,
+      validModules,
       validTerms,
       validRegistrationSettings,
       validProducts,
@@ -195,6 +215,7 @@ function Edit() {
       methodsDateAndTime.trigger(),
       methodsGeneralInfo.trigger(),
       methodsEventLogo.trigger(),
+      methodsModules.trigger(),
       methodsTerms.trigger(),
       methodsRegistrationSettings.trigger(),
       methodsProducts.trigger(),
@@ -204,6 +225,7 @@ function Edit() {
       !validDateAndTime ||
       !validGeneralInfo ||
       !validEventLogo ||
+      !validModules ||
       !validTerms ||
       !validRegistrationSettings ||
       !validProducts
@@ -268,6 +290,11 @@ function Edit() {
                 methodsTerms.getValues().registrationTerm
               ),
               colors: coresParaSalvar(methodsEventLogo.getValues()),
+              modules: {
+                bedrooms: methodsModules.getValues().moduleBedrooms,
+                teams: methodsModules.getValues().moduleTeams,
+                transport: methodsModules.getValues().moduleTransport,
+              },
               // ...(methodsEventLogo.getValues().eventLogo?.[0]
               //   ? methodsEventLogo.getValues().logoUrl
               //     ? {
@@ -323,6 +350,13 @@ function Edit() {
     },
     {
       step: 3,
+      formMethods: methodsModules,
+      onSubmit: registrationSettingsSubmit,
+      component: FormEventModules,
+      props: {},
+    },
+    {
+      step: 4,
       formMethods: methodsEventLogo,
       onSubmit: registrationSettingsSubmit,
       component: FormLogoAndCover,
@@ -332,21 +366,21 @@ function Edit() {
       },
     },
     {
-      step: 4,
+      step: 5,
       formMethods: methodsTerms,
       onSubmit: registrationSettingsSubmit,
       component: FormTerms,
       props: {},
     },
     {
-      step: 5,
+      step: 6,
       formMethods: methodsRegistrationSettings,
       onSubmit: registrationSettingsSubmit,
       component: FormRegistrationSettings,
       props: {},
     },
     {
-      step: 6,
+      step: 7,
       formMethods: methodsProducts,
       onSubmit: registrationSettingsSubmit,
       component: FormProducts,

@@ -12,6 +12,7 @@ import {
   GroupRole,
   ProductsFormType,
   RegistrationSettingsFormType,
+  ModulesFormType,
   TermsFormType,
 } from '../../../../features/admin/events/types';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -23,6 +24,7 @@ import {
   PRODUCTS_SCHEMA,
   REGISTRATION_SETTINGS_SCHEMA,
   STEPS,
+  MODULES_SCHEMA,
   TERMS_SCHEMA,
   GROUP_ROLE_RETIRO,
   GROUP_ROLE_CURSILHO,
@@ -37,6 +39,7 @@ import { FormDateAndLocal } from '../../../../features/admin/events/components/f
 import { SelectCategoryEvent } from '../../../../features/admin/events/components/selectCategoryEvent';
 import { FormLogoAndCover } from '../../../../features/admin/events/components/formLogoAndCover';
 import { FormTerms } from '../../../../features/admin/events/components/formTerms';
+import { FormEventModules } from '../../../../features/admin/events/components/formEventModules';
 import { toast } from 'react-toastify';
 import { queryClient } from '../../../../config/lib/react-query/query-client';
 import { useRole } from '../../../../hooks/useRole';
@@ -70,6 +73,17 @@ function Register() {
   });
   const methodsTerms = useForm<TermsFormType>({
     resolver: zodResolver(TERMS_SCHEMA),
+  });
+  const methodsModules = useForm<ModulesFormType>({
+    resolver: zodResolver(MODULES_SCHEMA),
+    // tudo ligado: é o estado de quem não mexeu, e o de todos os eventos que
+    // já existem
+    defaultValues: {
+      moduleBedrooms: true,
+      moduleTeams: true,
+      moduleTransport: true,
+    },
+    mode: 'onChange',
   });
   const [eventTypeSelected, setEventTypeSelected] = useState<
     EventType | undefined
@@ -143,6 +157,13 @@ function Register() {
       }
     });
   }
+  function modulesSubmit() {
+    methodsModules.trigger().then((isValid) => {
+      if (isValid) {
+        handleNext();
+      }
+    });
+  }
   function termsSubmit() {
     methodsTerms.trigger().then((isValid) => {
       if (isValid) {
@@ -175,6 +196,7 @@ function Register() {
         const registrationSettingsData =
           methodsRegistrationSettings.getValues();
         const eventLogoData = methodsEventLogo.getValues();
+        const modulesData = methodsModules.getValues();
         const termsData = methodsTerms.getValues();
 
         try {
@@ -216,6 +238,11 @@ function Register() {
               linkMaps: dateAndTimeData.linkMaps,
               registrationTerm: textoDoTermo(termsData.registrationTerm),
               colors: coresParaSalvar(eventLogoData),
+              modules: {
+                bedrooms: modulesData.moduleBedrooms,
+                teams: modulesData.moduleTeams,
+                transport: modulesData.moduleTransport,
+              },
               // logoUrl: logoSvgText,
               // coverUrl: coverSvgText,
               // logoFile: logoSvgText, // Base64 string
@@ -278,6 +305,13 @@ function Register() {
     },
     {
       step: 4,
+      formMethods: methodsModules,
+      onSubmit: modulesSubmit,
+      component: FormEventModules,
+      props: {},
+    },
+    {
+      step: 5,
       formMethods: methodsEventLogo,
       onSubmit: eventLogoSubmit,
       component: FormLogoAndCover,
@@ -287,21 +321,21 @@ function Register() {
       },
     },
     {
-      step: 5,
+      step: 6,
       formMethods: methodsTerms,
       onSubmit: termsSubmit,
       component: FormTerms,
       props: {},
     },
     {
-      step: 6,
+      step: 7,
       formMethods: methodsRegistrationSettings,
       onSubmit: registrationSettingsSubmit,
       component: FormRegistrationSettings,
       props: {},
     },
     {
-      step: 7,
+      step: 8,
       formMethods: methodsProducts,
       onSubmit: productsSubmit,
       component: FormProducts,
@@ -318,12 +352,14 @@ function Register() {
       case 3:
         return methodsDateAndTime.formState.isValid;
       case 4:
-        return methodsEventLogo.formState.isValid;
+        return methodsModules.formState.isValid;
       case 5:
-        return methodsTerms.formState.isValid;
+        return methodsEventLogo.formState.isValid;
       case 6:
-        return methodsRegistrationSettings.formState.isValid;
+        return methodsTerms.formState.isValid;
       case 7:
+        return methodsRegistrationSettings.formState.isValid;
+      case 8:
         return methodsProducts.formState.isValid;
       default:
         return false;
