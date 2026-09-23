@@ -18,6 +18,7 @@ import GoogleMap from '../../../components/mapWord';
 import { useGetEvents } from '../../../features/admin/events/api/getEvents';
 import { EventDetails } from '../../../features/admin/events/types';
 import CapaLogin from '../../../assets/capaLogin2.jpg';
+import Confuso from '../../../assets/confuso.svg?react';
 import {
   CalendarMonthOutlined,
   ArrowBack,
@@ -125,7 +126,7 @@ function EventsDetails() {
       botaoVoltar: {
         position: 'absolute',
         top: { xs: 32, sm: 40 },
-        left: 'max(32px, calc((100% - 1120px) / 2))',
+        left: 'max(32px, calc((100% - 1200px) / 2))',
         zIndex: 2,
         minWidth: 'auto',
         px: 1.5,
@@ -163,7 +164,7 @@ function EventsDetails() {
       conteudoDoCartaz: {
         position: 'relative',
         width: 'calc(100% - 64px)',
-        maxWidth: 1120,
+        maxWidth: 1200,
         mx: 'auto',
         px: 0,
         pt: 6,
@@ -232,7 +233,7 @@ function EventsDetails() {
 
       /** O conteúdo volta para a régua da página, já sem o sangramento */
       corpo: {
-        maxWidth: 1120,
+        maxWidth: 1200,
         mx: 'auto',
         mt: 0,
         position: 'relative',
@@ -303,7 +304,27 @@ function EventsDetails() {
         },
       },
       sobre: {
-        minHeight: temSobre ? undefined : { xs: 160, md: 260 },
+        display: 'flex',
+        flexDirection: 'column',
+        ...(temSobre
+          ? {}
+          : { minHeight: { xs: 160, md: 260 }, height: '100%' }),
+      },
+      estadoVazio: {
+        width: '100%',
+        boxSizing: 'border-box',
+        flex: 1,
+        minHeight: { xs: 110, md: 170 },
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 1,
+        color: 'text.secondary',
+        textAlign: 'center',
+        px: 2,
+        borderRadius: 2,
+        backgroundColor: alpha(theme.palette.background.paper, escuro ? 0.3 : 0.55),
       },
       grade: {
         display: 'grid',
@@ -340,6 +361,27 @@ function EventsDetails() {
         borderRadius: 3,
         overflow: 'hidden',
         border: `1px solid ${theme.palette.divider}`,
+      },
+      localResumo: {
+        display: 'flex',
+        alignItems: 'flex-start',
+        gap: 2,
+        mt: 1.5,
+        mb: 2,
+        p: { xs: 1.5, sm: 2 },
+        borderRadius: 2,
+        backgroundColor: alpha(theme.palette.background.paper, 0.45),
+      },
+      localLayout: {
+        display: 'grid',
+        gridTemplateColumns: '1fr',
+        gap: 0,
+      },
+      localTexto: {
+        minWidth: 0,
+        display: 'flex',
+        gap: 1.25,
+        alignItems: 'flex-start',
       },
       botao: {
         height: 46,
@@ -589,6 +631,22 @@ function EventsDetails() {
                   <ReactQuillViewer value={event?.data?.description ?? ''} />
                 </Box>
               )}
+              {!temSobre && (
+                <Box sx={styles.estadoVazio}>
+                  <Box
+                    component={Confuso}
+                    sx={{
+                      width: { xs: 54, md: 66 },
+                      height: { xs: 54, md: 66 },
+                      color: 'text.secondary',
+                    }}
+                  />
+                  <Typography fontSize={"18px"} variant="body2" color="text.secondary">
+                    Hmm... ainda não nos contaram sobre este evento.
+                  </Typography>
+                  
+                </Box>
+              )}
           </Box>
 
           <Box>
@@ -723,35 +781,35 @@ function EventsDetails() {
             <Box sx={styles.risco} />
             <Typography sx={styles.tituloDeSecao}>Como chegar</Typography>
 
-            <Stack
-              direction="row"
-              alignItems="center"
-              gap={1}
-              sx={{ mt: 1, mb: 1.5 }}
-            >
-              <PlaceOutlined sx={{ fontSize: 18, color: 'text.secondary' }} />
-              <Box sx={{ minWidth: 0 }}>
+            <Box sx={styles.localLayout}>
+              <Box sx={styles.localResumo}>
+              <Box sx={styles.localTexto}>
+                <PlaceOutlined sx={{ mt: 0.25, color: AZUL_VIVO }} />
+                <Box sx={{ minWidth: 0 }}>
                 {event?.data?.localName && (
-                  <Typography fontWeight={600}>
+                  <Typography fontWeight={800}>
                     {event.data.localName}
                   </Typography>
                 )}
                 {enderecoCompleto && (
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 0.25 }}>
                     {enderecoCompleto}
                   </Typography>
                 )}
+                </Box>
               </Box>
-            </Stack>
+              </Box>
 
-            {event?.data?.linkMaps && (
-              <Box sx={styles.moldura}>
-                <GoogleMap
-                  linkMap={event?.data?.linkMaps as string}
-                  width="100%"
-                />
-              </Box>
-            )}
+              {event?.data?.linkMaps && (
+                <Box sx={styles.moldura}>
+                  <GoogleMap
+                    linkMap={event?.data?.linkMaps as string}
+                    width="100%"
+                  />
+                </Box>
+              )}
+            </Box>
+
           </Box>
         )}
       </Box>
