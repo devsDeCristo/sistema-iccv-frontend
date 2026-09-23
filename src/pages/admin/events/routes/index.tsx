@@ -9,6 +9,7 @@ import {
 } from '../../../../components/requireRole';
 import { ADMIN_ROLES } from '../../../../constants/roles';
 import { Checkin } from '../../checkin';
+import { Quadrante } from '../quadrante';
 
 function RoutesEventsAdmin() {
   return (
@@ -43,6 +44,15 @@ function RoutesEventsAdmin() {
         element={
           <RequireEventRole>
             <Checkin />
+          </RequireEventRole>
+        }
+      />
+      {/* o quadrante lê as equipes do evento: mesma permissão da aba Equipes */}
+      <Route
+        path="/admin/eventos/:id/quadrante"
+        element={
+          <RequireEventRole>
+            <Quadrante />
           </RequireEventRole>
         }
       />
