@@ -27,7 +27,7 @@ import {
 import { useGetEvents } from '../../admin/events/api/getEvents';
 import { useGetGroupsByUser } from '../../admin/events/api/getGroupsByUser';
 import { Event } from '../../admin/events/types';
-import { degradeVivo } from '../../../themes';
+import { AZUL_VIVO, VIOLETA_VIVO } from '../../../themes';
 import { useRole } from '../../../hooks/useRole';
 import CapaLogin from '../../../assets/capaLogin2.jpg';
 import {
@@ -45,13 +45,14 @@ import {
 /** Como o usuário aparece neste evento, se aparecer. */
 type MinhaSituacao = 'inscrito' | 'espera' | null;
 
+/** Uma informação curta com ícone, escrita por cima da capa. */
 function Meta({ icone, children }: { icone: ReactNode; children: ReactNode }) {
   return (
     <Stack direction="row" alignItems="center" gap={0.75} sx={{ minWidth: 0 }}>
       <Box
         sx={{
           display: 'flex',
-          color: 'text.secondary',
+          color: alpha('#fff', 0.75),
           '& svg': { fontSize: 15 },
         }}
       >
@@ -59,7 +60,12 @@ function Meta({ icone, children }: { icone: ReactNode; children: ReactNode }) {
       </Box>
       <Typography
         noWrap
-        sx={{ fontSize: '0.8125rem', color: 'text.secondary', minWidth: 0 }}
+        sx={{
+          fontSize: '0.8125rem',
+          color: alpha('#fff', 0.9),
+          textShadow: '0 1px 8px rgba(0,0,0,0.5)',
+          minWidth: 0,
+        }}
       >
         {children}
       </Typography>
@@ -67,21 +73,28 @@ function Meta({ icone, children }: { icone: ReactNode; children: ReactNode }) {
   );
 }
 
-/** Etiqueta pequena, do tamanho do texto ao lado — nada de selo grande. */
-function Etiqueta({ cor, children }: { cor: string; children: ReactNode }) {
+/**
+ * O selo de vidro da página do evento, do tamanho de uma etiqueta.
+ *
+ * `cor` tinge o vidro quando o selo fala de uma situação — inscrito, lista de
+ * espera, evento de teste. Sem cor ele é o vidro branco neutro do cartaz, que
+ * é o que carrega tipo do evento e contagem regressiva.
+ */
+function Selo({ cor, children }: { cor?: string; children: ReactNode }) {
   return (
     <Box
       sx={{
-        px: 0.85,
-        py: 0.15,
-        borderRadius: 1,
+        px: 1,
+        py: 0.3,
+        borderRadius: 999,
         fontSize: 10.5,
-        fontWeight: 700,
-        letterSpacing: '0.05em',
+        fontWeight: 800,
+        letterSpacing: '0.06em',
         textTransform: 'uppercase',
-        color: cor,
-        backgroundColor: alpha(cor, 0.12),
-        border: `1px solid ${alpha(cor, 0.28)}`,
+        color: '#fff',
+        backgroundColor: alpha(cor ?? '#fff', cor ? 0.34 : 0.18),
+        border: `1px solid ${alpha(cor ?? '#fff', cor ? 0.6 : 0.35)}`,
+        backdropFilter: 'blur(6px)',
         whiteSpace: 'nowrap',
       }}
     >
@@ -91,14 +104,19 @@ function Etiqueta({ cor, children }: { cor: string; children: ReactNode }) {
 }
 
 /**
- * Um evento por linha: miniatura, nome, quando e onde, vagas e o botão.
+ * Um evento como um cartaz pequeno — a página dele vista de longe.
  *
- * Linha em vez de card grande de propósito. São poucos eventos abertos ao mesmo
- * tempo, e em grade cada card virava um bloco enorme de foto — com uma linha
- * baixa a pessoa vê todos os eventos de uma vez, sem rolar, e a página fica
- * calma.
+ * A capa deixou de ser uma miniatura quadrada ao lado do texto e virou o fundo
+ * do cartão inteiro, com a mesma montagem do cartaz da página: a foto, o filtro
+ * que a assenta, o véu que a enevoa e, por cima, logo, selos, nome e o resumo
+ * de quando e onde. Quem chega na home reconhece o evento antes de ler, e
+ * abrir a página não muda de assunto — é a mesma imagem, maior.
+ *
+ * O véu fecha na cor do papel do cartão: a foto não termina num corte reto,
+ * ela se dissolve na superfície. O escuro por baixo dele é o que sustenta o
+ * texto branco sobre foto clara, do mesmo jeito que o filtro de 38% faz lá.
  */
-function LinhaEvento({
+function CartazDoEvento({
   event,
   minhaSituacao,
   proximo,
@@ -107,114 +125,184 @@ function LinhaEvento({
   event: Event;
   minhaSituacao: MinhaSituacao;
   proximo?: boolean;
-  /** Evento que já acabou: a linha entra apagada e não abre */
+  /** Evento que já acabou: o cartaz entra apagado e não abre */
   encerrado?: boolean;
 }) {
   const theme = useTheme();
   const navigate = useNavigate();
-  const escuro = theme.palette.mode === 'dark';
+  const papel = theme.palette.background.paper;
   const abrir = () => navigate(`/eventos/${event.id}`);
 
   const contagem = contagemRegressiva(event.startDate, event.endDate);
 
-  return (
-    <Paper
-      onClick={encerrado ? undefined : abrir}
-      sx={{
-        // moldura enxuta: com a capa maior, 1.5 de respiro em volta virava uma
-        // borda larga de papel em torno da imagem
-        p: 1,
-        borderRadius: 3,
-        cursor: encerrado ? 'default' : 'pointer',
-        // o próximo evento ganha o mesmo tingimento da faixa de boas-vindas, e
-        // não um banner à parte: destaca sem quebrar o ritmo da lista. Mais
-        // fraco que a faixa para não competir com ela
-        backgroundImage: proximo ? degradeVivo(escuro, 100, 0.8) : undefined,
-        transition: theme.transitions.create(['background-color'], {
-          duration: 160,
-        }),
-        /**
-         * Apagado como campo desabilitado, e a capa perde a cor: é o que separa
-         * o que já passou do que ainda dá para fazer, sem precisar escrever
-         * "encerrado" em cada canto da linha.
-         */
-        ...(encerrado
-          ? { opacity: 0.55, '& img': { filter: 'grayscale(1)' } }
-          : {
-              '&:hover': { backgroundColor: theme.palette.background.hover },
-              '&:hover .titulo-evento': {
-                color: theme.palette.primary.main,
-              },
-            }),
-      }}
-    >
-      <Stack
-        direction={{ xs: 'column', sm: 'row' }}
-        gap={{ xs: 1.5, sm: 2 }}
-        alignItems={{ xs: 'stretch', sm: 'center' }}
-      >
-        <Box
-          sx={{
-            position: 'relative',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0,
-            width: { xs: '100%', sm: 150 },
-            height: { xs: 150, sm: 100 },
-            borderRadius: 2,
-            overflow: 'hidden',
-            backgroundImage: `url(${event.data?.coverUrl || CapaLogin})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-          }}
-        >
-          {/* a logo do evento volta para cima da capa, como era no card antigo.
-              O véu por baixo dela é o que a mantém legível sobre foto clara, e
-              só entra quando existe logo — sem ela, a capa fica limpa */}
-          {event.data?.logoUrl && (
-            <>
-              <Box
-                sx={{
-                  position: 'absolute',
-                  inset: 0,
-                  backgroundColor: alpha('#0B1220', 0.2),
-                }}
-              />
-              <Box
-                component="img"
-                src={event.data.logoUrl}
-                alt={`Logo de ${event.name}`}
-                sx={{
-                  position: 'relative',
-                  /**
-                   * `width`/`height` com `contain`, e não `maxWidth`/`maxHeight`:
-                   * com máximo a logo só é reduzida, então arquivo pequeno
-                   * continuava pequeno na tela. Com tamanho fixo ela cresce até
-                   * encostar em um dos lados, mantendo a proporção.
-                   */
-                  width: '88%',
-                  height: '88%',
-                  objectFit: 'contain',
-                  filter: 'drop-shadow(0 2px 5px rgba(0,0,0,.45))',
-                }}
-              />
-            </>
-          )}
-        </Box>
+  const styles = {
+    cartaz: {
+      position: 'relative',
+      display: 'flex',
+      alignItems: 'flex-end',
+      overflow: 'hidden',
+      borderRadius: 3,
+      /**
+       * O próximo evento é mais alto que os outros. É o destaque que antes
+       * vinha de um tingimento no fundo do card — sobre foto isso não
+       * aparecia, e altura é o que ainda dá hierarquia numa lista de cartazes.
+       *
+       * 150px é o teto: acima disso a lista vira uma pilha de banners e a
+       * pessoa rola para ver três eventos. Tudo aqui dentro é medido para
+       * caber nele — a logo divide a linha com os selos, o nome tem duas
+       * linhas no máximo e o rodapé é de uma só.
+       */
+      minHeight: proximo ? 150 : 132,
+      cursor: encerrado ? 'default' : 'pointer',
+      /**
+       * Apagado como campo desabilitado, e a capa perde a cor: é o que separa
+       * o que já passou do que ainda dá para fazer, sem precisar escrever
+       * "encerrado" em cada canto.
+       */
+      ...(encerrado
+        ? { opacity: 0.6, '& .capa-do-evento': { filter: 'grayscale(1)' } }
+        : {
+            // a capa cresce devagar sob o cartaz parado: o movimento é da
+            // foto, e não do bloco inteiro pulando na lista
+            '&:hover .capa-do-evento': { transform: 'scale(1.05)' },
+          }),
+    },
+    capa: {
+      position: 'absolute',
+      inset: 0,
+      backgroundImage: `url(${event.data?.coverUrl || CapaLogin})`,
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      transition: theme.transitions.create('transform', { duration: 600 }),
+    },
+    /** o mesmo 38% da página: é ele que assenta foto clara sob texto branco */
+    filtro: {
+      position: 'absolute',
+      inset: 0,
+      backgroundColor: alpha('#000', 0.38),
+    },
+    /**
+     * Duas camadas, e não uma. A escura desce até o rodapé e é quem garante o
+     * contraste do nome sobre qualquer foto; a do papel entra só no último
+     * quinto, abaixo do texto, e é ela que enevoa a foto na superfície do
+     * cartão em vez de cortá-la.
+     */
+    veu: {
+      position: 'absolute',
+      inset: 0,
+      backgroundImage: [
+        `linear-gradient(180deg, transparent 10%, ${alpha(
+          '#0B1220',
+          0.48
+        )} 58%, ${alpha('#0B1220', 0.76)} 100%)`,
+        `linear-gradient(180deg, transparent 86%, ${alpha(
+          papel,
+          0.28
+        )} 95%, ${papel} 100%)`,
+      ].join(', '),
+    },
+    conteudo: {
+      position: 'relative',
+      width: '100%',
+      p: 1.5,
+      // o respiro de baixo mantém o texto acima da faixa em que a foto vira
+      // papel — dentro dela o branco se apagaria
+      pb: 1.75,
+    },
+    /**
+     * A logo divide a linha com os selos, em vez de ficar acima deles: em 150px
+     * de altura uma faixa só para ela comeria o espaço do nome.
+     */
+    logo: {
+      maxHeight: proximo ? 34 : 28,
+      maxWidth: '38%',
+      objectFit: 'contain',
+      flexShrink: 0,
+      filter: 'drop-shadow(0 3px 10px rgba(0,0,0,0.5))',
+    },
+    nome: {
+      color: '#fff',
+      fontWeight: 800,
+      letterSpacing: '-0.01em',
+      lineHeight: 1.15,
+      fontSize: proximo
+        ? { xs: '1.05rem', sm: '1.2rem' }
+        : { xs: '0.95rem', sm: '1.05rem' },
+      textShadow: '0 2px 14px rgba(0,0,0,0.5)',
+      display: '-webkit-box',
+      WebkitLineClamp: 2,
+      WebkitBoxOrient: 'vertical',
+      overflow: 'hidden',
+    },
+    /** o botão de vidro do cartaz; no destaque, o degradê da ação principal */
+    botao: {
+      flexShrink: 0,
+      height: 30,
+      px: 1.75,
+      fontSize: '0.8125rem',
+      borderRadius: 999,
+      textTransform: 'none',
+      fontWeight: 600,
+      color: '#fff',
+      ...(proximo
+        ? {
+            backgroundImage: `linear-gradient(120deg, ${AZUL_VIVO}, ${VIOLETA_VIVO})`,
+            boxShadow: `0 8px 24px -6px ${alpha('#fff', 0.45)}`,
+          }
+        : {
+            border: `1px solid ${alpha('#fff', 0.5)}`,
+            backgroundColor: alpha('#000', 0.25),
+            backdropFilter: 'blur(6px)',
+          }),
+      transition: theme.transitions.create(
+        ['transform', 'box-shadow', 'background-color'],
+        { duration: 220 }
+      ),
+      '&:hover, &:focus-visible': {
+        transform: 'scale(1.04)',
+        ...(proximo
+          ? { boxShadow: `0 12px 30px -6px ${alpha('#fff', 0.6)}` }
+          : { backgroundColor: alpha('#000', 0.42) }),
+      },
+      '&.Mui-disabled': { color: alpha('#fff', 0.6) },
+    },
+  };
 
-        <Box sx={{ flexGrow: 1, minWidth: 0 }}>
-          <Stack
-            direction="row"
-            alignItems="center"
-            gap={0.75}
-            sx={{ mb: 0.5, flexWrap: 'wrap' }}
-          >
+  return (
+    <Paper sx={styles.cartaz} onClick={encerrado ? undefined : abrir}>
+      <Box
+        className="capa-do-evento"
+        sx={styles.capa}
+        role="img"
+        aria-label={`Capa de ${event.name}`}
+      />
+      <Box sx={styles.filtro} />
+      <Box sx={styles.veu} />
+
+      <Box sx={styles.conteudo}>
+        <Stack
+          direction="row"
+          alignItems="center"
+          gap={1}
+          sx={{ mb: 0.75, minWidth: 0 }}
+        >
+          {event.data?.logoUrl && (
+            <Box
+              component="img"
+              src={event.data.logoUrl}
+              alt={`Logo de ${event.name}`}
+              sx={styles.logo}
+            />
+          )}
+
+          <Stack direction="row" gap={0.75} sx={{ flexWrap: 'wrap' }}>
+            {event.type && <Selo>{event.type}</Selo>}
+            {contagem && <Selo>{contagem}</Selo>}
             {event.status === 'TEST' && (
-              <Etiqueta cor={theme.palette.chips.alert}>Teste</Etiqueta>
+              <Selo cor={theme.palette.chips.alert}>Teste</Selo>
             )}
             {minhaSituacao && (
-              <Etiqueta
+              <Selo
                 cor={
                   minhaSituacao === 'inscrito'
                     ? theme.palette.chips.success
@@ -222,42 +310,26 @@ function LinhaEvento({
                 }
               >
                 {minhaSituacao === 'inscrito' ? 'Inscrito' : 'Lista de espera'}
-              </Etiqueta>
+              </Selo>
             )}
-            <Typography
-              sx={{
-                fontSize: 10.5,
-                fontWeight: 700,
-                letterSpacing: '0.06em',
-                textTransform: 'uppercase',
-                color: 'text.secondary',
-              }}
-            >
-              {event.type}
-              {contagem ? ` · ${contagem}` : ''}
-            </Typography>
           </Stack>
+        </Stack>
 
-          <Typography
-            className="titulo-evento"
-            sx={{
-              fontSize: '1rem',
-              fontWeight: 600,
-              lineHeight: 1.3,
-              transition: theme.transitions.create('color', { duration: 160 }),
-              display: '-webkit-box',
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: 'vertical',
-              overflow: 'hidden',
-            }}
-          >
-            {event.name}
-          </Typography>
+        <Typography sx={styles.nome}>{event.name}</Typography>
 
+        <Stack
+          direction="row"
+          gap={1.5}
+          alignItems="flex-end"
+          justifyContent="space-between"
+          sx={{ mt: 1, minWidth: 0 }}
+        >
+          {/* quando e onde ficam numa linha só, e o que não couber é cortado:
+            o cartaz é chamada, o detalhe está a um clique */}
           <Stack
-            direction={{ xs: 'column', lg: 'row' }}
-            gap={{ xs: 0.4, lg: 2 }}
-            sx={{ mt: 0.6, minWidth: 0 }}
+            direction={{ xs: 'column', md: 'row' }}
+            gap={{ xs: 0.25, md: 1.75 }}
+            sx={{ minWidth: 0 }}
           >
             <Meta icone={<CalendarMonthOutlined />}>
               {formatarPeriodo(event.startDate, event.endDate)}
@@ -266,22 +338,11 @@ function LinhaEvento({
               <Meta icone={<RoomOutlined />}>{event.data.localName}</Meta>
             )}
           </Stack>
-        </Box>
 
-        <Stack
-          gap={1}
-          sx={{
-            flexShrink: 0,
-            width: { xs: '100%', sm: 150 },
-            alignItems: { xs: 'stretch', sm: 'flex-end' },
-          }}
-        >
           <Button
-            variant={proximo ? 'contained' : 'outlined'}
             size="small"
-            fullWidth
             disabled={encerrado}
-            sx={{ borderRadius: 2, textTransform: 'none' }}
+            sx={styles.botao}
             onClick={(clique) => {
               clique.stopPropagation();
               abrir();
@@ -294,39 +355,18 @@ function LinhaEvento({
                 : 'Ver detalhes'}
           </Button>
         </Stack>
-      </Stack>
+      </Box>
     </Paper>
   );
 }
 
-function EsqueletoLinha() {
+/** O vazio tem o formato do cartaz, para a lista não pular quando ele chega. */
+function EsqueletoDoCartaz({ proximo }: { proximo?: boolean }) {
   return (
-    <Paper sx={{ p: 1, borderRadius: 3 }}>
-      <Stack
-        direction={{ xs: 'column', sm: 'row' }}
-        gap={2}
-        alignItems="center"
-      >
-        <Skeleton
-          variant="rectangular"
-          sx={{
-            borderRadius: 2,
-            width: { xs: '100%', sm: 150 },
-            height: { xs: 150, sm: 100 },
-            flexShrink: 0,
-          }}
-        />
-        <Box sx={{ flexGrow: 1, width: '100%' }}>
-          <Skeleton width={90} height={14} />
-          <Skeleton width="55%" height={22} />
-          <Skeleton width="40%" height={16} />
-        </Box>
-        <Skeleton
-          variant="rectangular"
-          sx={{ borderRadius: 2, width: { xs: '100%', sm: 150 }, height: 31 }}
-        />
-      </Stack>
-    </Paper>
+    <Skeleton
+      variant="rectangular"
+      sx={{ borderRadius: 3, height: proximo ? 150 : 132 }}
+    />
   );
 }
 
@@ -768,8 +808,8 @@ function Cards() {
     return mapa;
   }, [gruposDoUsuario]);
 
-  const linha = (event: Event, proximo?: boolean, encerrado?: boolean) => (
-    <LinhaEvento
+  const cartaz = (event: Event, proximo?: boolean, encerrado?: boolean) => (
+    <CartazDoEvento
       key={event.id}
       event={event}
       proximo={proximo}
@@ -787,7 +827,7 @@ function Cards() {
     <Box sx={{ mt: 3 }}>
       <TituloSecao>Eventos encerrados</TituloSecao>
       <Stack gap={1.5}>
-        {encerrados.map((event) => linha(event, false, true))}
+        {encerrados.map((event) => cartaz(event, false, true))}
       </Stack>
     </Box>
   );
@@ -797,8 +837,8 @@ function Cards() {
       <Box>
         <TituloSecao quantidade={2}>Próximos eventos</TituloSecao>
         <Stack gap={1.5}>
-          <EsqueletoLinha />
-          <EsqueletoLinha />
+          <EsqueletoDoCartaz proximo />
+          <EsqueletoDoCartaz />
         </Stack>
       </Box>
     );
@@ -837,13 +877,13 @@ function Cards() {
       {filtro}
       <TituloSecao quantidade={proximos.length}>Próximos eventos</TituloSecao>
       <Stack gap={1.5}>
-        {proximos.map((event, posicao) => linha(event, posicao === 0))}
+        {proximos.map((event, posicao) => cartaz(event, posicao === 0))}
       </Stack>
 
       {outros.length > 0 && (
         <Box sx={{ mt: 3 }}>
           <TituloSecao quantidade={outros.length}>Outros eventos</TituloSecao>
-          <Stack gap={1.5}>{outros.map((event) => linha(event))}</Stack>
+          <Stack gap={1.5}>{outros.map((event) => cartaz(event))}</Stack>
         </Box>
       )}
 
