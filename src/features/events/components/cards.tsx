@@ -26,6 +26,7 @@ import {
 } from '@mui/icons-material';
 import { useGetEvents } from '../../admin/events/api/getEvents';
 import { useGetGroupsByUser } from '../../admin/events/api/getGroupsByUser';
+import { emAndamento } from '../../admin/events/utils/eventStatus';
 import { Event } from '../../admin/events/types';
 import { AZUL_VIVO, VIOLETA_VIVO } from '../../../themes';
 import { useRole } from '../../../hooks/useRole';
@@ -108,13 +109,13 @@ function Selo({ cor, children }: { cor?: string; children: ReactNode }) {
  *
  * A capa deixou de ser uma miniatura quadrada ao lado do texto e virou o fundo
  * do cartão inteiro, com a mesma montagem do cartaz da página: a foto, o filtro
- * que a assenta, o véu que a enevoa e, por cima, logo, selos, nome e o resumo
- * de quando e onde. Quem chega na home reconhece o evento antes de ler, e
- * abrir a página não muda de assunto — é a mesma imagem, maior.
+ * que a assenta e, por cima, logo, selos, nome e o resumo de quando e onde.
+ * Quem chega na home reconhece o evento antes de ler, e abrir a página não muda
+ * de assunto — é a mesma imagem, maior.
  *
- * O véu fecha na cor do papel do cartão: a foto não termina num corte reto,
- * ela se dissolve na superfície. O escuro por baixo dele é o que sustenta o
- * texto branco sobre foto clara, do mesmo jeito que o filtro de 38% faz lá.
+ * Sobre o filtro parelho de 38% vem um véu que escurece para a direita: a capa
+ * fica limpa do lado da logo e vai fechando no lado do texto, que é o que
+ * sustenta o branco mesmo sobre foto clara.
  */
 function CartazDoEvento({
   event,
@@ -130,7 +131,10 @@ function CartazDoEvento({
 }) {
   const theme = useTheme();
   const navigate = useNavigate();
-  const papel = theme.palette.background.paper;
+  const escuro = theme.palette.mode === 'dark';
+  const baseDoVeu = escuro
+    ? theme.palette.background.default
+    : theme.palette.text.primary;
   const abrir = () => navigate(`/eventos/${event.id}`);
 
   const contagem = contagemRegressiva(event.startDate, event.endDate);
@@ -139,20 +143,22 @@ function CartazDoEvento({
     cartaz: {
       position: 'relative',
       display: 'flex',
-      alignItems: 'flex-end',
       overflow: 'hidden',
       borderRadius: 3,
       /**
-       * O próximo evento é mais alto que os outros. É o destaque que antes
-       * vinha de um tingimento no fundo do card — sobre foto isso não
-       * aparecia, e altura é o que ainda dá hierarquia numa lista de cartazes.
+       * 132px para todo cartaz, destaque inclusive: a lista fica com um ritmo
+       * só, e acima disso ela vira uma pilha de banners em que a pessoa rola
+       * para ver três eventos. Tudo aqui dentro é medido para caber nessa
+       * altura — a logo divide a linha com os selos, o nome tem duas linhas no
+       * máximo e o rodapé é de uma só.
        *
-       * 150px é o teto: acima disso a lista vira uma pilha de banners e a
-       * pessoa rola para ver três eventos. Tudo aqui dentro é medido para
-       * caber nele — a logo divide a linha com os selos, o nome tem duas
-       * linhas no máximo e o rodapé é de uma só.
+       * O destaque, então, não é mais tamanho: é o nome um pouco maior e o
+       * botão no degradê da ação principal.
        */
-      minHeight: proximo ? 150 : 132,
+      minHeight: 132,
+      // o conteúdo estica na altura toda para a logo poder se centrar nela; é
+      // o bloco de texto, lá dentro, que continua apoiado no rodapé
+      alignItems: 'stretch',
       cursor: encerrado ? 'default' : 'pointer',
       /**
        * Apagado como campo desabilitado, e a capa perde a cor: é o que separa
@@ -182,43 +188,56 @@ function CartazDoEvento({
       backgroundColor: alpha('#000', 0.38),
     },
     /**
-     * Duas camadas, e não uma. A escura desce até o rodapé e é quem garante o
-     * contraste do nome sobre qualquer foto; a do papel entra só no último
-     * quinto, abaixo do texto, e é ela que enevoa a foto na superfície do
-     * cartão em vez de cortá-la.
+     * O véu escurece indo para a direita, e não para baixo: a capa fica inteira
+     * à esquerda, onde a logo aparece, e vai fechando no lado em que moram o
+     * texto e o botão — que é justamente onde o fundo precisa ceder.
+     *
+     * A cor vem do tema, e não de um azul-noite cravado aqui: no escuro é o
+     * fundo da página (#030617), no claro é o azul-escuro do texto primário
+     * (#111B21). Os dois são escuros de propósito — o texto e os selos do
+     * cartaz são brancos nos dois temas, e fechar no papel claro os apagaria.
      */
     veu: {
       position: 'absolute',
       inset: 0,
-      backgroundImage: [
-        `linear-gradient(180deg, transparent 10%, ${alpha(
-          '#0B1220',
-          0.48
-        )} 58%, ${alpha('#0B1220', 0.76)} 100%)`,
-        `linear-gradient(180deg, transparent 86%, ${alpha(
-          papel,
-          0.28
-        )} 95%, ${papel} 100%)`,
-      ].join(', '),
+      backgroundImage: `linear-gradient(90deg, transparent 10%, ${alpha(
+        baseDoVeu,
+        0.48
+      )} 58%, ${alpha(baseDoVeu, 0.76)} 100%)`,
     },
     conteudo: {
       position: 'relative',
+      // acima do filtro e do véu: eles escurecem a foto, não o que está escrito
+      // nem a logo. A ordem no DOM já garantiria isso, mas o z-index deixa a
+      // regra explícita para quem mexer nas camadas depois
+      zIndex: 1,
       width: '100%',
+      display: 'flex',
+      alignItems: 'stretch',
+      gap: 1.5,
       p: 1.5,
-      // o respiro de baixo mantém o texto acima da faixa em que a foto vira
-      // papel — dentro dela o branco se apagaria
       pb: 1.75,
     },
     /**
-     * A logo divide a linha com os selos, em vez de ficar acima deles: em 150px
-     * de altura uma faixa só para ela comeria o espaço do nome.
+     * A logo abre o cartaz, à esquerda do texto e centrada na altura dele —
+     * dividindo a linha com os selos ela roubava a largura deles, e na coluna
+     * própria cabe inteira.
+     *
+     * Ela é centrada na altura do cartaz inteiro, e não na do bloco de texto:
+     * o texto se apoia no rodapé, então centrar dentro dele jogava a logo para
+     * baixo do meio. A sombra é o que a segura sobre a capa, que pode ser
+     * clara atrás dela.
      */
-    logo: {
-      maxHeight: proximo ? 34 : 28,
-      maxWidth: '38%',
-      objectFit: 'contain',
+    colunaDaLogo: {
+      display: 'flex',
+      alignItems: 'center',
       flexShrink: 0,
-      filter: 'drop-shadow(0 3px 10px rgba(0,0,0,0.5))',
+    },
+    logo: {
+      maxHeight: proximo ? 64 : 56,
+      maxWidth: 88,
+      objectFit: 'contain',
+      filter: 'drop-shadow(0 3px 10px rgba(0,0,0,0.55))',
     },
     nome: {
       color: '#fff',
@@ -226,7 +245,7 @@ function CartazDoEvento({
       letterSpacing: '-0.01em',
       lineHeight: 1.15,
       fontSize: proximo
-        ? { xs: '1.05rem', sm: '1.2rem' }
+        ? { xs: '1rem', sm: '1.1rem' }
         : { xs: '0.95rem', sm: '1.05rem' },
       textShadow: '0 2px 14px rgba(0,0,0,0.5)',
       display: '-webkit-box',
@@ -280,22 +299,27 @@ function CartazDoEvento({
       <Box sx={styles.veu} />
 
       <Box sx={styles.conteudo}>
-        <Stack
-          direction="row"
-          alignItems="center"
-          gap={1}
-          sx={{ mb: 0.75, minWidth: 0 }}
-        >
-          {event.data?.logoUrl && (
+        {event.data?.logoUrl && (
+          <Box sx={styles.colunaDaLogo}>
             <Box
               component="img"
               src={event.data.logoUrl}
               alt={`Logo de ${event.name}`}
               sx={styles.logo}
             />
-          )}
+          </Box>
+        )}
 
-          <Stack direction="row" gap={0.75} sx={{ flexWrap: 'wrap' }}>
+        <Box
+          sx={{
+            flexGrow: 1,
+            minWidth: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'flex-end',
+          }}
+        >
+          <Stack direction="row" gap={0.75} sx={{ mb: 0.75, flexWrap: 'wrap' }}>
             {event.type && <Selo>{event.type}</Selo>}
             {contagem && <Selo>{contagem}</Selo>}
             {event.status === 'TEST' && (
@@ -313,60 +337,57 @@ function CartazDoEvento({
               </Selo>
             )}
           </Stack>
-        </Stack>
 
-        <Typography sx={styles.nome}>{event.name}</Typography>
+          <Typography sx={styles.nome}>{event.name}</Typography>
 
-        <Stack
-          direction="row"
-          gap={1.5}
-          alignItems="flex-end"
-          justifyContent="space-between"
-          sx={{ mt: 1, minWidth: 0 }}
-        >
-          {/* quando e onde ficam numa linha só, e o que não couber é cortado:
-            o cartaz é chamada, o detalhe está a um clique */}
           <Stack
-            direction={{ xs: 'column', md: 'row' }}
-            gap={{ xs: 0.25, md: 1.75 }}
-            sx={{ minWidth: 0 }}
+            direction="row"
+            gap={1.5}
+            alignItems="flex-end"
+            justifyContent="space-between"
+            sx={{ mt: 1, minWidth: 0 }}
           >
-            <Meta icone={<CalendarMonthOutlined />}>
-              {formatarPeriodo(event.startDate, event.endDate)}
-            </Meta>
-            {event.data?.localName && (
-              <Meta icone={<RoomOutlined />}>{event.data.localName}</Meta>
-            )}
-          </Stack>
+            {/* quando e onde ficam numa linha só, e o que não couber é cortado:
+              o cartaz é chamada, o detalhe está a um clique */}
+            <Stack
+              direction={{ xs: 'column', md: 'row' }}
+              gap={{ xs: 0.25, md: 1.75 }}
+              sx={{ minWidth: 0 }}
+            >
+              <Meta icone={<CalendarMonthOutlined />}>
+                {formatarPeriodo(event.startDate, event.endDate)}
+              </Meta>
+              {event.data?.localName && (
+                <Meta icone={<RoomOutlined />}>{event.data.localName}</Meta>
+              )}
+            </Stack>
 
-          <Button
-            size="small"
-            disabled={encerrado}
-            sx={styles.botao}
-            onClick={(clique) => {
-              clique.stopPropagation();
-              abrir();
-            }}
-          >
-            {encerrado
-              ? 'Encerrado'
-              : minhaSituacao
-                ? 'Ver meu evento'
-                : 'Ver detalhes'}
-          </Button>
-        </Stack>
+            <Button
+              size="small"
+              disabled={encerrado}
+              sx={styles.botao}
+              onClick={(clique) => {
+                clique.stopPropagation();
+                abrir();
+              }}
+            >
+              {encerrado
+                ? 'Encerrado'
+                : minhaSituacao
+                  ? 'Ver meu evento'
+                  : 'Ver detalhes'}
+            </Button>
+          </Stack>
+        </Box>
       </Box>
     </Paper>
   );
 }
 
 /** O vazio tem o formato do cartaz, para a lista não pular quando ele chega. */
-function EsqueletoDoCartaz({ proximo }: { proximo?: boolean }) {
+function EsqueletoDoCartaz() {
   return (
-    <Skeleton
-      variant="rectangular"
-      sx={{ borderRadius: 3, height: proximo ? 150 : 132 }}
-    />
+    <Skeleton variant="rectangular" sx={{ borderRadius: 3, height: 132 }} />
   );
 }
 
@@ -837,7 +858,7 @@ function Cards() {
       <Box>
         <TituloSecao quantidade={2}>Próximos eventos</TituloSecao>
         <Stack gap={1.5}>
-          <EsqueletoDoCartaz proximo />
+          <EsqueletoDoCartaz />
           <EsqueletoDoCartaz />
         </Stack>
       </Box>
@@ -858,27 +879,61 @@ function Cards() {
   }
 
   /**
-   * "Próximos" são os que já têm contagem regressiva — até 45 dias, ou já
-   * acontecendo. O resto fica em "Outros eventos", que é onde caem as inscrições
-   * abertas com muita antecedência.
+   * O que está acontecendo agora abre a página, e vai todo em destaque: é o
+   * evento em que a pessoa está, ou para onde ela sai hoje. Enquanto durar, não
+   * há nada nesta tela que interesse mais do que ele.
+   *
+   * A régua é a mesma do painel (`emAndamento`): o dia inteiro conta nas duas
+   * pontas, então o evento não some da seção na manhã em que começa nem na
+   * tarde do dia em que termina.
+   */
+  const acontecendo = eventos.filter(emAndamento);
+  const aindaVem = eventos.filter((event) => !acontecendo.includes(event));
+
+  /**
+   * "Próximos" são os que já têm contagem regressiva — até 45 dias. O resto
+   * fica em "Outros eventos", que é onde caem as inscrições abertas com muita
+   * antecedência.
    *
    * O primeiro da lista entra em "Próximos" de qualquer jeito: se todo evento
    * aberto ainda está longe, a página começaria por "Outros eventos", o que soa
    * estranho para quem chegou.
    */
-  const proximos = eventos.filter(
+  const proximos = aindaVem.filter(
     (event, posicao) =>
       posicao === 0 || contagemRegressiva(event.startDate, event.endDate)
   );
-  const outros = eventos.filter((event) => !proximos.includes(event));
+  const outros = aindaVem.filter((event) => !proximos.includes(event));
 
   return (
     <Box>
       {filtro}
-      <TituloSecao quantidade={proximos.length}>Próximos eventos</TituloSecao>
-      <Stack gap={1.5}>
-        {proximos.map((event, posicao) => cartaz(event, posicao === 0))}
-      </Stack>
+
+      {acontecendo.length > 0 && (
+        <Box>
+          <TituloSecao quantidade={acontecendo.length}>
+            Em andamento
+          </TituloSecao>
+          <Stack gap={1.5}>
+            {acontecendo.map((event) => cartaz(event, true))}
+          </Stack>
+        </Box>
+      )}
+
+      {proximos.length > 0 && (
+        <Box sx={{ mt: acontecendo.length > 0 ? 3 : 0 }}>
+          <TituloSecao quantidade={proximos.length}>
+            Próximos eventos
+          </TituloSecao>
+          <Stack gap={1.5}>
+            {/* aqui só o primeiro é destaque; com um evento acontecendo agora,
+              nem ele — o destaque da tela já está na seção de cima */}
+            {proximos.map((event, posicao) =>
+              cartaz(event, posicao === 0 && acontecendo.length === 0)
+            )}
+          </Stack>
+        </Box>
+      )}
 
       {outros.length > 0 && (
         <Box sx={{ mt: 3 }}>
