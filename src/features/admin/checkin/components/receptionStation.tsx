@@ -20,6 +20,9 @@ import { UserAvatar } from '../../../../components/userAvatar';
 import { InputSelect } from '../../../../components/inputSelect';
 import { ConfirmModal } from '../../../../components/ConfirmModal';
 import { BadgeDeliveredModal } from './badgeDeliveredModal';
+import { useGetEvents } from '../../events/api/getEvents';
+import { moduloAtivo } from '../../events/eventModules';
+import { EventDetails } from '../../events/types';
 import CustomChip from '../../../../components/customChip';
 import {
   campoBuscaSx,
@@ -62,6 +65,17 @@ const normalizar = (valor?: string | null) =>
  * lembrar o nome exato de quem está no balcão.
  */
 function ReceptionStation({ eventId, grupo }: ReceptionStationProps) {
+  /**
+   * Evento sem o módulo de quartos não aloca ninguém — o modal da entrega não
+   * pode mandar o recepcionista "definir o quarto na aba Quartos", que nem
+   * existe nesse evento.
+   */
+  const { data: eventoData } = useGetEvents(
+    { eventId },
+    { enabled: !!eventId }
+  );
+  const evento = eventoData as EventDetails | undefined;
+  const comQuartos = moduloAtivo(evento?.data, 'bedrooms');
   const [filtro, setFiltro] = useState('');
   const [situacao, setSituacao] = useState(TODAS_AS_SITUACOES);
   /** Participante aguardando confirmação para ter o check-in revertido */
@@ -245,8 +259,9 @@ function ReceptionStation({ eventId, grupo }: ReceptionStationProps) {
       width: 170,
       sortable: false,
       valueGetter: (params) =>
-        params.row.teams.map((team: { name: string }) => team.name).join(', ') ||
-        '—',
+        params.row.teams
+          .map((team: { name: string }) => team.name)
+          .join(', ') || '—',
     },
     {
       field: 'status',
@@ -355,6 +370,7 @@ function ReceptionStation({ eventId, grupo }: ReceptionStationProps) {
       </Card>
 
       <BadgeDeliveredModal
+        comQuartos={comQuartos}
         participante={entregue}
         onClose={fecharConfirmacao}
       />
@@ -371,8 +387,7 @@ function ReceptionStation({ eventId, grupo }: ReceptionStationProps) {
         cancelLabel="Manter"
         onClose={() => setRevertendo(null)}
         onConfirm={() =>
-          revertendo &&
-          reverterEntrega({ eventId, userId: revertendo.userId })
+          revertendo && reverterEntrega({ eventId, userId: revertendo.userId })
         }
       />
     </Stack>

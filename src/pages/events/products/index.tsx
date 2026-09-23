@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Box, Button, Paper, Skeleton, Stack, Typography } from '@mui/material';
+import { Button, Paper, Skeleton, Typography } from '@mui/material';
 import { ShoppingBagOutlined } from '@mui/icons-material';
 import Swal from 'sweetalert2';
 
+import CapaLogin from '../../../assets/capaLogin2.jpg';
 import { Header } from '../../../components/header';
 import { PageStyle } from '../../../components/pageStyle';
 import { useGetEvents } from '../../../features/admin/events/api/getEvents';
@@ -18,9 +19,10 @@ import {
 import { ProductOffer } from '../../../features/events/components/productOffer';
 
 /**
- * Compra de produtos fora da inscrição — a camisa que a pessoa decidiu levar
- * uma semana depois de se inscrever.
+ * Loja do evento — a camisa que a pessoa decidiu levar uma semana depois de se
+ * inscrever.
  *
+ * A página é vitrine: o nome do evento fica no cabeçalho e o resto é produto.
  * Cada compra daqui é um pagamento próprio, separado do ingresso: o ingresso
  * pode já estar pago, e a compra nova aparece como compra nova, no painel e
  * em Minhas Inscrições. Só inscrito confirmado compra; quem está só na lista
@@ -116,10 +118,12 @@ function EventProducts() {
 
   return (
     <PageStyle>
-      <Header title="Comprar produtos" buttonBack pageBack={`/eventos/${id}`} />
+      {/* o nome do evento está no cartaz, logo abaixo: repetir aqui era a
+          terceira linha de texto antes do primeiro produto */}
+      <Header title="Loja do evento" buttonBack pageBack={`/eventos/${id}`} />
 
       {carregando ? (
-        <Skeleton variant="rounded" height={320} />
+        <Skeleton variant="rounded" height={420} />
       ) : !inscrito ? (
         aviso(
           'Produtos só para inscritos',
@@ -131,30 +135,18 @@ function EventProducts() {
           'Este evento não tem produtos à venda no momento.'
         )
       ) : (
-        <Paper sx={{ p: { xs: 2, sm: 3 } }}>
-          <Stack sx={{ mb: 2 }}>
-            <Typography
-              variant="h5"
-              sx={{
-                fontSize: { xs: '1.25rem', sm: '1.5rem' },
-                wordBreak: 'break-word',
-              }}
-            >
-              {event?.name}
-            </Typography>
-          </Stack>
-          <Box>
-            <ProductOffer
-              products={produtosAVenda}
-              modulePayment={modulePayment}
-              loading={comprando || abrindoPagamento}
-              subtitle="Esta compra é paga separadamente da sua inscrição."
-              skipLabel="Voltar ao evento"
-              onSkip={voltarAoEvento}
-              onConfirm={(items) => comprar({ eventId: id, userId, items })}
-            />
-          </Box>
-        </Paper>
+        <ProductOffer
+          products={produtosAVenda}
+          modulePayment={modulePayment}
+          coverUrl={event?.data?.coverUrl || CapaLogin}
+          logoUrl={event?.data?.logoUrl}
+          eventName={event?.name}
+          loading={comprando || abrindoPagamento}
+          subtitle="Pagamento separado da inscrição"
+          skipLabel="Voltar ao evento"
+          onSkip={voltarAoEvento}
+          onConfirm={(items) => comprar({ eventId: id, userId, items })}
+        />
       )}
     </PageStyle>
   );

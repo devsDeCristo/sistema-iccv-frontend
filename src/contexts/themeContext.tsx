@@ -30,6 +30,22 @@ export const CustomThemeProvider: React.FC<ThemeProviderProps> = ({ children }) 
     }
   }, []);
 
+  /**
+   * `color-scheme` do elemento raiz seguindo o tema do app.
+   *
+   * Quem pinta a barra de rolagem, e os controles nativos, é o navegador — e
+   * ele obedece ao `color-scheme`, que no `index.css` está como `light dark`,
+   * ou seja, segue o sistema operacional. Como o tema aqui é um interruptor
+   * nosso, quem estivesse com o SO no escuro via barra escura mesmo no tema
+   * claro.
+   *
+   * Vai em estilo inline no elemento: assim vence a regra do `:root` sem
+   * depender da ordem em que as folhas de estilo entram na página.
+   */
+  useEffect(() => {
+    document.documentElement.style.colorScheme = colorMode ? 'dark' : 'light';
+  }, [colorMode]);
+
   const toggleColorMode = () => {
     const newMode = !colorMode;
     setColorMode(newMode);

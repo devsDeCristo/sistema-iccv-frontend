@@ -3,6 +3,7 @@ import { PageStyle } from '../../../../components/pageStyle';
 import {
   Box,
   Button,
+  CircularProgress,
   Stack,
   TextField,
   Paper,
@@ -19,6 +20,12 @@ import {
 import { useNavigate, useParams } from 'react-router-dom';
 import { ListTeams } from '../../../../features/admin/events/components/listTeams';
 import { ListBedRooms } from '../../../../features/admin/events/components/listBedRooms';
+import { ListTransports } from '../../../../features/admin/events/components/listTransports';
+import { ModalTransport } from '../../../../features/admin/events/components/modalTransport';
+import {
+  ModuloDoEvento,
+  moduloAtivo,
+} from '../../../../features/admin/events/eventModules';
 import { ModalBedRoom } from '../../../../features/admin/events/components/modalBedRoom';
 import { useEffect, useMemo, useState } from 'react';
 import { useQueryClient } from 'react-query';
@@ -46,11 +53,18 @@ import {
   EmailOutlined,
   ExpandMore,
   FilterAltOutlined,
+  DirectionsBusOutlined,
+  GroupsOutlined,
+  HourglassEmptyOutlined,
   HowToReg,
+  PaymentsOutlined,
   People,
+  PeopleOutlined,
   QrCode2Outlined,
   QrCodeScannerOutlined,
   Search,
+  ShoppingBagOutlined,
+  Sync,
   ViewModuleOutlined,
 } from '@mui/icons-material';
 import {
@@ -63,6 +77,9 @@ import { ModalGeneratePdf } from '../../../../features/admin/events/components/p
 import { PdfDocType } from '../../../../features/admin/events/components/pdfGenerator/types';
 import { ExportFormat } from '../../../../features/admin/events/components/exportUsers/types';
 import { useGetUsers } from '../../../../features/admin/events/api/getUsers';
+import { usePostReconcilePayments } from '../../../../features/admin/events/api/postReconcilePayments';
+import { CardsProductOrders } from '../../../../features/admin/events/components/cardsProductOrders';
+import { useRole } from '../../../../hooks/useRole';
 import FilterModal from '../../../../features/admin/events/components/filtersUserModal';
 import PdfTeams from '../../../../components/pdfTeams';
 
@@ -77,17 +94,63 @@ import { NavTabs } from '../../../../components/navTabs';
 import { User } from '../../../../types/user';
 import { ListUsersWaitList } from '../../../../features/admin/events/components/listUsersWaitList';
 import { ListPayments } from '../../../../features/admin/events/components/listPayments';
+import { ListProductOrders } from '../../../../features/admin/events/components/listProductOrders';
+import { statusPaymentOptions } from '../../../../features/admin/events/constants';
+import { CardsPayments } from '../../../../features/admin/events/components/cardsPayments';
+import { CardsRegistrations } from '../../../../features/admin/events/components/cardsRegistrations';
 import { toast } from 'react-toastify';
 import { useEventRole } from '../../../../hooks/useEventRole';
 import { FINANCE_EVENT_TABS } from '../../../../constants/roles';
 
+/**
+ * Ícones em `small` (20px), o mesmo tamanho dos cards de status: em tamanho
+ * cheio eles esticavam a pílula e a régua ficava mais alta que as outras do
+ * sistema.
+ */
 const EVENT_TABS = [
-  { label: 'Inscritos', value: 'usuarios' },
-  { label: 'Lista de Espera', value: 'lista-espera' },
-  { label: 'Pagamentos', value: 'pagamentos' },
-  { label: 'Quartos', value: 'quartos' },
-  { label: 'Equipes', value: 'equipes' },
+  {
+    label: 'Inscritos',
+    value: 'usuarios',
+    icon: <PeopleOutlined fontSize="small" />,
+  },
+  {
+    label: 'Lista de Espera',
+    value: 'lista-espera',
+    icon: <HourglassEmptyOutlined fontSize="small" />,
+  },
+  {
+    label: 'Financeiro',
+    value: 'pagamentos',
+    icon: <PaymentsOutlined fontSize="small" />,
+  },
+  {
+    label: 'Pedidos de Produtos',
+    value: 'produtos',
+    icon: <ShoppingBagOutlined fontSize="small" />,
+  },
+  {
+    label: 'Quartos',
+    value: 'quartos',
+    icon: <BedOutlined fontSize="small" />,
+  },
+  {
+    label: 'Equipes',
+    value: 'equipes',
+    icon: <GroupsOutlined fontSize="small" />,
+  },
+  {
+    label: 'Transporte',
+    value: 'transporte',
+    icon: <DirectionsBusOutlined fontSize="small" />,
+  },
 ];
+
+/** Abas que só existem quando o módulo correspondente está ligado no evento */
+const ABA_DO_MODULO: Record<string, ModuloDoEvento> = {
+  quartos: 'bedrooms',
+  equipes: 'teams',
+  transporte: 'transport',
+};
 
 function Details() {
   const { id, subPage } = useParams();
@@ -96,8 +159,13 @@ function Details() {
   const [openModalBedRoom, setOpenModalBedRoom] = useState(false);
   const [openModalTeam, setOpenModalTeam] = useState(false);
   const [searchBedroom, setSearchBedroom] = useState('');
+  const [openModalTransport, setOpenModalTransport] = useState(false);
+  const [searchTransport, setSearchTransport] = useState('');
   const [searchTeam, setSearchTeam] = useState('');
   const [searchUser, setSearchUser] = useState('');
+  const { isDev } = useRole();
+  const { mutate: reconciliar, isLoading: reconciliando } =
+    usePostReconcilePayments();
   const [pageValue, setPageValue] = useState(subPage || 'usuarios');
   const [openModalAddUser, setOpenModalAddUser] = useState(false);
   const [openModalFilter, setOpenModalFilter] = useState(false);
@@ -119,6 +187,9 @@ function Details() {
   const [pdfType, setPdfType] = useState<PdfDocType | null>(null);
   const [gridFilteredUsers, setGridFilteredUsers] = useState<User[]>([]);
   const [gridSelectedUsers, setGridSelectedUsers] = useState<User[]>([]);
+  // filtros da aba Produtos; vazio é "todos"
+  const [produtoFiltro, setProdutoFiltro] = useState('');
+  const [statusProdutoFiltro, setStatusProdutoFiltro] = useState('');
   const [openModalQrCode, setOpenModalQrCode] = useState(false);
   const [openQrScanner, setOpenQrScanner] = useState(false);
 
@@ -250,7 +321,8 @@ function Details() {
       flexWrap: 'wrap',
       width: '100%',
       gap: 2,
-      mt: 2,
+      // sem `mt`: quem separa o bloco das abas é o `Stack` da aba, e aqui o
+      // espaçamento já vem do `gap` dele — somados, davam vão dobrado
       p: 2,
       ...superficieSx,
     },
@@ -265,6 +337,10 @@ function Details() {
     },
     textField: {
       width: { xs: '100%', sm: '350px' },
+      ...campoBuscaSx(theme),
+    },
+    selectFiltro: {
+      width: { xs: '100%', sm: 210 },
       ...campoBuscaSx(theme),
     },
   };
@@ -335,13 +411,20 @@ function Details() {
    * Inscritos e Pagamentos: começar pelo conjunto menor e abrir depois nunca
    * chega a oferecer uma aba que a API vai recusar.
    */
-  const visibleTabs = useMemo(
-    () =>
-      isAdminDoEvento
-        ? EVENT_TABS
-        : EVENT_TABS.filter((tab) => FINANCE_EVENT_TABS.includes(tab.value)),
-    [isAdminDoEvento]
-  );
+  const visibleTabs = useMemo(() => {
+    const porPerfil = isAdminDoEvento
+      ? EVENT_TABS
+      : EVENT_TABS.filter((tab) => FINANCE_EVENT_TABS.includes(tab.value));
+
+    /**
+     * Módulo desligado tira a aba do ar. Evento sem a chave `modules` — todos
+     * os que existem hoje — continua com as três, porque ausente é ligado.
+     */
+    return porPerfil.filter((tab) => {
+      const modulo = ABA_DO_MODULO[tab.value];
+      return !modulo || moduloAtivo(event?.data, modulo);
+    });
+  }, [isAdminDoEvento, event?.data]);
 
   // acesso direto pela URL a uma aba bloqueada volta para a primeira liberada.
   // Só depois do evento chegar: antes disso todo mundo parece financeiro, e um
@@ -501,7 +584,15 @@ function Details() {
       />
 
       {pageValue === 'usuarios' && (
-        <Stack gap={2}>
+        <Stack gap={2} sx={{ mt: 2 }}>
+          {/* acima da busca: o resumo é do evento inteiro, e não do que a
+              busca deixou na tela */}
+          <CardsRegistrations
+            event={event}
+            users={users}
+            isLoading={loadingEventDetails || loadingUsers}
+          />
+
           <Paper component="div" sx={styles.boxFilterAndPdf}>
             <TextField
               placeholder="Pesquisar usuário por nome ou CPF"
@@ -601,7 +692,7 @@ function Details() {
         </Stack>
       )}
       {pageValue === 'lista-espera' && (
-        <Stack gap={2}>
+        <Stack gap={2} sx={{ mt: 2 }}>
           <Paper component="div" sx={styles.boxFilterAndPdf}>
             <TextField
               placeholder="Pesquisar usuário por nome ou CPF"
@@ -628,7 +719,9 @@ function Details() {
         </Stack>
       )}
       {pageValue === 'pagamentos' && (
-        <Stack gap={2}>
+        <Stack gap={2} sx={{ mt: 2 }}>
+          <CardsPayments eventId={eventId} />
+
           <Paper component="div" sx={styles.boxFilterAndPdf}>
             <TextField
               placeholder="Pesquisar usuário por nome ou CPF"
@@ -648,6 +741,38 @@ function Details() {
             />
             {/* <Typography color="#000">Usuários</Typography> */}
             <Stack sx={styles.stackButtons}>
+              {/*
+                Para o retorno que se perdeu: o inscrito pagou, o gateway não
+                avisou, e a cobrança continua pendente na tela. A rotina que
+                roda sozinha de três em três horas resolveria — este botão é
+                para não esperar por ela.
+
+                Só para o dev, e a rota recusa o resto: cada clique fala com o
+                gateway uma vez por cobrança pendente, e numa fila grande isso
+                vira uma rajada de chamadas na conta da igreja. Quem administra
+                espera o relógio ou lança a baixa manual.
+              */}
+              {isDev && (
+                <Tooltip title="Pergunta ao gateway o que aconteceu com as cobranças pendentes deste evento">
+                  <span>
+                    <Button
+                      variant="outlined"
+                      onClick={() => reconciliar({ eventId })}
+                      disabled={reconciliando}
+                      startIcon={
+                        reconciliando ? (
+                          <CircularProgress size={16} color="inherit" />
+                        ) : (
+                          <Sync />
+                        )
+                      }
+                    >
+                      Conferir no gateway
+                    </Button>
+                  </span>
+                </Tooltip>
+              )}
+
               <Button
                 variant="outlined"
                 onClick={handleExportPayments}
@@ -666,8 +791,84 @@ function Details() {
         </Stack>
       )}
 
+      {pageValue === 'produtos' && (
+        <Stack gap={2} sx={{ mt: 2 }}>
+          <CardsProductOrders
+            eventId={eventId}
+            products={event?.products}
+            produtoId={produtoFiltro}
+            onSelecionarProduto={setProdutoFiltro}
+          />
+
+          <Paper component="div" sx={styles.boxFilterAndPdf}>
+            <TextField
+              placeholder="Pesquisar por nome, CPF ou produto"
+              variant="outlined"
+              size="small"
+              value={searchUser}
+              sx={styles.textField}
+              onChange={(e) => setSearchUser(e.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Search />
+                  </InputAdornment>
+                ),
+              }}
+            />
+
+            <Stack sx={styles.stackButtons}>
+              <TextField
+                select
+                size="small"
+                label="Produto"
+                value={produtoFiltro}
+                sx={styles.selectFiltro}
+                onChange={(e) => setProdutoFiltro(e.target.value)}
+              >
+                <MenuItem value="">Todos os produtos</MenuItem>
+                {(event?.products ?? []).map((produto) => (
+                  <MenuItem key={produto.id} value={produto.id}>
+                    {produto.name}
+                  </MenuItem>
+                ))}
+              </TextField>
+
+              <TextField
+                select
+                size="small"
+                label="Status do pagamento"
+                value={statusProdutoFiltro}
+                sx={styles.selectFiltro}
+                onChange={(e) => setStatusProdutoFiltro(e.target.value)}
+              >
+                <MenuItem value="">Todos os status</MenuItem>
+                {statusPaymentOptions.map((opcao) => (
+                  <MenuItem key={opcao.value} value={opcao.value}>
+                    {opcao.label}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Stack>
+          </Paper>
+
+          {/* o status leva para a aba de pagamentos já procurando por quem
+              comprou: o CPF é o que a busca de lá entende sem ambiguidade */}
+          <ListProductOrders
+            search={searchUser}
+            produtoId={produtoFiltro}
+            status={statusProdutoFiltro}
+            products={event?.products}
+            onVerPagamento={(pedido) => {
+              setSearchUser(pedido.cpf || pedido.fullName || '');
+              handleChange('pagamentos');
+            }}
+          />
+        </Stack>
+      )}
+
       {pageValue === 'quartos' && (
-        <Stack gap={2}>
+        <Stack gap={2} sx={{ mt: 2 }}>
           <Paper sx={styles.boxFilterAndPdf} component="div">
             <TextField
               label="Pesquisar quarto"
@@ -712,7 +913,7 @@ function Details() {
       )}
 
       {pageValue === 'equipes' && (
-        <Stack gap={2}>
+        <Stack gap={2} sx={{ mt: 2 }}>
           <Paper component="div" sx={styles.boxFilterAndPdf}>
             <TextField
               label="Pesquisar equipe"
@@ -771,6 +972,36 @@ function Details() {
         </Stack>
       )}
 
+      {pageValue === 'transporte' && (
+        <Stack gap={2} sx={{ mt: 2 }}>
+          <Paper component="div" sx={styles.boxFilterAndPdf}>
+            <TextField
+              label="Pesquisar transporte"
+              variant="outlined"
+              size="small"
+              value={searchTransport}
+              sx={styles.textField}
+              onChange={(e) => setSearchTransport(e.target.value)}
+            />
+
+            <Stack sx={styles.stackButtons}>
+              <Button
+                variant="contained"
+                disabled={loadingEventDetails}
+                onClick={() => setOpenModalTransport(true)}
+              >
+                Adicionar transporte
+              </Button>
+            </Stack>
+          </Paper>
+
+          <ListTransports
+            search={searchTransport}
+            groupNames={(event?.groupRoles || []).map((grupo) => grupo.name)}
+          />
+        </Stack>
+      )}
+
       <FilterModal
         open={openModalFilter}
         onClose={() => setOpenModalFilter(false)}
@@ -783,6 +1014,13 @@ function Details() {
       <ModalBedRoom
         open={openModalBedRoom}
         handleClose={() => setOpenModalBedRoom(false)}
+        eventId={id || ''}
+        groupNames={(event?.groupRoles || []).map((grupo) => grupo.name)}
+      />
+
+      <ModalTransport
+        open={openModalTransport}
+        handleClose={() => setOpenModalTransport(false)}
         eventId={id || ''}
         groupNames={(event?.groupRoles || []).map((grupo) => grupo.name)}
       />

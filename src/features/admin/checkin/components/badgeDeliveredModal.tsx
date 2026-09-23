@@ -16,6 +16,8 @@ import { CheckinParticipant } from '../types';
 interface BadgeDeliveredModalProps {
   /** Participante da última entrega; null mantém o modal fechado */
   participante: CheckinParticipant | null;
+  /** Evento usa o módulo de quartos; sem ele não há quarto para mostrar */
+  comQuartos?: boolean;
   onClose: () => void;
 }
 
@@ -28,6 +30,7 @@ interface BadgeDeliveredModalProps {
  */
 function BadgeDeliveredModal({
   participante,
+  comQuartos = true,
   onClose,
 }: BadgeDeliveredModalProps) {
   const theme = useTheme();
@@ -60,7 +63,7 @@ function BadgeDeliveredModal({
             )}
           </Box>
 
-          {participante?.bedroom ? (
+          {!comQuartos ? null : participante?.bedroom ? (
             <Box
               sx={{
                 p: 2,

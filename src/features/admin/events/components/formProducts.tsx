@@ -106,6 +106,9 @@ function CartaoProduto({
 
   const styles = {
     cartao: {
+      width: '100%',
+      minWidth: 0,
+      maxWidth: '100%',
       boxShadow:
         theme.palette.mode == 'dark' ? '' : '0px 0px 5px 2px rgba(0,0,0,0.1)',
       borderRadius: 2,
@@ -117,8 +120,12 @@ function CartaoProduto({
         alignItems: 'center',
         gap: 1,
         flexWrap: 'wrap',
+        minWidth: 0,
         my: 1,
         mr: 1,
+      },
+      '& .MuiAccordionSummary-expandIconWrapper': {
+        flexShrink: 0,
       },
     },
     miniatura: {
@@ -184,7 +191,16 @@ function CartaoProduto({
           </Box>
         )}
 
-        <Typography fontWeight={600} sx={{ mr: 'auto' }}>
+        <Typography
+          fontWeight={600}
+          sx={{
+            minWidth: 0,
+            flex: '1 1 160px',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}
+        >
           {produto.name?.trim() || `Produto ${index + 1}`}
         </Typography>
 
@@ -234,7 +250,9 @@ function CartaoProduto({
         </Tooltip>
       </AccordionSummary>
 
-      <AccordionDetails sx={{ pt: 0, mt: 1 }}>
+      <AccordionDetails
+        sx={{ pt: 0, mt: 1, minWidth: 0, overflow: 'hidden' }}
+      >
         <Stack direction={{ xs: 'column', sm: 'row' }} gap={2}>
           <Box sx={{ flexShrink: 0 }}>
             <Box
@@ -295,7 +313,13 @@ function CartaoProduto({
           <Grid
             container
             spacing={2}
-            sx={{ flex: 1, alignContent: 'flex-start' }}
+            sx={{
+              flex: 1,
+              minWidth: 0,
+              width: { xs: '100%', sm: 'auto' },
+              m: { xs: 0, sm: undefined },
+              alignContent: 'flex-start',
+            }}
           >
             <Grid item xs={12} sm={8}>
               <Controller
@@ -385,8 +409,8 @@ function CartaoProduto({
         )}
 
         <Stack
-          direction="row"
-          alignItems="center"
+          direction={{ xs: 'column', sm: 'row' }}
+          alignItems={{ xs: 'stretch', sm: 'center' }}
           justifyContent="space-between"
           gap={1}
           sx={{ mt: 3, mb: 1.5 }}
@@ -402,7 +426,7 @@ function CartaoProduto({
             variant="outlined"
             startIcon={<Add />}
             onClick={onAdicionarVariante}
-            sx={{ flexShrink: 0 }}
+            sx={{ alignSelf: { xs: 'flex-start', sm: 'auto' } }}
           >
             Adicionar variante
           </Button>
@@ -628,7 +652,7 @@ function FormProducts() {
     );
 
   return (
-    <Stack gap={2} sx={{ mb: 1 }}>
+    <Stack gap={2} sx={{ width: '100%', minWidth: 0, mb: 1 }}>
       <Stack
         direction={{ xs: 'column', sm: 'row' }}
         justifyContent="space-between"

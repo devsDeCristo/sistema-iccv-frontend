@@ -155,6 +155,19 @@ export function ModalPayment({
 
                       const selected = field.value.includes(item.key);
 
+                      // o ingresso entra na lista como mais um item comprado,
+                      // do mesmo jeito do painel do evento: assim a inscrição
+                      // com camisa e a compra avulsa de camisa se leem igual
+                      const ingresso = [item.groupName, item.name]
+                        .filter(Boolean)
+                        .join(' — ');
+                      const itens = [
+                        ...(item.paymentId
+                          ? []
+                          : [`Ingresso${ingresso ? ` ${ingresso}` : ''}`]),
+                        ...(item.products ?? []).map(descreverItem),
+                      ];
+
                       const toggle = () => {
                         if (isPaid) return;
 
@@ -197,21 +210,18 @@ export function ModalPayment({
 
                           <Box flex={1}>
                             <Typography fontWeight={600}>
-                              {item.name}
+                              {item.paymentId ? item.name : 'Inscrição'}
                             </Typography>
 
-                            {item.groupName && (
-                              <Typography fontSize={13} color="text.secondary">
-                                {item.groupName}
+                            {itens.map((linha) => (
+                              <Typography
+                                key={linha}
+                                fontSize={13}
+                                color="text.secondary"
+                              >
+                                {linha}
                               </Typography>
-                            )}
-
-                            {!!item.products?.length && (
-                              <Typography fontSize={13} color="text.secondary">
-                                Produtos:{' '}
-                                {item.products.map(descreverItem).join(', ')}
-                              </Typography>
-                            )}
+                            ))}
 
                             <Stack direction="row" spacing={1} mt={1}>
                               <CustomChip

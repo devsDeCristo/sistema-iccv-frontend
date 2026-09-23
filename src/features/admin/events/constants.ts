@@ -3,7 +3,9 @@ import {
   Category,
   Check,
   Event,
+  Gavel,
   Photo,
+  Tune,
   Settings,
   ShoppingBag,
 } from '@mui/icons-material';
@@ -17,6 +19,7 @@ import {
 
 export const GET_EVENTS = 'GET_EVENTS';
 export const GET_BEDROOMS = 'GET_BEDROOMS';
+export const GET_TRANSPORTS = 'GET_TRANSPORTS';
 export const GET_TEAMS = 'GET_TEAMS';
 export const GET_EVENT_USERS = 'GET_EVENT_USERS';
 export const GET_EVENT_USERS_WAITLIST = 'GET_EVENT_USERS_WAITLIST';
@@ -197,9 +200,11 @@ export const EVENT_LOGO_SCHEMA = z.object({
   eventCover: z.any().optional(),
   logoUrl: z.string().optional().nullable(),
   coverUrl: z.string().optional().nullable(),
-  /** Termo de autorização em branco (menores de 16 anos) */
-  eventTerm: z.any().optional(),
-  minorTermUrl: z.string().optional().nullable(),
+  // as cores do evento moram neste passo porque é delas que saem: a logo e a
+  // capa estão aqui, e é delas que a paleta é lida
+  primaryColor: z.string().optional().nullable(),
+  secondaryColor: z.string().optional().nullable(),
+  tertiaryColor: z.string().optional().nullable(),
   // .refine(
   //   (files) => {
   //     if (!files || files.length === 0) return true;
@@ -220,10 +225,39 @@ export const EVENT_LOGO_SCHEMA = z.object({
   // ),
 });
 
+/**
+ * Os dois termos do evento, que antes moravam na etapa da capa.
+ *
+ * São coisas diferentes: o de menores é um arquivo em branco para o
+ * responsável baixar, assinar e reenviar; o do evento é texto escrito aqui
+ * mesmo, que a pessoa lê e aceita para conseguir se inscrever. Evento sem
+ * texto nenhum não pede aceite nenhum.
+ */
+/**
+ * Os módulos que o evento usa.
+ *
+ * Nascem ligados: é o que os eventos que já existem têm hoje, e criar um evento
+ * com tudo desligado seria começar escondendo abas. Quem não usa, desliga.
+ */
+export const MODULES_SCHEMA = z.object({
+  moduleBedrooms: z.boolean(),
+  moduleTeams: z.boolean(),
+  moduleTransport: z.boolean(),
+});
+
+export const TERMS_SCHEMA = z.object({
+  /** Termo de autorização em branco (menores de 16 anos) */
+  eventTerm: z.any().optional(),
+  minorTermUrl: z.string().optional().nullable(),
+  /** Termo do evento, em HTML do editor */
+  registrationTerm: z.string().optional().nullable(),
+});
+
 export const REGISTER_EVENT_SCHEMA = GENERAL_INFO_SCHEMA.merge(
   DATE_AND_LOCAL_SCHEMA
 )
   .merge(EVENT_LOGO_SCHEMA)
+  .merge(TERMS_SCHEMA)
   .merge(REGISTRATION_SETTINGS_SCHEMA);
 
 export const OPTIONS_STATUS = [
@@ -260,16 +294,26 @@ export const STEPS = [
   },
   {
     id: 4,
+    label: 'Módulos',
+    icon: Tune,
+  },
+  {
+    id: 5,
     label: 'Logo e capa',
     icon: Photo,
   },
   {
-    id: 5,
+    id: 6,
+    label: 'Termos',
+    icon: Gavel,
+  },
+  {
+    id: 7,
     label: 'Configurações de inscrição',
     icon: Settings,
   },
   {
-    id: 6,
+    id: 8,
     label: 'Produtos',
     icon: ShoppingBag,
   },
@@ -288,16 +332,26 @@ export const PANELS = [
   },
   {
     id: 3,
+    label: 'Módulos',
+    icon: Tune,
+  },
+  {
+    id: 4,
     label: 'Logo e capa',
     icon: Photo,
   },
   {
-    id: 4,
+    id: 5,
+    label: 'Termos',
+    icon: Gavel,
+  },
+  {
+    id: 6,
     label: 'Configurações de inscrição',
     icon: Settings,
   },
   {
-    id: 5,
+    id: 7,
     label: 'Produtos',
     icon: ShoppingBag,
   },
@@ -427,7 +481,8 @@ export const PAYMENT_STATUS_COLOR = (
  */
 export const PAYMENT_ORIGIN = (origem: PaymentReceived): string => {
   const map: Record<PaymentReceived, string> = {
-    SYSTEM: 'Sistema',
+    PENDING: 'Aguardando pagamento',
+    SYSTEM: 'Gateway de pagamento',
     EXTERNAL: 'Lançamento manual',
   };
 

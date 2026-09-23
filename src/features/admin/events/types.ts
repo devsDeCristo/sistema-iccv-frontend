@@ -10,6 +10,8 @@ import {
   PRODUCTS_SCHEMA,
   REGISTRATION_SETTINGS_SCHEMA,
   ROLE_SELECT_SCHEMA,
+  MODULES_SCHEMA,
+  TERMS_SCHEMA,
 } from './constants';
 export type EventType = 'CURSILHO' | 'RETIRO';
 
@@ -81,6 +83,24 @@ export interface filterUsers {
   city: string | null;
   neighborhood: string | null;
   worker?: boolean;
+}
+
+/**
+ * Transporte do evento — o ônibus, a van, o carro que leva o grupo.
+ *
+ * Mesmo formato do quarto: capacidade, tags e restrição por grupo de inscrição.
+ * O problema é o mesmo, encaixar pessoas em lugares que têm limite.
+ */
+export interface Transport {
+  id: string;
+  name: string;
+  capacity: number;
+  tag: String[];
+  /** Grupos de inscrição que podem ocupar o transporte. Vazio = aberto. */
+  groupTags?: string[];
+  note: string | null;
+  event: Event;
+  users: User[];
 }
 
 export interface Bedroom {
@@ -169,11 +189,24 @@ export interface EventDataJson {
   linkMaps?: string;
   logoUrl?: string;
   logoBase64?: string;
+  /** paleta do evento, lida da logo e da capa ou escolhida à mão */
+  colors?: { primary?: string; secondary?: string; tertiary?: string };
+  /**
+   * Módulos ligados no evento. Ausente é tudo ligado — ver
+   * `features/admin/events/eventModules.ts`.
+   */
+  modules?: { bedrooms?: boolean; teams?: boolean; transport?: boolean };
   coverUrl?: string;
   coverBase64?: string;
   hideVacancies?: boolean;
   /** Termo de autorização em branco, para pais de menores de 16 anos baixarem e assinarem */
   minorTermUrl?: string;
+  /**
+   * Termo do evento em HTML: o texto que a pessoa precisa aceitar para se
+   * inscrever. Ausente ou vazio significa evento sem termo — a inscrição segue
+   * direto, como sempre foi.
+   */
+  registrationTerm?: string;
 }
 export interface CreateEventPayload {
   name: string;
@@ -200,6 +233,10 @@ export type GeneralInfoFormType = z.infer<typeof GENERAL_INFO_SCHEMA>;
 export type DateAndLocalFormType = z.infer<typeof DATE_AND_LOCAL_SCHEMA>;
 
 export type EventLogoFormType = z.infer<typeof EVENT_LOGO_SCHEMA>;
+
+export type ModulesFormType = z.infer<typeof MODULES_SCHEMA>;
+
+export type TermsFormType = z.infer<typeof TERMS_SCHEMA>;
 
 export type RegistrationSettingsFormType = z.infer<
   typeof REGISTRATION_SETTINGS_SCHEMA

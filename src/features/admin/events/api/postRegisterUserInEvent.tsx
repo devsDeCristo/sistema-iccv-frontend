@@ -8,7 +8,11 @@ import {
 type PostRegisterUserInEventProps = {
   eventId: string;
   userId: string;
-  data: { roleId: string[] };
+  data: {
+    roleId: string[];
+    /** só quando o evento tem termo: o servidor recusa a inscrição sem isto */
+    acceptedTerms?: boolean;
+  };
 };
 
 const postRegisterUserInEvent = ({
@@ -19,6 +23,7 @@ const postRegisterUserInEvent = ({
   apiClient
     .post<boolean>(`/events/${eventId}/users/${userId}`, {
       roleRegistrationId: data.roleId,
+      ...(data.acceptedTerms ? { acceptedTerms: true } : {}),
     })
     .then((response) => {
       handleResponseSuccess(

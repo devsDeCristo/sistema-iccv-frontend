@@ -26,10 +26,17 @@ const emPtBr = (data: Date | string) => dayjs(data).locale('pt-br');
  *
  * O locale é aplicado por instância, e não com `dayjs.locale()`, para não trocar
  * o idioma padrão do dayjs no resto do sistema.
+ *
+ * `comAno` é para onde a data é a informação, e não um apoio: na ficha da
+ * página do evento a pessoa está decidindo se vai, e "12 a 14 de setembro" de
+ * qual ano é pergunta que ela não devia precisar fazer. Nas listas o ano fica
+ * de fora — ali a linha é resumo, e evento de outro ano é exceção. Período que
+ * atravessa a virada do ano sempre mostra os dois, com ou sem a opção.
  */
 export function formatarPeriodo(
   inicio?: Date | string | null,
-  fim?: Date | string | null
+  fim?: Date | string | null,
+  opcoes: { comAno?: boolean } = {}
 ): string {
   if (!inicio) return 'Data a definir';
 
@@ -37,18 +44,21 @@ export function formatarPeriodo(
   if (!dataInicio.isValid()) return 'Data a definir';
 
   const dataFim = fim ? emPtBr(fim) : null;
+  const ano = opcoes.comAno ? ' [de] YYYY' : '';
 
   // evento de um dia: aí a hora importa, é o horário de chegada
   if (!dataFim?.isValid() || dataInicio.isSame(dataFim, 'day')) {
-    return dataInicio.format('D [de] MMMM [·] HH:mm');
+    return dataInicio.format(`D [de] MMMM${ano} [·] HH:mm`);
   }
 
   if (dataInicio.isSame(dataFim, 'month')) {
-    return `${dataInicio.format('D')} a ${dataFim.format('D [de] MMMM')}`;
+    return `${dataInicio.format('D')} a ${dataFim.format(`D [de] MMMM${ano}`)}`;
   }
 
   if (dataInicio.isSame(dataFim, 'year')) {
-    return `${dataInicio.format('D [de] MMM')} a ${dataFim.format('D [de] MMM')}`;
+    return `${dataInicio.format('D [de] MMM')} a ${dataFim.format(
+      `D [de] MMM${ano}`
+    )}`;
   }
 
   return `${dataInicio.format('D [de] MMM [de] YYYY')} a ${dataFim.format(

@@ -12,6 +12,8 @@ import {
   GroupRole,
   ProductsFormType,
   RegistrationSettingsFormType,
+  ModulesFormType,
+  TermsFormType,
 } from '../../../../features/admin/events/types';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -22,6 +24,8 @@ import {
   PRODUCTS_SCHEMA,
   REGISTRATION_SETTINGS_SCHEMA,
   STEPS,
+  MODULES_SCHEMA,
+  TERMS_SCHEMA,
   GROUP_ROLE_RETIRO,
   GROUP_ROLE_CURSILHO,
 } from '../../../../features/admin/events/constants';
@@ -34,11 +38,15 @@ import { FormRegistrationSettings } from '../../../../features/admin/events/comp
 import { FormDateAndLocal } from '../../../../features/admin/events/components/formDateAndLocal';
 import { SelectCategoryEvent } from '../../../../features/admin/events/components/selectCategoryEvent';
 import { FormLogoAndCover } from '../../../../features/admin/events/components/formLogoAndCover';
+import { FormTerms } from '../../../../features/admin/events/components/formTerms';
+import { FormEventModules } from '../../../../features/admin/events/components/formEventModules';
 import { toast } from 'react-toastify';
 import { queryClient } from '../../../../config/lib/react-query/query-client';
 import { useRole } from '../../../../hooks/useRole';
 import { FormProducts } from '../../../../features/admin/events/components/formProducts';
 import { produtosParaEnvio } from '../../../../features/admin/events/products';
+import { coresParaSalvar } from '../../../../features/admin/events/eventColors';
+import { textoDoTermo } from '../../../../features/admin/events/terms';
 
 function Register() {
   const navigate = useNavigate();
@@ -62,6 +70,20 @@ function Register() {
 
   const methodsEventLogo = useForm<EventLogoFormType>({
     resolver: zodResolver(EVENT_LOGO_SCHEMA),
+  });
+  const methodsTerms = useForm<TermsFormType>({
+    resolver: zodResolver(TERMS_SCHEMA),
+  });
+  const methodsModules = useForm<ModulesFormType>({
+    resolver: zodResolver(MODULES_SCHEMA),
+    // tudo ligado: é o estado de quem não mexeu, e o de todos os eventos que
+    // já existem
+    defaultValues: {
+      moduleBedrooms: true,
+      moduleTeams: true,
+      moduleTransport: true,
+    },
+    mode: 'onChange',
   });
   const [eventTypeSelected, setEventTypeSelected] = useState<
     EventType | undefined
@@ -135,6 +157,20 @@ function Register() {
       }
     });
   }
+  function modulesSubmit() {
+    methodsModules.trigger().then((isValid) => {
+      if (isValid) {
+        handleNext();
+      }
+    });
+  }
+  function termsSubmit() {
+    methodsTerms.trigger().then((isValid) => {
+      if (isValid) {
+        handleNext();
+      }
+    });
+  }
   function registrationSettingsSubmit() {
     methodsRegistrationSettings.trigger().then((isValid) => {
       if (isValid) {
@@ -160,6 +196,8 @@ function Register() {
         const registrationSettingsData =
           methodsRegistrationSettings.getValues();
         const eventLogoData = methodsEventLogo.getValues();
+        const modulesData = methodsModules.getValues();
+        const termsData = methodsTerms.getValues();
 
         try {
           // OPÇÃO 2: Converter para Base64 e enviar como JSON
@@ -198,6 +236,13 @@ function Register() {
               address: dateAndTimeData.address,
               number: dateAndTimeData.number,
               linkMaps: dateAndTimeData.linkMaps,
+              registrationTerm: textoDoTermo(termsData.registrationTerm),
+              colors: coresParaSalvar(eventLogoData),
+              modules: {
+                bedrooms: modulesData.moduleBedrooms,
+                teams: modulesData.moduleTeams,
+                transport: modulesData.moduleTransport,
+              },
               // logoUrl: logoSvgText,
               // coverUrl: coverSvgText,
               // logoFile: logoSvgText, // Base64 string
@@ -210,7 +255,7 @@ function Register() {
             files: {
               logoFile: eventLogoData.eventLogo?.[0],
               coverFile: eventLogoData.eventCover?.[0],
-              termFile: eventLogoData.eventTerm?.[0],
+              termFile: termsData.eventTerm?.[0],
             },
           });
         } catch (error) {
@@ -260,20 +305,37 @@ function Register() {
     },
     {
       step: 4,
-      formMethods: methodsEventLogo,
-      onSubmit: eventLogoSubmit,
-      component: FormLogoAndCover,
-      props: { eventName: methodsGeneralInfo.getValues().name },
+      formMethods: methodsModules,
+      onSubmit: modulesSubmit,
+      component: FormEventModules,
+      props: {},
     },
     {
       step: 5,
+      formMethods: methodsEventLogo,
+      onSubmit: eventLogoSubmit,
+      component: FormLogoAndCover,
+      props: {
+        eventName: methodsGeneralInfo.getValues().name,
+        eventType: eventTypeSelected,
+      },
+    },
+    {
+      step: 6,
+      formMethods: methodsTerms,
+      onSubmit: termsSubmit,
+      component: FormTerms,
+      props: {},
+    },
+    {
+      step: 7,
       formMethods: methodsRegistrationSettings,
       onSubmit: registrationSettingsSubmit,
       component: FormRegistrationSettings,
       props: {},
     },
     {
-      step: 6,
+      step: 8,
       formMethods: methodsProducts,
       onSubmit: productsSubmit,
       component: FormProducts,
@@ -290,10 +352,14 @@ function Register() {
       case 3:
         return methodsDateAndTime.formState.isValid;
       case 4:
-        return methodsEventLogo.formState.isValid;
+        return methodsModules.formState.isValid;
       case 5:
-        return methodsRegistrationSettings.formState.isValid;
+        return methodsEventLogo.formState.isValid;
       case 6:
+        return methodsTerms.formState.isValid;
+      case 7:
+        return methodsRegistrationSettings.formState.isValid;
+      case 8:
         return methodsProducts.formState.isValid;
       default:
         return false;

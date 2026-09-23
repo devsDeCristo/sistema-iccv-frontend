@@ -9,7 +9,12 @@ export type PaymentStatus =
   | 'WAITING'
   | 'REFUNDED';
 
-export type PaymentReceived = 'SYSTEM' | 'EXTERNAL';
+/**
+ * Por onde o dinheiro entrou. `PENDING` é o estado de nascença — a cobrança
+ * existe e ninguém pagou por lugar nenhum ainda —, e é o que separa a linha
+ * que a tela ainda pode resolver à mão daquela que o gateway passou a governar.
+ */
+export type PaymentReceived = 'PENDING' | 'SYSTEM' | 'EXTERNAL';
 
 export type PaymentMethod =
   | 'PIX'
@@ -57,6 +62,8 @@ export interface PaymentResponse {
   purchaseType?: 'REGISTRATION' | 'PRODUCTS';
   /** descrição da regra de inscrição; só nas linhas de inscrição */
   roleName?: string;
+  /** quando os produtos desta compra foram entregues; null é "ainda não" */
+  productsDeliveredAt?: string | null;
   /** produtos comprados junto deste ingresso */
   productItems?: {
     id: string;

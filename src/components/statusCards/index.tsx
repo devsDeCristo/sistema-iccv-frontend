@@ -43,6 +43,14 @@ interface StatusCardsProps {
  * Compartilhada de propósito: Eventos e Usuários mostram contagens diferentes,
  * mas o cartão é o mesmo objeto visual. Duplicar o estilo faria os dois
  * divergirem no primeiro ajuste.
+ *
+ * **O cartão é deliberadamente baixo.** Ele é o que fica entre o cabeçalho e a
+ * tabela em toda listagem do sistema, e altura aqui sai da lista — que é o que
+ * a pessoa veio ver. O número já foi 39px e o conteúdo carregava o padding
+ * padrão do MUI (16px em volta, 24px embaixo): o conjunto empurrava a primeira
+ * linha da tabela para fora da dobra em tela de notebook. A hierarquia que
+ * importa é rótulo pequeno, número grande, legenda pequena — e ela se mantém
+ * com o número em 30px.
  */
 export function StatusCards({ cards, isLoading, sx }: StatusCardsProps) {
   const theme = useTheme();
@@ -65,7 +73,7 @@ export function StatusCards({ cards, isLoading, sx }: StatusCardsProps) {
       sx={[
         {
           display: 'grid',
-          gap: 2,
+          gap: 1.5,
           gridTemplateColumns: {
             xs: '1fr',
             sm: `repeat(${Math.min(colunas, 2)}, 1fr)`,
@@ -117,7 +125,16 @@ export function StatusCards({ cards, isLoading, sx }: StatusCardsProps) {
               },
             }}
           >
-            <CardContent>
+            <CardContent
+              /**
+               * Padding próprio, e não o do MUI: o padrão é 16px em volta e
+               * 24px embaixo no último filho, o que sozinho respondia por um
+               * quinto da altura do cartão. A régua fica acima de toda
+               * listagem do sistema — cada pixel aqui é pixel que a tabela
+               * perde.
+               */
+              sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}
+            >
               <Stack direction="row" alignItems="center" gap={1}>
                 <Box
                   sx={{
@@ -165,17 +182,17 @@ export function StatusCards({ cards, isLoading, sx }: StatusCardsProps) {
                 alignItems="center"
                 justifyContent="space-between"
                 gap={1}
-                mt={1}
+                mt={0.75}
               >
                 {isLoading ? (
-                  <Skeleton variant="rounded" width={64} height={44} />
+                  <Skeleton variant="rounded" width={56} height={32} />
                 ) : (
                   <Typography
                     noWrap
                     sx={{
                       fontSize: card.compact
-                        ? { xs: '26px', sm: '30px' }
-                        : { xs: '38px', sm: '39px' },
+                        ? { xs: '20px', sm: '22px' }
+                        : { xs: '28px', sm: '30px' },
                       fontWeight: 800,
                       lineHeight: 1,
                       letterSpacing: '-0.03em',
@@ -193,9 +210,9 @@ export function StatusCards({ cards, isLoading, sx }: StatusCardsProps) {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    width: 34,
-                    height: 34,
-                    borderRadius: '10px',
+                    width: 30,
+                    height: 30,
+                    borderRadius: '9px',
                     bgcolor: card.color,
                     color: theme.palette.common.white,
                   }}
@@ -208,7 +225,7 @@ export function StatusCards({ cards, isLoading, sx }: StatusCardsProps) {
                 noWrap
                 variant="caption"
                 color="text.secondary"
-                sx={{ display: 'block', mt: 0.5 }}
+                sx={{ display: 'block', mt: 0.25 }}
               >
                 {card.subtitle}
               </Typography>
