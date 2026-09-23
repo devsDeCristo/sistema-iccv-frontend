@@ -166,7 +166,7 @@ function PreviaCabecalho({
     filtro: {
       position: 'absolute',
       inset: 0,
-      backgroundColor: alpha('#000', 0.2),
+      backgroundColor: alpha('#000', 0.38),
     },
     veu: {
       position: 'absolute',

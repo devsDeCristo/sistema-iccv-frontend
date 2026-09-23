@@ -118,6 +118,17 @@ function EventsDetails() {
     scrollToTop();
   }, []);
 
+  /**
+   * Quanto as fichas sobem sobre o cartaz, em unidades de espaçamento (8px).
+   *
+   * É metade da altura delas: assim a dobra do degradê passa por trás dos
+   * cartões — o vidro deixa a capa aparecer atrás da metade de cima e o fundo
+   * da página fecha a metade de baixo. É o mesmo número no respiro do bloco de
+   * texto e na subida do corpo; mexer num sem o outro põe as fichas sobre os
+   * botões.
+   */
+  const SOBREPOSICAO_DAS_FICHAS = 7;
+
   const escuro = theme.palette.mode === 'dark';
   const fundo = theme.palette.background.default;
   /** Evento com texto de apresentação: é ele que ocupa a coluna larga */
@@ -213,18 +224,29 @@ function EventsDetails() {
         backgroundSize: 'cover',
         backgroundPosition: 'center',
       },
+      /**
+       * A capa é foto de qualquer coisa, e o nome do evento é branco por cima
+       * dela. Com 20% a arte clara — céu, parede, fundo bege — comia a letra;
+       * 38% assenta a foto sem apagá-la, e é o que sustenta o contraste sem
+       * depender só da sombra do texto.
+       */
       filtro: {
         position: 'absolute',
         inset: 0,
-        backgroundColor: alpha('#000', 0.2),
+        backgroundColor: alpha('#000', 0.38),
       },
+      /**
+       * O véu fecha no rodapé do cartaz, mas a virada é lenta de propósito: as
+       * fichas sobem por cima dos últimos ~56px, e é essa faixa em transição
+       * que aparece atrás do vidro delas.
+       */
       veu: {
         position: 'absolute',
         inset: 0,
-        backgroundImage: `linear-gradient(180deg, transparent 42%, ${alpha(
+        backgroundImage: `linear-gradient(180deg, transparent 38%, ${alpha(
           fundo,
-          0.18
-        )} 68%, ${fundo} 100%)`,
+          0.22
+        )} 66%, ${alpha(fundo, 0.62)} 86%, ${fundo} 100%)`,
       },
       conteudoDoCartaz: {
         position: 'relative',
@@ -240,9 +262,16 @@ function EventsDetails() {
          * Centrado, o bloco pede o mesmo respiro dos dois lados; apoiado no
          * rodapé, ganha mais folga por baixo, onde a capa vira página.
          */
-        ...(temLogo
-          ? { pt: { xs: 11, sm: 12 }, pb: { xs: 6, md: 8 } }
-          : { py: { xs: 11, sm: 12 } }),
+        pt: { xs: 11, md: 12 },
+        pb: temLogo
+          ? {
+              xs: 6 + SOBREPOSICAO_DAS_FICHAS,
+              md: 8 + SOBREPOSICAO_DAS_FICHAS,
+            }
+          : {
+              xs: 11 + SOBREPOSICAO_DAS_FICHAS,
+              md: 12 + SOBREPOSICAO_DAS_FICHAS,
+            },
       },
       logo: {
         maxHeight: { xs: 72, sm: 96 },
@@ -316,7 +345,9 @@ function EventsDetails() {
       corpo: {
         maxWidth: 1200,
         mx: 'auto',
-        mt: 0,
+        // sobe sobre o rodapé do cartaz: é o que põe as fichas em cima da
+        // virada do degradê, em vez de depois dela
+        mt: -SOBREPOSICAO_DAS_FICHAS,
         position: 'relative',
         zIndex: 1,
       },
