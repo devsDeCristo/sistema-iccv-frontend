@@ -196,6 +196,11 @@ export interface EventDataJson {
    * `features/admin/events/eventModules.ts`.
    */
   modules?: { bedrooms?: boolean; teams?: boolean; transport?: boolean };
+  /**
+   * Inscritos podem abrir o quadrante. Ausente é desligado — ver
+   * `features/admin/events/eventModules.ts`.
+   */
+  showQuadrante?: boolean;
   coverUrl?: string;
   coverBase64?: string;
   hideVacancies?: boolean;
@@ -235,6 +240,33 @@ export type DateAndLocalFormType = z.infer<typeof DATE_AND_LOCAL_SCHEMA>;
 export type EventLogoFormType = z.infer<typeof EVENT_LOGO_SCHEMA>;
 
 export type ModulesFormType = z.infer<typeof MODULES_SCHEMA>;
+
+/** Resposta de `GET /events/:id/quadrante`: equipes já na ordem do PDF. */
+export interface QuadranteData {
+  event: {
+    name: string;
+    startDate: string;
+    endDate: string;
+    logoUrl: string | null;
+    coverUrl: string | null;
+    colors: { primary?: string; secondary?: string; tertiary?: string } | null;
+    /** texto do rodapé do PDF, ex.: "De 3 a 5 de outubro de 2026" */
+    periodo: string;
+  };
+  teams: {
+    id: string;
+    name: string;
+    users: {
+      id: string;
+      fullName: string;
+      profilePhotoUrl: string | null;
+      cellphone: string;
+      birthday: string;
+      email: string;
+      roleTeam: 'LEADER' | 'MEMBER';
+    }[];
+  }[];
+}
 
 export type TermsFormType = z.infer<typeof TERMS_SCHEMA>;
 

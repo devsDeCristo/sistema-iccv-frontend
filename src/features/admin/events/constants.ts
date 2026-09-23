@@ -243,6 +243,8 @@ export const MODULES_SCHEMA = z.object({
   moduleBedrooms: z.boolean(),
   moduleTeams: z.boolean(),
   moduleTransport: z.boolean(),
+  /** inscritos podem abrir o quadrante; nasce desligado */
+  showQuadrante: z.boolean(),
 });
 
 export const TERMS_SCHEMA = z.object({

@@ -9,6 +9,7 @@ import {
   useTheme,
 } from '@mui/material';
 import {
+  BadgeOutlined,
   BedOutlined,
   DirectionsBusOutlined,
   GroupsOutlined,
@@ -16,7 +17,7 @@ import {
 } from '@mui/icons-material';
 import { ReactNode } from 'react';
 import { useParams } from 'react-router-dom';
-import { Controller, useFormContext } from 'react-hook-form';
+import { Controller, useFormContext, useWatch } from 'react-hook-form';
 import { ModulesFormType } from '../types';
 import { useGetBedrooms } from '../api/getBedrooms';
 import { useGetTeams } from '../api/getTeams';
@@ -76,6 +77,7 @@ function quantos(lista: unknown) {
 function FormEventModules() {
   const theme = useTheme();
   const { control } = useFormContext<ModulesFormType>();
+  const comEquipes = useWatch({ control, name: 'moduleTeams' });
 
   /**
    * O que já está cadastrado em cada módulo.
@@ -211,6 +213,54 @@ function FormEventModules() {
           }}
         />
       ))}
+
+      {/* Não é módulo: é quem vê o quadrante que o módulo de equipes gera.
+          Nasce desligado porque abre e-mail, celular e nascimento da equipe
+          inteira para os inscritos — e sem equipes não há o que mostrar. */}
+      <Controller
+        name="showQuadrante"
+        control={control}
+        render={({ field }) => {
+          const ligado = !!field.value && comEquipes;
+
+          return (
+            <Paper sx={styles.cartao}>
+              <Box sx={{ ...styles.selo, ...(ligado ? {} : styles.apagado) }}>
+                <BadgeOutlined />
+              </Box>
+
+              <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+                <Typography fontWeight={600}>
+                  Mostrar quadrante para os inscritos
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Quem está inscrito vê o quadrante na página do evento, com
+                  foto, e-mail, celular e data de nascimento de cada pessoa das
+                  equipes. Desligado, só o painel vê.
+                </Typography>
+                {!comEquipes && (
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    sx={{ display: 'block', mt: 0.75 }}
+                  >
+                    Ligue o módulo de Equipes para usar esta opção.
+                  </Typography>
+                )}
+              </Box>
+
+              <Switch
+                checked={ligado}
+                disabled={!comEquipes}
+                onChange={(evento) => field.onChange(evento.target.checked)}
+                inputProps={{
+                  'aria-label': 'Mostrar quadrante para os inscritos',
+                }}
+              />
+            </Paper>
+          );
+        }}
+      />
     </Stack>
   );
 }

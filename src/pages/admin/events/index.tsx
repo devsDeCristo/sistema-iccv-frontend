@@ -11,7 +11,7 @@ import { PageStyle } from '../../../components/pageStyle';
 import { Header } from '../../../components/header';
 import { List } from '../../../features/admin/events/components/list';
 import { CardsStatus } from '../../../features/admin/events/components/cardsStatus';
-import { useState } from 'react';
+import { useFiltroSalvo } from '../../../hooks/useFiltroSalvo';
 import { Add } from '@mui/icons-material';
 import { EventStatusFilter } from '../../../features/admin/events/types';
 import { useRole } from '../../../hooks/useRole';
@@ -28,18 +28,34 @@ const STATUS_OPTIONS: { value: EventStatusFilter; label: string }[] = [
   { value: 'all', label: 'Todos' },
 ];
 
+const ehTexto = (valor: unknown): valor is string => typeof valor === 'string';
+
+const ehStatus = (valor: unknown): valor is EventStatusFilter =>
+  STATUS_OPTIONS.some((option) => option.value === valor);
+
 function Events() {
   const navigate = useNavigate();
   const { isAdmin, isSuperAdmin, churchRoles } = useRole();
-  const [search, setSearch] = useState('');
-  const [status, setStatus] = useState<EventStatusFilter>('active');
+  // os filtros ficam salvos no navegador: quem volta para a lista depois de
+  // abrir um evento encontra ela do jeito que deixou
+  const [search, setSearch] = useFiltroSalvo('eventos:busca', '', ehTexto);
+  const [status, setStatus] = useFiltroSalvo<EventStatusFilter>(
+    'eventos:status',
+    'active',
+    ehStatus
+  );
   // 'all' e não string vazia: com valor vazio o campo fica em branco e o
   // rótulo não sobe, destoando do Status ao lado. Só o super admin escolhe —
   // o admin já recebe do backend apenas os eventos da igreja dele
-  const [churchId, setChurchId] = useState('all');
-  const { data: todasAsIgrejas = [] } = useGetChurches({
-    enabled: isSuperAdmin,
-  });
+  const [churchIdSalvo, setChurchId] = useFiltroSalvo(
+    'eventos:igreja',
+    'all',
+    ehTexto
+  );
+  const { data: todasAsIgrejas = [], isFetched: igrejasCarregadas } =
+    useGetChurches({
+      enabled: isSuperAdmin,
+    });
 
   // o super admin filtra entre todas; quem administra mais de uma, entre as
   // dela. Com uma igreja só a lista já é de uma igreja só
@@ -47,6 +63,19 @@ function Events() {
     ? todasAsIgrejas.map((igreja) => ({ id: igreja.id, name: igreja.name }))
     : churchRoles.map((vinculo) => vinculo.church);
   const mostraFiltroDeIgreja = isSuperAdmin || igrejasDoFiltro.length > 1;
+
+  /**
+   * A igreja salva pode ter deixado de valer: foi apagada, ou a pessoa perdeu
+   * o vínculo com ela. Filtrar por ela esvaziaria a lista sem explicação, então
+   * vale "Todas". Enquanto a lista de igrejas do super admin carrega, a salva
+   * é mantida — senão o filtro piscaria para "Todas" e voltaria.
+   */
+  const igrejaSalvaValida =
+    churchIdSalvo === 'all' ||
+    (isSuperAdmin && !igrejasCarregadas) ||
+    igrejasDoFiltro.some((igreja) => igreja.id === churchIdSalvo);
+  const churchId =
+    mostraFiltroDeIgreja && igrejaSalvaValida ? churchIdSalvo : 'all';
   const theme = useTheme();
   const styles = {
     boxFilterAndPdf: {

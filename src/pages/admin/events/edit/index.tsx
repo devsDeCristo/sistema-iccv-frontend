@@ -129,6 +129,7 @@ function Edit() {
     moduleBedrooms: moduloAtivo(event?.data, 'bedrooms'),
     moduleTeams: moduloAtivo(event?.data, 'teams'),
     moduleTransport: moduloAtivo(event?.data, 'transport'),
+    showQuadrante: event?.data?.showQuadrante === true,
   });
   const getDefaultTermsValues = (event?: EventDetails): TermsFormType => ({
     minorTermUrl: event?.data?.minorTermUrl
@@ -295,6 +296,7 @@ function Edit() {
                 teams: methodsModules.getValues().moduleTeams,
                 transport: methodsModules.getValues().moduleTransport,
               },
+              showQuadrante: methodsModules.getValues().showQuadrante,
               // ...(methodsEventLogo.getValues().eventLogo?.[0]
               //   ? methodsEventLogo.getValues().logoUrl
               //     ? {

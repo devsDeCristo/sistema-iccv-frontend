@@ -31,6 +31,19 @@ export function moduloAtivo(
   return data?.modules?.[modulo] !== false;
 }
 
+/**
+ * Se os inscritos podem abrir o quadrante.
+ *
+ * Aqui ausente é desligado, ao contrário dos módulos: o quadrante mostra
+ * e-mail, celular e nascimento da equipe inteira, e nenhum evento que já existe
+ * abria isso para os inscritos. Espelha `src/event/event-quadrante.ts`.
+ */
+export function quadranteVisivelParaInscritos(
+  data: EventDataJson | null | undefined
+): boolean {
+  return data?.showQuadrante === true && moduloAtivo(data, 'teams');
+}
+
 export function modulosDoEvento(
   data: EventDataJson | null | undefined
 ): ModulosDoEvento {

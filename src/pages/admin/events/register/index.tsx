@@ -82,6 +82,7 @@ function Register() {
       moduleBedrooms: true,
       moduleTeams: true,
       moduleTransport: true,
+      showQuadrante: false,
     },
     mode: 'onChange',
   });
@@ -243,6 +244,7 @@ function Register() {
                 teams: modulesData.moduleTeams,
                 transport: modulesData.moduleTransport,
               },
+              showQuadrante: modulesData.showQuadrante,
               // logoUrl: logoSvgText,
               // coverUrl: coverSvgText,
               // logoFile: logoSvgText, // Base64 string
