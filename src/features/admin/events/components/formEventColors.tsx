@@ -18,10 +18,28 @@ import { coresDaImagem, ehCorHex } from '../eventColors';
 
 type CampoDeCor = 'primaryColor' | 'secondaryColor' | 'tertiaryColor';
 
-const CAMPOS: { nome: CampoDeCor; rotulo: string }[] = [
-  { nome: 'primaryColor', rotulo: 'Primária' },
-  { nome: 'secondaryColor', rotulo: 'Secundária' },
-  { nome: 'tertiaryColor', rotulo: 'Terciária' },
+/**
+ * Onde cada cor aparece na página do evento (src/pages/events/details).
+ *
+ * Escrito no campo, e não só na documentação: escolher três cores sem saber o
+ * que cada uma pinta é escolher no escuro — e a primária, que manda em quase
+ * tudo, precisa ser a mais forte das três.
+ *
+ * Se a divisão mudar lá, muda aqui junto, ou o formulário passa a prometer o
+ * que a página não faz.
+ */
+const CAMPOS: { nome: CampoDeCor; rotulo: string; pinta: string }[] = [
+  {
+    nome: 'primaryColor',
+    rotulo: 'Primária',
+    pinta: 'Botões, barras e detalhes · card Quando',
+  },
+  { nome: 'secondaryColor', rotulo: 'Secundária', pinta: 'Card Onde' },
+  {
+    nome: 'tertiaryColor',
+    rotulo: 'Terciária',
+    pinta: 'Card Tipos de ingresso',
+  },
 ];
 
 type FormEventColorsProps = {
@@ -178,7 +196,7 @@ function FormEventColors({ logoImagem, coverImagem }: FormEventColorsProps) {
     },
     rodape: {
       display: 'flex',
-      alignItems: 'center',
+      alignItems: 'flex-start',
       justifyContent: 'space-between',
       gap: 1,
       px: 1.25,
@@ -190,6 +208,12 @@ function FormEventColors({ logoImagem, coverImagem }: FormEventColorsProps) {
       letterSpacing: '0.08em',
       textTransform: 'uppercase',
       color: 'text.secondary',
+    },
+    // onde a cor aparece na página, em letra de apoio: é referência, não campo
+    ondePinta: {
+      fontSize: 11,
+      lineHeight: 1.35,
+      color: 'text.disabled',
     },
     hex: {
       width: 90,
@@ -216,8 +240,8 @@ function FormEventColors({ logoImagem, coverImagem }: FormEventColorsProps) {
             Cores do evento
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            A primária sai da logo; as outras duas, da capa. Clique na cor para
-            trocar.
+            A primária sai da logo; as outras duas, da capa. Sem cores, o evento
+            usa o padrão do sistema.
           </Typography>
         </Box>
 
@@ -266,7 +290,14 @@ function FormEventColors({ logoImagem, coverImagem }: FormEventColorsProps) {
                     </Box>
 
                     <Box sx={styles.rodape}>
-                      <Typography sx={styles.rotulo}>{campo.rotulo}</Typography>
+                      <Box sx={{ minWidth: 0 }}>
+                        <Typography sx={styles.rotulo}>
+                          {campo.rotulo}
+                        </Typography>
+                        <Typography sx={styles.ondePinta}>
+                          {campo.pinta}
+                        </Typography>
+                      </Box>
 
                       {/* digitar é o caminho de quem já tem o código da marca;
                           o texto entra como veio e só vira cor quando fecha os

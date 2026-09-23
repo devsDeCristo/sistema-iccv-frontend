@@ -4,7 +4,9 @@ import {
   alpha,
   Box,
   Button,
+  darken,
   IconButton,
+  lighten,
   LinearProgress,
   Paper,
   Skeleton,
@@ -40,6 +42,7 @@ import {
   ocupacao,
 } from '../../../features/events/utils';
 import { AZUL_VIVO, VIOLETA_VIVO } from '../../../themes';
+import { ehCorHex } from '../../../features/admin/events/eventColors';
 import { useRole } from '../../../hooks/useRole';
 import { Role } from '../../../constants/roles';
 
@@ -123,6 +126,41 @@ function EventsDetails() {
   const temSobre = !!event?.data?.description?.trim();
   /** Evento com logo: é ela que dá altura ao bloco sobre a capa */
   const temLogo = !!event?.data?.logoUrl;
+
+  /**
+   * A paleta cadastrada no evento.
+   *
+   * Sem ela nada muda: a página segue no azul e violeta do sistema, que é como
+   * todos os eventos antigos já aparecem. Com ela, a primária manda nos botões
+   * e nos detalhes, e as três se dividem entre as fichas — uma para cada, que é
+   * onde a paleta aparece inteira sem virar arco-íris.
+   */
+  const corOuPadrao = (cor: string | undefined, padrao: string) =>
+    ehCorHex(cor) ? cor : padrao;
+
+  const paleta = event?.data?.colors;
+  const temPaleta =
+    ehCorHex(paleta?.primary) ||
+    ehCorHex(paleta?.secondary) ||
+    ehCorHex(paleta?.tertiary);
+  const escuroDoTema = theme.palette.mode === 'dark';
+
+  /**
+   * Degradê de uma cor só: o mesmo tom em duas pontas, uma clareada e outra
+   * escurecida. `invertido` é o hover — a luz troca de lado, em vez de a cor
+   * mudar.
+   */
+  const degradeDaCor = (cor: string, invertido = false) => {
+    const claro = lighten(cor, escuroDoTema ? 0.22 : 0.12);
+    const fechado = darken(cor, escuroDoTema ? 0.14 : 0.24);
+    const pontas = invertido ? [fechado, claro] : [claro, fechado];
+
+    return `linear-gradient(120deg, ${pontas[0]}, ${pontas[1]})`;
+  };
+
+  const corPrimaria = corOuPadrao(paleta?.primary, AZUL_VIVO);
+  const corSecundaria = corOuPadrao(paleta?.secondary, corPrimaria);
+  const corTerciaria = corOuPadrao(paleta?.tertiary, corPrimaria);
 
   const styles = useMemo(
     () => ({
@@ -255,12 +293,32 @@ function EventsDetails() {
         fontSize: '1rem',
         fontWeight: 700,
         color: '#fff',
-        backgroundImage: `linear-gradient(120deg, ${AZUL_VIVO}, ${VIOLETA_VIVO})`,
-        boxShadow: `0 10px 26px -8px ${alpha(AZUL_VIVO, 0.8)}`,
-        '&:hover': {
-          backgroundImage: `linear-gradient(120deg, ${VIOLETA_VIVO}, ${AZUL_VIVO})`,
-          boxShadow: `0 12px 30px -8px ${alpha(VIOLETA_VIVO, 0.85)}`,
-        },
+        boxShadow: `0 10px 26px -8px ${alpha(corPrimaria, 0.8)}`,
+        /**
+         * Com paleta, o degradê é feito da própria cor do evento — clareada de
+         * um lado, escurecida do outro —, e não do azul-violeta do sistema, que
+         * por cima de uma marca vermelha viraria uma terceira cor que não é de
+         * ninguém.
+         *
+         * A dosagem muda com o tema: no escuro o degradê parte de um tom mais
+         * claro, porque um botão que só escurece sobre fundo escuro perde o
+         * relevo; no claro ele fecha mais, para a letra branca se sustentar.
+         */
+        ...(temPaleta
+          ? {
+              backgroundImage: degradeDaCor(corPrimaria),
+              '&:hover': {
+                backgroundImage: degradeDaCor(corPrimaria, true),
+                boxShadow: `0 12px 30px -8px ${alpha(corPrimaria, 0.85)}`,
+              },
+            }
+          : {
+              backgroundImage: `linear-gradient(120deg, ${AZUL_VIVO}, ${VIOLETA_VIVO})`,
+              '&:hover': {
+                backgroundImage: `linear-gradient(120deg, ${VIOLETA_VIVO}, ${AZUL_VIVO})`,
+                boxShadow: `0 12px 30px -8px ${alpha(VIOLETA_VIVO, 0.85)}`,
+              },
+            }),
       },
       botaoVidro: {
         height: 50,
@@ -308,6 +366,7 @@ function EventsDetails() {
         border: `1px solid ${alpha(theme.palette.common.white, escuro ? 0.12 : 0.6)}`,
         boxShadow: `0 12px 28px -22px ${alpha('#000', 0.55)}`,
       },
+      // a cor vem de fora: cada ficha leva uma das três do evento
       selinho: {
         width: 32,
         height: 32,
@@ -315,8 +374,6 @@ function EventsDetails() {
         borderRadius: 1.5,
         display: 'grid',
         placeItems: 'center',
-        color: AZUL_VIVO,
-        backgroundColor: alpha(AZUL_VIVO, 0.12),
       },
 
       secao: { mt: { xs: 5, md: 7 } },
@@ -330,7 +387,11 @@ function EventsDetails() {
         height: 4,
         borderRadius: 999,
         mb: 1.5,
-        backgroundImage: `linear-gradient(90deg, ${AZUL_VIVO}, ${VIOLETA_VIVO})`,
+        ...(temPaleta
+          ? { backgroundColor: corPrimaria }
+          : {
+              backgroundImage: `linear-gradient(90deg, ${AZUL_VIVO}, ${VIOLETA_VIVO})`,
+            }),
       },
 
       /**
@@ -395,7 +456,7 @@ function EventsDetails() {
           'background-color',
         ]),
         '&:hover, &:focus-visible': {
-          borderColor: alpha(AZUL_VIVO, 0.6),
+          borderColor: alpha(corPrimaria, 0.6),
           backgroundColor: theme.palette.action.hover,
         },
       },
@@ -403,6 +464,14 @@ function EventsDetails() {
         height: 5,
         borderRadius: 999,
         backgroundColor: alpha(theme.palette.text.primary, 0.08),
+      },
+      // a barra do grupo com vaga segue a cor do evento; esgotado continua no
+      // laranja de alerta, que é aviso e não identidade
+      barraDoEvento: {
+        height: 5,
+        borderRadius: 999,
+        backgroundColor: alpha(theme.palette.text.primary, 0.08),
+        '& .MuiLinearProgress-bar': { backgroundColor: corPrimaria },
       },
       moldura: {
         borderRadius: 3,
@@ -442,7 +511,7 @@ function EventsDetails() {
         '&:hover': { backgroundColor: '#1ebe5d' },
       },
     }),
-    [theme, escuro, fundo, temSobre, temLogo]
+    [theme, escuro, fundo, temSobre, temLogo, temPaleta, corPrimaria]
   );
 
   const contagem = contagemRegressiva(event?.startDate, event?.endDate);
@@ -489,14 +558,25 @@ function EventsDetails() {
     rotulo,
     valor,
     apoio,
+    cor = corPrimaria,
   }: {
     icone: ReactNode;
     rotulo: string;
     valor: string;
     apoio?: string | null;
+    /** cor do selo: é o que dá uma das três do evento a cada ficha */
+    cor?: string;
   }) => (
     <Paper elevation={0} sx={styles.ficha}>
-      <Box sx={styles.selinho}>{icone}</Box>
+      <Box
+        sx={{
+          ...styles.selinho,
+          color: cor,
+          backgroundColor: alpha(cor, 0.12),
+        }}
+      >
+        {icone}
+      </Box>
       <Box sx={{ minWidth: 0 }}>
         <Typography
           variant="caption"
@@ -670,6 +750,7 @@ function EventsDetails() {
             apoio={contagem}
           />
           <Ficha
+            cor={corSecundaria}
             icone={<PlaceOutlined fontSize="small" />}
             rotulo="Onde"
             valor={cidade || 'Local a definir'}
@@ -678,6 +759,7 @@ function EventsDetails() {
             }
           />
           <Ficha
+            cor={corTerciaria}
             icone={<ConfirmationNumber fontSize="small" />}
             rotulo="Tipos de ingresso"
             valor={
@@ -804,7 +886,7 @@ function EventsDetails() {
                           variant="determinate"
                           value={percentual}
                           color={esgotado ? 'warning' : 'primary'}
-                          sx={styles.barra}
+                          sx={esgotado ? styles.barra : styles.barraDoEvento}
                         />
                       )}
                     </Paper>
@@ -861,7 +943,7 @@ function EventsDetails() {
             <Box sx={styles.localLayout}>
               <Box sx={styles.localResumo}>
               <Box sx={styles.localTexto}>
-                <PlaceOutlined sx={{ mt: 0.25, color: AZUL_VIVO }} />
+                <PlaceOutlined sx={{ mt: 0.25, color: corPrimaria }} />
                 <Box sx={{ minWidth: 0 }}>
                 {event?.data?.localName && (
                   <Typography fontWeight={800}>
