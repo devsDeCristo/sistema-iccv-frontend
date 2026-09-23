@@ -245,7 +245,7 @@ function List({
         return (
           <Stack direction="column" alignItems="center">
             <Typography color={theme.palette.text.primary} variant="body2">
-              {params.row._count?.bedrooms || 0}
+              {params.row.bedroom || 0}
             </Typography>
             <Typography color={theme.palette.text.secondary} variant="caption">
               {'Quartos'}
@@ -264,7 +264,7 @@ function List({
         return (
           <Stack direction="column" alignItems="center">
             <Typography color={theme.palette.text.primary} variant="body2">
-              {params.row._count?.Team || 0}
+              {params.row.team || 0}
             </Typography>
             <Typography color={theme.palette.text.secondary} variant="caption">
               {'Equipes'}
