@@ -31,6 +31,7 @@ import CapaLogin from '../../../../assets/capaLogin2.jpg';
 import { AZUL_VIVO, VIOLETA_VIVO } from '../../../../themes';
 import { formatarTamanho, usePreviaArquivo } from './uploadHelpers';
 import { LogoCropDialog } from './logoCropDialog';
+import { FormEventColors } from './formEventColors';
 
 const LIMITE_ARQUIVO = 5 * 1024 * 1024;
 
@@ -46,8 +47,20 @@ const LIMITE_ARQUIVO = 5 * 1024 * 1024;
  * de texto e os controles emulados mudam com ele, ou a prévia passa a mostrar
  * um enquadramento que não existe.
  */
-const PROPORCAO_DESKTOP = '5 / 2';
-const PROPORCAO_CELULAR = '9 / 10';
+const PROPORCAO_DESKTOP = 5 / 2;
+const PROPORCAO_CELULAR = 9 / 10;
+
+/**
+ * Altura da prévia na tela, em pixels. É por ela que tudo se resolve: a largura
+ * sai da proporção e a escala sai da largura. Em tamanho real o cartaz tomava
+ * meia tela do formulário, e o admin rolava a página para ver os campos que
+ * alimentam a própria prévia.
+ */
+const ALTURA_DA_PREVIA_DESKTOP = 200;
+const ALTURA_DA_PREVIA_CELULAR = 240;
+
+/** Régua do conteúdo na página do evento: é a largura que a prévia simula. */
+const LARGURA_DA_PAGINA = 1200;
 /** largura de um celular comum, para a prévia no modo estreito */
 const LARGURA_CELULAR = 360;
 
@@ -72,6 +85,21 @@ function PreviaCabecalho({
   const [largura, setLargura] = useState<'desktop' | 'celular'>('desktop');
   const semCapa = !capa;
   const pequeno = largura === 'celular';
+  /**
+   * A prévia é a página reduzida, e não uma versão menor dela: o que encolhe é
+   * a escala, então a logo mantém a proporção exata com o nome e os botões.
+   *
+   * A conta parte da altura desejada: a largura na tela vem da proporção do
+   * cartaz, e a escala é o quanto a página de verdade precisa encolher para
+   * caber nessa largura.
+   */
+  const proporcao = pequeno ? PROPORCAO_CELULAR : PROPORCAO_DESKTOP;
+  const alturaNaTela = pequeno
+    ? ALTURA_DA_PREVIA_CELULAR
+    : ALTURA_DA_PREVIA_DESKTOP;
+  const larguraNaTela = alturaNaTela * proporcao;
+  const larguraReal = pequeno ? LARGURA_CELULAR : LARGURA_DA_PAGINA;
+  const escala = larguraNaTela / larguraReal;
   const fundo = theme.palette.background.default;
 
   const styles = {
@@ -79,13 +107,14 @@ function PreviaCabecalho({
       p: { xs: 2, sm: 2.5 },
       display: 'flex',
       flexDirection: 'column',
-      boxShadow:theme.palette.mode=="dark" ? "" : "0px 0px 5px 2px rgba(0,0,0,0.1)",
+      boxShadow:
+        theme.palette.mode == 'dark' ? '' : '0px 0px 5px 2px rgba(0,0,0,0.1)',
       gap: 2,
     },
     palco: {
       display: 'flex',
       justifyContent: 'center',
-      p: { xs: 1.5, sm: 3 },
+      p: { xs: 1, sm: 1.5 },
       borderRadius: 2,
       bgcolor: alpha(theme.palette.text.primary, 0.04),
       // o quadriculado deixa à vista o fundo transparente da logo
@@ -105,14 +134,24 @@ function PreviaCabecalho({
       backgroundSize: '16px 16px',
       backgroundPosition: '0 0, 8px 8px',
     },
-    pagina: {
-      width: pequeno ? LARGURA_CELULAR : '100%',
+    // a moldura repete a proporção do cartaz para reservar a altura certa:
+    // `transform` desenha menor, mas continua ocupando o espaço do tamanho
+    // original no fluxo
+    moldura: {
+      width: larguraNaTela,
+      height: alturaNaTela,
       maxWidth: '100%',
-      transition: theme.transitions.create('width'),
+      overflow: 'hidden',
+      transition: theme.transitions.create(['width', 'height']),
+    },
+    pagina: {
+      width: larguraReal,
+      transform: `scale(${escala})`,
+      transformOrigin: 'top left',
     },
     banner: {
       position: 'relative',
-      aspectRatio: pequeno ? PROPORCAO_CELULAR : PROPORCAO_DESKTOP,
+      aspectRatio: proporcao,
       borderRadius: 3,
       overflow: 'hidden',
       display: 'flex',
@@ -276,48 +315,50 @@ function PreviaCabecalho({
       </Stack>
 
       <Box sx={styles.palco}>
-        <Box sx={styles.pagina}>
-          <Box sx={styles.banner}>
-            <Box
-              component="img"
-              src={capa || CapaLogin}
-              alt="Prévia da capa do evento"
-              sx={styles.capa}
-            />
-            <Box sx={styles.filtro} />
-            <Box sx={styles.veu} />
+        <Box sx={styles.moldura}>
+          <Box sx={styles.pagina}>
+            <Box sx={styles.banner}>
+              <Box
+                component="img"
+                src={capa || CapaLogin}
+                alt="Prévia da capa do evento"
+                sx={styles.capa}
+              />
+              <Box sx={styles.filtro} />
+              <Box sx={styles.veu} />
 
-            {/* a página inteira sobre a capa — selo, nome e os dois botões — e
+              {/* a página inteira sobre a capa — selo, nome e os dois botões — e
                 não só a logo: é essa sobreposição que decide onde a foto pode
                 ter detalhe e onde ela precisa ser fundo */}
-            <Box sx={styles.textoDoCartaz} aria-hidden>
-              {logo && (
-                <Box
-                  component="img"
-                  src={logo}
-                  alt="Prévia da logo do evento"
-                  sx={styles.logo}
-                />
-              )}
+              <Box sx={styles.textoDoCartaz} aria-hidden>
+                {logo && (
+                  <Box
+                    component="img"
+                    src={logo}
+                    alt="Prévia da logo do evento"
+                    sx={styles.logo}
+                  />
+                )}
 
-              {tipoEvento && (
-                <Box sx={{ mb: 1.5 }}>
-                  <Box sx={styles.selo}>{tipoEvento}</Box>
-                </Box>
-              )}
+                {tipoEvento && (
+                  <Box sx={{ mb: 1.5 }}>
+                    <Box sx={styles.selo}>{tipoEvento}</Box>
+                  </Box>
+                )}
 
-              <Typography component="p" sx={styles.nomeNoCartaz}>
-                {nomeEvento || 'Nome do evento'}
-              </Typography>
+                <Typography component="p" sx={styles.nomeNoCartaz}>
+                  {nomeEvento || 'Nome do evento'}
+                </Typography>
 
-              <Box sx={styles.botoes}>
-                <Box sx={styles.botaoPrincipal}>
-                  <ConfirmationNumber sx={{ fontSize: 20 }} />
-                  Inscreva-se
-                </Box>
-                <Box sx={styles.botaoVidro}>
-                  <ShoppingBagOutlined sx={{ fontSize: 20 }} />
-                  Produtos do evento
+                <Box sx={styles.botoes}>
+                  <Box sx={styles.botaoPrincipal}>
+                    <ConfirmationNumber sx={{ fontSize: 20 }} />
+                    Inscreva-se
+                  </Box>
+                  <Box sx={styles.botaoVidro}>
+                    <ShoppingBagOutlined sx={{ fontSize: 20 }} />
+                    Produtos do evento
+                  </Box>
                 </Box>
               </Box>
             </Box>
@@ -403,7 +444,8 @@ function CampoImagem({
       display: 'flex',
       flexDirection: 'column',
       gap: 2,
-      boxShadow:theme.palette.mode=="dark" ? "" : "0px 0px 5px 2px rgba(0,0,0,0.1)",
+      boxShadow:
+        theme.palette.mode == 'dark' ? '' : '0px 0px 5px 2px rgba(0,0,0,0.1)',
       borderColor: arrastando
         ? theme.palette.primary.main
         : theme.palette.divider,
@@ -716,6 +758,10 @@ function FormLogoAndCover({ eventName, eventType }: FormLogoAndCoverProps) {
           }}
           onSoltar={(arquivo) => aplicarArquivo(arquivo, 'eventCover')}
         />
+      </Grid>
+
+      <Grid item xs={12}>
+        <FormEventColors logoImagem={logoImagem} coverImagem={coverImagem} />
       </Grid>
 
       {/* o recorte volta pelo mesmo caminho de um arquivo escolhido à mão, e

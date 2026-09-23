@@ -2,11 +2,16 @@ import {
   Card,
   IconButton,
   LinearProgress,
+  ListItemIcon,
+  ListItemText,
+  Menu,
+  MenuItem,
   Stack,
   Tooltip,
   Typography,
   useTheme,
 } from '@mui/material';
+import { ReactNode, useState } from 'react';
 import {
   DataGrid,
   GridColDef,
@@ -20,7 +25,13 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useGetEvents } from '../api/getEvents';
 import { formatDate } from '../../../../utils';
-import { EditNoteOutlined, VisibilityOutlined } from '@mui/icons-material';
+import {
+  DeleteOutline,
+  EditNoteOutlined,
+  MoreVert,
+  VisibilityOutlined,
+  WebOutlined,
+} from '@mui/icons-material';
 import { useRole } from '../../../../hooks/useRole';
 import { Role } from '../../../../constants/roles';
 import CustomChip from '../../../../components/customChip';
@@ -30,6 +41,65 @@ import {
   cardTabelaSx,
   dataGridSx,
 } from '../../../../components/listPageStyles';
+import { EventoParaApagar, ModalDeleteEvent } from './modalDeleteEvent';
+
+type AcaoDoEvento = {
+  rotulo: string;
+  icone: ReactNode;
+  cor: string;
+  aoClicar: () => void;
+};
+
+/**
+ * As ações da linha, num menu só.
+ *
+ * Em botões soltos a coluna crescia a cada ação nova e três ícones coloridos
+ * lado a lado disputavam a atenção com os dados da tabela. Nos três pontos cada
+ * ação ganha nome escrito, e a cor volta a ser o que separa uma da outra — não
+ * o que grita na linha inteira.
+ */
+function AcoesDoEvento({ acoes }: { acoes: AcaoDoEvento[] }) {
+  const [ancora, setAncora] = useState<HTMLElement | null>(null);
+
+  return (
+    <>
+      <Tooltip title="Ações">
+        <IconButton
+          size="medium"
+          aria-label="Ações do evento"
+          onClick={(evento) => setAncora(evento.currentTarget)}
+        >
+          <MoreVert />
+        </IconButton>
+      </Tooltip>
+
+      <Menu
+        anchorEl={ancora}
+        open={!!ancora}
+        onClose={() => setAncora(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        {acoes.map((acao) => (
+          <MenuItem
+            key={acao.rotulo}
+            onClick={() => {
+              setAncora(null);
+              acao.aoClicar();
+            }}
+          >
+            <ListItemIcon sx={{ color: acao.cor, minWidth: 34 }}>
+              {acao.icone}
+            </ListItemIcon>
+            <ListItemText primaryTypographyProps={{ fontSize: 14 }}>
+              {acao.rotulo}
+            </ListItemText>
+          </MenuItem>
+        ))}
+      </Menu>
+    </>
+  );
+}
 
 const getSelectedRowsToExport = ({
   apiRef,
@@ -64,7 +134,9 @@ function List({
 }) {
   const navigate = useNavigate();
   const theme = useTheme();
-  const { isSuperAdmin, perfilNaIgreja } = useRole();
+  const { isDev, isSuperAdmin, perfilNaIgreja } = useRole();
+  const [eventoParaApagar, setEventoParaApagar] =
+    useState<EventoParaApagar | null>(null);
   const { data: eventData, isLoading } = useGetEvents({ painel: true });
   const events = Array.isArray(eventData) ? eventData : [];
   const filteredData = events.filter((event: any) => {
@@ -226,7 +298,7 @@ function List({
     {
       field: 'actions',
       headerName: 'Ações',
-      width: 130,
+      width: 90,
       align: 'center',
       headerAlign: 'center',
       renderCell: (params) => {
@@ -236,32 +308,57 @@ function List({
           isSuperAdmin || perfilNaIgreja(params.row.church?.id) === Role.ADMIN;
 
         return (
-          <>
-            <Tooltip title="Detalhes">
-              <IconButton
-                onClick={() =>
-                  navigate(`/admin/eventos/${params.row.id}/detalhes/usuarios`)
-                }
-                sx={{ color: theme.palette.text.primary }}
-                size="medium"
-              >
-                <VisibilityOutlined />
-              </IconButton>
-            </Tooltip>
-            {podeEditar && (
-              <Tooltip title="Editar">
-                <IconButton
-                  onClick={() =>
-                    navigate(`/admin/eventos/${params.row.id}/editar`)
-                  }
-                  sx={{ color: theme.palette.text.primary }}
-                  size="medium"
-                >
-                  <EditNoteOutlined />
-                </IconButton>
-              </Tooltip>
-            )}
-          </>
+          <AcoesDoEvento
+            acoes={[
+              {
+                rotulo: 'Abrir página do evento',
+                icone: <WebOutlined fontSize="small" />,
+                cor: theme.palette.chips.info,
+                // em outra aba: o admin volta para a lista onde parou, em vez
+                // de refazer busca e filtros no caminho de volta
+                aoClicar: () =>
+                  window.open(
+                    `/eventos/${params.row.id}`,
+                    '_blank',
+                    'noopener'
+                  ),
+              },
+              {
+                rotulo: 'Detalhes',
+                icone: <VisibilityOutlined fontSize="small" />,
+                cor: theme.palette.primary.main,
+                aoClicar: () =>
+                  navigate(`/admin/eventos/${params.row.id}/detalhes/usuarios`),
+              },
+              ...(podeEditar
+                ? [
+                    {
+                      rotulo: 'Editar',
+                      icone: <EditNoteOutlined fontSize="small" />,
+                      cor: theme.palette.chips.alert,
+                      aoClicar: () =>
+                        navigate(`/admin/eventos/${params.row.id}/editar`),
+                    },
+                  ]
+                : []),
+              // apagar evento é decisão de negócio, e por ora só o perfil de
+              // desenvolvimento a toma; a rota no servidor confere o mesmo
+              ...(isDev
+                ? [
+                    {
+                      rotulo: 'Apagar evento',
+                      icone: <DeleteOutline fontSize="small" />,
+                      cor: theme.palette.error.main,
+                      aoClicar: () =>
+                        setEventoParaApagar({
+                          id: params.row.id,
+                          name: params.row.name,
+                        }),
+                    },
+                  ]
+                : []),
+            ]}
+          />
         );
       },
     },
@@ -290,6 +387,11 @@ function List({
         columnHeaderHeight={44}
         sx={dataGridSx(theme)}
         localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
+      />
+
+      <ModalDeleteEvent
+        evento={eventoParaApagar}
+        onFechar={() => setEventoParaApagar(null)}
       />
     </Card>
   );

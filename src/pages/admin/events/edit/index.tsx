@@ -39,6 +39,7 @@ import { FormDateAndLocal } from '../../../../features/admin/events/components/f
 import { FormLogoAndCover } from '../../../../features/admin/events/components/formLogoAndCover';
 import { FormTerms } from '../../../../features/admin/events/components/formTerms';
 import { textoDoTermo } from '../../../../features/admin/events/terms';
+import { coresParaSalvar } from '../../../../features/admin/events/eventColors';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useGetEvents } from '../../../../features/admin/events/api/getEvents';
 import { usePutUpdateEvent } from '../../../../features/admin/events/api/putEvent';
@@ -112,6 +113,9 @@ function Edit() {
   ): EventLogoFormType => ({
     logoUrl: event?.data?.logoUrl ? event?.data?.logoUrl : undefined,
     coverUrl: event?.data?.coverUrl ? event?.data?.coverUrl : undefined,
+    primaryColor: event?.data?.colors?.primary,
+    secondaryColor: event?.data?.colors?.secondary,
+    tertiaryColor: event?.data?.colors?.tertiary,
   });
   const getDefaultTermsValues = (event?: EventDetails): TermsFormType => ({
     minorTermUrl: event?.data?.minorTermUrl
@@ -263,6 +267,7 @@ function Edit() {
               registrationTerm: textoDoTermo(
                 methodsTerms.getValues().registrationTerm
               ),
+              colors: coresParaSalvar(methodsEventLogo.getValues()),
               // ...(methodsEventLogo.getValues().eventLogo?.[0]
               //   ? methodsEventLogo.getValues().logoUrl
               //     ? {

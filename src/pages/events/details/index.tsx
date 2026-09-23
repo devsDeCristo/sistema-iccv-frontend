@@ -4,10 +4,12 @@ import {
   alpha,
   Box,
   Button,
+  IconButton,
   LinearProgress,
   Paper,
   Skeleton,
   Stack,
+  Tooltip,
   Typography,
   useTheme,
 } from '@mui/material';
@@ -23,8 +25,10 @@ import {
   CalendarMonthOutlined,
   ArrowBack,
   ConfirmationNumber,
+  EditOutlined,
   PlaceOutlined,
   ShoppingBagOutlined,
+  VisibilityOutlined,
   WhatsApp,
 } from '@mui/icons-material';
 import { useGetGroupsByUser } from '../../../features/admin/events/api/getGroupsByUser';
@@ -36,6 +40,8 @@ import {
   ocupacao,
 } from '../../../features/events/utils';
 import { AZUL_VIVO, VIOLETA_VIVO } from '../../../themes';
+import { useRole } from '../../../hooks/useRole';
+import { Role } from '../../../constants/roles';
 
 function EventsDetails() {
   const { id = '' } = useParams();
@@ -52,6 +58,18 @@ function EventsDetails() {
     { enabled: !!id }
   );
   const event = eventData as EventDetails;
+  const { isSuperAdmin, perfilNaIgreja } = useRole();
+
+  /**
+   * Admin da igreja dona deste evento.
+   *
+   * Ele chega aqui pelo mesmo link que todo mundo — e, para corrigir uma data
+   * ou conferir os inscritos, tinha que voltar ao painel e procurar o evento na
+   * lista. Super admin e dev administram qualquer igreja, então entram junto.
+   */
+  const podeAdministrar =
+    isSuperAdmin ||
+    (!!event?.churchId && perfilNaIgreja(event.churchId) === Role.ADMIN);
 
   /**
    * Grupos deste evento em que o usuário está inscrito e que possuem link.
@@ -149,6 +167,24 @@ function EventsDetails() {
           color: '#fff',
           backgroundColor: alpha('#000', 0.5),
         },
+      },
+      // os atalhos do admin espelham o voltar, na outra ponta da mesma régua
+      atalhosDoAdmin: {
+        position: 'absolute',
+        top: { xs: 32, sm: 40 },
+        right: 'max(32px, calc((100% - 1200px) / 2))',
+        zIndex: 2,
+        display: 'flex',
+        gap: 0.25,
+        p: 0.25,
+        borderRadius: 1.5,
+        backgroundColor: alpha('#000', 0.28),
+        backdropFilter: 'blur(6px)',
+      },
+      atalho: {
+        color: '#fff',
+        borderRadius: 1.25,
+        '&:hover': { backgroundColor: alpha('#000', 0.4) },
       },
       capa: {
         position: 'absolute',
@@ -521,6 +557,34 @@ function EventsDetails() {
         >
           Voltar
         </Button>
+
+        {podeAdministrar && (
+          <Box sx={styles.atalhosDoAdmin}>
+            <Tooltip title="Editar evento">
+              <IconButton
+                size="small"
+                aria-label="Editar evento"
+                sx={styles.atalho}
+                onClick={() => navigate(`/admin/eventos/${id}/editar`)}
+              >
+                <EditOutlined fontSize="small" />
+              </IconButton>
+            </Tooltip>
+
+            <Tooltip title="Ver no painel">
+              <IconButton
+                size="small"
+                aria-label="Ver o evento no painel"
+                sx={styles.atalho}
+                onClick={() =>
+                  navigate(`/admin/eventos/${id}/detalhes/usuarios`)
+                }
+              >
+                <VisibilityOutlined fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          </Box>
+        )}
         <Box
           sx={{
             ...styles.capa,
@@ -557,7 +621,9 @@ function EventsDetails() {
           {event?.data?.shortDescription && (
             <Typography
               sx={{
-                mt: 1,
+                // colada no nome: as duas frases são o mesmo anúncio, e o vão
+                // de antes as lia como blocos separados
+                mt: 0.25,
                 maxWidth: 620,
                 color: alpha('#fff', 0.88),
                 fontSize: { xs: '0.95rem', sm: '1.05rem' },

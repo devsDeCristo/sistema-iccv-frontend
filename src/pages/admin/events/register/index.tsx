@@ -42,6 +42,7 @@ import { queryClient } from '../../../../config/lib/react-query/query-client';
 import { useRole } from '../../../../hooks/useRole';
 import { FormProducts } from '../../../../features/admin/events/components/formProducts';
 import { produtosParaEnvio } from '../../../../features/admin/events/products';
+import { coresParaSalvar } from '../../../../features/admin/events/eventColors';
 import { textoDoTermo } from '../../../../features/admin/events/terms';
 
 function Register() {
@@ -214,6 +215,7 @@ function Register() {
               number: dateAndTimeData.number,
               linkMaps: dateAndTimeData.linkMaps,
               registrationTerm: textoDoTermo(termsData.registrationTerm),
+              colors: coresParaSalvar(eventLogoData),
               // logoUrl: logoSvgText,
               // coverUrl: coverSvgText,
               // logoFile: logoSvgText, // Base64 string

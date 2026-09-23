@@ -170,6 +170,8 @@ export interface EventDataJson {
   linkMaps?: string;
   logoUrl?: string;
   logoBase64?: string;
+  /** paleta do evento, lida da logo e da capa ou escolhida à mão */
+  colors?: { primary?: string; secondary?: string; tertiary?: string };
   coverUrl?: string;
   coverBase64?: string;
   hideVacancies?: boolean;

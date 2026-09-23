@@ -198,6 +198,11 @@ export const EVENT_LOGO_SCHEMA = z.object({
   eventCover: z.any().optional(),
   logoUrl: z.string().optional().nullable(),
   coverUrl: z.string().optional().nullable(),
+  // as cores do evento moram neste passo porque é delas que saem: a logo e a
+  // capa estão aqui, e é delas que a paleta é lida
+  primaryColor: z.string().optional().nullable(),
+  secondaryColor: z.string().optional().nullable(),
+  tertiaryColor: z.string().optional().nullable(),
   // .refine(
   //   (files) => {
   //     if (!files || files.length === 0) return true;
