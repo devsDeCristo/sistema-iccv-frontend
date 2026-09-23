@@ -182,7 +182,7 @@ function EventsDetails() {
           : { py: { xs: 5, md: 6 } }),
       },
       logo: {
-        maxHeight: { xs: 56, sm: 72 },
+        maxHeight: { xs: 72, sm: 96 },
         maxWidth: '60%',
         objectFit: 'contain',
         mb: 0.5,

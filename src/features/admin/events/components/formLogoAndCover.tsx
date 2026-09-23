@@ -19,6 +19,7 @@ import {
   Close,
   CloudUpload,
   ConfirmationNumber,
+  Crop,
   DesktopWindows,
   PhoneAndroid,
   ShoppingBagOutlined,
@@ -29,8 +30,9 @@ import { toast } from 'react-toastify';
 import CapaLogin from '../../../../assets/capaLogin2.jpg';
 import { AZUL_VIVO, VIOLETA_VIVO } from '../../../../themes';
 import { formatarTamanho, usePreviaArquivo } from './uploadHelpers';
+import { LogoCropDialog } from './logoCropDialog';
 
-const LIMITE_ARQUIVO = 2 * 1024 * 1024;
+const LIMITE_ARQUIVO = 5 * 1024 * 1024;
 
 /**
  * Proporções do cartaz da página do evento (src/pages/events/details).
@@ -157,7 +159,7 @@ function PreviaCabecalho({
      * largura simulada, não a da janela do admin.
      */
     logo: {
-      maxHeight: pequeno ? 56 : 72,
+      maxHeight: pequeno ? 72 : 96,
       maxWidth: '60%',
       objectFit: 'contain',
       mb: 0.5,
@@ -347,6 +349,8 @@ type CampoImagemProps = {
   onEscolher: () => void;
   onRemover: () => void;
   onSoltar: (arquivo: File | null) => void;
+  /** sem isto o campo não oferece recorte: só a logo tem */
+  onRecortar?: () => void;
 };
 
 /**
@@ -366,6 +370,7 @@ function CampoImagem({
   onEscolher,
   onRemover,
   onSoltar,
+  onRecortar,
 }: CampoImagemProps) {
   const theme = useTheme();
   const [arrastando, setArrastando] = useState(false);
@@ -487,6 +492,13 @@ function CampoImagem({
           </Box>
 
           <Stack direction="row" flexShrink={0}>
+            {onRecortar && (
+              <Tooltip title="Recortar imagem">
+                <IconButton onClick={onRecortar} aria-label="Recortar imagem">
+                  <Crop />
+                </IconButton>
+              </Tooltip>
+            )}
             <Tooltip title="Trocar imagem">
               <IconButton onClick={onEscolher} aria-label="Trocar imagem">
                 <SwapHoriz />
@@ -524,7 +536,7 @@ function CampoImagem({
             Clique ou arraste a imagem
           </Typography>
           <Typography variant="caption" color="text.secondary">
-            SVG, PNG ou JPG · até 2MB
+            SVG, PNG ou JPG · até 5MB
           </Typography>
         </Box>
       )}
@@ -564,6 +576,7 @@ function FormLogoAndCover({ eventName, eventType }: FormLogoAndCoverProps) {
 
   const fileInputRefLogo = useRef<HTMLInputElement>(null);
   const fileInputRefCover = useRef<HTMLInputElement>(null);
+  const [recortandoLogo, setRecortandoLogo] = useState(false);
 
   const logoFile = useWatch({ control, name: 'eventLogo' });
   const coverFile = useWatch({ control, name: 'eventCover' });
@@ -586,9 +599,9 @@ function FormLogoAndCover({ eventName, eventType }: FormLogoAndCoverProps) {
   };
 
   /**
-   * Tipo e tamanho conferidos num só lugar: a checagem de 2MB vivia dentro do
-   * `onChange` do input, então arquivo grande arrastado para a área entrava sem
-   * passar por ela.
+   * Tipo e tamanho conferidos num só lugar: a checagem de tamanho vivia dentro
+   * do `onChange` do input, então arquivo grande arrastado para a área entrava
+   * sem passar por ela.
    */
   const aplicarArquivo = useCallback(
     (arquivo: File | null, campo: CampoArquivo) => {
@@ -606,9 +619,9 @@ function FormLogoAndCover({ eventName, eventType }: FormLogoAndCoverProps) {
       if (arquivo.size > LIMITE_ARQUIVO) {
         setError(campo, {
           type: 'manual',
-          message: 'O tamanho do arquivo excede o limite de 2MB.',
+          message: 'O tamanho do arquivo excede o limite de 5MB.',
         });
-        toast.error('O tamanho do arquivo não deve exceder o limite de 2MB.');
+        toast.error('O tamanho do arquivo não deve exceder o limite de 5MB.');
         return;
       }
 
@@ -682,6 +695,7 @@ function FormLogoAndCover({ eventName, eventType }: FormLogoAndCoverProps) {
             clearErrors('eventLogo');
           }}
           onSoltar={(arquivo) => aplicarArquivo(arquivo, 'eventLogo')}
+          onRecortar={logoImagem ? () => setRecortandoLogo(true) : undefined}
         />
       </Grid>
 
@@ -703,6 +717,23 @@ function FormLogoAndCover({ eventName, eventType }: FormLogoAndCoverProps) {
           onSoltar={(arquivo) => aplicarArquivo(arquivo, 'eventCover')}
         />
       </Grid>
+
+      {/* o recorte volta pelo mesmo caminho de um arquivo escolhido à mão, e
+          assim passa pelas mesmas conferências de tipo e tamanho */}
+      <LogoCropDialog
+        aberto={recortandoLogo}
+        imagem={logoImagem}
+        arquivo={logoFile?.[0] ?? null}
+        onFechar={() => setRecortandoLogo(false)}
+        onConfirmar={(arquivo) => {
+          aplicarArquivo(arquivo, 'eventLogo');
+          setRecortandoLogo(false);
+        }}
+        onEscolherArquivo={() => {
+          setRecortandoLogo(false);
+          abrirSeletor(fileInputRefLogo);
+        }}
+      />
     </Grid>
   );
 }
