@@ -132,6 +132,7 @@ function CartazDoEvento({
   const theme = useTheme();
   const navigate = useNavigate();
   const escuro = theme.palette.mode === 'dark';
+  const temLogo = !!event.data?.logoUrl;
   const baseDoVeu = escuro
     ? theme.palette.background.default
     : theme.palette.text.primary;
@@ -205,18 +206,60 @@ function CartazDoEvento({
         0.48
       )} 58%, ${alpha(baseDoVeu, 0.76)} 100%)`,
     },
+    /**
+     * Grade, e não pilha de linhas: é o que deixa a logo ocupar as duas faixas
+     * no desktop — centrada na altura inteira do cartaz — enquanto no celular
+     * o rodapé passa por baixo dela, com a largura toda.
+     *
+     *   celular            tablet em diante
+     *   logo  texto        logo  texto
+     *   rodapé rodapé      logo  rodapé
+     *
+     * A primeira faixa é quem fica com a sobra de altura (`1fr`); a de baixo
+     * hospeda o rodapé e tem a altura dele.
+     */
     conteudo: {
       position: 'relative',
+      display: 'grid',
+      gridTemplateRows: '1fr auto',
+      gridTemplateColumns: temLogo ? 'auto minmax(0, 1fr)' : 'minmax(0, 1fr)',
+      gridTemplateAreas: temLogo
+        ? {
+            xs: '"logo texto" "rodape rodape"',
+            sm: '"logo texto" "logo rodape"',
+          }
+        : '"texto" "rodape"',
+      columnGap: 1.5,
       // acima do filtro e do véu: eles escurecem a foto, não o que está escrito
       // nem a logo. A ordem no DOM já garantiria isso, mas o z-index deixa a
       // regra explícita para quem mexer nas camadas depois
+      rowGap: 1,
       zIndex: 1,
       width: '100%',
-      display: 'flex',
-      alignItems: 'stretch',
-      gap: 1.5,
       p: 1.5,
       pb: 1.75,
+    },
+    colunaDoTexto: {
+      gridArea: 'texto',
+      minWidth: 0,
+      display: 'flex',
+      flexDirection: 'column',
+      // o texto se apoia na base da faixa, logo acima do rodapé
+      justifyContent: 'flex-end',
+    },
+    rodape: {
+      gridArea: 'rodape',
+      minWidth: 0,
+      gap: { xs: 0.75, sm: 1.5 },
+      flexDirection: { xs: 'column', sm: 'row' },
+      alignItems: { xs: 'stretch', sm: 'flex-end' },
+      justifyContent: 'space-between',
+    },
+    caixaDoBotao: {
+      display: 'flex',
+      flexShrink: 0,
+      // no celular o botão fica sozinho na linha, encostado à direita
+      justifyContent: 'flex-end',
     },
     /**
      * A logo abre o cartaz, à esquerda do texto e centrada na altura dele —
@@ -229,6 +272,7 @@ function CartazDoEvento({
      * clara atrás dela.
      */
     colunaDaLogo: {
+      gridArea: 'logo',
       display: 'flex',
       alignItems: 'center',
       flexShrink: 0,
@@ -299,26 +343,18 @@ function CartazDoEvento({
       <Box sx={styles.veu} />
 
       <Box sx={styles.conteudo}>
-        {event.data?.logoUrl && (
+        {temLogo && (
           <Box sx={styles.colunaDaLogo}>
             <Box
               component="img"
-              src={event.data.logoUrl}
+              src={event.data!.logoUrl!}
               alt={`Logo de ${event.name}`}
               sx={styles.logo}
             />
           </Box>
         )}
 
-        <Box
-          sx={{
-            flexGrow: 1,
-            minWidth: 0,
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'flex-end',
-          }}
-        >
+        <Box sx={styles.colunaDoTexto}>
           <Stack direction="row" gap={0.75} sx={{ mb: 0.75, flexWrap: 'wrap' }}>
             {event.type && <Selo>{event.type}</Selo>}
             {contagem && <Selo>{contagem}</Selo>}
@@ -339,29 +375,34 @@ function CartazDoEvento({
           </Stack>
 
           <Typography sx={styles.nome}>{event.name}</Typography>
+        </Box>
 
+        {/**
+         * No celular o rodapé atravessa o cartaz inteiro, por baixo da logo.
+         *
+         * Antes ele dividia a linha com o botão e sobrava um palmo para o
+         * texto: "14 a 3…", "Igreja …" — a informação que a pessoa foi buscar
+         * era justamente a cortada. Agora quando e onde ficam com a largura
+         * toda, e o botão desce para a linha de baixo, encostado à direita.
+         *
+         * Da largura de tablet para cima ele volta a ficar ao lado da logo, e
+         * o botão volta para a mesma linha: lá sobra espaço.
+         */}
+        <Stack sx={styles.rodape}>
           <Stack
-            direction="row"
-            gap={1.5}
-            alignItems="flex-end"
-            justifyContent="space-between"
-            sx={{ mt: 1, minWidth: 0 }}
+            direction={{ xs: 'column', md: 'row' }}
+            gap={{ xs: 0.25, md: 1.75 }}
+            sx={{ minWidth: 0 }}
           >
-            {/* quando e onde ficam numa linha só, e o que não couber é cortado:
-              o cartaz é chamada, o detalhe está a um clique */}
-            <Stack
-              direction={{ xs: 'column', md: 'row' }}
-              gap={{ xs: 0.25, md: 1.75 }}
-              sx={{ minWidth: 0 }}
-            >
-              <Meta icone={<CalendarMonthOutlined />}>
-                {formatarPeriodo(event.startDate, event.endDate)}
-              </Meta>
-              {event.data?.localName && (
-                <Meta icone={<RoomOutlined />}>{event.data.localName}</Meta>
-              )}
-            </Stack>
+            <Meta icone={<CalendarMonthOutlined />}>
+              {formatarPeriodo(event.startDate, event.endDate)}
+            </Meta>
+            {event.data?.localName && (
+              <Meta icone={<RoomOutlined />}>{event.data.localName}</Meta>
+            )}
+          </Stack>
 
+          <Box sx={styles.caixaDoBotao}>
             <Button
               size="small"
               disabled={encerrado}
@@ -377,8 +418,8 @@ function CartazDoEvento({
                   ? 'Ver meu evento'
                   : 'Ver detalhes'}
             </Button>
-          </Stack>
-        </Box>
+          </Box>
+        </Stack>
       </Box>
     </Paper>
   );
@@ -879,9 +920,10 @@ function Cards() {
   }
 
   /**
-   * O que está acontecendo agora abre a página, e vai todo em destaque: é o
-   * evento em que a pessoa está, ou para onde ela sai hoje. Enquanto durar, não
-   * há nada nesta tela que interesse mais do que ele.
+   * O que está acontecendo agora abre a página, e é o único destaque dela —
+   * todos os que estiverem em andamento, quantos forem. É o evento em que a
+   * pessoa está, ou para onde ela sai hoje; enquanto durar, não há nada nesta
+   * tela que interesse mais do que ele.
    *
    * A régua é a mesma do painel (`emAndamento`): o dia inteiro conta nas duas
    * pontas, então o evento não some da seção na manhã em que começa nem na
@@ -926,11 +968,9 @@ function Cards() {
             Próximos eventos
           </TituloSecao>
           <Stack gap={1.5}>
-            {/* aqui só o primeiro é destaque; com um evento acontecendo agora,
-              nem ele — o destaque da tela já está na seção de cima */}
-            {proximos.map((event, posicao) =>
-              cartaz(event, posicao === 0 && acontecendo.length === 0)
-            )}
+            {/* nenhum destaque aqui: o destaque é o que está acontecendo, e
+              essa é a seção de cima. Quantos forem */}
+            {proximos.map((event) => cartaz(event))}
           </Stack>
         </Box>
       )}
