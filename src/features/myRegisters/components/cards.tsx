@@ -31,7 +31,7 @@ import React from 'react';
 import CapaLogin from '../../../assets/capaLogin2.jpg';
 import { usePostGuardianTerm } from '../../admin/events/api/postGuardianTerm';
 import CustomChip from '../../../components/customChip';
-import { pagamentosEmAberto, separarPorPagamento } from '../utils';
+import { pagamentosEmAberto, separarPorPendencia } from '../utils';
 
 interface PaymentData {
   coverUrl: string;
@@ -39,10 +39,16 @@ interface PaymentData {
   name?: string;
 }
 
+/**
+ * Curtos de propósito: no cartão de 320px o rótulo antigo ("Aguardando
+ * liberação (menor de idade)") ocupava a linha inteira e jogava o botão de
+ * anexar para a linha de baixo, esticando o cartão — e com ele os vizinhos.
+ * Quem é menor de idade já sabe do que se trata, e o modal repete o assunto.
+ */
 const GUARDIAN_STATUS_LABEL: Record<string, string> = {
-  PENDING: 'Aguardando liberação (menor de idade)',
-  APPROVED: 'Menor de idade liberado',
-  REJECTED: 'Termo recusado — reenvie',
+  PENDING: 'Liberação pendente',
+  APPROVED: 'Liberação aprovada',
+  REJECTED: 'Termo recusado',
 };
 
 function GuardianTermDialog({
@@ -198,7 +204,16 @@ function EventCard({ payment }: { payment: paymentsWithRoles & { data: PaymentDa
       display: 'flex',
       gap: 2,
       flexDirection: 'column',
-      justifyContent: 'space-between',
+      /**
+       * Os cartões de uma linha têm a mesma altura, e o que cada um tem para
+       * dizer varia: um mostra aviso de termo, o vizinho não. Com
+       * `space-between` a sobra caía no meio do cartão mais curto — título em
+       * cima, um buraco, e a informação colada nos botões, como se o cartão
+       * tivesse sido esticado. Alinhado ao topo, a sobra vai para baixo, onde
+       * já mora o rodapé de botões, e as linhas de informação de todos os
+       * cartões começam na mesma altura.
+       */
+      justifyContent: 'flex-start',
 
       height: "calc(100% - 160px)",
 
@@ -256,13 +271,18 @@ function EventCard({ payment }: { payment: paymentsWithRoles & { data: PaymentDa
 
   
 
-          {modulePayment && (
-            <Stack direction="row" alignItems="center" gap={1}>
-              <AttachMoney sx={styles.icon} />
-              <Typography sx={styles.infoText} color={emAberto === 0 ? 'success.main' : 'warning.main'}>
-                {emAberto === 0 ?"Pagamento(s) concluído(s)":`${emAberto} Pagamento(s) pendente(s)`}
-              </Typography>
-            </Stack>
+          {/* a linha aparece mesmo na igreja que não cobra online: o que o
+            módulo desligado tira é o botão de pagar, não a dívida */}
+          <Stack direction="row" alignItems="center" gap={1}>
+            <AttachMoney sx={styles.icon} />
+            <Typography sx={styles.infoText} color={emAberto === 0 ? 'success.main' : 'warning.main'}>
+              {emAberto === 0 ?"Pagamento(s) concluído(s)":`${emAberto} Pagamento(s) pendente(s)`}
+            </Typography>
+          </Stack>
+          {!modulePayment && emAberto > 0 && (
+            <Typography variant="caption" color="text.secondary" sx={{ ml: 3.5, mt: -0.5 }}>
+              Acerte com a organização.
+            </Typography>
           )}
           <Stack direction="row" alignItems="center" gap={1}>
             <LocalActivity sx={styles.icon} />
@@ -393,7 +413,7 @@ function Cards() {
 
   const { data = [] } = useGetPayments({ userId: id || '' });
   const payments = data as paymentsWithRoles[];
-  const { pendentes, emDia } = separarPorPagamento(payments);
+  const { pendentes, emDia } = separarPorPendencia(payments);
 
   const grade = (lista: paymentsWithRoles[]) => (
     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
@@ -414,8 +434,8 @@ function Cards() {
     <Stack gap={4}>
       <Secao
         icone={<ErrorOutline sx={{ color: theme.palette.chips.alert }} />}
-        titulo="Aguardando pagamento"
-        descricao="Inscrição ou compra de produto ainda em aberto nestes eventos."
+        titulo="Esperando você"
+        descricao="Pagamento em aberto ou termo de autorização faltando nestes eventos."
         quantidade={pendentes.length}
         cor={theme.palette.chips.alert}
       >
@@ -426,7 +446,7 @@ function Cards() {
         <Secao
           icone={<CheckCircleOutline sx={{ color: theme.palette.chips.success }} />}
           titulo="Em dia"
-          descricao="Nada a pagar por aqui."
+          descricao="Nada pendente por aqui."
           quantidade={emDia.length}
           cor={theme.palette.chips.success}
         >
