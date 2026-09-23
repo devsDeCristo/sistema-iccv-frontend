@@ -8,6 +8,7 @@ import {
   Divider,
   IconButton,
   InputAdornment,
+  MenuItem,
   Paper,
   Stack,
   TextField,
@@ -36,9 +37,15 @@ import {
   dataGridSx,
   superficieSx,
 } from '../../../components/listPageStyles';
+import CustomChip from '../../../components/customChip';
 import { useGetChurches, Church } from './api/getChurches';
 import { useSaveChurch } from './api/saveChurch';
 import { useDeleteChurch } from './api/deleteChurch';
+import {
+  CHURCH_STATUS_LABELS,
+  CHURCH_STATUS_OPTIONS,
+  ChurchStatus,
+} from './constants';
 
 const contarEventos = (church: Church) => church._count?.events ?? 0;
 const contarAdmins = (church: Church) => church._count?.users ?? 0;
@@ -63,12 +70,14 @@ export function Churches() {
   const [formAberto, setFormAberto] = useState(false);
   const [emEdicao, setEmEdicao] = useState<Church | null>(null);
   const [nome, setNome] = useState('');
+  const [situacao, setSituacao] = useState<ChurchStatus>('ACTIVE');
   const [erroDoNome, setErroDoNome] = useState<string | null>(null);
 
   const fecharForm = () => {
     setFormAberto(false);
     setEmEdicao(null);
     setNome('');
+    setSituacao('ACTIVE');
     setErroDoNome(null);
   };
 
@@ -80,6 +89,8 @@ export function Churches() {
   const abrirForm = (church?: Church) => {
     setEmEdicao(church ?? null);
     setNome(church?.name ?? '');
+    // igreja nova nasce ativa: é para isso que alguém cria uma
+    setSituacao(church?.status ?? 'ACTIVE');
     setErroDoNome(null);
     setFormAberto(true);
   };
@@ -92,7 +103,7 @@ export function Churches() {
       return;
     }
 
-    salvar({ id: emEdicao?.id, name: nomeLimpo });
+    salvar({ id: emEdicao?.id, name: nomeLimpo, status: situacao });
   };
 
   const confirmarExclusao = (church: Church) => {
@@ -134,6 +145,28 @@ export function Churches() {
             {params.value}
           </Typography>
         </Stack>
+      ),
+    },
+    {
+      field: 'status',
+      headerName: 'Situação',
+      width: 120,
+      align: 'center',
+      headerAlign: 'center',
+      renderCell: (params) => (
+        <CustomChip
+          label={CHURCH_STATUS_LABELS[params.value as ChurchStatus] ?? '—'}
+          // as mesmas cores do status do evento: teste em atenção, porque é
+          // uma igreja que existe mas ainda não está no ar
+          customColor={
+            params.value === 'ACTIVE'
+              ? theme.palette.chips.success
+              : params.value === 'TEST'
+                ? theme.palette.chips.alert
+                : theme.palette.chips.canceled
+          }
+          size="small"
+        />
       ),
     },
     {
@@ -181,7 +214,7 @@ export function Churches() {
                 <SpaceDashboard fontSize="small" />
               </IconButton>
             </Tooltip>
-            <Tooltip title="Renomear">
+            <Tooltip title="Editar">
               <IconButton size="small" onClick={() => abrirForm(church)}>
                 <EditOutlined fontSize="small" />
               </IconButton>
@@ -304,7 +337,7 @@ export function Churches() {
       >
         <DialogTitle component="div" sx={{ py: 2 }}>
           <Typography sx={{ fontSize: '1.125rem', fontWeight: 600 }}>
-            {emEdicao ? 'Renomear igreja' : 'Nova igreja'}
+            {emEdicao ? 'Editar igreja' : 'Nova igreja'}
           </Typography>
           <Typography variant="body2" color="text.secondary">
             {emEdicao
@@ -333,6 +366,28 @@ export function Churches() {
             error={!!erroDoNome}
             helperText={erroDoNome}
           />
+
+          <TextField
+            select
+            fullWidth
+            size="small"
+            label="Situação"
+            sx={{ mt: 2.5 }}
+            value={situacao}
+            onChange={(evento) =>
+              setSituacao(evento.target.value as ChurchStatus)
+            }
+            helperText={
+              CHURCH_STATUS_OPTIONS.find((opcao) => opcao.value === situacao)
+                ?.ajuda
+            }
+          >
+            {CHURCH_STATUS_OPTIONS.map((opcao) => (
+              <MenuItem key={opcao.value} value={opcao.value}>
+                {opcao.label}
+              </MenuItem>
+            ))}
+          </TextField>
         </DialogContent>
 
         <DialogActions sx={{ px: 3, pb: 2.5 }}>

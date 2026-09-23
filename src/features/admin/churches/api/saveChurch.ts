@@ -5,18 +5,19 @@ import {
   handleResponseSuccess,
   handleResponseThrowError,
 } from '../../../../utils/service';
-import { GET_CHURCHES } from '../constants';
+import { ChurchStatus, GET_CHURCHES } from '../constants';
 
 interface SaveChurchParams {
-  /** Sem id é criação; com id é renomear */
+  /** Sem id é criação; com id é edição */
   id?: string;
   name: string;
+  status: ChurchStatus;
 }
 
-const saveChurch = ({ id, name }: SaveChurchParams) => {
+const saveChurch = ({ id, name, status }: SaveChurchParams) => {
   const requisicao = id
-    ? apiClient.put(`/churches/${id}`, { name })
-    : apiClient.post('/churches', { name });
+    ? apiClient.put(`/churches/${id}`, { name, status })
+    : apiClient.post('/churches', { name, status });
 
   return requisicao
     .then((response) => {

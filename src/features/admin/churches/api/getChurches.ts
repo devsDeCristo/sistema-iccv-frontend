@@ -1,10 +1,12 @@
 import { UseQueryOptions, useQuery } from 'react-query';
 import { apiClient } from '../../../../config/lib/axios/api-client';
-import { GET_CHURCHES } from '../constants';
+import { ChurchStatus, GET_CHURCHES } from '../constants';
 
 export interface Church {
   id: string;
   name: string;
+  /** Ativa, inativa ou em teste. Só a ativa entra no filtro da home. */
+  status: ChurchStatus;
   /**
    * Vínculos da igreja. `users` conta só quem entra no painel (admin e
    * financeiro) — inscrito não pertence a igreja nenhuma. É o que impede a

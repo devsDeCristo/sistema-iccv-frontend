@@ -1,5 +1,6 @@
 import { User, UserTeam } from '../../../types/user';
 import { z } from 'zod';
+import { ChurchStatus } from '../churches/constants';
 import {
   CATEGORY_EVENT_SCHEMA,
   DATE_AND_LOCAL_SCHEMA,
@@ -50,8 +51,8 @@ export interface EventDetails {
 }
 
 export interface PayLoadGroup {
-  present:Group[];
-  waitlist:Group[];
+  present: Group[];
+  waitlist: Group[];
 }
 export interface Group {
   id: string;
@@ -74,9 +75,12 @@ export interface Event {
   capacity: number;
   /** grupos de inscrição com link de WhatsApp — quantos recebem disparo */
   whatsappGroups?: number;
-  /** igreja dona do evento; só interessa ao super admin, que vê todas */
-  church?: { id: string; name: string } | null;
-  data:EventDataJson
+  /**
+   * Igreja dona do evento. O nome interessa ao super admin, que vê eventos de
+   * todas; a situação é o que o filtro da home usa para oferecer só as ativas.
+   */
+  church?: { id: string; name: string; status?: ChurchStatus } | null;
+  data: EventDataJson;
 }
 export interface filterUsers {
   birthday: { startDate: string | null; endDate: string | null };

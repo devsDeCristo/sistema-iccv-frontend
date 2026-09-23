@@ -2,18 +2,27 @@ import {
   alpha,
   Box,
   Button,
+  ButtonBase,
+  Divider,
+  InputAdornment,
   Paper,
+  Popover,
   Skeleton,
   Stack,
+  TextField,
   Typography,
   useTheme,
 } from '@mui/material';
-import { ReactNode, useMemo } from 'react';
+import { ReactNode, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   CalendarMonthOutlined,
+  CheckRounded,
+  ChurchOutlined,
   EventAvailableOutlined,
+  KeyboardArrowDownRounded,
   RoomOutlined,
+  Search,
 } from '@mui/icons-material';
 import { useGetEvents } from '../../admin/events/api/getEvents';
 import { useGetGroupsByUser } from '../../admin/events/api/getGroupsByUser';
@@ -25,7 +34,12 @@ import {
   contagemRegressiva,
   eventosAbertos,
   eventosEncerrados,
+  filtrarPorIgreja,
   formatarPeriodo,
+  igrejasDosEventos,
+  lerIgrejaSalva,
+  salvarIgreja,
+  TODAS_AS_IGREJAS,
 } from '../utils';
 
 /** Como o usuário aparece neste evento, se aparecer. */
@@ -347,8 +361,21 @@ function TituloSecao({
   );
 }
 
-/** Nenhum evento aberto não é erro: é o estado normal entre dois eventos. */
-function SemEventos() {
+/**
+ * Nenhum evento aberto não é erro: é o estado normal entre dois eventos.
+ *
+ * Com filtro de igreja ligado o vazio tem outra causa — pode haver evento
+ * aberto logo ali, em outra igreja. Aí o texto diz isso e oferece a saída, em
+ * vez de mandar a pessoa para as inscrições dela.
+ */
+function SemEventos({
+  igrejaFiltrada,
+  onLimparFiltro,
+}: {
+  /** Nome da igreja escolhida no filtro, quando há uma */
+  igrejaFiltrada?: string;
+  onLimparFiltro?: () => void;
+}) {
   const navigate = useNavigate();
   const theme = useTheme();
 
@@ -371,7 +398,9 @@ function SemEventos() {
         <EventAvailableOutlined sx={{ fontSize: 26 }} />
       </Box>
       <Typography sx={{ fontSize: '1rem', fontWeight: 600 }}>
-        Nenhum evento com inscrições abertas
+        {igrejaFiltrada
+          ? `Nenhum evento aberto em ${igrejaFiltrada}`
+          : 'Nenhum evento com inscrições abertas'}
       </Typography>
       <Typography
         sx={{
@@ -382,18 +411,255 @@ function SemEventos() {
           mx: 'auto',
         }}
       >
-        Assim que um evento novo abrir, ele aparece aqui. Enquanto isso, você
-        pode acompanhar suas inscrições e pagamentos.
+        {igrejaFiltrada
+          ? 'Outras igrejas podem estar com inscrições abertas agora.'
+          : 'Assim que um evento novo abrir, ele aparece aqui. Enquanto isso, você pode acompanhar suas inscrições e pagamentos.'}
       </Typography>
       <Button
         variant="outlined"
         size="small"
         sx={{ mt: 2, borderRadius: 2, textTransform: 'none' }}
-        onClick={() => navigate('/minhasInscricoes')}
+        onClick={
+          igrejaFiltrada && onLimparFiltro
+            ? onLimparFiltro
+            : () => navigate('/minhasInscricoes')
+        }
       >
-        Ver minhas inscrições
+        {igrejaFiltrada && onLimparFiltro
+          ? 'Ver todas as igrejas'
+          : 'Ver minhas inscrições'}
       </Button>
     </Paper>
+  );
+}
+
+/** Uma igreja na lista do filtro. */
+function OpcaoDeIgreja({
+  nome,
+  quantidade,
+  escolhida,
+  onClick,
+}: {
+  nome: string;
+  quantidade: number;
+  escolhida: boolean;
+  onClick: () => void;
+}) {
+  const theme = useTheme();
+
+  return (
+    <Box
+      component="li"
+      onClick={onClick}
+      sx={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 1,
+        px: 1.5,
+        py: 0.9,
+        cursor: 'pointer',
+        listStyle: 'none',
+        backgroundColor: escolhida
+          ? alpha(theme.palette.primary.main, 0.1)
+          : 'transparent',
+        '&:hover': {
+          backgroundColor: escolhida
+            ? alpha(theme.palette.primary.main, 0.14)
+            : theme.palette.background.hover,
+        },
+      }}
+    >
+      <CheckRounded
+        sx={{
+          fontSize: 17,
+          flexShrink: 0,
+          // o espaço do certo fica reservado: sem ele a linha escolhida
+          // empurrava o nome das outras para o lado
+          color: escolhida ? theme.palette.primary.main : 'transparent',
+        }}
+      />
+      <Typography
+        noWrap
+        sx={{
+          flexGrow: 1,
+          minWidth: 0,
+          fontSize: '0.875rem',
+          fontWeight: escolhida ? 600 : 400,
+          color: escolhida ? theme.palette.primary.main : 'text.primary',
+        }}
+      >
+        {nome}
+      </Typography>
+      {quantidade > 0 && (
+        <Typography
+          sx={{ fontSize: '0.75rem', color: 'text.secondary', flexShrink: 0 }}
+        >
+          {quantidade}
+        </Typography>
+      )}
+    </Box>
+  );
+}
+
+/**
+ * De qual igreja a pessoa quer ver evento.
+ *
+ * Uma pastilha que abre a lista, e não um campo de formulário nem uma fileira
+ * de fichas. A fileira era bonita com três igrejas e virava parede com trinta;
+ * o campo de busca escalava, mas punha um formulário no meio de uma página que
+ * é só leitura. A pastilha ocupa o tamanho de um botão em qualquer cadastro,
+ * mostra o recorte atual escrito nela e se pinta de cor primária quando há
+ * filtro ligado — dá para saber que a lista está recortada sem abrir nada.
+ *
+ * Dentro, busca no topo e a lista rolando embaixo: com muitas igrejas se
+ * digita, com poucas se escolhe direto. O número à direita de cada linha é
+ * quantos eventos abertos aquela igreja tem — é o que decide o clique.
+ *
+ * Só entra na tela com mais de uma igreja no catálogo: com uma só, o filtro
+ * seria uma pergunta de resposta única.
+ */
+function FiltroDeIgreja({
+  igrejas,
+  valor,
+  contagem,
+  onChange,
+}: {
+  igrejas: { id: string; nome: string }[];
+  valor: string;
+  /** quantos eventos abertos cada igreja tem, e o total em `TODAS_AS_IGREJAS` */
+  contagem: Record<string, number>;
+  onChange: (igrejaId: string) => void;
+}) {
+  const theme = useTheme();
+  const [ancora, setAncora] = useState<HTMLElement | null>(null);
+  const [busca, setBusca] = useState('');
+
+  const escolhida = igrejas.find((igreja) => igreja.id === valor);
+  const filtrando = !!escolhida;
+
+  const termo = busca.trim().toLowerCase();
+  const visiveis = termo
+    ? igrejas.filter((igreja) => igreja.nome.toLowerCase().includes(termo))
+    : igrejas;
+
+  const fechar = () => {
+    setAncora(null);
+    setBusca('');
+  };
+
+  const escolher = (igrejaId: string) => {
+    onChange(igrejaId);
+    fechar();
+  };
+
+  return (
+    <>
+      <ButtonBase
+        onClick={(clique) => setAncora(clique.currentTarget)}
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 0.75,
+          maxWidth: 260,
+          px: 1.5,
+          py: 0.7,
+          borderRadius: 999,
+          border: '1px solid',
+          borderColor: filtrando
+            ? alpha(theme.palette.primary.main, 0.4)
+            : theme.palette.divider,
+          backgroundColor: filtrando
+            ? alpha(theme.palette.primary.main, 0.1)
+            : theme.palette.background.paper,
+          color: filtrando ? theme.palette.primary.main : 'text.secondary',
+          transition: theme.transitions.create(
+            ['background-color', 'border-color'],
+            { duration: 160 }
+          ),
+          '&:hover': {
+            borderColor: theme.palette.primary.main,
+            backgroundColor: alpha(theme.palette.primary.main, 0.06),
+          },
+        }}
+      >
+        <ChurchOutlined sx={{ fontSize: 17, flexShrink: 0 }} />
+        <Typography
+          noWrap
+          sx={{ fontSize: '0.8125rem', fontWeight: 600, minWidth: 0 }}
+        >
+          {escolhida?.nome ?? 'Todas as igrejas'}
+        </Typography>
+        <KeyboardArrowDownRounded sx={{ fontSize: 18, flexShrink: 0 }} />
+      </ButtonBase>
+
+      <Popover
+        open={!!ancora}
+        anchorEl={ancora}
+        onClose={fechar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+        PaperProps={{
+          sx: { mt: 0.75, width: 290, borderRadius: 3, overflow: 'hidden' },
+        }}
+      >
+        <Box sx={{ p: 1.25 }}>
+          <TextField
+            autoFocus
+            fullWidth
+            size="small"
+            placeholder="Buscar igreja"
+            value={busca}
+            onChange={(evento) => setBusca(evento.target.value)}
+            InputProps={{
+              sx: { borderRadius: 2, fontSize: '0.875rem' },
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Search sx={{ fontSize: 18, color: 'text.disabled' }} />
+                </InputAdornment>
+              ),
+            }}
+          />
+        </Box>
+
+        <Divider />
+
+        {/* a rolagem é o que faz isto aguentar trinta igrejas sem crescer */}
+        <Box
+          component="ul"
+          sx={{ m: 0, p: 0, py: 0.5, maxHeight: 264, overflowY: 'auto' }}
+        >
+          <OpcaoDeIgreja
+            nome="Todas as igrejas"
+            quantidade={contagem[TODAS_AS_IGREJAS] ?? 0}
+            escolhida={!filtrando}
+            onClick={() => escolher(TODAS_AS_IGREJAS)}
+          />
+
+          {visiveis.map((igreja) => (
+            <OpcaoDeIgreja
+              key={igreja.id}
+              nome={igreja.nome}
+              quantidade={contagem[igreja.id] ?? 0}
+              escolhida={igreja.id === valor}
+              onClick={() => escolher(igreja.id)}
+            />
+          ))}
+
+          {visiveis.length === 0 && (
+            <Typography
+              sx={{
+                px: 1.5,
+                py: 1.5,
+                fontSize: '0.8125rem',
+                color: 'text.secondary',
+              }}
+            >
+              Nenhuma igreja com esse nome.
+            </Typography>
+          )}
+        </Box>
+      </Popover>
+    </>
   );
 }
 
@@ -406,9 +672,81 @@ function Cards() {
     { enabled: !!userId }
   );
 
+  /**
+   * A igreja escolhida volta do storage já no primeiro quadro: quem sempre vê
+   * eventos da própria igreja escolhe uma vez, e não toda vez que abre a home.
+   */
+  const [igrejaEscolhida, setIgrejaEscolhida] = useState(lerIgrejaSalva);
+  const igrejas = useMemo(() => igrejasDosEventos(data), [data]);
+
+  /**
+   * Igreja salva que não está mais no catálogo (saiu do ar, mudou de nome, a
+   * pessoa trocou de conta) não pode esconder a página inteira: vale como
+   * "todas" até alguém escolher de novo, e o que está gravado fica quieto.
+   */
+  const igrejaAtiva = igrejas.some((igreja) => igreja.id === igrejaEscolhida)
+    ? igrejaEscolhida
+    : TODAS_AS_IGREJAS;
+
+  const escolherIgreja = (igrejaId: string) => {
+    setIgrejaEscolhida(igrejaId);
+    salvarIgreja(igrejaId);
+  };
+
+  /**
+   * O recorte é feito no catálogo cru, antes de separar aberto de encerrado:
+   * `eventosEncerrados` devolve só os dois últimos, e filtrar depois deles
+   * deixaria a seção vazia sempre que os dois últimos fossem de outra igreja.
+   */
+  const doCatalogo = useMemo(
+    () =>
+      filtrarPorIgreja(
+        Array.isArray(data) ? (data as Event[]) : [],
+        igrejaAtiva
+      ),
+    [data, igrejaAtiva]
+  );
+
   // admin e super admin também enxergam os eventos em teste, marcados na linha
-  const eventos = useMemo(() => eventosAbertos(data, isAdmin), [data, isAdmin]);
-  const encerrados = useMemo(() => eventosEncerrados(data), [data]);
+  const eventos = useMemo(
+    () => eventosAbertos(doCatalogo, isAdmin),
+    [doCatalogo, isAdmin]
+  );
+  const encerrados = useMemo(() => eventosEncerrados(doCatalogo), [doCatalogo]);
+
+  /**
+   * Quantos eventos abertos cada igreja tem — o número que aparece na lista do
+   * filtro. Sai do catálogo inteiro, e não do recorte atual: é justamente para
+   * a pessoa ver o que existe do outro lado do filtro em que ela está.
+   */
+  const contagemPorIgreja = useMemo(() => {
+    const abertos = eventosAbertos(data, isAdmin);
+    const mapa: Record<string, number> = {
+      [TODAS_AS_IGREJAS]: abertos.length,
+    };
+
+    abertos.forEach((event) => {
+      const igrejaId = event.church?.id;
+      if (igrejaId) mapa[igrejaId] = (mapa[igrejaId] ?? 0) + 1;
+    });
+
+    return mapa;
+  }, [data, isAdmin]);
+
+  const filtro = igrejas.length > 1 && (
+    <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1.75 }}>
+      <FiltroDeIgreja
+        igrejas={igrejas}
+        valor={igrejaAtiva}
+        contagem={contagemPorIgreja}
+        onChange={escolherIgreja}
+      />
+    </Box>
+  );
+
+  const nomeDaIgrejaAtiva = igrejas.find(
+    (igreja) => igreja.id === igrejaAtiva
+  )?.nome;
 
   /**
    * Em quais destes eventos o usuário já está — a linha diz isso na cara, para
@@ -469,7 +807,11 @@ function Cards() {
   if (eventos.length === 0) {
     return (
       <Box>
-        <SemEventos />
+        {filtro}
+        <SemEventos
+          igrejaFiltrada={nomeDaIgrejaAtiva}
+          onLimparFiltro={() => escolherIgreja(TODAS_AS_IGREJAS)}
+        />
         {secaoEncerrados}
       </Box>
     );
@@ -492,6 +834,7 @@ function Cards() {
 
   return (
     <Box>
+      {filtro}
       <TituloSecao quantidade={proximos.length}>Próximos eventos</TituloSecao>
       <Stack gap={1.5}>
         {proximos.map((event, posicao) => linha(event, posicao === 0))}

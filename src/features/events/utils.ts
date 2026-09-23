@@ -186,3 +186,74 @@ export function eventosAbertos(data: unknown, podeVerTeste = false): Event[] {
         new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
     );
 }
+
+/** Nenhuma igreja escolhida: o catálogo inteiro. */
+export const TODAS_AS_IGREJAS = 'todas';
+
+/** Onde a escolha da pessoa fica guardada entre uma visita e outra. */
+const CHAVE_DO_FILTRO = 'home:igreja';
+
+/**
+ * A igreja escolhida da última vez.
+ *
+ * Em `try` porque `localStorage` lança em janela anônima e com cookies
+ * bloqueados: a home não pode deixar de abrir por causa de um filtro.
+ */
+export function lerIgrejaSalva(): string {
+  try {
+    return localStorage.getItem(CHAVE_DO_FILTRO) || TODAS_AS_IGREJAS;
+  } catch {
+    return TODAS_AS_IGREJAS;
+  }
+}
+
+/** Guarda a escolha. "Todas" apaga a chave em vez de gravar o valor neutro. */
+export function salvarIgreja(igrejaId: string) {
+  try {
+    if (igrejaId === TODAS_AS_IGREJAS) {
+      localStorage.removeItem(CHAVE_DO_FILTRO);
+      return;
+    }
+    localStorage.setItem(CHAVE_DO_FILTRO, igrejaId);
+  } catch {
+    // sem storage o filtro vale só nesta visita, o que é melhor que quebrar
+  }
+}
+
+/**
+ * As igrejas que aparecem no catálogo, sem repetir e em ordem alfabética.
+ *
+ * A lista sai dos próprios eventos, e não de uma consulta a igrejas: quem está
+ * na área do usuário não tem permissão para listar igrejas, e as opções que
+ * interessam são só aquelas que têm evento para mostrar.
+ *
+ * Só entra igreja ativa. Inativa e em teste continuam com os eventos delas no
+ * catálogo — o que some é o atalho para procurar por elas. Situação ausente
+ * conta como ativa, que é o padrão do banco: o filtro não pode sumir inteiro
+ * por causa de uma resposta antiga em cache.
+ */
+export function igrejasDosEventos(
+  data: unknown
+): { id: string; nome: string }[] {
+  if (!Array.isArray(data)) return [];
+
+  const porId = new Map<string, string>();
+  (data as Event[]).forEach((event) => {
+    const igreja = event?.church;
+    if (!igreja?.id) return;
+    if ((igreja.status ?? 'ACTIVE') !== 'ACTIVE') return;
+
+    porId.set(igreja.id, igreja.name);
+  });
+
+  return Array.from(porId, ([id, nome]) => ({ id, nome })).sort((a, b) =>
+    a.nome.localeCompare(b.nome, 'pt-BR')
+  );
+}
+
+/** Recorta o catálogo na igreja escolhida. Sem escolha, devolve tudo. */
+export function filtrarPorIgreja(eventos: Event[], igrejaId: string): Event[] {
+  if (!igrejaId || igrejaId === TODAS_AS_IGREJAS) return eventos;
+
+  return eventos.filter((event) => event?.church?.id === igrejaId);
+}
