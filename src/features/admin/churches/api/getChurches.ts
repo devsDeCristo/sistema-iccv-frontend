@@ -7,6 +7,8 @@ export interface Church {
   name: string;
   /** Ativa, inativa ou em teste. Só a ativa entra no filtro da home. */
   status: ChurchStatus;
+  /** Quem responde pela igreja e assina o e-mail dos eventos dela */
+  spiritualLeader?: { id: string; fullName: string } | null;
   /**
    * Vínculos da igreja. `users` conta só quem entra no painel (admin e
    * financeiro) — inscrito não pertence a igreja nenhuma. É o que impede a

@@ -1,4 +1,5 @@
 import {
+  Autocomplete,
   Button,
   Card,
   Dialog,
@@ -41,6 +42,8 @@ import CustomChip from '../../../components/customChip';
 import { useGetChurches, Church } from './api/getChurches';
 import { useSaveChurch } from './api/saveChurch';
 import { useDeleteChurch } from './api/deleteChurch';
+import { useGetUsers } from '../users/api/getUsers';
+import { User } from '../../../types/user';
 import {
   CHURCH_STATUS_LABELS,
   CHURCH_STATUS_OPTIONS,
@@ -71,13 +74,23 @@ export function Churches() {
   const [emEdicao, setEmEdicao] = useState<Church | null>(null);
   const [nome, setNome] = useState('');
   const [situacao, setSituacao] = useState<ChurchStatus>('ACTIVE');
+  const [liderId, setLiderId] = useState<string | null>(null);
   const [erroDoNome, setErroDoNome] = useState<string | null>(null);
+
+  // a lista de pessoas só é buscada com o formulário aberto: a tela de igrejas
+  // não precisa dela para nada além de escolher o líder
+  const { data: usuarios, isLoading: carregandoUsuarios } = useGetUsers(
+    {},
+    { enabled: formAberto }
+  );
+  const pessoas = (Array.isArray(usuarios) ? usuarios : []) as User[];
 
   const fecharForm = () => {
     setFormAberto(false);
     setEmEdicao(null);
     setNome('');
     setSituacao('ACTIVE');
+    setLiderId(null);
     setErroDoNome(null);
   };
 
@@ -91,6 +104,7 @@ export function Churches() {
     setNome(church?.name ?? '');
     // igreja nova nasce ativa: é para isso que alguém cria uma
     setSituacao(church?.status ?? 'ACTIVE');
+    setLiderId(church?.spiritualLeader?.id ?? null);
     setErroDoNome(null);
     setFormAberto(true);
   };
@@ -103,7 +117,12 @@ export function Churches() {
       return;
     }
 
-    salvar({ id: emEdicao?.id, name: nomeLimpo, status: situacao });
+    salvar({
+      id: emEdicao?.id,
+      name: nomeLimpo,
+      status: situacao,
+      spiritualLeaderId: liderId,
+    });
   };
 
   const confirmarExclusao = (church: Church) => {
@@ -388,6 +407,48 @@ export function Churches() {
               </MenuItem>
             ))}
           </TextField>
+
+          <Autocomplete
+            fullWidth
+            size="small"
+            sx={{ mt: 2.5 }}
+            options={pessoas}
+            loading={carregandoUsuarios}
+            // enquanto a lista não chega, o líder gravado aparece pelo nome que
+            // veio com a igreja — sem isso o campo piscaria vazio na edição
+            value={
+              pessoas.find((pessoa) => pessoa.id === liderId) ??
+              (liderId && emEdicao?.spiritualLeader?.id === liderId
+                ? ({ ...emEdicao.spiritualLeader, email: '' } as User)
+                : null)
+            }
+            onChange={(_, pessoa) => setLiderId(pessoa?.id ?? null)}
+            getOptionLabel={(pessoa) => pessoa.fullName}
+            isOptionEqualToValue={(opcao, valor) => opcao.id === valor.id}
+            // nome repetido é comum: o e-mail desempata na lista
+            renderOption={(props, pessoa) => (
+              <li {...props} key={pessoa.id}>
+                <Stack sx={{ minWidth: 0 }}>
+                  <Typography sx={{ fontSize: '0.9375rem' }} noWrap>
+                    {pessoa.fullName}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary" noWrap>
+                    {pessoa.email}
+                  </Typography>
+                </Stack>
+              </li>
+            )}
+            noOptionsText="Nenhuma pessoa com esse nome"
+            loadingText="Carregando pessoas…"
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="Líder espiritual"
+                placeholder="Buscar pelo nome"
+                helperText="Assina o e-mail dos eventos desta igreja e vira admin dela."
+              />
+            )}
+          />
         </DialogContent>
 
         <DialogActions sx={{ px: 3, pb: 2.5 }}>

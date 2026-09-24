@@ -12,12 +12,14 @@ interface SaveChurchParams {
   id?: string;
   name: string;
   status: ChurchStatus;
+  /** `null` desfaz o vínculo; quem é vinculado vira admin da igreja */
+  spiritualLeaderId: string | null;
 }
 
-const saveChurch = ({ id, name, status }: SaveChurchParams) => {
+const saveChurch = ({ id, ...corpo }: SaveChurchParams) => {
   const requisicao = id
-    ? apiClient.put(`/churches/${id}`, { name, status })
-    : apiClient.post('/churches', { name, status });
+    ? apiClient.put(`/churches/${id}`, corpo)
+    : apiClient.post('/churches', corpo);
 
   return requisicao
     .then((response) => {
