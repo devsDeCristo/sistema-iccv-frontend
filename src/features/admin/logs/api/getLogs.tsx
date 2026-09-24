@@ -139,6 +139,20 @@ export type LoginAttempt = {
   reason: 'USER_NOT_FOUND' | 'WRONG_PASSWORD' | null;
   ip: string | null;
   userAgent: string | null;
+  /** o `userAgent` já lido pelo servidor — ver `src/logs/dispositivo.ts` */
+  dispositivo?: {
+    tipo: 'celular' | 'tablet' | 'computador' | 'desconhecido';
+    /** "iPhone · iOS 18.7" — a linha da tabela */
+    resumo: string | null;
+    aparelho: string | null;
+    sistema: string | null;
+    /** `null` quando o navegador esconde a versão real */
+    versaoDoSistema: string | null;
+    navegador: string | null;
+    versaoDoNavegador: string | null;
+    motor: string | null;
+    arquitetura: string | null;
+  };
   createdAt: string;
   user: LogPerson | null;
 };
