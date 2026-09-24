@@ -42,6 +42,10 @@ function WelcomeHero() {
      * cartazes logo abaixo. O tingimento subiu de tom e virou composição: o
      * azul entra pela esquerda, o violeta cruza o meio, e a luz sai pela
      * direita. É o mesmo par de cores dos botões e do cartaz em destaque.
+     *
+     * No tema escuro tudo entra por volta da metade da intensidade — cor viva
+     * sobre fundo quase preto acende em vez de tingir, e a faixa virava neon.
+     * Vale para o degradê, as duas luzes, a borda e as sombras coloridas.
      */
     faixa: {
       position: 'relative',
@@ -50,10 +54,10 @@ function WelcomeHero() {
       p: { xs: 2, md: 2.5 },
       backgroundImage: `linear-gradient(115deg, ${alpha(
         AZUL_VIVO,
-        escuro ? 0.32 : 0.2
-      )} 0%, ${alpha(VIOLETA_VIVO, escuro ? 0.22 : 0.14)} 42%, transparent 78%)`,
-      border: `1px solid ${alpha(corDoTom, escuro ? 0.28 : 0.18)}`,
-      boxShadow: `0 18px 40px -28px ${alpha(AZUL_VIVO, escuro ? 0.9 : 0.6)}`,
+        escuro ? 0.16 : 0.2
+      )} 0%, ${alpha(VIOLETA_VIVO, escuro ? 0.1 : 0.14)} 42%, transparent 78%)`,
+      border: `1px solid ${alpha(corDoTom, escuro ? 0.16 : 0.18)}`,
+      boxShadow: `0 18px 40px -28px ${alpha(AZUL_VIVO, escuro ? 0.45 : 0.6)}`,
     },
     /** duas luzes em cantos opostos: a faixa deixa de ter um lado só */
     brilhoDireito: {
@@ -66,7 +70,7 @@ function WelcomeHero() {
       pointerEvents: 'none',
       backgroundImage: `radial-gradient(circle, ${alpha(
         corDoTom,
-        escuro ? 0.3 : 0.26
+        escuro ? 0.16 : 0.26
       )}, transparent 70%)`,
     },
     brilhoEsquerdo: {
@@ -79,7 +83,7 @@ function WelcomeHero() {
       pointerEvents: 'none',
       backgroundImage: `radial-gradient(circle, ${alpha(
         VIOLETA_VIVO,
-        escuro ? 0.22 : 0.18
+        escuro ? 0.12 : 0.18
       )}, transparent 70%)`,
     },
     /**
@@ -104,7 +108,7 @@ function WelcomeHero() {
       flexShrink: 0,
       display: 'flex',
       backgroundImage: `linear-gradient(135deg, ${AZUL_VIVO}, ${VIOLETA_VIVO})`,
-      boxShadow: `0 8px 20px -10px ${alpha(AZUL_VIVO, 0.9)}`,
+      boxShadow: `0 8px 20px -10px ${alpha(AZUL_VIVO, escuro ? 0.45 : 0.9)}`,
     },
     avatar: {
       width: 46,
@@ -138,13 +142,13 @@ function WelcomeHero() {
       color: '#fff',
       whiteSpace: 'nowrap',
       backgroundImage: `linear-gradient(120deg, ${AZUL_VIVO}, ${VIOLETA_VIVO})`,
-      boxShadow: `0 12px 28px -12px ${alpha(AZUL_VIVO, 0.95)}`,
+      boxShadow: `0 12px 28px -12px ${alpha(AZUL_VIVO, escuro ? 0.5 : 0.95)}`,
       transition: theme.transitions.create(['transform', 'box-shadow'], {
         duration: 220,
       }),
       '&:hover, &:focus-visible': {
         transform: 'scale(1.035)',
-        boxShadow: `0 16px 34px -12px ${alpha(VIOLETA_VIVO, 1)}`,
+        boxShadow: `0 16px 34px -12px ${alpha(VIOLETA_VIVO, escuro ? 0.6 : 1)}`,
       },
     },
   };
