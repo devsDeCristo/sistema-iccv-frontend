@@ -9,15 +9,16 @@ import {
   useTheme,
 } from '@mui/material';
 import {
-  BadgeOutlined,
   BedOutlined,
   DirectionsBusOutlined,
   GroupsOutlined,
   LockOutlined,
+  VisibilityOffOutlined,
+  VisibilityOutlined,
 } from '@mui/icons-material';
 import { ReactNode } from 'react';
 import { useParams } from 'react-router-dom';
-import { Controller, useFormContext, useWatch } from 'react-hook-form';
+import { Controller, useFormContext } from 'react-hook-form';
 import { ModulesFormType } from '../types';
 import { useGetBedrooms } from '../api/getBedrooms';
 import { useGetTeams } from '../api/getTeams';
@@ -64,6 +65,83 @@ function quantos(lista: unknown) {
 }
 
 /**
+ * Se o evento tem quadrante — no painel e para os inscritos. Mora no rodapé do
+ * cartão de Equipes e só aparece com ele ligado: sem equipe não há quadrante.
+ *
+ * Nasce desligado porque abre e-mail, celular e aniversário da equipe inteira
+ * para os inscritos. Sendo `label`, a faixa inteira liga e desliga.
+ */
+function OpcaoQuadrante() {
+  const theme = useTheme();
+  const { control } = useFormContext<ModulesFormType>();
+  const destaque = theme.palette.primary.main;
+
+  return (
+    <Controller
+      name="showQuadrante"
+      control={control}
+      render={({ field }) => {
+        const ligado = !!field.value;
+
+        return (
+          <Box
+            component="label"
+            sx={{
+              flexBasis: '100%',
+              px: 1.5,
+              py: 1,
+              borderRadius: 2,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1.5,
+              cursor: 'pointer',
+              bgcolor: ligado
+                ? alpha(destaque, theme.palette.mode === 'dark' ? 0.14 : 0.06)
+                : alpha(theme.palette.text.primary, 0.03),
+              transition: theme.transitions.create('background-color'),
+            }}
+          >
+            {/* <Box
+              sx={{
+                display: 'flex',
+                color: ligado ? destaque : 'text.disabled',
+                transition: theme.transitions.create('color'),
+              }}
+            >
+              {ligado ? (
+                <VisibilityOutlined fontSize="small" />
+              ) : (
+                <VisibilityOffOutlined fontSize="small" />
+              )}
+            </Box> */}
+
+            <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+              <Typography fontWeight={600} fontSize={14}>
+                Quadrante
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                {ligado
+                  ? 'No painel e para os inscritos, com foto, celular, e-mail e aniversário das equipes.'
+                  : 'Desligado: não aparece no painel nem para os inscritos.'}
+              </Typography>
+            </Box>
+
+            <Switch
+              size="small"
+              checked={ligado}
+              onChange={(evento) => field.onChange(evento.target.checked)}
+              inputProps={{
+                'aria-label': 'Quadrante do evento',
+              }}
+            />
+          </Box>
+        );
+      }}
+    />
+  );
+}
+
+/**
  * O que este evento tem.
  *
  * Nem todo evento hospeda gente, monta equipe ou leva ônibus: um encontro de um
@@ -77,7 +155,6 @@ function quantos(lista: unknown) {
 function FormEventModules() {
   const theme = useTheme();
   const { control } = useFormContext<ModulesFormType>();
-  const comEquipes = useWatch({ control, name: 'moduleTeams' });
 
   /**
    * O que já está cadastrado em cada módulo.
@@ -105,6 +182,8 @@ function FormEventModules() {
     cartao: {
       p: { xs: 2, sm: 2.5 },
       display: 'flex',
+      // quebra linha para a opção do quadrante ocupar o rodapé do cartão
+      flexWrap: 'wrap',
       alignItems: 'flex-start',
       gap: 2,
       boxShadow:
@@ -161,7 +240,9 @@ function FormEventModules() {
                   {modulo.icone}
                 </Box>
 
-                <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+                {/* base zero: com o cartão quebrando linha, a descrição longa
+                    empurraria o interruptor para baixo */}
+                <Box sx={{ flex: '1 1 0', minWidth: 0 }}>
                   <Typography fontWeight={600}>{modulo.nome}</Typography>
                   <Typography variant="body2" color="text.secondary">
                     {modulo.descricao}
@@ -208,59 +289,15 @@ function FormEventModules() {
                     />
                   </span>
                 </Tooltip>
+
+                {modulo.campo === 'moduleTeams' && field.value && (
+                  <OpcaoQuadrante />
+                )}
               </Paper>
             );
           }}
         />
       ))}
-
-      {/* Não é módulo: é quem vê o quadrante que o módulo de equipes gera.
-          Nasce desligado porque abre e-mail, celular e nascimento da equipe
-          inteira para os inscritos — e sem equipes não há o que mostrar. */}
-      <Controller
-        name="showQuadrante"
-        control={control}
-        render={({ field }) => {
-          const ligado = !!field.value && comEquipes;
-
-          return (
-            <Paper sx={styles.cartao}>
-              <Box sx={{ ...styles.selo, ...(ligado ? {} : styles.apagado) }}>
-                <BadgeOutlined />
-              </Box>
-
-              <Box sx={{ flexGrow: 1, minWidth: 0 }}>
-                <Typography fontWeight={600}>
-                  Mostrar quadrante para os inscritos
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Quem está inscrito vê o quadrante na página do evento, com
-                  foto, e-mail, celular e data de nascimento de cada pessoa das
-                  equipes. Desligado, só o painel vê.
-                </Typography>
-                {!comEquipes && (
-                  <Typography
-                    variant="caption"
-                    color="text.secondary"
-                    sx={{ display: 'block', mt: 0.75 }}
-                  >
-                    Ligue o módulo de Equipes para usar esta opção.
-                  </Typography>
-                )}
-              </Box>
-
-              <Switch
-                checked={ligado}
-                disabled={!comEquipes}
-                onChange={(evento) => field.onChange(evento.target.checked)}
-                inputProps={{
-                  'aria-label': 'Mostrar quadrante para os inscritos',
-                }}
-              />
-            </Paper>
-          );
-        }}
-      />
     </Stack>
   );
 }

@@ -32,13 +32,14 @@ export function moduloAtivo(
 }
 
 /**
- * Se os inscritos podem abrir o quadrante.
+ * Se o evento tem quadrante. Vale para todo mundo: desligado, some do painel e
+ * da área do usuário; ligado, o admin e os inscritos abrem.
  *
  * Aqui ausente é desligado, ao contrário dos módulos: o quadrante mostra
- * e-mail, celular e nascimento da equipe inteira, e nenhum evento que já existe
- * abria isso para os inscritos. Espelha `src/event/event-quadrante.ts`.
+ * e-mail, celular e nascimento da equipe inteira, e abrir isso é decisão de
+ * quem organiza. Espelha `src/event/event-quadrante.ts`.
  */
-export function quadranteVisivelParaInscritos(
+export function quadranteAtivo(
   data: EventDataJson | null | undefined
 ): boolean {
   return data?.showQuadrante === true && moduloAtivo(data, 'teams');

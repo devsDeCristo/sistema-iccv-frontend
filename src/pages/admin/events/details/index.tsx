@@ -25,6 +25,7 @@ import { ModalTransport } from '../../../../features/admin/events/components/mod
 import {
   ModuloDoEvento,
   moduloAtivo,
+  quadranteAtivo,
 } from '../../../../features/admin/events/eventModules';
 import { ModalBedRoom } from '../../../../features/admin/events/components/modalBedRoom';
 import { useEffect, useMemo, useState } from 'react';
@@ -940,16 +941,19 @@ function Details() {
                 {loadingPdfTeams && <LinearProgress />}{' '}
               </Box>
               {/* o quadrante tem tela própria: é lá que se imprime e se baixa
-                  o PDF, que agora é gerado no servidor */}
-              <Button
-                sx={{ width: { xs: '100%', sm: 'fit-content' } }}
-                variant="outlined"
-                onClick={() => navigate(`/admin/eventos/${id}/quadrante`)}
-                startIcon={<ViewModuleOutlined />}
-                disabled={loadingEventDetails || loadingTeams}
-              >
-                Ver Quadrante
-              </Button>
+                  o PDF, que agora é gerado no servidor. Desligado nas
+                  configurações do evento, o botão nem aparece */}
+              {quadranteAtivo(event?.data) && (
+                <Button
+                  sx={{ width: { xs: '100%', sm: 'fit-content' } }}
+                  variant="outlined"
+                  onClick={() => navigate(`/admin/eventos/${id}/quadrante`)}
+                  startIcon={<ViewModuleOutlined />}
+                  disabled={loadingEventDetails || loadingTeams}
+                >
+                  Ver Quadrante
+                </Button>
+              )}
               <Button
                 variant="outlined"
                 onClick={() => setOpenModalQrCode(true)}

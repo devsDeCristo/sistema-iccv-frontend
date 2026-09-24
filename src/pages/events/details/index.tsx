@@ -42,10 +42,7 @@ import {
 } from '../../../features/events/utils';
 import { AZUL_VIVO, VIOLETA_VIVO } from '../../../themes';
 import { ehCorHex } from '../../../features/admin/events/eventColors';
-import {
-  moduloAtivo,
-  quadranteVisivelParaInscritos,
-} from '../../../features/admin/events/eventModules';
+import { quadranteAtivo } from '../../../features/admin/events/eventModules';
 import { useRole } from '../../../hooks/useRole';
 import { Role } from '../../../constants/roles';
 
@@ -106,12 +103,9 @@ function EventsDetails() {
     [event, groups]
   );
 
-  /** o quadrante é do inscrito quando o evento libera; o admin vê sempre */
+  /** com o quadrante ligado no evento, abrem o admin e os inscritos */
   const podeVerQuadrante =
-    !!event &&
-    moduloAtivo(event.data, 'teams') &&
-    (podeAdministrar ||
-      (inscrito && quadranteVisivelParaInscritos(event.data)));
+    !!event && quadranteAtivo(event.data) && (podeAdministrar || inscrito);
 
   const podeComprarProdutos = useMemo(() => {
     if (!event) return false;
