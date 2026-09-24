@@ -26,6 +26,7 @@ import {
   ArrowBack,
   ConfirmationNumber,
   EditOutlined,
+  GroupsOutlined,
   PlaceOutlined,
   ShoppingBagOutlined,
   VisibilityOutlined,
@@ -41,6 +42,7 @@ import {
 } from '../../../features/events/utils';
 import { AZUL_VIVO, VIOLETA_VIVO } from '../../../themes';
 import { ehCorHex } from '../../../features/admin/events/eventColors';
+import { quadranteAtivo } from '../../../features/admin/events/eventModules';
 import { useRole } from '../../../hooks/useRole';
 import { Role } from '../../../constants/roles';
 
@@ -92,18 +94,28 @@ function EventsDetails() {
    * evento — a mesma regra que o servidor aplica. Estar só na lista de espera
    * não conta: `present` são os grupos com vaga garantida.
    */
+  const inscrito = useMemo(
+    () =>
+      !!event &&
+      groups.some((group) =>
+        event.groupRoles?.some((eventGroup) => eventGroup.id === group.id)
+      ),
+    [event, groups]
+  );
+
+  /** com o quadrante ligado no evento, abrem o admin e os inscritos */
+  const podeVerQuadrante =
+    !!event && quadranteAtivo(event.data) && (podeAdministrar || inscrito);
+
   const podeComprarProdutos = useMemo(() => {
     if (!event) return false;
 
-    const inscrito = groups.some((group) =>
-      event.groupRoles?.some((eventGroup) => eventGroup.id === group.id)
-    );
     const temProdutoAVenda = (event.products ?? []).some((produto) =>
       produto.variants.some((variante) => temDisponivel(variante.available))
     );
 
     return inscrito && temProdutoAVenda;
-  }, [event, groups]);
+  }, [event, inscrito]);
 
   const scrollToTop = () => {
     const outlet = document.getElementById('layout-scroll');
@@ -756,6 +768,17 @@ function EventsDetails() {
                 onClick={() => navigate(`/eventos/${event.id}/produtos`)}
               >
                 Produtos do evento
+              </Button>
+            )}
+
+            {podeVerQuadrante && (
+              <Button
+                variant="outlined"
+                startIcon={<GroupsOutlined />}
+                sx={styles.botaoVidro}
+                onClick={() => navigate(`/eventos/${event.id}/quadrante`)}
+              >
+                Quadrante
               </Button>
             )}
           </Stack>

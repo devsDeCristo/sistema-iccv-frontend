@@ -25,13 +25,13 @@ import { ModalTransport } from '../../../../features/admin/events/components/mod
 import {
   ModuloDoEvento,
   moduloAtivo,
+  quadranteAtivo,
 } from '../../../../features/admin/events/eventModules';
 import { ModalBedRoom } from '../../../../features/admin/events/components/modalBedRoom';
 import { useEffect, useMemo, useState } from 'react';
 import { useQueryClient } from 'react-query';
 import { ModalTeam } from '../../../../features/admin/events/components/modalTeam';
 import { ListUsers } from '../../../../features/admin/events/components/listUsers';
-import PdfEvent from '../../../../components/pdfEvent';
 import FileSaver from 'file-saver';
 import { pdf } from '@react-pdf/renderer';
 import {
@@ -171,7 +171,6 @@ function Details() {
   const [openModalAddUser, setOpenModalAddUser] = useState(false);
   const [openModalFilter, setOpenModalFilter] = useState(false);
   const [loadingPdfTeams, setLoadingPdfTeams] = useState(false);
-  const [loadingPdfEvent, setLoadingPdfEvent] = useState(false);
   const [loadingPdfRooms, setLoadingPdfRooms] = useState(false);
   const [filtersUsers, setFiltersUsers] = useState<filterUsers>({
     birthday: { startDate: '', endDate: '' },
@@ -396,45 +395,9 @@ function Details() {
       blob = await pdf(
         <PdfTeams data={orderUsersByRoleTeam} event={eventoComImagens} />
       ).toBlob();
-      FileSaver.saveAs(blob, 'quadrantes.pdf');
+      FileSaver.saveAs(blob, 'equipes.pdf');
 
       setLoadingPdfTeams(false);
-    }, 50);
-  }
-
-  async function generatePDFEvent() {
-    if (!eventData || Array.isArray(eventData)) {
-      return null;
-    }
-    if (!teams?.length) {
-      toast.error(
-        'Não é possível gerar o PDF: este evento ainda não possui equipes cadastradas.'
-      );
-      return;
-    }
-
-    setLoadingPdfEvent(true);
-    const eventoComImagens = await carregarEventoParaPdf();
-    const orderUsersByRoleTeam = teams?.map((team) => ({
-      ...team,
-      users: team.users?.sort((a, b) =>
-        a.roleTeam === b.roleTeam
-          ? a.fullName.localeCompare(b.fullName)
-          : a.roleTeam === 'LEADER'
-            ? -1
-            : 1
-      ),
-    }));
-
-    setTimeout(async () => {
-      let blob;
-
-      blob = await pdf(
-        <PdfEvent data={orderUsersByRoleTeam} event={eventoComImagens} />
-      ).toBlob();
-      FileSaver.saveAs(blob, 'quadrantes.pdf');
-
-      setLoadingPdfEvent(false);
     }, 50);
   }
 
@@ -977,20 +940,20 @@ function Details() {
                 </Button>
                 {loadingPdfTeams && <LinearProgress />}{' '}
               </Box>
-              <Box>
+              {/* o quadrante tem tela própria: é lá que se imprime e se baixa
+                  o PDF, que agora é gerado no servidor. Desligado nas
+                  configurações do evento, o botão nem aparece */}
+              {quadranteAtivo(event?.data) && (
                 <Button
                   sx={{ width: { xs: '100%', sm: 'fit-content' } }}
                   variant="outlined"
-                  onClick={() => generatePDFEvent()}
+                  onClick={() => navigate(`/admin/eventos/${id}/quadrante`)}
                   startIcon={<ViewModuleOutlined />}
-                  disabled={
-                    loadingPdfEvent || loadingEventDetails || loadingTeams
-                  }
+                  disabled={loadingEventDetails || loadingTeams}
                 >
-                  PDF Quadrantes
+                  Ver Quadrante
                 </Button>
-                {loadingPdfEvent && <LinearProgress />}
-              </Box>
+              )}
               <Button
                 variant="outlined"
                 onClick={() => setOpenModalQrCode(true)}
