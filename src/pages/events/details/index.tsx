@@ -28,7 +28,6 @@ import {
   EditOutlined,
   GroupsOutlined,
   PlaceOutlined,
-  ShoppingBagOutlined,
   VisibilityOutlined,
   WhatsApp,
 } from '@mui/icons-material';
@@ -41,6 +40,7 @@ import {
   ocupacao,
 } from '../../../features/events/utils';
 import { AZUL_VIVO, VIOLETA_VIVO } from '../../../themes';
+import { StoreCard } from '../../../features/events/components/storeCard';
 import { ehCorHex } from '../../../features/admin/events/eventColors';
 import { quadranteAtivo } from '../../../features/admin/events/eventModules';
 import { useRole } from '../../../hooks/useRole';
@@ -107,15 +107,14 @@ function EventsDetails() {
   const podeVerQuadrante =
     !!event && quadranteAtivo(event.data) && (podeAdministrar || inscrito);
 
-  const podeComprarProdutos = useMemo(() => {
-    if (!event) return false;
-
-    const temProdutoAVenda = (event.products ?? []).some((produto) =>
-      produto.variants.some((variante) => temDisponivel(variante.available))
-    );
-
-    return inscrito && temProdutoAVenda;
-  }, [event, inscrito]);
+  const produtosAVenda = useMemo(
+    () =>
+      (event?.products ?? []).filter((produto) =>
+        produto.variants.some((variante) => temDisponivel(variante.available))
+      ),
+    [event]
+  );
+  const podeComprarProdutos = inscrito && produtosAVenda.length > 0;
 
   const scrollToTop = () => {
     const outlet = document.getElementById('layout-scroll');
@@ -370,7 +369,11 @@ function EventsDetails() {
       fichas: {
         display: 'grid',
         gap: 1.25,
-        gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' },
+        // com a loja, ela abre a fileira e ocupa uma ficha e meia; no
+        // tablet ganha a linha inteira em cima das três
+        gridTemplateColumns: podeComprarProdutos
+          ? { xs: '1fr', sm: 'repeat(3, 1fr)', md: '1.5fr repeat(3, 1fr)' }
+          : { xs: '1fr', sm: 'repeat(3, 1fr)' },
       },
       ficha: {
         p: { xs: 1.25, sm: 1.5 },
@@ -760,17 +763,6 @@ function EventsDetails() {
               Inscreva-se
             </Button>
 
-            {podeComprarProdutos && (
-              <Button
-                variant="outlined"
-                startIcon={<ShoppingBagOutlined />}
-                sx={styles.botaoVidro}
-                onClick={() => navigate(`/eventos/${event.id}/produtos`)}
-              >
-                Produtos do evento
-              </Button>
-            )}
-
             {podeVerQuadrante && (
               <Button
                 variant="outlined"
@@ -787,6 +779,13 @@ function EventsDetails() {
 
       <Box sx={styles.corpo}>
         <Box sx={styles.fichas}>
+          {podeComprarProdutos && (
+            <StoreCard
+              produtos={produtosAVenda}
+              onClick={() => navigate(`/eventos/${event.id}/produtos`)}
+              sx={{ gridColumn: { sm: '1 / -1', md: 'auto' } }}
+            />
+          )}
           <Ficha
             icone={<CalendarMonthOutlined fontSize="small" />}
             rotulo="Quando"
