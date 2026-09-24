@@ -376,26 +376,55 @@ function EventsDetails() {
           : { xs: '1fr', sm: 'repeat(3, 1fr)' },
       },
       ficha: {
-        p: { xs: 1.25, sm: 1.5 },
+        position: 'relative',
+        overflow: 'hidden',
+        p: { xs: 1.5, sm: 1.75 },
         borderRadius: 2,
         display: 'flex',
-        gap: 1,
-        alignItems: 'flex-start',
+        gap: 1.5,
+        // centrada na altura: a fileira estica todas até a mais alta, e com o
+        // conteúdo grudado no topo sobrava um vão embaixo das curtas
+        alignItems: 'center',
         // vidro: deixa a cor do cartaz atravessar por baixo, e é o que amarra
         // as fichas à imagem em vez de as deixar boiando
-        backgroundColor: alpha(theme.palette.background.paper, 0.86),
+        backgroundColor: alpha(theme.palette.background.paper, 0.9),
         backdropFilter: 'blur(10px)',
         border: `1px solid ${alpha(theme.palette.common.white, escuro ? 0.12 : 0.6)}`,
         boxShadow: `0 12px 28px -22px ${alpha('#000', 0.55)}`,
       },
       // a cor vem de fora: cada ficha leva uma das três do evento
       selinho: {
-        width: 32,
-        height: 32,
+        width: 42,
+        height: 42,
         flexShrink: 0,
-        borderRadius: 1.5,
+        borderRadius: 1.75,
         display: 'grid',
         placeItems: 'center',
+      },
+      rotuloDaFicha: {
+        display: 'block',
+        fontSize: 11,
+        fontWeight: 700,
+        letterSpacing: '0.08em',
+        textTransform: 'uppercase',
+        color: 'text.secondary',
+      },
+      valorDaFicha: {
+        fontSize: '1rem',
+        fontWeight: 800,
+        lineHeight: 1.25,
+        mt: 0.25,
+      },
+      apoioDaFicha: {
+        mt: 0.5,
+        fontSize: '0.8125rem',
+        lineHeight: 1.35,
+        color: 'text.secondary',
+        // nome de local vem comprido: duas linhas, não uma coluna de texto
+        display: '-webkit-box',
+        WebkitLineClamp: 2,
+        WebkitBoxOrient: 'vertical',
+        overflow: 'hidden',
       },
 
       secao: { mt: { xs: 5, md: 7 } },
@@ -581,6 +610,7 @@ function EventsDetails() {
     valor,
     apoio,
     cor = corPrimaria,
+    ponto,
   }: {
     icone: ReactNode;
     rotulo: string;
@@ -588,30 +618,45 @@ function EventsDetails() {
     apoio?: string | null;
     /** cor do selo: é o que dá uma das três do evento a cada ficha */
     cor?: string;
+    /** cor do pontinho antes do apoio, quando ele é uma situação */
+    ponto?: string;
   }) => (
     <Paper elevation={0} sx={styles.ficha}>
       <Box
         sx={{
           ...styles.selinho,
           color: cor,
-          backgroundColor: alpha(cor, 0.12),
+          backgroundImage: `linear-gradient(135deg, ${alpha(cor, 0.2)}, ${alpha(
+            cor,
+            0.08
+          )})`,
+          border: `1px solid ${alpha(cor, 0.22)}`,
         }}
       >
         {icone}
       </Box>
       <Box sx={{ minWidth: 0 }}>
-        <Typography
-          variant="caption"
-          color="text.secondary"
-          sx={{ textTransform: 'uppercase', letterSpacing: '0.06em' }}
-        >
+        <Typography component="span" sx={styles.rotuloDaFicha}>
           {rotulo}
         </Typography>
-        <Typography fontWeight={700} sx={{ lineHeight: 1.3 }}>
-          {valor}
-        </Typography>
+        <Typography sx={styles.valorDaFicha}>{valor}</Typography>
         {apoio && (
-          <Typography variant="caption" color="text.secondary">
+          <Typography sx={styles.apoioDaFicha}>
+            {ponto && (
+              <Box
+                component="span"
+                sx={{
+                  display: 'inline-block',
+                  width: 7,
+                  height: 7,
+                  mr: 0.75,
+                  borderRadius: '50%',
+                  verticalAlign: 'middle',
+                  backgroundColor: ponto,
+                  boxShadow: `0 0 0 3px ${alpha(ponto, 0.18)}`,
+                }}
+              />
+            )}
             {apoio}
           </Typography>
         )}
@@ -787,7 +832,7 @@ function EventsDetails() {
             />
           )}
           <Ficha
-            icone={<CalendarMonthOutlined fontSize="small" />}
+            icone={<CalendarMonthOutlined />}
             rotulo="Quando"
             valor={formatarPeriodo(event?.startDate, event?.endDate, {
               comAno: true,
@@ -796,7 +841,7 @@ function EventsDetails() {
           />
           <Ficha
             cor={corSecundaria}
-            icone={<PlaceOutlined fontSize="small" />}
+            icone={<PlaceOutlined />}
             rotulo="Onde"
             valor={cidade || 'Local a definir'}
             apoio={
@@ -805,7 +850,7 @@ function EventsDetails() {
           />
           <Ficha
             cor={corTerciaria}
-            icone={<ConfirmationNumber fontSize="small" />}
+            icone={<ConfirmationNumber />}
             rotulo="Tipos de ingresso"
             valor={
               event?.groupRoles?.length
@@ -822,6 +867,11 @@ function EventsDetails() {
                 : vagasRestantes > 0
                   ? 'Vagas disponíveis'
                   : 'Lista de espera'
+            }
+            ponto={
+              event?.data?.hideVacancies || vagasRestantes > 0
+                ? theme.palette.chips.success
+                : theme.palette.chips.alert
             }
           />
         </Box>
