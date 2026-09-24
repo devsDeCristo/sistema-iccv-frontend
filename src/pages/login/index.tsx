@@ -243,26 +243,29 @@ function Login() {
         md: 'none',
       },
     },
+    /**
+     * A marca é a mesma da barra do topo: logo e nome lado a lado, numa linha
+     * só. Antes a logo ficava centrada com o nome embaixo dela, em versalete —
+     * um segundo jeito de escrever a mesma coisa, que ninguém reconhecia como
+     * o mesmo sistema depois de entrar.
+     */
     marca: {
-      width: { xs: 35, md: 45 },
-      height: 'auto',
-      mx: 'auto',
-      mb: { xs: 1.5, md: 2 },
+      justifyContent: 'center',
+      mb: { xs: 2, md: 5 },
     },
     logo: {
-      width: '100%',
-      height: '100%',
-      fill: theme.palette.primary.main,
+      width: 'auto',
+      height: 40,
+      // a marca é monocromática: acompanha a cor do texto, branca no tema
+      // escuro e escura no claro, como na barra do topo
+      fill: theme.palette.text.primary,
     },
-    sobrenome: {
-      color: 'text.secondary',
-      fontSize: { xs: '0.7rem', sm: '0.8rem', md: '0.9rem' },
-      fontWeight: 600,
-      letterSpacing: '1.6px',
-      textTransform: 'uppercase',
-      textAlign: 'center',
-      mb: { xs: 2, md: 5 },
-      mt: { xs: -1, md: -1.5 },
+    nomeDoSistema: {
+      fontSize: { xs: '1.1rem', md: '1.25rem' },
+      fontWeight: 700,
+      letterSpacing: '-0.01em',
+      lineHeight: 1.1,
+      whiteSpace: 'nowrap',
     },
     titulo: {
       fontWeight: 600,
@@ -334,11 +337,20 @@ function Login() {
       <Box sx={styles.ladoForm}>
         <Box sx={styles.coluna}>
           <Box sx={styles.superficie}>
-            <Box sx={styles.marca}>
+            <Stack
+              direction="row"
+              alignItems="center"
+              gap={1}
+              sx={styles.marca}
+            >
               <Logo style={styles.logo} />
-            </Box>
-
-            <Typography sx={styles.sobrenome}>ICCV Eventos</Typography>
+              <Typography sx={styles.nomeDoSistema}>
+                ICCV{' '}
+                <Box component="span" sx={{ fontWeight: 400 }}>
+                  Eventos
+                </Box>
+              </Typography>
+            </Stack>
             <Typography component="h1" sx={styles.titulo}>
               Bem-vindo de volta
             </Typography>
