@@ -2,217 +2,261 @@ import {
   Alert,
   alpha,
   Box,
-  Checkbox,
-  Grid,
+  LinearProgress,
+  Stack,
   Typography,
   useTheme,
 } from '@mui/material';
+import { CheckRounded, GroupsOutlined } from '@mui/icons-material';
 import { Controller, useFormContext } from 'react-hook-form';
 import { EventDetails, PayLoadGroup, SelectGroupRoleFormType } from '../types';
+import { ocupacao } from '../../../events/utils';
+
 interface FormSelectGroupRoleProps {
   event: EventDetails;
   groups: PayLoadGroup;
 }
+
+/** Etiqueta de situação do grupo, no canto do cartão. */
+function Etiqueta({ cor, children }: { cor: string; children: string }) {
+  return (
+    <Box
+      sx={{
+        px: 0.85,
+        py: 0.15,
+        borderRadius: 1,
+        fontSize: 10.5,
+        fontWeight: 700,
+        letterSpacing: '0.05em',
+        textTransform: 'uppercase',
+        whiteSpace: 'nowrap',
+        color: cor,
+        backgroundColor: alpha(cor, 0.12),
+        border: `1px solid ${alpha(cor, 0.28)}`,
+      }}
+    >
+      {children}
+    </Box>
+  );
+}
+
+/**
+ * Primeiro passo: de quais grupos a pessoa quer participar.
+ *
+ * Cada grupo é um cartão inteiro clicável, com a marca de escolhido no canto
+ * esquerdo — antes era uma caixa de seleção do Material colada num retângulo,
+ * e o alvo de clique parecia ser só ela.
+ *
+ * As vagas deixaram de ser uma frase ("Vagas Disponíveis: 3 de 50") e viraram
+ * barra: cheia é lotado, e a cor muda quando aperta. O número continua escrito
+ * ao lado, para quem precisa do dado exato.
+ */
 function FormSelectGroupRole({ event, groups }: FormSelectGroupRoleProps) {
   const {
     control,
     formState: { errors },
   } = useFormContext<SelectGroupRoleFormType>();
   const theme = useTheme();
-  const hideVacancies = !!event?.data?.hideVacancies;
+  const escondeVagas = !!event?.data?.hideVacancies;
+
   return (
-    <Grid container spacing={2}>
-      <Grid item xs={12} md={12}>
-        <Typography
-          variant="h5"
-          sx={{
-            mt: -1,
-            fontSize: '18px',
-            color: theme.palette.text.secondary,
-          }}
-        >
-          Selecione qual(is) ingresso(s) deseja comprar:
-        </Typography>
-      </Grid>
-      <Grid item xs={12} md={12}>
-        <Grid container spacing={2}>
-          <Controller
-            name="groupRoleId"
-            control={control}
-            render={({ field }) => (
-              <Grid item xs={12} md={12}>
-                {event?.groupRoles?.map((group) => {
-                  if (group.id === undefined) return null;
-                  const capacity = group.capacity;
-                  const subscribedCount =
-                    group.roles?.reduce(
-                      (total, role) => total + (role.registered ?? 0),
-                      0
-                    ) ?? 0;
-                  const registeredInGroup =
-                    groups?.present?.some((g) => g.id === group.id) || false;
-                  const registeredInGroupWaitList =
-                    groups?.waitlist?.some((g) => g.id === group.id) || false;
-                  const disabled =
-                    registeredInGroup || registeredInGroupWaitList;
-                  const isSelected = field?.value
-                    ? field.value.includes(group.id)
-                    : false;
-                  const handleToggle = () => {
-                    if (disabled) return;
-                    if (isSelected) {
-                      field.onChange(
-                        field.value.filter((id) => id !== group.id)
-                      );
-                    } else {
-                      if (field.value) {
-                        field.onChange([...field.value, group.id]);
-                      } else {
-                        field.onChange([group.id]);
-                      }
-                    }
-                  };
-                  return (
-                    <Box
-                      key={group.id}
-                      onClick={handleToggle}
-                      sx={{
-                        position: 'relative',
-                        padding: { xs: '25px 20px', md: '15px 15px' },
-                        mt: 2,
-                        borderRadius: 2,
-                        border: isSelected
-                          ? `1px solid ${theme.palette.primary.main}`
-                          : `1px solid ${theme.palette.divider}`,
-                        backgroundColor: isSelected
-                          ? alpha(theme.palette.primary.main, 0.08)
-                          : alpha(theme.palette.text.primary, 0.02),
-                        cursor: 'pointer',
-                        '&:hover': {
-                          ...(!isSelected
-                            ? {
-                                backgroundColor: alpha(
-                                  theme.palette.text.primary,
-                                  0.08
-                                ),
-                              }
-                            : {}),
-                        },
-                        display: 'flex',
-                        alignItems: 'center',
-                      }}
+    <Box>
+      <Typography
+        sx={{ fontSize: '0.9375rem', color: 'text.secondary', mb: 2 }}
+      >
+        De quais grupos você quer participar? Dá para escolher mais de um.
+      </Typography>
+
+      <Controller
+        name="groupRoleId"
+        control={control}
+        render={({ field }) => (
+          <Stack gap={1.5}>
+            {event?.groupRoles?.map((group) => {
+              if (group.id === undefined) return null;
+
+              const inscritos =
+                group.roles?.reduce(
+                  (total, role) => total + (role.registered ?? 0),
+                  0
+                ) ?? 0;
+              const vagas = ocupacao(inscritos, group.capacity);
+
+              const jaInscrito =
+                groups?.present?.some((g) => g.id === group.id) || false;
+              const naEspera =
+                groups?.waitlist?.some((g) => g.id === group.id) || false;
+              const travado = jaInscrito || naEspera;
+
+              const escolhido = field.value?.includes(group.id) ?? false;
+              const soEspera = !travado && vagas.situacao === 'esgotado';
+
+              const alternar = () => {
+                if (travado) return;
+                field.onChange(
+                  escolhido
+                    ? field.value.filter((id) => id !== group.id)
+                    : [...(field.value ?? []), group.id]
+                );
+              };
+
+              return (
+                <Box
+                  key={group.id}
+                  onClick={alternar}
+                  role="checkbox"
+                  aria-checked={escolhido}
+                  aria-disabled={travado}
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: 1.5,
+                    p: 2,
+                    borderRadius: 2.5,
+                    cursor: travado ? 'default' : 'pointer',
+                    opacity: travado ? 0.65 : 1,
+                    border: '1px solid',
+                    borderColor: escolhido
+                      ? theme.palette.primary.main
+                      : theme.palette.divider,
+                    backgroundColor: escolhido
+                      ? alpha(theme.palette.primary.main, 0.08)
+                      : alpha(theme.palette.text.primary, 0.02),
+                    transition: theme.transitions.create(
+                      ['background-color', 'border-color'],
+                      { duration: 160 }
+                    ),
+                    ...(travado || escolhido
+                      ? {}
+                      : {
+                          '&:hover': {
+                            borderColor: alpha(theme.palette.primary.main, 0.5),
+                            backgroundColor: alpha(
+                              theme.palette.primary.main,
+                              0.04
+                            ),
+                          },
+                        }),
+                  }}
+                >
+                  {/* a marca de escolhido é desenhada, e não uma caixa do
+                    Material: o cartão inteiro é o alvo, e a caixa fazia o
+                    clique parecer restrito a ela */}
+                  <Box
+                    sx={{
+                      mt: 0.25,
+                      width: 22,
+                      height: 22,
+                      flexShrink: 0,
+                      borderRadius: '50%',
+                      display: 'grid',
+                      placeItems: 'center',
+                      color: '#fff',
+                      border: escolhido ? 'none' : '2px solid',
+                      borderColor: alpha(theme.palette.text.primary, 0.3),
+                      backgroundColor: escolhido
+                        ? theme.palette.primary.main
+                        : 'transparent',
+                    }}
+                  >
+                    {escolhido && <CheckRounded sx={{ fontSize: 15 }} />}
+                  </Box>
+
+                  <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+                    <Stack
+                      direction="row"
+                      alignItems="center"
+                      gap={1}
+                      sx={{ flexWrap: 'wrap' }}
                     >
-                      {' '}
-                      <Checkbox
+                      <Typography
                         sx={{
-                          p: 0.5,
-                          flexShrink: 0,
-                          opacity: disabled ? 0.6 : 1,
-                        }}
-                        value={group.id}
-                        disabled={disabled}
-                        checked={isSelected}
-                        inputProps={{ 'aria-label': group.name }}
-                      />
-                      <Box
-                        sx={{
-                          ml: { xs: 1, sm: 2 },
-                          minWidth: 0,
-                          opacity: disabled ? 0.6 : 1,
+                          fontSize: '1rem',
+                          fontWeight: 600,
+                          wordBreak: 'break-word',
                         }}
                       >
-                        <Typography
-                          variant="h6"
+                        {group.name}
+                      </Typography>
+
+                      {jaInscrito && (
+                        <Etiqueta cor={theme.palette.chips.success}>
+                          Você já está inscrito
+                        </Etiqueta>
+                      )}
+                      {naEspera && (
+                        <Etiqueta cor={theme.palette.chips.info}>
+                          Na lista de espera
+                        </Etiqueta>
+                      )}
+                      {soEspera && (
+                        <Etiqueta cor={theme.palette.chips.alert}>
+                          Só lista de espera
+                        </Etiqueta>
+                      )}
+                    </Stack>
+
+                    {!escondeVagas && (group.capacity ?? 0) > 0 && (
+                      <Box sx={{ mt: 1 }}>
+                        <LinearProgress
+                          variant="determinate"
+                          value={vagas.percentual}
                           sx={{
-                            fontSize: { xs: '1rem', sm: '1.25rem' },
-                            wordBreak: 'break-word',
-                          }}
-                        >
-                          {group.name}
-                        </Typography>
-                        {!hideVacancies && (
-                          <Typography
-                            variant="body2"
-                            sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}
-                          >
-                            Vagas Disponíveis:{' '}
-                            {(capacity || 0) - subscribedCount} de{' '}
-                            {capacity || 0}
-                          </Typography>
-                        )}
-                      </Box>
-                      {(registeredInGroup || registeredInGroupWaitList) && (
-                        <Box
-                          sx={{
-                            fontSize: { xs: '12px', sm: '15px' },
-                            maxWidth: 'calc(100% - 20px)',
-                            position: 'absolute',
-                            backgroundColor: theme.palette.background.paper,
-                            padding: '0.5px 5px',
-                            right: 10,
-                            top: 0,
-                            color: registeredInGroup
-                              ? theme.palette.success.main
-                              : theme.palette.warning.main,
-                            fontWeight: 500,
-                            background: alpha(
-                              registeredInGroup
-                                ? theme.palette.success.main
-                                : theme.palette.warning.main,
+                            height: 6,
+                            borderRadius: 999,
+                            backgroundColor: alpha(
+                              theme.palette.text.primary,
                               0.1
                             ),
-                            borderRadius: '0px 0px 5px 5px',
+                            '& .MuiLinearProgress-bar': {
+                              borderRadius: 999,
+                              backgroundColor:
+                                vagas.situacao === 'esgotado'
+                                  ? theme.palette.chips.alert
+                                  : vagas.situacao === 'ultimas'
+                                    ? theme.palette.warning.main
+                                    : theme.palette.primary.main,
+                            },
+                          }}
+                        />
+                        <Typography
+                          sx={{
+                            mt: 0.5,
+                            fontSize: '0.75rem',
+                            color: 'text.secondary',
                           }}
                         >
-                          {`Inscrito! ${
-                            registeredInGroupWaitList ? '(Lista de Espera)' : ''
-                          }`}
-                        </Box>
-                      )}
-                      {!hideVacancies &&
-                        !registeredInGroup &&
-                        !registeredInGroupWaitList &&
-                        subscribedCount >= (capacity || 0) && (
-                          <Box
-                            sx={{
-                              fontSize: { xs: '12px', sm: '17px' },
-                              maxWidth: 'calc(100% - 20px)',
-                              position: 'absolute',
-                              backgroundColor: theme.palette.background.paper,
-                              padding: { xs: '0.5px 5px', sm: 0 },
-                              borderRadius: { xs: '0px 0px 5px 5px', sm: 0 },
-                              right: 10,
-                              top: { xs: 0, sm: 10 },
-                              color: theme.palette.warning.main,
-                              fontWeight: 500,
-                            }}
-                          >
-                            {'Somente Lista de Espera!'}
-                          </Box>
-                        )}
-                    </Box>
-                  );
-                })}
-              </Grid>
-            )}
-          />
-        </Grid>{' '}
-        {errors.groupRoleId && (
-          <Alert
-            severity="error"
-            sx={{
-              mt: 2,
-              backgroundColor: alpha(theme.palette.error.main, 0.1),
-            }}
-            variant="outlined"
-          >
-            <Typography color="error" variant="body2">
-              {errors.groupRoleId.message}
-            </Typography>
-          </Alert>
+                          {vagas.restantes === 0
+                            ? `Sem vagas — ${group.capacity} lugares ocupados`
+                            : `${vagas.restantes} de ${group.capacity} vagas livres`}
+                        </Typography>
+                      </Box>
+                    )}
+                  </Box>
+                </Box>
+              );
+            })}
+          </Stack>
         )}
-      </Grid>
-    </Grid>
+      />
+
+      {errors.groupRoleId && (
+        <Alert
+          severity="error"
+          variant="outlined"
+          sx={{
+            mt: 2,
+            borderRadius: 2,
+            backgroundColor: alpha(theme.palette.error.main, 0.08),
+          }}
+          icon={<GroupsOutlined fontSize="small" />}
+        >
+          <Typography color="error" variant="body2">
+            {errors.groupRoleId.message}
+          </Typography>
+        </Alert>
+      )}
+    </Box>
   );
 }
 

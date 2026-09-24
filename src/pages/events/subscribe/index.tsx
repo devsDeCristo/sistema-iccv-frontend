@@ -1,5 +1,4 @@
 import { useBlocker, useNavigate, useParams } from 'react-router-dom';
-import { Header } from '../../../components/header';
 import { PageStyle } from '../../../components/pageStyle';
 import { useGetEvents } from '../../../features/admin/events/api/getEvents';
 import {
@@ -13,6 +12,7 @@ import {
   alpha,
   Box,
   Button,
+  Grid,
   Paper,
   Skeleton,
   Typography,
@@ -43,6 +43,14 @@ import { usePostGuardianTerm } from '../../../features/admin/events/api/postGuar
 import { useGetUsers } from '../../../features/admin/users/api/getUsers';
 import { calculateAge } from '../../../utils';
 import { User } from '../../../types/user';
+import { SubscribeHero } from '../../../features/events/components/subscribeHero';
+import { SubscribeStepper } from '../../../features/events/components/subscribeStepper';
+import {
+  ItemDoResumo,
+  ProdutoDoResumo,
+  SubscribeSummary,
+} from '../../../features/events/components/subscribeSummary';
+import { AZUL_VIVO, VIOLETA_VIVO } from '../../../themes';
 
 function Subscribe() {
   const { id } = useParams();
@@ -153,6 +161,15 @@ function Subscribe() {
     GroupRole[] | null
   >(null);
 
+  /**
+   * A sacola da loja, espelhada aqui para o resumo somar ingresso e produto no
+   * mesmo lugar. Quem manda na escolha continua sendo a vitrine; isto é cópia
+   * para leitura.
+   */
+  const [produtosNaSacola, setProdutosNaSacola] = useState<ProdutoDoResumo[]>(
+    []
+  );
+
   const methodsSelectGroupRole = useForm<SelectGroupRoleFormType>({
     resolver: zodResolver(GROUP_ROLE_SELECT_SCHEMA),
     defaultValues: {
@@ -239,6 +256,9 @@ function Subscribe() {
         eventId: event!.id,
         userId,
         data: { roleId, paymentIds },
+        // a inscrição já está feita; igreja sem cobrança online só devolve a
+        // pessoa para o evento, sem alarde
+        silenciarSemCobranca: true,
       });
     };
 
@@ -404,6 +424,103 @@ function Subscribe() {
     }
   };
 
+  /**
+   * O que a pessoa escolheu até agora, para o resumo ao lado.
+   *
+   * Lê os dois formulários em tempo real: os grupos entram no passo 1 e o
+   * ingresso de cada um no passo 2, então a mesma linha do resumo nasce sem
+   * preço e ganha o valor quando o ingresso é escolhido.
+   */
+  const gruposEscolhidos = methodsSelectGroupRole.watch('groupRoleId') ?? [];
+  const escolhasDeIngresso = methodsSelectRole.watch('groupRole') ?? [];
+
+  const itensDoResumo: ItemDoResumo[] = (event?.groupRoles ?? [])
+    .filter((grupo) => grupo.id && gruposEscolhidos.includes(grupo.id))
+    .map((grupo) => {
+      const escolha = escolhasDeIngresso.find(
+        (item) => item?.groupRoleId === grupo.id
+      );
+      const ingresso = grupo.roles?.find(
+        (role) => role.id && escolha?.roleIds?.includes(role.id)
+      );
+
+      return {
+        grupoId: grupo.id!,
+        grupo: grupo.name,
+        ingresso: ingresso?.description,
+        preco: ingresso?.price,
+      };
+    });
+
+  /**
+   * Os passos da régua. "Produtos" só existe quando o evento tem o que vender —
+   * anunciar um passo que não vai acontecer é pior que não anunciar nenhum.
+   */
+  const passos = [
+    'Grupos',
+    'Ingressos',
+    ...(produtosAVenda.length > 0 ? ['Produtos'] : []),
+  ];
+  const passoAtual = ofertaDeProdutos ? passos.length : currentStep;
+
+  const etapaNoCartaz = ofertaDeProdutos
+    ? 'Produtos do evento'
+    : currentStep === 1
+      ? 'Inscrição · escolha dos grupos'
+      : 'Inscrição · escolha dos ingressos';
+
+  const styles = {
+    superficie: {
+      p: { xs: 2, sm: 3 },
+      borderRadius: 3,
+      border: '1px solid',
+      borderColor: alpha(theme.palette.text.primary, 0.08),
+    },
+    acoes: {
+      display: 'flex',
+      flexDirection: { xs: 'column-reverse', sm: 'row' },
+      justifyContent: 'space-between',
+      gap: 1.5,
+      mt: 3,
+      pt: 2.5,
+      borderTop: '1px solid',
+      borderColor: alpha(theme.palette.text.primary, 0.08),
+    },
+    voltar: {
+      height: 42,
+      px: 2.5,
+      borderRadius: 999,
+      textTransform: 'none',
+      fontWeight: 600,
+    },
+    /** a mesma pílula de ação principal da página do evento e da home */
+    avancar: {
+      height: 42,
+      px: 3,
+      borderRadius: 999,
+      textTransform: 'none',
+      fontWeight: 600,
+      color: '#fff',
+      backgroundImage: `linear-gradient(120deg, ${AZUL_VIVO}, ${VIOLETA_VIVO})`,
+      boxShadow: `0 12px 28px -12px ${alpha(
+        AZUL_VIVO,
+        theme.palette.mode === 'dark' ? 0.5 : 0.95
+      )}`,
+      transition: theme.transitions.create(['transform', 'box-shadow'], {
+        duration: 220,
+      }),
+      '&:hover, &:focus-visible': {
+        transform: 'scale(1.035)',
+      },
+      '&.Mui-disabled': {
+        color: alpha('#fff', 0.7),
+        backgroundImage: 'none',
+        backgroundColor: alpha(theme.palette.text.primary, 0.18),
+        boxShadow: 'none',
+      },
+    },
+  };
+
   const Loading = () => (
     <Box
       sx={{
@@ -433,104 +550,117 @@ function Subscribe() {
 
   return (
     <PageStyle>
-      {' '}
       {loadingPayment && <Loading />}
-      <Header
-        title={ofertaDeProdutos ? 'Produtos do evento' : 'Inscrever-se'}
-        buttonBack
-      />
+
       {isLoading ? (
-        <Skeleton variant="rectangular" width="100%" height={200} />
+        <Skeleton
+          variant="rounded"
+          width="100%"
+          height={132}
+          sx={{ mb: 2.5 }}
+        />
       ) : (
-        <Paper
-          sx={{
-            p: { xs: 2, sm: 3 },
-            display: 'flex',
-            flexDirection: 'column',
-          }}
-        >
-          <Typography
-            variant="h5"
-            gutterBottom
-            sx={{
-              fontSize: { xs: '1.25rem', sm: '1.5rem' },
-              wordBreak: 'break-word',
-            }}
-          >
-            {event.name}
-          </Typography>
-          {ofertaDeProdutos ? (
-            <ProductOffer
-              products={produtosAVenda}
-              modulePayment={modulePayment}
-              loading={comprandoProdutos || loadingPayment}
-              eyebrow="Inscrição confirmada"
-              onConfirm={(items) =>
-                comprarProdutos({
-                  eventId: event.id,
-                  userId,
-                  items,
-                  attachToRegistration: true,
-                })
-              }
-              onSkip={() =>
-                seguirParaPagamento(
-                  ofertaDeProdutos.roleId,
-                  ofertaDeProdutos.allRegistered
-                )
-              }
-            />
-          ) : (
-            <FormProvider
-              {...(stepMethods[currentStep - 1].formMethods as any)}
-              key={currentStep - 1}
-            >
-              <form
-                onSubmit={(
-                  stepMethods[currentStep - 1].formMethods as any
-                ).handleSubmit(stepMethods[currentStep - 1].onSubmit)}
-              >
-                {React.createElement(
-                  stepMethods[currentStep - 1].component as any,
-                  stepMethods[currentStep - 1].props as any
-                )}
-                <Box
-                  sx={{
-                    display: 'flex',
-                    flexDirection: { xs: 'column-reverse', sm: 'row' },
-                    justifyContent: 'space-between',
-                    gap: 2,
-                    mt: 2,
-                  }}
-                >
-                  <Button
-                    variant="outlined"
-                    sx={{ width: { xs: '100%', sm: '120px' } }}
-                    onClick={currentStep === 1 ? handleClose : handleBack}
-                  >
-                    {currentStep === 1 ? 'Cancelar' : 'Voltar'}
-                  </Button>
-                  <Button
-                    variant="contained"
-                    sx={{ width: { xs: '100%', sm: '120px' } }}
-                    type="submit"
-                    disabled={!canProceedToNextStep() || isLoadingRegister}
-                    endIcon={
-                      currentStep === STEPS_SUB.length ? (
-                        <Check />
-                      ) : (
-                        <ArrowForward />
+        <SubscribeHero
+          event={event}
+          etapa={etapaNoCartaz}
+          onVoltar={handleClose}
+        />
+      )}
+
+      {isLoading ? (
+        <Skeleton variant="rounded" width="100%" height={320} />
+      ) : (
+        <>
+          {/* a régua continua na loja: ali ela marca o terceiro passo, que é
+            justamente o que está acontecendo */}
+          <SubscribeStepper passos={passos} atual={passoAtual} />
+
+          <Grid container spacing={3} alignItems="flex-start">
+            <Grid item xs={12} md={8}>
+              <Paper sx={styles.superficie}>
+                {ofertaDeProdutos ? (
+                  <ProductOffer
+                    products={produtosAVenda}
+                    modulePayment={modulePayment}
+                    loading={comprandoProdutos || loadingPayment}
+                    eyebrow="Inscrição confirmada"
+                    onConfirm={(items) =>
+                      comprarProdutos({
+                        eventId: event.id,
+                        userId,
+                        items,
+                        attachToRegistration: true,
+                      })
+                    }
+                    onSkip={() =>
+                      seguirParaPagamento(
+                        ofertaDeProdutos.roleId,
+                        ofertaDeProdutos.allRegistered
                       )
                     }
+                    onSelecaoChange={setProdutosNaSacola}
+                  />
+                ) : (
+                  <FormProvider
+                    {...(stepMethods[currentStep - 1].formMethods as any)}
+                    key={currentStep - 1}
                   >
-                    {currentStep === STEPS_SUB.length ? 'Finalizar' : 'Próximo'}
-                  </Button>
-                </Box>
-              </form>
-            </FormProvider>
-          )}
-        </Paper>
+                    <form
+                      onSubmit={(
+                        stepMethods[currentStep - 1].formMethods as any
+                      ).handleSubmit(stepMethods[currentStep - 1].onSubmit)}
+                    >
+                      {React.createElement(
+                        stepMethods[currentStep - 1].component as any,
+                        stepMethods[currentStep - 1].props as any
+                      )}
+
+                      <Box sx={styles.acoes}>
+                        <Button
+                          variant="outlined"
+                          color="inherit"
+                          sx={styles.voltar}
+                          onClick={currentStep === 1 ? handleClose : handleBack}
+                        >
+                          {currentStep === 1 ? 'Cancelar' : 'Voltar'}
+                        </Button>
+
+                        <Button
+                          type="submit"
+                          sx={styles.avancar}
+                          disabled={
+                            !canProceedToNextStep() || isLoadingRegister
+                          }
+                          endIcon={
+                            currentStep === STEPS_SUB.length ? (
+                              <Check />
+                            ) : (
+                              <ArrowForward />
+                            )
+                          }
+                        >
+                          {currentStep === STEPS_SUB.length
+                            ? 'Confirmar inscrição'
+                            : 'Continuar'}
+                        </Button>
+                      </Box>
+                    </form>
+                  </FormProvider>
+                )}
+              </Paper>
+            </Grid>
+
+            <Grid item xs={12} md={4}>
+              <SubscribeSummary
+                itens={itensDoResumo}
+                produtos={produtosNaSacola}
+                mostrarValores={modulePayment}
+              />
+            </Grid>
+          </Grid>
+        </>
       )}
+
       <EventTermsDialog
         open={!!inscricaoAguardandoTermo}
         term={termoDoEvento}

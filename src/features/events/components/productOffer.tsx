@@ -15,7 +15,7 @@ import {
   ShoppingBagOutlined,
   StorefrontOutlined,
 } from '@mui/icons-material';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { formatCurrency } from '../../../utils';
 import { AZUL_VIVO, degradeVivo } from '../../../themes';
 import { EventProduct } from '../../admin/events/types';
@@ -24,6 +24,16 @@ import { VariantPickerDialog } from './variantPickerDialog';
 
 type ItemEscolhido = { variantId: string; quantity: number };
 
+/** Uma linha da sacola, para quem mostra o resumo fora desta tela. */
+type LinhaEscolhida = {
+  variantId: string;
+  produto: string;
+  variante: string;
+  quantidade: number;
+  /** preço unitário */
+  preco: number;
+};
+
 interface ProductOfferProps {
   products: EventProduct[];
   /** o evento cobra online: muda só o texto do botão de seguir */
@@ -31,6 +41,12 @@ interface ProductOfferProps {
   loading: boolean;
   onConfirm: (items: ItemEscolhido[]) => void;
   onSkip: () => void;
+  /**
+   * Avisa a cada mudança na sacola. Existe para o resumo da inscrição, que
+   * fica fora desta tela e precisa somar os produtos ao total dos ingressos;
+   * a loja avulsa não passa nada e nada muda para ela.
+   */
+  onSelecaoChange?: (linhas: LinhaEscolhida[]) => void;
   /** linha em destaque acima do título ("Inscrição confirmada") */
   eyebrow?: string;
   /** capa do evento: com ela a loja abre com a arte do evento, em cartaz */
@@ -61,6 +77,7 @@ function ProductOffer({
   loading,
   onConfirm,
   onSkip,
+  onSelecaoChange,
   eyebrow,
   coverUrl,
   logoUrl,
@@ -108,6 +125,36 @@ function ProductOffer({
     0
   );
   const unidades = itens.reduce((soma, item) => soma + item.quantity, 0);
+
+  /**
+   * A sacola, escrita por extenso para quem mostra o resumo lá fora. Sai num
+   * efeito, e não no clique: o valor muda em três lugares (mais, menos e o
+   * diálogo de opções), e avisar em cada um deles é como se perde um.
+   */
+  useEffect(() => {
+    if (!onSelecaoChange) return;
+
+    const linhas: LinhaEscolhida[] = [];
+    products.forEach((produto) =>
+      produto.variants.forEach((variante) => {
+        const quantidade = quantidades[variante.id!] ?? 0;
+        if (quantidade <= 0) return;
+
+        linhas.push({
+          variantId: variante.id!,
+          produto: produto.name,
+          variante: variante.name,
+          quantidade,
+          preco: produto.price,
+        });
+      })
+    );
+
+    onSelecaoChange(linhas);
+    // `onSelecaoChange` fora da lista de propósito: a página monta a função a
+    // cada render, e incluí-la faria o efeito rodar em laço
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [quantidades, products]);
 
   const alterar = (variantId: string, delta: number, maximo: number) =>
     setQuantidades((atual) => {
