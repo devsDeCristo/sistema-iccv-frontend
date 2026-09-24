@@ -17,12 +17,20 @@ import {
   Tune,
 } from '@mui/icons-material';
 
-import { Avatar, Divider, ListItemIcon, Stack, useTheme } from '@mui/material';
+import {
+  alpha,
+  ButtonBase,
+  Divider,
+  ListItemIcon,
+  Stack,
+  useTheme,
+} from '@mui/material';
 import { useUser } from '../../contexts/userContext';
 import { useNavigate } from 'react-router-dom';
 import Logo from '../../assets/logo-ic.svg?react';
 import { useThemeContext } from '../../contexts/themeContext';
 import { useRole } from '../../hooks/useRole';
+import { UserAvatar } from '../userAvatar';
 
 export default function MenuAppBar({
   setOpenDrawer,
@@ -52,71 +60,134 @@ export default function MenuAppBar({
     setAnchorEl(null);
   };
 
-  const styles = {
-    menuIcon: { mr: 2, display: { xs: 'inline', lg: 'none' } },
-  };
   const theme = useTheme();
+  const escuro = theme.palette.mode === 'dark';
+
+  /**
+   * A foto some quando o contexto ainda não voltou do loader da rota; o storage
+   * segura o primeiro quadro, do mesmo jeito que a faixa de boas-vindas faz.
+   */
+  const doStorage = JSON.parse(localStorage.getItem('user') || '{}');
+  const nomeCompleto = user?.fullName || doStorage?.fullName || '';
+  const foto = user?.profilePhotoUrl || doStorage?.profilePhotoUrl;
+
+  const styles = {
+    menuIcon: {
+      mr: 1,
+      display: { xs: 'inline-flex', lg: 'none' },
+      color: '#fff',
+    },
+    /**
+     * Cor chapada, sem tingimento nem brilho: o que mudou na barra é o
+     * acabamento em volta — o fio claro embaixo no lugar da sombra dura, a
+     * marca clicável e a pastilha de vidro das ações.
+     */
+    barra: {
+      height: '70px',
+      display: 'flex',
+      justifyContent: 'center',
+      backgroundColor: escuro
+        ? theme.palette.background.paperSecondary
+        : theme.palette.primary.main,
+      borderBottom: `1px solid ${alpha('#fff', 0.1)}`,
+    },
+    /** a marca vira botão: clicar nela é o caminho mais curto para a home */
+    marca: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 1,
+      px: 1,
+      py: 0.5,
+      borderRadius: 2,
+      color: '#fff',
+      transition: theme.transitions.create('background-color', {
+        duration: 160,
+      }),
+      '&:hover': { backgroundColor: alpha('#fff', 0.1) },
+    },
+    nomeDoSistema: {
+      fontSize: '1.05rem',
+      fontWeight: 700,
+      letterSpacing: '-0.01em',
+      lineHeight: 1.1,
+      color: '#fff',
+      whiteSpace: 'nowrap',
+    },
+    /** tema e conta moram na mesma pastilha de vidro, como os selos do cartaz */
+    acoes: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 0.25,
+      p: 0.4,
+      borderRadius: 999,
+      backgroundColor: alpha('#fff', 0.12),
+      border: `1px solid ${alpha('#fff', 0.2)}`,
+      backdropFilter: 'blur(6px)',
+    },
+    botaoDeTema: {
+      color: '#fff',
+      '&:hover': { backgroundColor: alpha('#fff', 0.16) },
+    },
+  };
   return (
     <Box sx={{ flexGrow: 1 }}>
-      <AppBar
-        sx={{
-          height: '70px',
-          display: 'flex',
-          justifyContent: 'center',
-          backgroundColor:
-            theme.palette.mode === 'dark'
-              ? theme.palette.background.paperSecondary
-              : theme.palette.primary.main,
-        }}
-        position="static"
-      >
-        <Toolbar>
+      <AppBar sx={styles.barra} position="static" elevation={0}>
+        <Toolbar sx={{ gap: 1 }}>
           <IconButton
             size="large"
             edge="start"
-            color="inherit"
             aria-label="menu"
             sx={styles.menuIcon}
             onClick={() => setOpenDrawer(!openDrawer)}
           >
             <MenuIcon />
           </IconButton>
-          <Logo
-            style={{
-              height: '40px',
-              width: 'auto',
-              fill: 'white',
-              margin: '10px',
-            }}
-          />
-          <Typography
-            variant="h6"
-            component="div"
-            sx={{ flexGrow: 1, color: 'white' }}
-          >
-            ICCV Eventos
-          </Typography>
 
-          <Stack direction="row" spacing={1} alignItems="center">
+          <ButtonBase
+            sx={styles.marca}
+            onClick={() => navigate(isAdminRoute ? '/admin/inicio' : '/home')}
+          >
+            <Logo style={{ height: '38px', width: 'auto', fill: 'white' }} />
+            <Typography component="div" sx={styles.nomeDoSistema}>
+              ICCV{' '}
+              <Box
+                component="span"
+                sx={{ fontWeight: 400, color: alpha('#fff', 0.78) }}
+              >
+                Eventos
+              </Box>
+            </Typography>
+          </ButtonBase>
+
+          <Box sx={{ flexGrow: 1 }} />
+
+          <Stack direction="row" sx={styles.acoes}>
             <IconButton
-              size="medium"
-              aria-label="account of current user"
-              aria-controls="menu-appbar"
-              aria-haspopup="true"
+              size="small"
+              aria-label={colorMode ? 'Usar tema claro' : 'Usar tema escuro'}
               onClick={toggleColorMode}
-              color="inherit"
+              sx={styles.botaoDeTema}
             >
-              {colorMode ? <LightMode /> : <DarkMode />}
+              {colorMode ? (
+                <LightMode fontSize="small" />
+              ) : (
+                <DarkMode fontSize="small" />
+              )}
             </IconButton>
             <IconButton
               size="small"
-              aria-label="account of current user"
+              aria-label="Conta"
               aria-controls="menu-appbar"
               aria-haspopup="true"
               onClick={handleMenu}
-              color="inherit"
+              sx={{ p: 0.25 }}
             >
-              <Avatar alt={user?.fullName} src="/static/images/avatar/1.jpg" />
+              <UserAvatar
+                name={nomeCompleto}
+                photoUrl={foto}
+                disablePreview
+                sx={{ width: 32, height: 32, fontSize: '0.8rem' }}
+              />
             </IconButton>
 
             <Menu
@@ -125,11 +196,14 @@ export default function MenuAppBar({
               onClose={handleClose}
               anchorOrigin={{
                 vertical: 'bottom',
-                horizontal: 'left',
+                horizontal: 'right',
               }}
               transformOrigin={{
                 vertical: 'top',
-                horizontal: 'left',
+                horizontal: 'right',
+              }}
+              PaperProps={{
+                sx: { mt: 1, minWidth: 240, borderRadius: 3 },
               }}
             >
               <Stack
@@ -139,9 +213,10 @@ export default function MenuAppBar({
                 gap={2}
                 sx={{ padding: 2 }}
               >
-                <Avatar
-                  alt={user?.fullName}
-                  src="/static/images/avatar/1.jpg"
+                <UserAvatar
+                  name={nomeCompleto}
+                  photoUrl={foto}
+                  disablePreview
                 />
                 <Stack>
                   <Typography sx={{ fontWeight: 'bold', fontSize: '1rem' }}>

@@ -521,8 +521,15 @@ const SideBar: React.FC<SideBarProps> = ({
               fill: theme.palette.text.primary,
             }}
           />
+          {/* o mesmo nome da barra do topo: a gaveta é a outra metade dela */}
           <Typography sx={{ fontSize: 15, fontWeight: 700 }}>
-            CIDADE VERDE
+            ICCV{' '}
+            <Box
+              component="span"
+              sx={{ fontWeight: 400, color: 'text.secondary' }}
+            >
+              Eventos
+            </Box>
           </Typography>
         </Stack>
 
