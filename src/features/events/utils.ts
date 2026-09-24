@@ -257,3 +257,19 @@ export function filtrarPorIgreja(eventos: Event[], igrejaId: string): Event[] {
 
   return eventos.filter((event) => event?.church?.id === igrejaId);
 }
+
+/**
+ * Bom dia, boa tarde ou boa noite — pela hora do relógio de quem está olhando.
+ *
+ * Os cortes são os da fala comum, não os do relógio de 6 em 6 horas: a manhã
+ * começa às 5h, a tarde ao meio-dia e a noite às 18h. Quem abre a página às
+ * 23h ou às 3h recebe "boa noite", que é o que se diz nas duas horas.
+ */
+export function saudacaoDoDia(agora: Date = new Date()): string {
+  const hora = agora.getHours();
+
+  if (hora >= 5 && hora < 12) return 'Bom dia';
+  if (hora >= 12 && hora < 18) return 'Boa tarde';
+
+  return 'Boa noite';
+}
