@@ -37,19 +37,23 @@ interface ProdutoDoResumo {
  * passo: primeiro os grupos, depois os ingressos entrando um a um, e o total
  * embaixo.
  *
- * Igreja que não cobra online não mostra total nenhum: ali o valor é acertado
- * na secretaria, e um total na tela pareceria uma cobrança que o sistema não
- * vai fazer.
+ * O valor aparece mesmo onde a igreja não recebe pelo site — a pessoa precisa
+ * saber quanto levar. O que muda é a linha do rodapé: em vez de anunciar um
+ * pagamento que o sistema vai abrir, ela diz que a igreja não recebe online e
+ * que o acerto é com a organização.
  */
 function SubscribeSummary({
   itens,
   produtos = [],
   mostrarValores,
+  recebePagamentoOnline = true,
 }: {
   itens: ItemDoResumo[];
   /** o que foi para a sacola no passo da loja */
   produtos?: ProdutoDoResumo[];
   mostrarValores: boolean;
+  /** a igreja recebe pagamento pelo site: módulo ligado e gateway ativo */
+  recebePagamentoOnline?: boolean;
 }) {
   const theme = useTheme();
 
@@ -193,9 +197,15 @@ function SubscribeSummary({
             </Typography>
           </Stack>
           <Typography
-            sx={{ mt: 0.5, fontSize: '0.75rem', color: 'text.secondary' }}
+            sx={{
+              mt: 0.5,
+              fontSize: '0.75rem',
+              color: recebePagamentoOnline ? 'text.secondary' : 'warning.main',
+            }}
           >
-            O pagamento acontece depois de confirmar a inscrição.
+            {recebePagamentoOnline
+              ? 'O pagamento acontece depois de confirmar a inscrição.'
+              : 'Esta igreja não recebe pagamento pelo site: o valor é combinado com a organização.'}
           </Typography>
         </>
       )}

@@ -32,7 +32,10 @@ import { ArrowForward, Check } from '@mui/icons-material';
 import { usePostRegisterUserInEvent } from '../../../features/admin/events/api/postRegisterUserInEvent';
 import Swal from 'sweetalert2';
 import { useGetGroupsByUser } from '../../../features/admin/events/api/getGroupsByUser';
-import { usePostCreateCheckoutEvent } from '../../../features/admin/events/api/postCreateCheckoutEvent';
+import {
+  ehPagamentoForaDoSite,
+  usePostCreateCheckoutEvent,
+} from '../../../features/admin/events/api/postCreateCheckoutEvent';
 import { usePostBuyEventProducts } from '../../../features/admin/events/api/postBuyEventProducts';
 import { temDisponivel } from '../../../features/admin/events/products';
 import { ProductOffer } from '../../../features/events/components/productOffer';
@@ -103,9 +106,18 @@ function Subscribe() {
     string[] | null
   >(null);
 
-  // Sem a igreja na resposta, assume ligado: é o padrão da coluna, e quem
-  // recusa de fato é o servidor, que devolve 503 ao tentar abrir o checkout.
-  const modulePayment = event?.church?.modulePayment ?? true;
+  /**
+   * Esta igreja recebe pagamento pelo site?
+   *
+   * `chargesOnline` já vem do servidor com as duas condições: módulo ligado e
+   * gateway ativo. Só o módulo não bastava — igreja com o módulo ligado e
+   * nenhum gateway cadastrado levava a pessoa ao checkout para receber um 503.
+   *
+   * Sem a bandeira na resposta (versão antiga em cache) vale o módulo, que era
+   * o que a tela usava antes.
+   */
+  const recebePagamentoOnline =
+    event?.church?.chargesOnline ?? event?.church?.modulePayment ?? true;
   const groups = groupsData as PayLoadGroup;
 
   const [currentStep, setCurrentStep] = useState(1);
@@ -215,7 +227,23 @@ function Subscribe() {
       setLoadingPayment(false);
       navigate('/eventos/' + id);
     },
-    onError: () => {
+    onError: (erro) => {
+      /**
+       * Igreja que não recebe pelo site: a inscrição está feita e o valor se
+       * acerta com a organização. Isso é aviso, não erro — vai em modal, e o
+       * toast vermelho nem chega a sair (ver `postCreateCheckoutEvent`).
+       */
+      if (ehPagamentoForaDoSite(erro)) {
+        setLoadingPayment(false);
+        Swal.fire({
+          title: 'Inscrição confirmada!',
+          text: 'Esta igreja não recebe pagamento pelo site. O valor é combinado diretamente com a organização do evento.',
+          icon: 'info',
+          confirmButtonText: 'Entendi',
+        }).then(() => navigate('/eventos/' + id));
+        return;
+      }
+
       navigate('/eventos/' + id);
     },
   });
@@ -236,12 +264,14 @@ function Subscribe() {
     // daqui em diante a saída é do fluxo, não um abandono da oferta
     saidaLiberada.current = true;
 
-    if (!modulePayment) {
+    // sem pagamento pelo site não há o que perguntar: a inscrição está feita, e
+    // o valor é acertado com a organização
+    if (!recebePagamentoOnline) {
       Swal.fire({
         title: 'Inscrição(ões) realizada(s) com sucesso!',
         text: allRegistered
-          ? 'Suas inscrições foram confirmadas.'
-          : 'Algumas inscrições ficaram na lista de espera.',
+          ? 'Esta igreja não recebe pagamento pelo site. O valor é combinado diretamente com a organização.'
+          : 'Algumas inscrições ficaram na lista de espera. Esta igreja não recebe pagamento pelo site — o valor é combinado com a organização.',
         icon: 'success',
         confirmButtonText: 'OK',
       }).then(() => {
@@ -256,9 +286,6 @@ function Subscribe() {
         eventId: event!.id,
         userId,
         data: { roleId, paymentIds },
-        // a inscrição já está feita; igreja sem cobrança online só devolve a
-        // pessoa para o evento, sem alarde
-        silenciarSemCobranca: true,
       });
     };
 
@@ -581,7 +608,7 @@ function Subscribe() {
                 {ofertaDeProdutos ? (
                   <ProductOffer
                     products={produtosAVenda}
-                    modulePayment={modulePayment}
+                    modulePayment={recebePagamentoOnline}
                     loading={comprandoProdutos || loadingPayment}
                     eyebrow="Inscrição confirmada"
                     onConfirm={(items) =>
@@ -654,7 +681,8 @@ function Subscribe() {
               <SubscribeSummary
                 itens={itensDoResumo}
                 produtos={produtosNaSacola}
-                mostrarValores={modulePayment}
+                mostrarValores
+                recebePagamentoOnline={recebePagamentoOnline}
               />
             </Grid>
           </Grid>

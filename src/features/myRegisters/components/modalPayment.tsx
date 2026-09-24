@@ -16,7 +16,11 @@ import {
   PAYMENT_STATUS_COLOR,
   statusPaymentOptions,
 } from '../../admin/events/constants';
-import { usePostCreateCheckoutEvent } from '../../admin/events/api/postCreateCheckoutEvent';
+import Swal from 'sweetalert2';
+import {
+  ehPagamentoForaDoSite,
+  usePostCreateCheckoutEvent,
+} from '../../admin/events/api/postCreateCheckoutEvent';
 import { useState } from 'react';
 import CustomChip from '../../../components/customChip';
 import { PaymentProductItem } from '../../admin/events/types';
@@ -67,8 +71,21 @@ export function ModalPayment({
       window.open(link, '_blank', 'noopener,noreferrer');
       setLoading(false);
     },
-    onError: () => {
+    onError: (erro) => {
       setLoading(false);
+
+      /**
+       * Igreja que não recebe pelo site: aviso, não erro. Vai em modal com a
+       * saída escrita — o valor continua devido e se acerta com a organização.
+       */
+      if (ehPagamentoForaDoSite(erro)) {
+        Swal.fire({
+          title: 'Pagamento fora do site',
+          text: 'Esta igreja não recebe pagamento pelo site. O valor é combinado diretamente com a organização do evento.',
+          icon: 'info',
+          confirmButtonText: 'Entendi',
+        });
+      }
     },
   });
 

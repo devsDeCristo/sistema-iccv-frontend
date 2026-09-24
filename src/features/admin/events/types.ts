@@ -36,7 +36,14 @@ export interface EventDetails {
    * na ausência, que é o padrão da coluna — e quem manda mesmo é o servidor,
    * que recusa o checkout com 503 de qualquer jeito.
    */
-  church?: { modulePayment: boolean };
+  church?: {
+    modulePayment: boolean;
+    /**
+     * A igreja recebe pagamento pelo site: módulo ligado **e** gateway ativo.
+     * Só o módulo não basta — sem gateway o checkout devolve 503.
+     */
+    chargesOnline?: boolean;
+  };
   startDate: Date;
   endDate: Date;
   groupLink?: string;

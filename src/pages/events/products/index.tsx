@@ -10,7 +10,10 @@ import { PageStyle } from '../../../components/pageStyle';
 import { useGetEvents } from '../../../features/admin/events/api/getEvents';
 import { useGetGroupsByUser } from '../../../features/admin/events/api/getGroupsByUser';
 import { usePostBuyEventProducts } from '../../../features/admin/events/api/postBuyEventProducts';
-import { usePostCreateCheckoutEvent } from '../../../features/admin/events/api/postCreateCheckoutEvent';
+import {
+  ehPagamentoForaDoSite,
+  usePostCreateCheckoutEvent,
+} from '../../../features/admin/events/api/postCreateCheckoutEvent';
 import { temDisponivel } from '../../../features/admin/events/products';
 import {
   EventDetails,
@@ -64,8 +67,24 @@ function EventProducts() {
       voltarAoEvento();
     },
     // a compra já existe: o pagamento continua disponível em Minhas Inscrições
-    onError: () => {
+    onError: (erro) => {
       setAbrindoPagamento(false);
+
+      /**
+       * Igreja que não recebe pelo site: a compra está feita e o valor se
+       * acerta com a organização. Aviso em modal, e não o toast vermelho de
+       * erro — não há falha nenhuma aqui.
+       */
+      if (ehPagamentoForaDoSite(erro)) {
+        Swal.fire({
+          title: 'Compra registrada!',
+          text: 'Esta igreja não recebe pagamento pelo site. O valor é combinado diretamente com a organização do evento.',
+          icon: 'info',
+          confirmButtonText: 'Entendi',
+        }).then(() => navigate('/minhasInscricoes'));
+        return;
+      }
+
       navigate('/minhasInscricoes');
     },
   });
