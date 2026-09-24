@@ -61,7 +61,7 @@ export const CardsStatus = () => {
       color: theme.palette.chips.success,
     },
     {
-      // o PdfBadge descarta em silêncio quem não tem badgeName: o crachá
+      // o PDF de crachás descarta em silêncio quem não tem badgeName: o crachá
       // simplesmente não sai, e só se descobre contando as folhas impressas
       title: 'Sem nome no crachá',
       value: users.filter((user) => !user.badgeName?.trim()).length,

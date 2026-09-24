@@ -8,16 +8,15 @@ import {
   useMediaQuery,
   useTheme,
 } from '@mui/material';
-import { pdf } from '@react-pdf/renderer';
 import FileSaver from 'file-saver';
 import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
-import PdfBadge from '../../../../../components/pdfBadge';
 import { ResponsiveModal } from '../../../../../components/responsiveModal';
 import { SelectField } from '../../../../../components/selectField';
 import { PdfNameCase } from '../../../../../types/pdf';
 import { User } from '../../../../../types/user';
 import { EventDetails } from '../../types';
+import { postGenerateBadges } from '../../api/postGenerateBadges';
 
 const NAME_CASE_OPTIONS: { value: PdfNameCase; label: string }[] = [
   { value: 'capitalize', label: 'Primeira letra maiúscula' },
@@ -81,27 +80,21 @@ function ModalGenerateBadge({
     }
 
     setIsGenerating(true);
-    // o react-pdf trava a tela enquanto monta: dá um frame para o loading pintar
-    setTimeout(async () => {
-      try {
-        const blob = await pdf(
-          <PdfBadge
-            data={[]}
-            event={event}
-            sections={[{ title: null, users: [user] }]}
-            nameCase={nameCase}
-            withQrCode={withQrCode}
-          />
-        ).toBlob();
+    try {
+      const blob = await postGenerateBadges({
+        eventId: event.id,
+        sections: [{ title: null, users: [user] }],
+        nameCase,
+        withQrCode,
+      });
 
-        FileSaver.saveAs(blob, nomeArquivo(user.badgeName || user.fullName));
-        onClose();
-      } catch {
-        toast.error('Não foi possível gerar o PDF. Tente novamente.');
-      } finally {
-        setIsGenerating(false);
-      }
-    }, 50);
+      FileSaver.saveAs(blob, nomeArquivo(user.badgeName || user.fullName));
+      onClose();
+    } catch (erro) {
+      toast.error((erro as Error).message);
+    } finally {
+      setIsGenerating(false);
+    }
   }
 
   return (

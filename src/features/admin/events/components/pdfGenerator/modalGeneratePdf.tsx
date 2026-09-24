@@ -27,7 +27,6 @@ import { pdf } from '@react-pdf/renderer';
 import FileSaver from 'file-saver';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'react-toastify';
-import PdfBadge from '../../../../../components/pdfBadge';
 import PdfEnvelope from '../../../../../components/pdfEnvelope';
 import PdfEnvelopePhoto from '../../../../../components/pdfEnvelopePhoto';
 import { ResponsiveModal } from '../../../../../components/responsiveModal';
@@ -36,6 +35,7 @@ import { PdfNameCase } from '../../../../../types/pdf';
 import { User } from '../../../../../types/user';
 import { EventDetails, Team } from '../../types';
 import { EnvelopeKind, PdfDocType, PdfGroupBy, PdfScope } from './types';
+import { postGenerateBadges } from '../../api/postGenerateBadges';
 import {
   buildSections,
   filterByGroups,
@@ -190,25 +190,23 @@ function ModalGeneratePdf({
     // o react-pdf trava a tela enquanto monta: dá um frame para o loading pintar
     setTimeout(async () => {
       try {
-        // logo e capa só são baixadas aqui — ver `loadEventImages`
-        const eventoComImagens = (await loadEventImages?.()) ?? event;
-
         let blob: Blob;
         let fileName: string;
 
         if (isBadge) {
-          blob = await pdf(
-            <PdfBadge
-              data={[]}
-              event={eventoComImagens}
-              sections={sections}
-              nameCase={nameCase}
-              blankCount={blanks}
-              withQrCode={withQrCode}
-            />
-          ).toBlob();
+          // o crachá é gerado no servidor, que busca capa e logo sozinho
+          blob = await postGenerateBadges({
+            eventId: event.id,
+            sections,
+            nameCase,
+            blankCount: blanks,
+            withQrCode,
+          });
           fileName = 'crachas.pdf';
         } else if (envelopeKind === 'letter') {
+          // logo e capa só são baixadas aqui — ver `loadEventImages`
+          const eventoComImagens = (await loadEventImages?.()) ?? event;
+
           blob = await pdf(
             <PdfEnvelope
               data={[]}
@@ -220,6 +218,7 @@ function ModalGeneratePdf({
           ).toBlob();
           fileName = 'envelopes-cartas.pdf';
         } else {
+          const eventoComImagens = (await loadEventImages?.()) ?? event;
           blob = await pdf(
             <PdfEnvelopePhoto
               event={eventoComImagens}
@@ -233,7 +232,12 @@ function ModalGeneratePdf({
         FileSaver.saveAs(blob, fileName);
         onClose();
       } catch (error) {
-        toast.error('Não foi possível gerar o PDF. Tente novamente.');
+        // o crachá traz o motivo do servidor; o envelope, a mensagem de sempre
+        toast.error(
+          isBadge
+            ? (error as Error).message
+            : 'Não foi possível gerar o PDF. Tente novamente.'
+        );
       } finally {
         setIsGenerating(false);
       }
