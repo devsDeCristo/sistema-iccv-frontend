@@ -23,7 +23,6 @@ import {
   Download,
   GroupsOutlined,
   PersonOutline,
-  Print,
   Search,
 } from '@mui/icons-material';
 import FileSaver from 'file-saver';
@@ -682,21 +681,21 @@ function QuadrantePage({ eventId, pageBack }: QuadrantePageProps) {
     overflow: 'hidden',
   } as const;
 
-  const vidroSx = {
-    height: 50,
-    px: 3,
-    borderRadius: 999,
-    textTransform: 'none',
-    fontWeight: 600,
-    color: '#fff',
-    borderColor: alpha('#fff', 0.5),
-    backgroundColor: alpha('#000', 0.2),
-    backdropFilter: 'blur(6px)',
-    '&:hover': {
-      borderColor: '#fff',
-      backgroundColor: alpha('#000', 0.35),
-    },
-  } as const;
+  // const vidroSx = {
+  //   height: 50,
+  //   px: 3,
+  //   borderRadius: 999,
+  //   textTransform: 'none',
+  //   fontWeight: 600,
+  //   color: '#fff',
+  //   borderColor: alpha('#fff', 0.5),
+  //   backgroundColor: alpha('#000', 0.2),
+  //   backdropFilter: 'blur(6px)',
+  //   '&:hover': {
+  //     borderColor: '#fff',
+  //     backgroundColor: alpha('#000', 0.35),
+  //   },
+  // } as const;
 
   const seloSx = {
     px: 1.25,
@@ -879,7 +878,7 @@ function QuadrantePage({ eventId, pageBack }: QuadrantePageProps) {
               >
                 {baixando ? 'Gerando PDF...' : 'Baixar PDF'}
               </Button>
-              <Button
+              {/* <Button
                 variant="outlined"
                 startIcon={<Print />}
                 onClick={() => window.print()}
@@ -887,7 +886,7 @@ function QuadrantePage({ eventId, pageBack }: QuadrantePageProps) {
                 sx={vidroSx}
               >
                 Imprimir
-              </Button>
+              </Button> */}
             </Stack>
           </Box>
         </Box>
