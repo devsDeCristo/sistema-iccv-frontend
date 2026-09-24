@@ -495,7 +495,9 @@ function QuadrantePage({ eventId, pageBack }: QuadrantePageProps) {
     () => ({
       fontFamily: FONTE,
       '& .MuiTypography-root, & .MuiButtonBase-root, & .MuiInputBase-root, & .MuiChip-label':
-        { fontFamily: FONTE },
+        {
+          // fontFamily: FONTE
+        },
 
       '--q-papel': theme.palette.background.paper,
       '--q-texto': theme.palette.text.primary,
