@@ -13,8 +13,6 @@ import {
   DirectionsBusOutlined,
   GroupsOutlined,
   LockOutlined,
-  VisibilityOffOutlined,
-  VisibilityOutlined,
 } from '@mui/icons-material';
 import { ReactNode } from 'react';
 import { useParams } from 'react-router-dom';
