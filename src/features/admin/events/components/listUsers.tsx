@@ -302,13 +302,23 @@ function ListUsers({
       field: 'hypertensive',
       headerName: 'Hipertenso',
       flex: 1,
-      valueGetter: (params) => (params.row.hypertensive ? 'Sim' : 'Não'),
+      valueGetter: (params) =>
+        params.row.hypertensive == null
+          ? 'Não informado'
+          : params.row.hypertensive
+            ? 'Sim'
+            : 'Não',
     },
     {
       field: 'diabetes',
       headerName: 'Diabético',
       flex: 1,
-      valueGetter: (params) => (params.row.diabetes ? 'Sim' : 'Não'),
+      valueGetter: (params) =>
+        params.row.diabetes == null
+          ? 'Não informado'
+          : params.row.diabetes
+            ? 'Sim'
+            : 'Não',
     },
     { field: 'notes', headerName: 'Observações', flex: 1, minWidth: 80 },
     {

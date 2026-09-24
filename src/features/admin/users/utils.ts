@@ -30,6 +30,8 @@ export function userToFormValues(user?: User | null): RegisterUsersFormType {
     state: user?.state || '',
     hypertensive: user?.hypertensive ? 1 : 0,
     diabetes: user?.diabetes ? 1 : 0,
+    sensitiveDataConsent: !!user?.sensitiveConsentAt,
+    consentimentoOriginal: !!user?.sensitiveConsentAt,
     indicatedBy: user?.indicatedBy || '',
     religion: user?.religion || '',
     badgeName: user?.badgeName || '',
@@ -54,10 +56,16 @@ export function userToFormValues(user?: User | null): RegisterUsersFormType {
  */
 export function formValuesToUserPayload(data: RegisterUsersFormType) {
   const semValor = (valor?: string) => (valor === '' ? undefined : valor);
-  const { role: _permissao, ...valores } = data;
+  const {
+    role: _permissao,
+    sensitiveDataConsent: _consentimento,
+    consentimentoOriginal: _original,
+    ...valores
+  } = data;
 
   return {
     ...valores,
+    ...consentimentoParaEnvio(data),
     worker: !!data.worker,
     hypertensive: !!data.hypertensive,
     diabetes: !!data.diabetes,
@@ -82,4 +90,19 @@ export function formValuesToUserPayload(data: RegisterUsersFormType) {
         ? undefined
         : semValor(data.leadershipPosition),
   };
+}
+
+/**
+ * O consentimento só vai no corpo quando mudou.
+ *
+ * Mandar sempre o valor da caixa faria de "não marcado" uma revogação: o admin
+ * que abrisse um cadastro antigo — com saúde guardada e sem consentimento ainda
+ * registrado — para corrigir o telefone apagaria esses dados sem querer. Sem
+ * mudança, o servidor mantém o consentimento como está.
+ */
+export function consentimentoParaEnvio(data: RegisterUsersFormType) {
+  const agora = !!data.sensitiveDataConsent;
+  return agora === !!data.consentimentoOriginal
+    ? {}
+    : { sensitiveDataConsent: agora };
 }

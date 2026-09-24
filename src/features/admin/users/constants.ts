@@ -99,14 +99,23 @@ export const REGISTER_USERS_SCHEMA = z.object({
   state: z.string({
     required_error: DEFAULT_MESSAGE,
   }),
-  diabetes: z.number({
-    required_error: DEFAULT_MESSAGE,
-  }),
-  hypertensive: z.number({
-    required_error: DEFAULT_MESSAGE,
-  }),
+  // obrigatórios só com o consentimento — ver o `superRefine` abaixo
+  diabetes: z.number().optional(),
+  hypertensive: z.number().optional(),
+  /** o titular autorizou saúde e religião (LGPD, art. 11) */
+  sensitiveDataConsent: z.boolean().optional(),
+  /** como o consentimento estava ao abrir o formulário: só a mudança é enviada */
+  consentimentoOriginal: z.boolean().optional(),
   eventId: z.string().optional(),
 }).superRefine((values, ctx) => {
+  if (values.sensitiveDataConsent) {
+    for (const campo of ['diabetes', 'hypertensive'] as const) {
+      if (values[campo] === undefined) {
+        ctx.addIssue({ code: 'custom', path: [campo], message: DEFAULT_MESSAGE });
+      }
+    }
+  }
+
   if (!values.birthday) return;
 
   const isMinor =

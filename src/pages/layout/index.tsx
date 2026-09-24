@@ -5,6 +5,7 @@ import { Box, Stack } from '@mui/material';
 import { useUser } from '../../contexts/userContext';
 import { User } from '../../types/user';
 import { useEffect, useState } from 'react';
+import { TermsGate } from '../../features/terms/termsGate';
 
 /** Altura da barra do topo (src/components/appBar) */
 const ALTURA_APPBAR = 70;
@@ -55,6 +56,8 @@ export const Layout = ({
 
   return (
     <Stack sx={{ width: '100%', direction: 'column' }}>
+      {/* o aceite dos termos vale para as três áreas logadas */}
+      <TermsGate />
       <MenuAppBar setOpenDrawer={setOpenDrawer} openDrawer={openDrawer} />
       <Stack direction={'row'}>
         <SideBar

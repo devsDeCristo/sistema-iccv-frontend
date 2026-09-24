@@ -6,6 +6,7 @@ import {
 } from 'react-router-dom';
 import { RoutesLogin } from '../pages/login/routes';
 import { RegisterUser } from '../pages/users/register';
+import { Terms } from '../pages/terms';
 
 import { RoutesHomeAdmin } from '../pages/admin/home/routes';
 import { RoutesUsersAdmin } from '../pages/admin/users/routes';
@@ -30,6 +31,8 @@ const routers = (): ReturnType<typeof createBrowserRouter> => {
         <Route path="*" element={<Navigate replace to="/login" />} />
         {RoutesLogin()}
         <Route path="/usuario/cadastrar" element={<RegisterUser />} />
+        {/* pública: o link sai do login e do cadastro, antes de haver conta */}
+        <Route path="/termos" element={<Terms />} />
 
         <Route
           loader={authLoaderAdmin}

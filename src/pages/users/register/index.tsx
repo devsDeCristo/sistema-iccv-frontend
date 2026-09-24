@@ -1,12 +1,17 @@
 import Swal from 'sweetalert2';
 import { useForm, FormProvider } from 'react-hook-form';
-import { useNavigate } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'react-toastify';
 import {
   Box,
   Button,
+  Checkbox,
   CircularProgress,
+  FormControlLabel,
+  FormHelperText,
+  Link,
   Divider,
   IconButton,
   Stack,
@@ -22,6 +27,7 @@ import {
   ENUM_OPTION_LEADERSHIP_POSITION,
   REGISTER_USERS_SCHEMA,
 } from '../../../features/admin/users/constants';
+import { consentimentoParaEnvio } from '../../../features/admin/users/utils';
 import { RegisterUsersFormType } from '../../../types/user';
 import { formatCPF, removeMask } from '../../../utils';
 import { usePostCreateUser } from '../../../features/admin/users/api/postUser';
@@ -49,6 +55,8 @@ function RegisterUser() {
     state: '',
     hypertensive: 0,
     diabetes: 0,
+    sensitiveDataConsent: false,
+    consentimentoOriginal: false,
     notes: '',
     leadershipPosition: '',
     indicatedBy: '',
@@ -58,6 +66,13 @@ function RegisterUser() {
   };
   const navigate = useNavigate();
   const theme = useTheme();
+  /**
+   * O aceite dos termos é marcado pela própria pessoa — "ao se cadastrar você
+   * concorda" não prova que ela aceitou. O servidor grava versão, data, IP e
+   * aparelho do aceite.
+   */
+  const [aceitouTermos, setAceitouTermos] = useState(false);
+  const [faltaAceite, setFaltaAceite] = useState(false);
   const escuro = theme.palette.mode === 'dark';
 
   const methods = useForm<RegisterUsersFormType>({
@@ -93,8 +108,21 @@ function RegisterUser() {
   });
 
   function onSubmitForm(data: RegisterUsersFormType) {
+    if (!aceitouTermos) {
+      setFaltaAceite(true);
+      toast.error('Para criar o cadastro, aceite os Termos de Uso.');
+      return;
+    }
+
+    const {
+      sensitiveDataConsent: _consentimento,
+      consentimentoOriginal: _original,
+      ...valores
+    } = data;
     const formatData = {
-      ...data,
+      ...valores,
+      ...consentimentoParaEnvio(data),
+      acceptedTerms: true,
       worker: !!data.worker,
       hypertensive: !!data.hypertensive,
       diabetes: !!data.diabetes,
@@ -290,7 +318,44 @@ function RegisterUser() {
             <form onSubmit={methods.handleSubmit(onSubmitForm, onInvalidForm)}>
               <Form />
 
-              <Divider sx={{ mt: 4 }} />
+              <Box sx={{ mt: 3 }}>
+                <FormControlLabel
+                  sx={{ alignItems: 'flex-start', m: 0 }}
+                  control={
+                    <Checkbox
+                      checked={aceitouTermos}
+                      onChange={(evento) => {
+                        setAceitouTermos(evento.target.checked);
+                        if (evento.target.checked) setFaltaAceite(false);
+                      }}
+                      sx={{ mt: -0.75 }}
+                    />
+                  }
+                  label={
+                    <Typography variant="body2" sx={{ lineHeight: 1.6 }}>
+                      Li e aceito os{' '}
+                      <Link
+                        component={RouterLink}
+                        to="/termos"
+                        target="_blank"
+                        rel="noopener"
+                        sx={{ fontWeight: 600 }}
+                      >
+                        Termos de Uso
+                      </Link>
+                      . Se este cadastro for de menor de idade, declaro ser o
+                      responsável legal por ele.
+                    </Typography>
+                  }
+                />
+                {faltaAceite && (
+                  <FormHelperText error sx={{ ml: 4.5 }}>
+                    É preciso aceitar os Termos de Uso para criar o cadastro.
+                  </FormHelperText>
+                )}
+              </Box>
+
+              <Divider sx={{ mt: 3 }} />
 
               <Box sx={styles.acoes}>
                 <Typography sx={styles.obrigatorio}>

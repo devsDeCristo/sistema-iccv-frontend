@@ -11,6 +11,7 @@ import {
   GET_USERS,
   REGISTER_USERS_SCHEMA,
 } from '../../../../features/admin/users/constants';
+import { consentimentoParaEnvio } from '../../../../features/admin/users/utils';
 import { RegisterUsersFormType } from '../../../../types/user';
 import { formatCPF, removeMask } from '../../../../utils';
 import { usePostCreateUser } from '../../../../features/admin/users/api/postUser';
@@ -36,6 +37,8 @@ function RegisterUser() {
     state: '',
     hypertensive: 0,
     diabetes: 0,
+    sensitiveDataConsent: false,
+    consentimentoOriginal: false,
     notes: '',
     leadershipPosition: '',
     indicatedBy: '',
@@ -73,8 +76,14 @@ function RegisterUser() {
   });
 
   function onSubmitForm(data: RegisterUsersFormType) {
+    const {
+      sensitiveDataConsent: _consentimento,
+      consentimentoOriginal: _original,
+      ...valores
+    } = data;
     const formatData = {
-      ...data,
+      ...valores,
+      ...consentimentoParaEnvio(data),
       worker: !!data.worker,
       hypertensive: !!data.hypertensive,
       diabetes: !!data.diabetes,

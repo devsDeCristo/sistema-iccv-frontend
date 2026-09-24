@@ -12,7 +12,10 @@ import {
   PdfTemplate,
 } from './types';
 
-const yesNo = (value?: boolean) => (value ? 'Sim' : 'Não');
+// nulo é "não informado": saúde sem consentimento não é guardada, e um "Não"
+// no relatório diria que a pessoa não tem a condição
+const yesNo = (value?: boolean | null) =>
+  value === null || value === undefined ? 'Não informado' : value ? 'Sim' : 'Não';
 const listNames = (items?: { name: string }[]) =>
   (items ?? []).map((item) => item.name).join(', ');
 

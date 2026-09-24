@@ -13,6 +13,7 @@ import {
   Church,
   WhatsApp,
   SpaceDashboard,
+  Gavel,
 } from '@mui/icons-material';
 import { Link, useLocation } from 'react-router-dom';
 import {
@@ -358,6 +359,16 @@ const SideBar: React.FC<SideBarProps> = ({
                 title: 'WhatsApp',
               },
             ],
+          },
+        ]
+      : []),
+    // os termos valem para a plataforma inteira, e não por igreja
+    ...(isSuperAdmin
+      ? [
+          {
+            link: '/configuracoes/termos',
+            icon: <Gavel />,
+            title: 'Termos de Uso',
           },
         ]
       : []),

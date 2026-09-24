@@ -1,7 +1,10 @@
 import {
+  Alert,
   Box,
   Button,
+  Checkbox,
   CircularProgress,
+  FormControlLabel,
   Divider,
   Grid,
   InputAdornment,
@@ -10,7 +13,11 @@ import {
   useTheme,
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
-import { LockOutlined, VolunteerActivismOutlined } from '@mui/icons-material';
+import {
+  LockOutlined,
+  ShieldOutlined,
+  VolunteerActivismOutlined,
+} from '@mui/icons-material';
 import { ReactNode, useState } from 'react';
 import { Input } from '../../../../components/input';
 import { InputDatePicker } from '../../../../components/inputDatePicker';
@@ -100,6 +107,9 @@ const NADA_TRAVADO: Record<CampoDoCep, boolean> = {
 
 /** Converte o valor 0/1 dos selects de saúde para texto */
 function booleanLabel(value: unknown) {
+  if (value === null || value === undefined || value === '') {
+    return 'Não informado';
+  }
   return OPTIONS_BOOLEAN.find((option) => option.value === Number(value))?.name;
 }
 
@@ -113,6 +123,21 @@ function Form({ readOnly = false }: { readOnly?: boolean }) {
     formState: { errors },
   } = useFormContext<RegisterUsersFormType>();
   const values = watch();
+  /**
+   * Saúde e religião só existem com o consentimento específico (LGPD, art.
+   * 11). Sem ele os campos ficam travados em "Não informado" — e o servidor
+   * descarta o que vier, de qualquer forma.
+   */
+  const consentido = !!values.sensitiveDataConsent;
+  const revogando = !!values.consentimentoOriginal && !consentido;
+  const naoInformado = (label: string) => (
+    <Input
+      label={label}
+      value="Não informado"
+      disabled
+      errorMessage="Depende da autorização acima"
+    />
+  );
   const isMinor = values.birthday
     ? calculateAge(values.birthday, new Date()) < GUARDIAN_REQUIRED_BELOW_AGE
     : false;
@@ -608,12 +633,78 @@ function Form({ readOnly = false }: { readOnly?: boolean }) {
 
       <Grid item xs={12}>
         <Section title="Dados de saúde">
+          <Grid item xs={12}>
+            {readOnly ? (
+              <ViewField
+                label="Dados de saúde e religião"
+                value={consentido ? 'Autorizado pelo titular' : 'Não autorizado'}
+              />
+            ) : (
+              <Box
+                sx={{
+                  p: 1.75,
+                  borderRadius: 2,
+                  border: '1px solid',
+                  borderColor: (tema) =>
+                    alpha(tema.palette.primary.main, consentido ? 0.5 : 0.25),
+                  backgroundColor: (tema) =>
+                    alpha(tema.palette.primary.main, 0.05),
+                }}
+              >
+                <Stack direction="row" gap={1.25} alignItems="flex-start">
+                  <ShieldOutlined
+                    sx={{ color: 'primary.main', mt: 0.9, flexShrink: 0 }}
+                  />
+                  <Controller
+                    name="sensitiveDataConsent"
+                    control={control}
+                    render={({ field: { onChange, value } }) => (
+                      <FormControlLabel
+                        sx={{ alignItems: 'flex-start', m: 0 }}
+                        control={
+                          <Checkbox
+                            checked={!!value}
+                            onChange={(evento) => onChange(evento.target.checked)}
+                            sx={{ mt: -0.5 }}
+                          />
+                        }
+                        label={
+                          <Box>
+                            <Typography sx={{ fontWeight: 600, fontSize: '0.9375rem' }}>
+                              Autorizo o uso dos dados de saúde e de religião deste
+                              cadastro
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.25 }}>
+                              Servem só para organizar os eventos e cuidar da saúde
+                              do participante durante eles. A autorização é
+                              opcional e pode ser retirada a qualquer momento; sem
+                              ela, esses dados não são guardados. No cadastro feito
+                              pela organização, marque apenas com a autorização do
+                              titular ou do responsável.
+                            </Typography>
+                          </Box>
+                        }
+                      />
+                    )}
+                  />
+                </Stack>
+                {revogando && (
+                  <Alert severity="warning" sx={{ mt: 1.5, borderRadius: 1.5 }}>
+                    Ao salvar, os dados de saúde e de religião deste cadastro serão
+                    apagados.
+                  </Alert>
+                )}
+              </Box>
+            )}
+          </Grid>
           <Grid item {...(readOnly ? VIEW_SIZE : { xs: 12, sm: 6, md: 3 })}>
             {readOnly ? (
               <ViewField
                 label="Possui Diabetes?"
                 value={booleanLabel(values.diabetes)}
               />
+            ) : !consentido ? (
+              naoInformado('Possui Diabetes?')
             ) : (
               <Controller
                 name="diabetes"
@@ -636,6 +727,8 @@ function Form({ readOnly = false }: { readOnly?: boolean }) {
                 label="Possui Hipertensão?"
                 value={booleanLabel(values.hypertensive)}
               />
+            ) : !consentido ? (
+              naoInformado('Possui Hipertensão?')
             ) : (
               <Controller
                 name="hypertensive"
@@ -680,6 +773,8 @@ function Form({ readOnly = false }: { readOnly?: boolean }) {
           <Grid item {...(readOnly ? VIEW_SIZE : { xs: 12, sm: 6, md: 4 })}>
             {readOnly ? (
               <ViewField label="Religião" value={values.religion} />
+            ) : !consentido ? (
+              naoInformado('Religião')
             ) : (
               <Controller
                 name="religion"

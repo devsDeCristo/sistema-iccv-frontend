@@ -2,7 +2,8 @@ import { Navigate, Route } from 'react-router-dom';
 import { DispatcherWhatsapp } from '../dispatchers';
 import { PaymentsSettings } from '../payments';
 import { RequireRole } from '../../../components/requireRole';
-import { ADMIN_ROLES } from '../../../constants/roles';
+import { ADMIN_ROLES, SUPER_ADMIN_ROLES } from '../../../constants/roles';
+import { TermsSettings } from '../terms';
 
 /**
  * Configurações do sistema.
@@ -46,6 +47,15 @@ function RoutesSettings() {
         path="/configuracoes/disparadores"
         element={
           <Navigate replace to="/configuracoes/disparadores/whatsapp" />
+        }
+      />
+      {/* os termos valem para a plataforma inteira: só super admin e dev */}
+      <Route
+        path="/configuracoes/termos"
+        element={
+          <RequireRole allowedRoles={SUPER_ADMIN_ROLES}>
+            <TermsSettings />
+          </RequireRole>
         }
       />
       <Route

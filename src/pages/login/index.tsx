@@ -2,12 +2,13 @@ import {
   Box,
   Button,
   CircularProgress,
+  Link,
   Stack,
   Typography,
   useTheme,
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
-import { useNavigate } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 
 import { FormProvider, useForm } from 'react-hook-form';
 import { LOGIN_SCHEMA } from '../../features/login/constants';
@@ -303,6 +304,13 @@ function Login() {
       justifyContent: 'center',
       alignItems: 'center',
     },
+    avisoDosTermos: {
+      mt: 1.5,
+      fontSize: '0.8rem',
+      lineHeight: 1.5,
+      textAlign: 'center',
+      color: 'text.secondary',
+    },
     copyright: {
       // no celular o rodapé cai sobre o pé da foto, onde o véu já está fechado
       color: { xs: alpha('#FFFFFF', 0.72), md: 'text.secondary' },
@@ -406,6 +414,18 @@ function Login() {
                   Criar cadastro
                 </Button>
               </Stack>
+
+              <Typography sx={styles.avisoDosTermos}>
+                Ao entrar ou criar cadastro, você concorda com os{' '}
+                <Link
+                  component={RouterLink}
+                  to="/termos"
+                  sx={{ fontWeight: 600 }}
+                >
+                  Termos de Uso
+                </Link>
+                .
+              </Typography>
             </Box>
           </Box>
 

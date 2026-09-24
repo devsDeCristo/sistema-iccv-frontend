@@ -89,8 +89,11 @@ export interface User {
   cpf: string;
   birthday: Date;
   cellphone: string;
-  diabetes: boolean;
-  hypertensive: boolean;
+  /** `null` é não informado — sem consentimento, nem é guardado */
+  diabetes: boolean | null;
+  hypertensive: boolean | null;
+  /** quando o titular autorizou saúde e religião; `null` é sem autorização */
+  sensitiveConsentAt?: string | null;
   profession: string;
   neighborhood: string;
   /** Opcionais no servidor: os cadastros anteriores à coluna não têm o dado */

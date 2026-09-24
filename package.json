@@ -27,6 +27,7 @@
     "axios": "^1.19.0",
     "date-fns": "^2.30.0",
     "dayjs": "^1.11.23",
+    "dompurify": "^3.2.6",
     "file-saver": "^2.0.5",
     "jsqr": "^1.4.0",
     "qrcode.react": "^4.2.0",
