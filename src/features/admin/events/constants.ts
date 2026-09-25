@@ -1,3 +1,4 @@
+import { MAXIMO_DE_FOTOS } from './products';
 import {
   Assignment,
   Category,
@@ -163,7 +164,9 @@ export const PRODUCTS_SCHEMA = z.object({
             invalid_type_error: DEFAULT_MESSAGE,
           })
           .min(0, 'O preço não pode ser negativo'),
-        image: z.string().optional().nullable(),
+        images: z
+          .array(z.string())
+          .max(MAXIMO_DE_FOTOS, 'Até 5 fotos por produto'),
         variants: z
           .array(
             z.object({

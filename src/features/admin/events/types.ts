@@ -174,8 +174,11 @@ export interface EventProduct {
   name: string;
   description?: string | null;
   price: number;
-  /** data URL base64 da foto */
-  image?: string | null;
+  /**
+   * Até 5 fotos, data URL base64 cada; a primeira é a capa — a que aparece
+   * sozinha onde só cabe uma (pedidos, card da loja, diálogo de tamanhos)
+   */
+  images: string[];
   variants: EventProductVariant[];
 }
 

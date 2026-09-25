@@ -25,6 +25,7 @@ import { UserAvatar } from '../../../../components/userAvatar';
 import { PaymentResponse } from '../../../../types/user';
 import { useGetPayments } from '../api/getPayments';
 import {
+  capaDoProduto,
   pedidosDeProdutos,
   ResumoDeProduto,
   resumoDeProdutos,
@@ -92,8 +93,8 @@ function CardsProductOrders({
     () =>
       new Map(
         (products ?? [])
-          .filter((produto) => produto.id && produto.image)
-          .map((produto) => [produto.id!, produto.image!])
+          .filter((produto) => produto.id && capaDoProduto(produto))
+          .map((produto) => [produto.id!, capaDoProduto(produto)!])
       ),
     [products]
   );

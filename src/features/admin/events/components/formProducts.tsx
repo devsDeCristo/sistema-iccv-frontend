@@ -1,3 +1,4 @@
+import { ImageCarousel } from '../../../../components/imageCarousel';
 import {
   Accordion,
   AccordionDetails,
@@ -15,6 +16,7 @@ import {
   Tooltip,
   Typography,
   useTheme,
+  Dialog,
 } from '@mui/material';
 import {
   Add,
@@ -22,6 +24,9 @@ import {
   DeleteOutline,
   ExpandMore,
   ShoppingBagOutlined,
+  Close,
+  StarOutline,
+  ZoomOutMap,
 } from '@mui/icons-material';
 import { useRef, useState } from 'react';
 import { Controller, useFormContext, useWatch } from 'react-hook-form';
@@ -35,7 +40,12 @@ import {
 } from '../../../../utils';
 import { reduzirFotoParaDataUrl } from '../../../../utils/image';
 import { EventProduct, ProductsFormType } from '../types';
-import { TAMANHO_MAXIMO_DA_FOTO, produtoVazio } from '../products';
+import {
+  TAMANHO_MAXIMO_DA_FOTO,
+  produtoVazio,
+  MAXIMO_DE_FOTOS,
+  capaDoProduto,
+} from '../products';
 
 function plural(quantidade: number, singular: string, plural: string) {
   return `${quantidade} ${quantidade === 1 ? singular : plural}`;
@@ -72,6 +82,7 @@ function CartaoProduto({
   const {
     control,
     setValue,
+    getValues,
     formState: { errors },
   } = useFormContext<ProductsFormType>();
   const entradaDaFoto = useRef<HTMLInputElement>(null);
@@ -82,21 +93,44 @@ function CartaoProduto({
   const foiVendido = vendidos > 0;
   const errosDoProduto = errors.products?.[index];
 
-  async function aoEscolherFoto(arquivo?: File) {
-    if (!arquivo) return;
+  const fotos = produto.images ?? [];
+  const cabemMais = fotos.length < MAXIMO_DE_FOTOS;
+  /** a foto aberta em tamanho grande, ou `null` com a visualização fechada */
+  const [ampliada, setAmpliada] = useState<number | null>(null);
+  const trocarFotos = (novas: string[]) =>
+    setValue(`products.${index}.images`, novas, { shouldDirty: true });
+
+  /** Várias de uma vez, até completar as 5; a primeira da lista é a capa */
+  async function aoEscolherFotos(arquivos?: FileList | null) {
+    const escolhidos = Array.from(arquivos ?? []);
+    if (!escolhidos.length) return;
+
+    const atuais = getValues(`products.${index}.images`) ?? [];
+    const vagas = MAXIMO_DE_FOTOS - atuais.length;
+    if (escolhidos.length > vagas) {
+      toast.info(
+        `Cada produto tem até ${MAXIMO_DE_FOTOS} fotos: entraram só ${Math.max(vagas, 0)}.`
+      );
+    }
 
     setProcessandoFoto(true);
     try {
-      const foto = await reduzirFotoParaDataUrl(arquivo);
-
-      if (foto.length > TAMANHO_MAXIMO_DA_FOTO) {
-        toast.error('A foto continua grande demais. Tente outra imagem.');
-        return;
+      const reduzidas: string[] = [];
+      for (const arquivo of escolhidos.slice(0, Math.max(vagas, 0))) {
+        const foto = await reduzirFotoParaDataUrl(arquivo);
+        if (foto.length > TAMANHO_MAXIMO_DA_FOTO) {
+          toast.error(
+            `"${arquivo.name}" continua grande demais. Tente outra imagem.`
+          );
+          continue;
+        }
+        reduzidas.push(foto);
       }
-
-      setValue(`products.${index}.image`, foto, { shouldDirty: true });
+      if (reduzidas.length) trocarFotos([...atuais, ...reduzidas]);
     } catch {
-      toast.error('Não foi possível ler esta imagem. Use PNG, JPG ou WebP.');
+      toast.error(
+        'Não foi possível ler uma das imagens. Use PNG, JPG ou WebP.'
+      );
     } finally {
       setProcessandoFoto(false);
       // limpa o input: escolher a mesma foto de novo precisa disparar o change
@@ -156,6 +190,95 @@ function CartaoProduto({
         outlineOffset: 2,
       },
     },
+    seloCapa: {
+      position: 'absolute',
+      left: 6,
+      top: 6,
+      px: 0.75,
+      py: 0.1,
+      borderRadius: 1,
+      fontSize: 10,
+      fontWeight: 700,
+      letterSpacing: '0.04em',
+      textTransform: 'uppercase',
+      color: '#fff',
+      bgcolor: alpha('#000', 0.5),
+    },
+    miniaturas: {
+      mt: 1,
+      display: 'grid',
+      gridTemplateColumns: 'repeat(5, 1fr)',
+      gap: 0.5,
+    },
+    miniaturaDaFoto: {
+      position: 'relative',
+      cursor: 'zoom-in',
+      aspectRatio: '1 / 1',
+      borderRadius: 1,
+      overflow: 'hidden',
+      border: `1px solid ${theme.palette.divider}`,
+      // as ações aparecem por cima quando o mouse entra; no toque, sempre
+      '&:hover .acoes-da-foto, &:focus-within .acoes-da-foto': { opacity: 1 },
+    },
+    acoesDaFoto: {
+      position: 'absolute',
+      inset: 0,
+      alignItems: 'flex-start',
+      justifyContent: 'flex-end',
+      opacity: { xs: 1, md: 0 },
+      transition: 'opacity .15s ease',
+      bgcolor: alpha('#000', 0.28),
+      '& .MuiIconButton-root': {
+        p: 0.25,
+        m: 0.25,
+        color: '#fff',
+        bgcolor: alpha('#000', 0.45),
+        '&:hover': { bgcolor: alpha('#000', 0.65) },
+      },
+    },
+    ampliar: {
+      position: 'absolute',
+      top: 6,
+      right: 6,
+      p: 0.5,
+      color: '#fff',
+      bgcolor: alpha('#000', 0.45),
+      backdropFilter: 'blur(4px)',
+      '&:hover': { bgcolor: alpha('#000', 0.65) },
+    },
+    // fundo escuro: a foto inteira (`contain`) sobra nas bordas, e o escuro
+    // some em volta dela em vez de enquadrá-la de branco
+    janelaAmpliada: {
+      borderRadius: 3,
+      overflow: 'hidden',
+      bgcolor: '#0b0b12',
+      backgroundImage: 'none',
+    },
+    fecharAmpliada: {
+      position: 'absolute',
+      top: 10,
+      right: 10,
+      color: '#fff',
+      bgcolor: alpha('#000', 0.45),
+      '&:hover': { bgcolor: alpha('#000', 0.65) },
+    },
+    miniaturaCapa: {
+      borderColor: theme.palette.primary.main,
+      boxShadow: `0 0 0 1px ${theme.palette.primary.main}`,
+    },
+    adicionarFoto: {
+      aspectRatio: '1 / 1',
+      p: 0,
+      borderRadius: 1,
+      cursor: 'pointer',
+      display: 'grid',
+      placeItems: 'center',
+      color: 'primary.main',
+      border: `1px dashed ${alpha(theme.palette.primary.main, 0.5)}`,
+      bgcolor: alpha(theme.palette.primary.main, 0.04),
+      '&:hover': { bgcolor: alpha(theme.palette.primary.main, 0.1) },
+      '&:disabled': { opacity: 0.5, cursor: 'default' },
+    },
     linhaVariante: {
       p: 1.5,
       borderRadius: 2,
@@ -178,10 +301,10 @@ function CartaoProduto({
       sx={styles.cartao}
     >
       <AccordionSummary expandIcon={<ExpandMore />} sx={styles.resumo}>
-        {produto.image ? (
+        {capaDoProduto(produto) ? (
           <Box
             component="img"
-            src={produto.image}
+            src={capaDoProduto(produto)!}
             alt=""
             sx={styles.miniatura}
           />
@@ -250,64 +373,191 @@ function CartaoProduto({
         </Tooltip>
       </AccordionSummary>
 
-      <AccordionDetails
-        sx={{ pt: 0, mt: 1, minWidth: 0, overflow: 'hidden' }}
-      >
+      <AccordionDetails sx={{ pt: 0, mt: 1, minWidth: 0, overflow: 'hidden' }}>
         <Stack direction={{ xs: 'column', sm: 'row' }} gap={2}>
-          <Box sx={{ flexShrink: 0 }}>
-            <Box
-              role="button"
-              tabIndex={0}
-              aria-label={produto.image ? 'Trocar foto' : 'Adicionar foto'}
-              sx={styles.foto}
-              onClick={() => entradaDaFoto.current?.click()}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter' || event.key === ' ') {
-                  event.preventDefault();
-                  entradaDaFoto.current?.click();
-                }
-              }}
-            >
-              {processandoFoto ? (
-                <CircularProgress size={24} />
-              ) : produto.image ? (
-                <Box
-                  component="img"
-                  src={produto.image}
+          <Box sx={{ flexShrink: 0, width: { xs: '100%', sm: 148 } }}>
+            {fotos.length && !processandoFoto ? (
+              // as fotos passam uma a uma, como na loja; ampliar abre todas em
+              // tamanho grande e inteiras, sem o corte da moldura
+              <Box
+                sx={{ ...styles.foto, cursor: 'default', borderStyle: 'solid' }}
+              >
+                <ImageCarousel
+                  images={fotos}
                   alt={produto.name || 'Foto do produto'}
-                  sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  sx={{ position: 'absolute', inset: 0 }}
                 />
-              ) : (
-                <Stack alignItems="center" gap={0.5} sx={{ p: 1 }}>
-                  <AddPhotoAlternateOutlined color="action" />
-                  <Typography variant="caption" color="text.secondary">
-                    Adicionar foto
-                  </Typography>
-                </Stack>
-              )}
-            </Box>
+                <Tooltip title="Ver em tamanho grande">
+                  <IconButton
+                    size="small"
+                    aria-label="Ver em tamanho grande"
+                    onClick={() => setAmpliada(0)}
+                    sx={styles.ampliar}
+                  >
+                    <ZoomOutMap sx={{ fontSize: 16 }} />
+                  </IconButton>
+                </Tooltip>
+              </Box>
+            ) : (
+              <Box
+                role="button"
+                tabIndex={0}
+                aria-label="Adicionar fotos"
+                sx={styles.foto}
+                onClick={() => entradaDaFoto.current?.click()}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    entradaDaFoto.current?.click();
+                  }
+                }}
+              >
+                {processandoFoto ? (
+                  <CircularProgress size={24} />
+                ) : (
+                  <Stack alignItems="center" gap={0.5} sx={{ p: 1 }}>
+                    <AddPhotoAlternateOutlined color="action" />
+                    <Typography variant="caption" color="text.secondary">
+                      Adicionar fotos
+                    </Typography>
+                    <Typography variant="caption" color="text.disabled">
+                      até {MAXIMO_DE_FOTOS}
+                    </Typography>
+                  </Stack>
+                )}
+              </Box>
+            )}
             <input
               ref={entradaDaFoto}
               type="file"
               hidden
+              multiple
               accept="image/png,image/jpeg,image/webp"
-              onChange={(event) => aoEscolherFoto(event.target.files?.[0])}
+              onChange={(event) => aoEscolherFotos(event.target.files)}
             />
-            {produto.image && (
-              <Button
-                size="small"
-                color="inherit"
-                fullWidth
-                sx={{ mt: 0.5, textTransform: 'none', color: 'text.secondary' }}
-                onClick={() =>
-                  setValue(`products.${index}.image`, null, {
-                    shouldDirty: true,
-                  })
-                }
-              >
-                Remover foto
-              </Button>
+
+            {fotos.length > 0 && (
+              <>
+                <Box sx={styles.miniaturas}>
+                  {fotos.map((foto, indiceDaFoto) => (
+                    <Box
+                      key={indiceDaFoto}
+                      sx={{
+                        ...styles.miniaturaDaFoto,
+                        ...(indiceDaFoto === 0 && styles.miniaturaCapa),
+                      }}
+                      onClick={() => setAmpliada(indiceDaFoto)}
+                    >
+                      <Box
+                        component="img"
+                        src={foto}
+                        alt=""
+                        sx={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover',
+                        }}
+                      />
+                      <Stack
+                        direction="row"
+                        className="acoes-da-foto"
+                        sx={styles.acoesDaFoto}
+                      >
+                        {indiceDaFoto > 0 && (
+                          <Tooltip title="Tornar capa">
+                            <IconButton
+                              size="small"
+                              aria-label="Tornar capa"
+                              onClick={(event) => {
+                                // o clique é do botão, não da miniatura
+                                event.stopPropagation();
+                                trocarFotos([
+                                  foto,
+                                  ...fotos.filter((_, i) => i !== indiceDaFoto),
+                                ]);
+                              }}
+                            >
+                              <StarOutline sx={{ fontSize: 14 }} />
+                            </IconButton>
+                          </Tooltip>
+                        )}
+                        <Tooltip title="Remover foto">
+                          <IconButton
+                            size="small"
+                            aria-label="Remover foto"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              trocarFotos(
+                                fotos.filter((_, i) => i !== indiceDaFoto)
+                              );
+                            }}
+                          >
+                            <Close sx={{ fontSize: 14 }} />
+                          </IconButton>
+                        </Tooltip>
+                      </Stack>
+                    </Box>
+                  ))}
+                  {/* o lugar de pôr mais fotos, à vista: clicar na capa também
+                      abre a escolha, mas ninguém adivinha isso */}
+                  {cabemMais && (
+                    <Tooltip title="Adicionar fotos">
+                      <Box
+                        component="button"
+                        type="button"
+                        aria-label="Adicionar fotos"
+                        disabled={processandoFoto}
+                        onClick={() => entradaDaFoto.current?.click()}
+                        sx={styles.adicionarFoto}
+                      >
+                        <Add sx={{ fontSize: 18 }} />
+                      </Box>
+                    </Tooltip>
+                  )}
+                </Box>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ display: 'block', mt: 0.5 }}
+                >
+                  {fotos.length} de {MAXIMO_DE_FOTOS} fotos · a primeira é a
+                  capa
+                </Typography>
+              </>
             )}
+
+            <Dialog
+              open={ampliada !== null}
+              onClose={() => setAmpliada(null)}
+              maxWidth="md"
+              fullWidth
+              PaperProps={{ sx: styles.janelaAmpliada }}
+            >
+              <Box
+                sx={{
+                  position: 'relative',
+                  height: { xs: '60vh', md: '72vh' },
+                }}
+              >
+                {ampliada !== null && (
+                  <ImageCarousel
+                    key={ampliada}
+                    images={fotos}
+                    alt={produto.name || 'Foto do produto'}
+                    ajuste="contain"
+                    inicial={ampliada}
+                    sx={{ position: 'absolute', inset: 0 }}
+                  />
+                )}
+                <IconButton
+                  aria-label="Fechar"
+                  onClick={() => setAmpliada(null)}
+                  sx={styles.fecharAmpliada}
+                >
+                  <Close />
+                </IconButton>
+              </Box>
+            </Dialog>
           </Box>
 
           <Grid

@@ -11,6 +11,7 @@ import { ArrowForward, Storefront } from '@mui/icons-material';
 import { AZUL_VIVO, VIOLETA_VIVO } from '../../../themes';
 import { formatCurrency } from '../../../utils';
 import { EventProduct } from '../../admin/events/types';
+import { capaDoProduto } from '../../admin/events/products';
 
 interface StoreCardProps {
   /** só os que ainda têm o que vender */
@@ -35,7 +36,7 @@ const FOTOS_NO_LEQUE = 3;
  */
 function StoreCard({ produtos, onClick, sx }: StoreCardProps) {
   const fotos = produtos
-    .map((produto) => produto.image)
+    .map(capaDoProduto)
     .filter((imagem): imagem is string => !!imagem)
     .slice(0, FOTOS_NO_LEQUE);
 

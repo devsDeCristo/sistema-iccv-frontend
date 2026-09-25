@@ -8,6 +8,13 @@ import { EventProduct, PaymentProductItem } from './types';
  */
 export const TAMANHO_MAXIMO_DA_FOTO = 700_000;
 
+/** Fotos por produto, como no servidor; a primeira é a capa */
+export const MAXIMO_DE_FOTOS = 5;
+
+/** A capa do produto: a primeira foto, ou nenhuma */
+export const capaDoProduto = (produto: { images?: string[] | null }) =>
+  produto.images?.[0] ?? null;
+
 /** Unidades de uma variante num pedido — o servidor recusa acima disso. */
 export const QUANTIDADE_MAXIMA_POR_ITEM = 20;
 
@@ -15,7 +22,7 @@ export const produtoVazio = (): EventProduct => ({
   name: '',
   description: '',
   price: null as unknown as number,
-  image: null,
+  images: [],
   // nasce com uma variante porque a compra aponta para uma: produto sem escolha
   // (uma caneca) fica com essa única
   variants: [{ name: '', stock: null }],
@@ -32,7 +39,7 @@ export function produtosParaEnvio(produtos: EventProduct[] = []) {
     name: produto.name.trim(),
     description: produto.description?.trim() || null,
     price: produto.price,
-    image: produto.image || null,
+    images: produto.images ?? [],
     variants: variants.map(({ id, name, stock }) => ({
       ...(id && { id }),
       name: name.trim(),
@@ -46,7 +53,7 @@ export function produtosParaFormulario(produtos: EventProduct[] = []) {
   return produtos.map((produto) => ({
     ...produto,
     description: produto.description ?? '',
-    image: produto.image ?? null,
+    images: produto.images ?? [],
     variants: produto.variants.map((variante) => ({
       id: variante.id,
       name: variante.name,

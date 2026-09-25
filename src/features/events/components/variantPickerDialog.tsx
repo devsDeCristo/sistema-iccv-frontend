@@ -16,6 +16,7 @@ import { useRef } from 'react';
 import { formatCurrency } from '../../../utils';
 import { EventProduct } from '../../admin/events/types';
 import {
+  capaDoProduto,
   QUANTIDADE_MAXIMA_POR_ITEM,
   temDisponivel,
 } from '../../admin/events/products';
@@ -115,10 +116,10 @@ function VariantPickerDialog({
             sx={{ p: { xs: 2, sm: 2.5 } }}
           >
             <Box sx={styles.miniatura}>
-              {atual.image ? (
+              {capaDoProduto(atual) ? (
                 <Box
                   component="img"
-                  src={atual.image}
+                  src={capaDoProduto(atual)!}
                   alt={atual.name}
                   sx={styles.foto}
                 />

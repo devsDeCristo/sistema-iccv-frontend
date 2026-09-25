@@ -1,3 +1,4 @@
+import { ImageCarousel } from '../../../components/imageCarousel';
 import {
   alpha,
   Badge,
@@ -329,16 +330,6 @@ function ProductOffer({
       color: 'text.disabled',
       bgcolor: alpha(theme.palette.text.primary, 0.05),
     },
-    // `cover` é o corte: a foto preenche a moldura pelo centro e o que sobra
-    // fica de fora, em vez de deformar ou deixar tarja
-    foto: {
-      width: '100%',
-      height: '100%',
-      display: 'block',
-      objectFit: 'cover' as const,
-      objectPosition: 'center',
-      transition: 'transform .45s ease',
-    },
     // etiqueta sobre a foto, como em prateleira: o preço é do produto, não da
     // variante, então ele pertence à imagem e não à lista de tamanhos
     etiqueta: {
@@ -504,14 +495,17 @@ function ProductOffer({
           return (
             <Paper key={produto.id} sx={styles.cartao}>
               <Box sx={styles.vitrine}>
-                {produto.image ? (
-                  <Box
-                    component="img"
-                    src={produto.image}
+                {/* até 5 fotos: com mais de uma, o carrossel; o zoom do
+                    hover continua valendo para a que está na frente */}
+                {produto.images?.length ? (
+                  <ImageCarousel
+                    images={produto.images}
                     alt={produto.name}
-                    loading="lazy"
-                    className="foto-do-produto"
-                    sx={styles.foto}
+                    imageClassName="foto-do-produto"
+                    // preso às bordas da vitrine: ela é um grid que centraliza,
+                    // e ali o `height: 100%` não se resolve — o carrossel crescia
+                    // até a altura natural da foto e as bolinhas saíam de vista
+                    sx={{ position: 'absolute', inset: 0 }}
                   />
                 ) : (
                   <ShoppingBagOutlined sx={{ fontSize: 44 }} />

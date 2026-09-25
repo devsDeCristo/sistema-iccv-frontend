@@ -23,6 +23,7 @@ import { PaymentResponse } from '../../../../types/user';
 import { useGetPayments } from '../api/getPayments';
 import { usePatchProductsDelivery } from '../api/patchProductsDelivery';
 import {
+  capaDoProduto,
   descreverItemDoPedido,
   PedidoDeProduto,
   pedidosDeProdutos,
@@ -75,8 +76,8 @@ function ListProductOrders({
     () =>
       new Map(
         (products ?? [])
-          .filter((produto) => produto.id && produto.image)
-          .map((produto) => [produto.id!, produto.image!])
+          .filter((produto) => produto.id && capaDoProduto(produto))
+          .map((produto) => [produto.id!, capaDoProduto(produto)!])
       ),
     [products]
   );
