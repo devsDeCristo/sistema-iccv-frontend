@@ -7,6 +7,7 @@ import {
 import { RoutesLogin } from '../pages/login/routes';
 import { RegisterUser } from '../pages/users/register';
 import { Terms } from '../pages/terms';
+import { Profile } from '../pages/profile';
 
 import { RoutesHomeAdmin } from '../pages/admin/home/routes';
 import { RoutesUsersAdmin } from '../pages/admin/users/routes';
@@ -85,6 +86,8 @@ const routers = (): ReturnType<typeof createBrowserRouter> => {
           {RoutesUsers()}
           {RoutesEvents()}
           {RoutesMyRegisters()}
+          {/* perfil de quem está logado — admin e usuário entram pelo mesmo menu */}
+          <Route path="/perfil" element={<Profile />} />
         </Route>
       </Route>
     )

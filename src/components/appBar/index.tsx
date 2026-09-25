@@ -15,6 +15,7 @@ import {
   Logout,
   Person,
   Tune,
+  AccountCircleOutlined,
 } from '@mui/icons-material';
 
 import {
@@ -231,12 +232,17 @@ export default function MenuAppBar({
                 </Stack>
               </Stack>
               <Divider sx={{ mb: 0.5 }} />
-              {/* <MenuItem onClick={handleClose}>
+              <MenuItem
+                onClick={() => {
+                  navigate('/perfil');
+                  handleClose();
+                }}
+              >
                 <ListItemIcon>
-                  <Person fontSize="small" />
+                  <AccountCircleOutlined fontSize="small" />
                 </ListItemIcon>
-                Perfil
-              </MenuItem> */}
+                Meu perfil
+              </MenuItem>
               {canAccessAdminArea && !isAdminRoute && (
                 <MenuItem
                   onClick={() => {

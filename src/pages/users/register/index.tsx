@@ -1,5 +1,10 @@
 import Swal from 'sweetalert2';
-import { useForm, FormProvider } from 'react-hook-form';
+import {
+  useForm,
+  FormProvider,
+  Controller,
+  useFormContext,
+} from 'react-hook-form';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -8,6 +13,8 @@ import {
   Box,
   Button,
   Checkbox,
+  Grid,
+  InputAdornment,
   CircularProgress,
   FormControlLabel,
   FormHelperText,
@@ -19,9 +26,11 @@ import {
   useTheme,
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
-import { ArrowBack } from '@mui/icons-material';
+import { ArrowBack, Visibility, VisibilityOff } from '@mui/icons-material';
 
-import { Form } from '../../../features/admin/users/components/form';
+import { Form, Section } from '../../../features/admin/users/components/form';
+import { NEW_PASSWORD_SCHEMA } from '../../../features/login/constants';
+import { NewPasswordFormType } from '../../../features/login/types';
 import { usePermission } from '../../../hooks/usePermission';
 import {
   ENUM_OPTION_LEADERSHIP_POSITION,
@@ -31,11 +40,95 @@ import { consentimentoParaEnvio } from '../../../features/admin/users/utils';
 import { RegisterUsersFormType } from '../../../types/user';
 import { formatCPF, removeMask } from '../../../utils';
 import { usePostCreateUser } from '../../../features/admin/users/api/postUser';
+import { Input } from '../../../components/input';
 import Logo from '../../../assets/logo-ic.svg?react';
+
+/**
+ * O cadastro público pede a senha junto dos dados: é com ela que a pessoa
+ * entra. As regras são as da redefinição de senha (8 a 72 caracteres, as duas
+ * iguais) — o mesmo schema, para uma não andar diferente da outra.
+ */
+const CADASTRO_COM_SENHA = REGISTER_USERS_SCHEMA.and(NEW_PASSWORD_SCHEMA);
+type CadastroComSenha = RegisterUsersFormType & NewPasswordFormType;
+
+/**
+ * A senha tem seção própria, fora do formulário de dados: ele é o mesmo da
+ * edição e do painel, onde senha não se troca.
+ */
+function SecaoDaSenha() {
+  const [mostrar, setMostrar] = useState(false);
+  const {
+    control,
+    formState: { errors },
+  } = useFormContext<CadastroComSenha>();
+
+  const alternar = (
+    <InputAdornment position="end">
+      <IconButton
+        aria-label="Mostrar ou esconder a senha"
+        onClick={() => setMostrar((atual) => !atual)}
+        onMouseDown={(evento) => evento.preventDefault()}
+      >
+        {mostrar ? <VisibilityOff /> : <Visibility />}
+      </IconButton>
+    </InputAdornment>
+  );
+
+  return (
+    <Box sx={{ mt: 4 }}>
+      <Section title="Senha de acesso">
+        <Grid item xs={12}>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: -1 }}>
+            Você vai entrar com o seu CPF e esta senha. Use pelo menos 8
+            caracteres — uma frase curta é mais fácil de lembrar e mais difícil
+            de adivinhar.
+          </Typography>
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <Controller
+            name="password"
+            control={control}
+            render={({ field: { onChange, value } }) => (
+              <Input
+                required
+                label="Senha"
+                autoComplete="new-password"
+                type={mostrar ? 'text' : 'password'}
+                value={value}
+                onChange={onChange}
+                error={!!errors.password}
+                errorMessage={errors.password?.message}
+                InputProps={{ endAdornment: alternar }}
+              />
+            )}
+          />
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <Controller
+            name="confirmPassword"
+            control={control}
+            render={({ field: { onChange, value } }) => (
+              <Input
+                required
+                label="Digite a senha novamente"
+                autoComplete="new-password"
+                type={mostrar ? 'text' : 'password'}
+                value={value}
+                onChange={onChange}
+                error={!!errors.confirmPassword}
+                errorMessage={errors.confirmPassword?.message}
+              />
+            )}
+          />
+        </Grid>
+      </Section>
+    </Box>
+  );
+}
 
 function RegisterUser() {
   const cpfLogin = localStorage.getItem('cpf') || '';
-  const DEFAULT_VALUES: RegisterUsersFormType = {
+  const DEFAULT_VALUES: CadastroComSenha = {
     fullName: '',
     // o formulário tem o campo, e sem valor inicial o input nasce não
     // controlado e troca de tipo na primeira digitada
@@ -57,6 +150,8 @@ function RegisterUser() {
     diabetes: 0,
     sensitiveDataConsent: false,
     consentimentoOriginal: false,
+    password: '',
+    confirmPassword: '',
     notes: '',
     leadershipPosition: '',
     indicatedBy: '',
@@ -75,8 +170,8 @@ function RegisterUser() {
   const [faltaAceite, setFaltaAceite] = useState(false);
   const escuro = theme.palette.mode === 'dark';
 
-  const methods = useForm<RegisterUsersFormType>({
-    resolver: zodResolver(REGISTER_USERS_SCHEMA),
+  const methods = useForm<CadastroComSenha>({
+    resolver: zodResolver(CADASTRO_COM_SENHA),
     defaultValues: DEFAULT_VALUES,
   });
   const permission = usePermission();
@@ -107,7 +202,7 @@ function RegisterUser() {
     },
   });
 
-  function onSubmitForm(data: RegisterUsersFormType) {
+  function onSubmitForm(data: CadastroComSenha) {
     if (!aceitouTermos) {
       setFaltaAceite(true);
       toast.error('Para criar o cadastro, aceite os Termos de Uso.');
@@ -117,6 +212,8 @@ function RegisterUser() {
     const {
       sensitiveDataConsent: _consentimento,
       consentimentoOriginal: _original,
+      // a confirmação só serve à tela: vai a senha, uma vez
+      confirmPassword: _confirmacao,
       ...valores
     } = data;
     const formatData = {
@@ -147,7 +244,8 @@ function RegisterUser() {
           ? undefined
           : data.leadershipPosition,
       role: 5,
-      password: '$2b$10$QGF/lucztAy.bqQFEQcSOOjP3fGMZfSsCIl4t.dfFo15Hh0v/C8xW',
+      // a senha escolhida; o servidor guarda só o hash
+      password: data.password,
     };
 
     mutatePostCreateUser(formatData);
@@ -317,6 +415,7 @@ function RegisterUser() {
           <FormProvider {...methods}>
             <form onSubmit={methods.handleSubmit(onSubmitForm, onInvalidForm)}>
               <Form />
+              <SecaoDaSenha />
 
               <Box sx={{ mt: 3 }}>
                 <FormControlLabel

@@ -113,7 +113,14 @@ function booleanLabel(value: unknown) {
   return OPTIONS_BOOLEAN.find((option) => option.value === Number(value))?.name;
 }
 
-function Form({ readOnly = false }: { readOnly?: boolean }) {
+function Form({
+  readOnly = false,
+  cpfTravado = false,
+}: {
+  readOnly?: boolean;
+  /** No perfil o CPF não muda: é a identidade de acesso — ver `PUT /users/me` */
+  cpfTravado?: boolean;
+}) {
   const {
     control,
     watch,
@@ -316,8 +323,14 @@ function Form({ readOnly = false }: { readOnly?: boolean }) {
                     required
                     label="CPF"
                     value={value}
+                    disabled={cpfTravado}
                     error={!!errors.cpf}
-                    errorMessage={errors.cpf?.message}
+                    errorMessage={
+                      errors.cpf?.message ??
+                      (cpfTravado
+                        ? 'Para alterar o CPF, fale com a organização'
+                        : undefined)
+                    }
                     onChange={(event) =>
                       onChange(formatCPF(event.target.value))
                     }
@@ -942,4 +955,4 @@ function Form({ readOnly = false }: { readOnly?: boolean }) {
   );
 }
 
-export { Form };
+export { Form, Section };
