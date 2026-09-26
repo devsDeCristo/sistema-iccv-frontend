@@ -17,6 +17,7 @@ import { PdfNameCase } from '../../../../../types/pdf';
 import { User } from '../../../../../types/user';
 import { EventDetails } from '../../types';
 import { postGenerateBadges } from '../../api/postGenerateBadges';
+import { ProgressoDoPdf } from './progressoDoPdf';
 
 const NAME_CASE_OPTIONS: { value: PdfNameCase; label: string }[] = [
   { value: 'capitalize', label: 'Primeira letra maiúscula' },
@@ -125,36 +126,41 @@ function ModalGenerateBadge({
         </>
       }
     >
-      <Stack gap={3}>
-        <Typography variant="body2" color="text.secondary">
-          Crachá de <strong>{user?.badgeName || user?.fullName}</strong>.
-        </Typography>
+      <ProgressoDoPdf
+        ativo={isGenerating}
+        titulo={`Gerando o crachá de ${user?.badgeName || user?.fullName}`}
+      >
+        <Stack gap={3}>
+          <Typography variant="body2" color="text.secondary">
+            Crachá de <strong>{user?.badgeName || user?.fullName}</strong>.
+          </Typography>
 
-        <FormControlLabel
-          control={
-            <Switch
-              checked={withQrCode}
-              onChange={(e) => setWithQrCode(e.target.checked)}
-            />
-          }
-          label="QR code"
-        />
+          <FormControlLabel
+            control={
+              <Switch
+                checked={withQrCode}
+                onChange={(e) => setWithQrCode(e.target.checked)}
+              />
+            }
+            label="QR code"
+          />
 
-        <SelectField
-          label="Formatação do nome"
-          native={isMobile}
-          value={nameCase}
-          onChange={(value) => setNameCase(value as PdfNameCase)}
-          options={NAME_CASE_OPTIONS}
-        />
+          <SelectField
+            label="Formatação do nome"
+            native={isMobile}
+            value={nameCase}
+            onChange={(value) => setNameCase(value as PdfNameCase)}
+            options={NAME_CASE_OPTIONS}
+          />
 
-        {!withQrCode && (
-          <Alert severity="warning">
-            Sem QR code o crachá sai só com o nome, e a entrada não pode ser
-            registrada pelo leitor — a conferência tem que ser na lista.
-          </Alert>
-        )}
-      </Stack>
+          {!withQrCode && (
+            <Alert severity="warning">
+              Sem QR code o crachá sai só com o nome, e a entrada não pode ser
+              registrada pelo leitor — a conferência tem que ser na lista.
+            </Alert>
+          )}
+        </Stack>
+      </ProgressoDoPdf>
     </ResponsiveModal>
   );
 }

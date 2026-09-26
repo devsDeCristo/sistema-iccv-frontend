@@ -36,6 +36,7 @@ import { User } from '../../../../../types/user';
 import { EventDetails, Team } from '../../types';
 import { EnvelopeKind, PdfDocType, PdfGroupBy, PdfScope } from './types';
 import { postGenerateBadges } from '../../api/postGenerateBadges';
+import { ProgressoDoPdf } from './progressoDoPdf';
 import {
   buildSections,
   filterByGroups,
@@ -162,6 +163,14 @@ function ModalGeneratePdf({
   const usesNames = isBadge || envelopeKind === 'letter';
   const blanks = isBlankScope ? blankCount : 0;
 
+  /** o que vai de fato no PDF: crachá sem nome de crachá fica de fora */
+  const quantidade = isBlankScope
+    ? blankCount
+    : resolvedUsers.filter((user) => !isBadge || !!user.badgeName).length;
+  const tituloDoProgresso = `Gerando ${quantidade} ${
+    quantidade === 1 ? itemLabel.slice(0, -1) : itemLabel
+  }`;
+
   async function onGenerate() {
     if (scope === 'teams' && scopeTeams.length === 0) {
       toast.error('Selecione ao menos uma equipe.');
@@ -271,244 +280,254 @@ function ModalGeneratePdf({
         </>
       }
     >
-      <Stack gap={3}>
-        {!isBadge && (
-          <>
-            <FormControl>
-              <FormLabel>Tipo</FormLabel>
-              <RadioGroup
-                row
-                value={envelopeKind}
-                onChange={(e) =>
-                  setEnvelopeKind(e.target.value as EnvelopeKind)
-                }
-              >
-                <FormControlLabel
-                  value="letter"
-                  control={<Radio size="small" />}
-                  label="Cartas (com nome)"
-                />
-                <FormControlLabel
-                  value="photo"
-                  control={<Radio size="small" />}
-                  label="Fotos (sem nome)"
-                />
-              </RadioGroup>
-            </FormControl>
-            <Divider />
-          </>
-        )}
-
-        <FormControl>
-          <FormLabel>Registros a imprimir</FormLabel>
-          <RadioGroup
-            value={scope}
-            onChange={(e) => setScope(e.target.value as PdfScope)}
-          >
-            <FormControlLabel
-              value="selected"
-              disabled={selectedUsers.length === 0}
-              control={<Radio size="small" />}
-              label={`Somente selecionados (${selectedUsers.length})`}
-            />
-            <FormControlLabel
-              value="filtered"
-              control={<Radio size="small" />}
-              label={`Apenas os mostrados na tela/filtrados (${filteredUsers.length})`}
-            />
-            <FormControlLabel
-              value="all"
-              control={<Radio size="small" />}
-              label={`Todos os usuários do evento (${allUsers.length}) — ignora os filtros`}
-            />
-
-            <FormControlLabel
-              value="teams"
-              control={<Radio size="small" />}
-              label="Selecionar equipe(s)"
-            />
-            {scope === 'teams' && (
-              <Box sx={{ pl: { xs: 0, sm: 4 }, pb: 1 }}>
-                <FormControl fullWidth size="small">
-                  <InputLabel id="pdf-teams-label">Equipes</InputLabel>
-                  <Select
-                    labelId="pdf-teams-label"
-                    multiple
-                    value={scopeTeams}
-                    onChange={(e) => setScopeTeams(e.target.value as string[])}
-                    input={<OutlinedInput label="Equipes" />}
-                    MenuProps={MENU_PROPS}
-                    renderValue={(selected) => (
-                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                        {selected.map((name) => (
-                          <Chip key={name} label={name} size="small" />
-                        ))}
-                      </Box>
-                    )}
-                  >
-                    {teamNames.length === 0 && (
-                      <MenuItem disabled value="">
-                        Nenhuma equipe cadastrada
-                      </MenuItem>
-                    )}
-                    {teamNames.map((name) => (
-                      <MenuItem key={name} value={name}>
-                        <Checkbox
-                          size="small"
-                          checked={scopeTeams.includes(name)}
-                        />
-                        <ListItemText primary={name} />
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Box>
-            )}
-
-            <FormControlLabel
-              value="groups"
-              control={<Radio size="small" />}
-              label="Selecionar grupo(s) de inscrição"
-            />
-            {scope === 'groups' && (
-              <Box sx={{ pl: { xs: 0, sm: 4 }, pb: 1 }}>
-                <FormControl fullWidth size="small">
-                  <InputLabel id="pdf-groups-label">
-                    Grupos de inscrição
-                  </InputLabel>
-                  <Select
-                    labelId="pdf-groups-label"
-                    multiple
-                    value={scopeGroups}
-                    onChange={(e) => setScopeGroups(e.target.value as string[])}
-                    input={<OutlinedInput label="Grupos de inscrição" />}
-                    MenuProps={MENU_PROPS}
-                    renderValue={(selected) => (
-                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                        {selected.map((name) => (
-                          <Chip key={name} label={name} size="small" />
-                        ))}
-                      </Box>
-                    )}
-                  >
-                    {groupNames.length === 0 && (
-                      <MenuItem disabled value="">
-                        Nenhum grupo cadastrado
-                      </MenuItem>
-                    )}
-                    {groupNames.map((name) => (
-                      <MenuItem key={name} value={name}>
-                        <Checkbox
-                          size="small"
-                          checked={scopeGroups.includes(name)}
-                        />
-                        <ListItemText primary={name} />
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Box>
-            )}
-
-            <FormControlLabel
-              value="blank"
-              control={<Radio size="small" />}
-              label={`${isBadge ? 'Crachás' : 'Envelopes'} sem nome`}
-            />
-            {isBlankScope && (
-              <Box sx={{ pl: { xs: 0, sm: 4 }, pb: 1 }}>
-                <TextField
-                  size="small"
-                  type="number"
-                  label="Quantidade"
-                  value={blankCount}
+      <ProgressoDoPdf ativo={isGenerating} titulo={tituloDoProgresso}>
+        <Stack gap={3}>
+          {!isBadge && (
+            <>
+              <FormControl>
+                <FormLabel>Tipo</FormLabel>
+                <RadioGroup
+                  row
+                  value={envelopeKind}
                   onChange={(e) =>
-                    setBlankCount(Math.max(0, Number(e.target.value)))
+                    setEnvelopeKind(e.target.value as EnvelopeKind)
                   }
-                  inputProps={{ min: 1, inputMode: 'numeric' }}
-                  sx={{ width: { xs: '100%', sm: 160 } }}
-                />
-              </Box>
-            )}
-          </RadioGroup>
-
-          {!isBlankScope && (
-            <Typography variant="caption" color="text.secondary" mt={1}>
-              {`${resolvedUsers.length} registro(s) selecionado(s)`}
-            </Typography>
+                >
+                  <FormControlLabel
+                    value="letter"
+                    control={<Radio size="small" />}
+                    label="Cartas (com nome)"
+                  />
+                  <FormControlLabel
+                    value="photo"
+                    control={<Radio size="small" />}
+                    label="Fotos (sem nome)"
+                  />
+                </RadioGroup>
+              </FormControl>
+              <Divider />
+            </>
           )}
-        </FormControl>
 
-        <Divider />
+          <FormControl>
+            <FormLabel>Registros a imprimir</FormLabel>
+            <RadioGroup
+              value={scope}
+              onChange={(e) => setScope(e.target.value as PdfScope)}
+            >
+              <FormControlLabel
+                value="selected"
+                disabled={selectedUsers.length === 0}
+                control={<Radio size="small" />}
+                label={`Somente selecionados (${selectedUsers.length})`}
+              />
+              <FormControlLabel
+                value="filtered"
+                control={<Radio size="small" />}
+                label={`Apenas os mostrados na tela/filtrados (${filteredUsers.length})`}
+              />
+              <FormControlLabel
+                value="all"
+                control={<Radio size="small" />}
+                label={`Todos os usuários do evento (${allUsers.length}) — ignora os filtros`}
+              />
 
-        <Grid container spacing={2} alignItems="center">
-          <Grid item xs={12} md={4}>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={alphabetical}
-                  disabled={isBlankScope}
-                  onChange={(e) => setAlphabetical(e.target.checked)}
-                />
-              }
-              label="Ordem alfabética"
-            />
-          </Grid>
-          {isBadge && (
+              <FormControlLabel
+                value="teams"
+                control={<Radio size="small" />}
+                label="Selecionar equipe(s)"
+              />
+              {scope === 'teams' && (
+                <Box sx={{ pl: { xs: 0, sm: 4 }, pb: 1 }}>
+                  <FormControl fullWidth size="small">
+                    <InputLabel id="pdf-teams-label">Equipes</InputLabel>
+                    <Select
+                      labelId="pdf-teams-label"
+                      multiple
+                      value={scopeTeams}
+                      onChange={(e) =>
+                        setScopeTeams(e.target.value as string[])
+                      }
+                      input={<OutlinedInput label="Equipes" />}
+                      MenuProps={MENU_PROPS}
+                      renderValue={(selected) => (
+                        <Box
+                          sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}
+                        >
+                          {selected.map((name) => (
+                            <Chip key={name} label={name} size="small" />
+                          ))}
+                        </Box>
+                      )}
+                    >
+                      {teamNames.length === 0 && (
+                        <MenuItem disabled value="">
+                          Nenhuma equipe cadastrada
+                        </MenuItem>
+                      )}
+                      {teamNames.map((name) => (
+                        <MenuItem key={name} value={name}>
+                          <Checkbox
+                            size="small"
+                            checked={scopeTeams.includes(name)}
+                          />
+                          <ListItemText primary={name} />
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Box>
+              )}
+
+              <FormControlLabel
+                value="groups"
+                control={<Radio size="small" />}
+                label="Selecionar grupo(s) de inscrição"
+              />
+              {scope === 'groups' && (
+                <Box sx={{ pl: { xs: 0, sm: 4 }, pb: 1 }}>
+                  <FormControl fullWidth size="small">
+                    <InputLabel id="pdf-groups-label">
+                      Grupos de inscrição
+                    </InputLabel>
+                    <Select
+                      labelId="pdf-groups-label"
+                      multiple
+                      value={scopeGroups}
+                      onChange={(e) =>
+                        setScopeGroups(e.target.value as string[])
+                      }
+                      input={<OutlinedInput label="Grupos de inscrição" />}
+                      MenuProps={MENU_PROPS}
+                      renderValue={(selected) => (
+                        <Box
+                          sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}
+                        >
+                          {selected.map((name) => (
+                            <Chip key={name} label={name} size="small" />
+                          ))}
+                        </Box>
+                      )}
+                    >
+                      {groupNames.length === 0 && (
+                        <MenuItem disabled value="">
+                          Nenhum grupo cadastrado
+                        </MenuItem>
+                      )}
+                      {groupNames.map((name) => (
+                        <MenuItem key={name} value={name}>
+                          <Checkbox
+                            size="small"
+                            checked={scopeGroups.includes(name)}
+                          />
+                          <ListItemText primary={name} />
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Box>
+              )}
+
+              <FormControlLabel
+                value="blank"
+                control={<Radio size="small" />}
+                label={`${isBadge ? 'Crachás' : 'Envelopes'} sem nome`}
+              />
+              {isBlankScope && (
+                <Box sx={{ pl: { xs: 0, sm: 4 }, pb: 1 }}>
+                  <TextField
+                    size="small"
+                    type="number"
+                    label="Quantidade"
+                    value={blankCount}
+                    onChange={(e) =>
+                      setBlankCount(Math.max(0, Number(e.target.value)))
+                    }
+                    inputProps={{ min: 1, inputMode: 'numeric' }}
+                    sx={{ width: { xs: '100%', sm: 160 } }}
+                  />
+                </Box>
+              )}
+            </RadioGroup>
+
+            {!isBlankScope && (
+              <Typography variant="caption" color="text.secondary" mt={1}>
+                {`${resolvedUsers.length} registro(s) selecionado(s)`}
+              </Typography>
+            )}
+          </FormControl>
+
+          <Divider />
+
+          <Grid container spacing={2} alignItems="center">
             <Grid item xs={12} md={4}>
               <FormControlLabel
                 control={
                   <Switch
-                    checked={withQrCode}
-                    onChange={(e) => setWithQrCode(e.target.checked)}
+                    checked={alphabetical}
+                    disabled={isBlankScope}
+                    onChange={(e) => setAlphabetical(e.target.checked)}
                   />
                 }
-                label="QR code"
+                label="Ordem alfabética"
               />
             </Grid>
-          )}
-          {isBadge && (
-            <Grid item xs={12} md={4}>
-              <SelectField
-                label="Agrupar por"
-                native={isMobile}
-                value={groupBy}
-                disabled={isBlankScope}
-                onChange={(value) => setGroupBy(value as PdfGroupBy)}
-                options={GROUP_BY_OPTIONS}
-              />
-            </Grid>
-          )}
-          {usesNames && (
-            <Grid item xs={12} md={4}>
-              <SelectField
-                label="Formatação dos nomes"
-                native={isMobile}
-                value={nameCase}
-                disabled={isBlankScope}
-                onChange={(value) => setNameCase(value as PdfNameCase)}
-                options={NAME_CASE_OPTIONS}
-              />
-            </Grid>
-          )}
-        </Grid>
+            {isBadge && (
+              <Grid item xs={12} md={4}>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={withQrCode}
+                      onChange={(e) => setWithQrCode(e.target.checked)}
+                    />
+                  }
+                  label="QR code"
+                />
+              </Grid>
+            )}
+            {isBadge && (
+              <Grid item xs={12} md={4}>
+                <SelectField
+                  label="Agrupar por"
+                  native={isMobile}
+                  value={groupBy}
+                  disabled={isBlankScope}
+                  onChange={(value) => setGroupBy(value as PdfGroupBy)}
+                  options={GROUP_BY_OPTIONS}
+                />
+              </Grid>
+            )}
+            {usesNames && (
+              <Grid item xs={12} md={4}>
+                <SelectField
+                  label="Formatação dos nomes"
+                  native={isMobile}
+                  value={nameCase}
+                  disabled={isBlankScope}
+                  onChange={(value) => setNameCase(value as PdfNameCase)}
+                  options={NAME_CASE_OPTIONS}
+                />
+              </Grid>
+            )}
+          </Grid>
 
-        {isBadge && !withQrCode && (
-          <Alert severity="warning">
-            Sem QR code o crachá sai só com o nome, e a entrada não pode ser
-            registrada pelo leitor — a conferência tem que ser na lista.
-          </Alert>
-        )}
+          {isBadge && !withQrCode && (
+            <Alert severity="warning">
+              Sem QR code o crachá sai só com o nome, e a entrada não pode ser
+              registrada pelo leitor — a conferência tem que ser na lista.
+            </Alert>
+          )}
 
-        {isBadge && groupBy !== 'none' && !isBlankScope && (
-          <Alert severity="info">
-            O nome da {groupBy === 'team' ? 'equipe' : 'grupo de inscrição'} sai
-            em letra minúscula no cabeçalho de todas as folhas, fora da área do
-            crachá. Cada {groupBy === 'team' ? 'equipe' : 'grupo'} começa em uma
-            folha nova.
-          </Alert>
-        )}
-      </Stack>
+          {isBadge && groupBy !== 'none' && !isBlankScope && (
+            <Alert severity="info">
+              O nome da {groupBy === 'team' ? 'equipe' : 'grupo de inscrição'}{' '}
+              sai em letra minúscula no cabeçalho de todas as folhas, fora da
+              área do crachá. Cada {groupBy === 'team' ? 'equipe' : 'grupo'}{' '}
+              começa em uma folha nova.
+            </Alert>
+          )}
+        </Stack>
+      </ProgressoDoPdf>
     </ResponsiveModal>
   );
 }
