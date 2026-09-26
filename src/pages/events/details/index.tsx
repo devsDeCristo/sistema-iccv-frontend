@@ -114,7 +114,7 @@ function EventsDetails() {
       ),
     [event]
   );
-  const podeComprarProdutos = inscrito && produtosAVenda.length > 0;
+  const podeComprarProdutos = produtosAVenda.length > 0;
 
   const scrollToTop = () => {
     const outlet = document.getElementById('layout-scroll');

@@ -177,7 +177,10 @@ function Edit() {
   });
   const methodsProducts = useForm<ProductsFormType>({
     resolver: zodResolver(PRODUCTS_SCHEMA),
-    defaultValues: { products: produtosParaFormulario(event?.products) },
+    defaultValues: {
+      publicStore: !!event?.data?.publicStore,
+      products: produtosParaFormulario(event?.products),
+    },
     mode: 'onChange',
   });
   const eventTypeSelected = useMemo(() => event?.type, [event]);
@@ -192,6 +195,7 @@ function Edit() {
       methodsTerms.reset(getDefaultTermsValues(event));
       methodsModules.reset(getDefaultModulesValues(event));
       methodsProducts.reset({
+        publicStore: !!event.data?.publicStore,
         products: produtosParaFormulario(event.products),
       });
     }
@@ -279,6 +283,7 @@ function Edit() {
               description: generalInfoData.description,
               shortDescription: generalInfoData.shortDescription,
               hideVacancies: generalInfoData.hideVacancies,
+              publicStore: !!methodsProducts.getValues().publicStore,
               localName: dateAndTimeData.localName,
               zipCode: dateAndTimeData.zipCode,
               state: dateAndTimeData.state,

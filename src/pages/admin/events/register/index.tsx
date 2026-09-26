@@ -111,7 +111,7 @@ function Register() {
   }, [eventTypeSelected]);
   const methodsProducts = useForm<ProductsFormType>({
     resolver: zodResolver(PRODUCTS_SCHEMA),
-    defaultValues: { products: [] },
+    defaultValues: { publicStore: false, products: [] },
   });
   const { mutate: mutatePostCreateEvent, isLoading: isCreatingEvent } =
     usePostCreateEvent({
@@ -229,6 +229,7 @@ function Register() {
               description: generalInfoData.description,
               shortDescription: generalInfoData.shortDescription,
               hideVacancies: generalInfoData.hideVacancies,
+              publicStore: !!methodsProducts.getValues().publicStore,
               localName: dateAndTimeData.localName,
               zipCode: dateAndTimeData.zipCode,
               state: dateAndTimeData.state,

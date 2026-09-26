@@ -22,6 +22,7 @@ import {
   AttachFile,
   CheckCircleOutline,
   ErrorOutline,
+  ShoppingBagOutlined,
 } from '@mui/icons-material';
 
 import { paymentsWithRoles } from '../types';
@@ -284,18 +285,34 @@ function EventCard({ payment }: { payment: paymentsWithRoles & { data: PaymentDa
               Acerte com a organização.
             </Typography>
           )}
-          <Stack direction="row" alignItems="center" gap={1}>
-            <LocalActivity sx={styles.icon} />
-            <Typography sx={styles.infoText} color="text.secondary">
-              {payment?.registeredRoles.length} inscrições
-            </Typography>
-          </Stack>
-          <Stack direction="row" alignItems="center" gap={1}>
-            <HourglassBottom sx={styles.icon} />
-            <Typography sx={styles.infoText} color="text.secondary">
-              {payment?.waitlistRoles.length} Lista de espera
-            </Typography>
-          </Stack>
+          {/* com a loja pública dá para comprar sem estar inscrito: aí o card
+              é só da compra, e "0 inscrições · 0 lista de espera" confundia */}
+          {payment?.registeredRoles.length || payment?.waitlistRoles.length ? (
+            <>
+              <Stack direction="row" alignItems="center" gap={1}>
+                <LocalActivity sx={styles.icon} />
+                <Typography sx={styles.infoText} color="text.secondary">
+                  {payment?.registeredRoles.length} inscrições
+                </Typography>
+              </Stack>
+              <Stack direction="row" alignItems="center" gap={1}>
+                <HourglassBottom sx={styles.icon} />
+                <Typography sx={styles.infoText} color="text.secondary">
+                  {payment?.waitlistRoles.length} Lista de espera
+                </Typography>
+              </Stack>
+            </>
+          ) : (
+            <Stack direction="row" alignItems="center" gap={1}>
+              <ShoppingBagOutlined sx={styles.icon} />
+              <Typography sx={styles.infoText} color="text.secondary">
+                {payment?.productPurchases?.length ?? 0}{' '}
+                {(payment?.productPurchases?.length ?? 0) === 1
+                  ? 'compra na loja'
+                  : 'compras na loja'}
+              </Typography>
+            </Stack>
+          )}
 
           {requiresGuardianApproval && (
             <Stack direction="row" alignItems="center" gap={1} flexWrap="wrap">

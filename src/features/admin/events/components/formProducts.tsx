@@ -12,9 +12,12 @@ import {
   Button,
   Chip,
   CircularProgress,
+  FormControlLabel,
   Grid,
   IconButton,
   InputAdornment,
+  Radio,
+  RadioGroup,
   Stack,
   Tooltip,
   Typography,
@@ -857,6 +860,44 @@ function FormProducts() {
           </Button>
         )}
       </Stack>
+
+      {produtos.length > 0 && (
+        <Box
+          sx={{
+            p: 2,
+            borderRadius: 2,
+            border: `1px solid ${theme.palette.divider}`,
+          }}
+        >
+          <Typography fontWeight={600}>Quem pode comprar na loja</Typography>
+          <Typography variant="body2" color="text.secondary">
+            A loja aparece para todos na página do evento. Aqui você define quem
+            consegue finalizar a compra.
+          </Typography>
+          <Controller
+            control={control}
+            name="publicStore"
+            render={({ field }) => (
+              <RadioGroup
+                value={field.value ? 'publica' : 'restrita'}
+                onChange={(_, valor) => field.onChange(valor === 'publica')}
+                sx={{ mt: 1 }}
+              >
+                <FormControlLabel
+                  value="restrita"
+                  control={<Radio />}
+                  label="Restrita: só quem tem inscrição confirmada"
+                />
+                <FormControlLabel
+                  value="publica"
+                  control={<Radio />}
+                  label="Pública: qualquer pessoa com cadastro no sistema"
+                />
+              </RadioGroup>
+            )}
+          />
+        </Box>
+      )}
 
       {produtos.length === 0 ? (
         <Box

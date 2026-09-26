@@ -28,8 +28,9 @@ import { ProductOffer } from '../../../features/events/components/productOffer';
  * A página é vitrine: o nome do evento fica no cabeçalho e o resto é produto.
  * Cada compra daqui é um pagamento próprio, separado do ingresso: o ingresso
  * pode já estar pago, e a compra nova aparece como compra nova, no painel e
- * em Minhas Inscrições. Só inscrito confirmado compra; quem está só na lista
- * de espera vê o aviso — e o servidor recusa do mesmo jeito.
+ * em Minhas Inscrições. A vitrine abre para todos; com a loja restrita (o
+ * padrão), só inscrito confirmado compra — os outros veem o aviso, e o
+ * servidor recusa do mesmo jeito.
  */
 function EventProducts() {
   const { id = '' } = useParams();
@@ -58,6 +59,9 @@ function EventProducts() {
   const produtosAVenda = (event?.products ?? []).filter((produto) =>
     produto.variants.some((variante) => temDisponivel(variante.available))
   );
+
+  // loja pública: qualquer pessoa com cadastro compra; restrita, só inscrito
+  const compraRestrita = !inscrito && !event?.data?.publicStore;
 
   const voltarAoEvento = () => navigate(`/eventos/${id}`);
 
@@ -143,11 +147,6 @@ function EventProducts() {
 
       {carregando ? (
         <Skeleton variant="rounded" height={420} />
-      ) : !inscrito ? (
-        aviso(
-          'Produtos só para inscritos',
-          'Os produtos deste evento são vendidos para quem tem inscrição confirmada. Quem está na lista de espera pode comprar quando a vaga sair.'
-        )
       ) : produtosAVenda.length === 0 ? (
         aviso(
           'Nenhum produto disponível',
@@ -165,6 +164,11 @@ function EventProducts() {
           skipLabel="Voltar ao evento"
           onSkip={voltarAoEvento}
           onConfirm={(items) => comprar({ eventId: id, userId, items })}
+          bloqueio={
+            compraRestrita
+              ? 'As compras desta loja são exclusivas para quem tem inscrição confirmada no evento. Quem está na lista de espera pode comprar quando a vaga sair.'
+              : undefined
+          }
         />
       )}
     </PageStyle>

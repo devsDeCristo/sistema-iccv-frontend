@@ -151,6 +151,12 @@ export const REGISTRATION_SETTINGS_SCHEMA = z.object({
   ),
 });
 export const PRODUCTS_SCHEMA = z.object({
+  /**
+   * Quem pode comprar na loja: `false` (padrão) é restrita, só quem tem
+   * inscrição confirmada; `true` é pública, qualquer pessoa com cadastro.
+   * Vai para `event.data.publicStore`.
+   */
+  publicStore: z.boolean().optional(),
   products: z.array(
     z
       .object({

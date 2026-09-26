@@ -218,6 +218,12 @@ export interface EventDataJson {
   coverUrl?: string;
   coverBase64?: string;
   hideVacancies?: boolean;
+  /**
+   * Loja pública: qualquer pessoa com cadastro compra. Ausente ou `false` é
+   * restrita a quem tem inscrição confirmada — quem não tem vê os produtos, mas
+   * não compra.
+   */
+  publicStore?: boolean;
   /** Termo de autorização em branco, para pais de menores de 16 anos baixarem e assinarem */
   minorTermUrl?: string;
   /**

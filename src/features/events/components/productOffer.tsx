@@ -1,5 +1,6 @@
 import { ImageCarousel } from '../../../components/imageCarousel';
 import {
+  Alert,
   alpha,
   Badge,
   Box,
@@ -59,6 +60,8 @@ interface ProductOfferProps {
   title?: string;
   subtitle?: string;
   skipLabel?: string;
+  /** motivo de a compra estar fechada: a vitrine aparece e a sacola dá lugar ao aviso */
+  bloqueio?: string;
 }
 
 /**
@@ -86,6 +89,7 @@ function ProductOffer({
   title = 'Produtos do evento',
   subtitle = 'Leve uma lembrança do evento. O valor entra no mesmo pagamento da inscrição.',
   skipLabel = 'Não, obrigado',
+  bloqueio,
 }: ProductOfferProps) {
   const theme = useTheme();
   const escuro = theme.palette.mode === 'dark';
@@ -562,7 +566,7 @@ function ProductOffer({
                     fullWidth
                     size="small"
                     variant={escolhidas > 0 ? 'text' : 'outlined'}
-                    disabled={loading || semEstoque}
+                    disabled={loading || semEstoque || !!bloqueio}
                     startIcon={
                       escolhidas > 0 ? (
                         <EditOutlined fontSize="small" />
@@ -600,73 +604,92 @@ function ProductOffer({
         })}
       </Box>
 
-      <Paper sx={styles.sacola}>
-        <Stack
-          direction={{ xs: 'column', sm: 'row' }}
-          alignItems={{ xs: 'stretch', sm: 'center' }}
-          justifyContent="space-between"
-          gap={2}
-        >
-          <Stack
-            direction="row"
-            alignItems="center"
-            gap={1.5}
-            sx={{ minWidth: 0 }}
-          >
-            <Badge badgeContent={unidades} color="primary" overlap="circular">
-              <Box sx={styles.selo}>
-                <LocalMallOutlined />
-              </Box>
-            </Badge>
-
-            <Box sx={{ minWidth: 0 }}>
-              <Typography variant="body2" color="text.secondary">
-                {unidades === 0
-                  ? 'Sua sacola está vazia'
-                  : `${unidades} ${
-                      unidades === 1 ? 'item' : 'itens'
-                    } na sacola`}
-              </Typography>
-              <Typography
-                variant="h6"
-                sx={{
-                  fontWeight: 700,
-                  lineHeight: 1.2,
-                  fontVariantNumeric: 'tabular-nums',
-                }}
-              >
-                {formatCurrency(total)}
-              </Typography>
-            </Box>
-          </Stack>
-
-          <Stack direction={{ xs: 'column-reverse', sm: 'row' }} gap={1}>
-            <Button
-              variant="text"
-              color="inherit"
-              onClick={onSkip}
-              disabled={loading}
-              sx={{ color: 'text.secondary' }}
-            >
+      {/* compra fechada: sem sacola para somar, o aviso ocupa o lugar dela */}
+      {bloqueio ? (
+        <Alert
+          severity="warning"
+          action={
+            <Button color="inherit" size="small" onClick={onSkip}>
               {skipLabel}
             </Button>
-            <Button
-              variant="contained"
-              disabled={unidades === 0 || loading}
-              onClick={() => onConfirm(itens)}
-              sx={{ minWidth: { sm: 220 } }}
+          }
+          sx={{
+            ...styles.sacola,
+            backgroundImage: 'none',
+            alignItems: 'center',
+          }}
+        >
+          {bloqueio}
+        </Alert>
+      ) : (
+        <Paper sx={styles.sacola}>
+          <Stack
+            direction={{ xs: 'column', sm: 'row' }}
+            alignItems={{ xs: 'stretch', sm: 'center' }}
+            justifyContent="space-between"
+            gap={2}
+          >
+            <Stack
+              direction="row"
+              alignItems="center"
+              gap={1.5}
+              sx={{ minWidth: 0 }}
             >
-              {loading ? (
-                <CircularProgress size={20} color="inherit" />
-              ) : modulePayment ? (
-                'Finalizar compra'
-              ) : (
-                'Confirmar compra'
-              )}
-            </Button>
+              <Badge badgeContent={unidades} color="primary" overlap="circular">
+                <Box sx={styles.selo}>
+                  <LocalMallOutlined />
+                </Box>
+              </Badge>
+
+              <Box sx={{ minWidth: 0 }}>
+                <Typography variant="body2" color="text.secondary">
+                  {unidades === 0
+                    ? 'Sua sacola está vazia'
+                    : `${unidades} ${
+                        unidades === 1 ? 'item' : 'itens'
+                      } na sacola`}
+                </Typography>
+                <Typography
+                  variant="h6"
+                  sx={{
+                    fontWeight: 700,
+                    lineHeight: 1.2,
+                    fontVariantNumeric: 'tabular-nums',
+                  }}
+                >
+                  {formatCurrency(total)}
+                </Typography>
+              </Box>
+            </Stack>
+
+            <Stack direction={{ xs: 'column-reverse', sm: 'row' }} gap={1}>
+              <Button
+                variant="text"
+                color="inherit"
+                onClick={onSkip}
+                disabled={loading}
+                sx={{ color: 'text.secondary' }}
+              >
+                {skipLabel}
+              </Button>
+              <Button
+                variant="contained"
+                disabled={unidades === 0 || loading}
+                onClick={() => onConfirm(itens)}
+                sx={{ minWidth: { sm: 220 } }}
+              >
+                {loading ? (
+                  <CircularProgress size={20} color="inherit" />
+                ) : modulePayment ? (
+                  'Finalizar compra'
+                ) : (
+                  'Confirmar compra'
+                )}
+              </Button>
+            </Stack>
           </Stack>
-        </Stack>
-      </Paper>
+        </Paper>
+      )}
 
       <VariantPickerDialog
         produto={products.find((p) => p.id === produtoAberto) ?? null}
