@@ -1,4 +1,7 @@
-import { ImageCarousel } from '../../../../components/imageCarousel';
+import {
+  ImageCarousel,
+  ImageViewer,
+} from '../../../../components/imageCarousel';
 import {
   Accordion,
   AccordionDetails,
@@ -16,7 +19,6 @@ import {
   Tooltip,
   Typography,
   useTheme,
-  Dialog,
 } from '@mui/material';
 import {
   Add,
@@ -26,7 +28,6 @@ import {
   ShoppingBagOutlined,
   Close,
   StarOutline,
-  ZoomOutMap,
 } from '@mui/icons-material';
 import { useRef, useState } from 'react';
 import { Controller, useFormContext, useWatch } from 'react-hook-form';
@@ -222,32 +223,6 @@ function CartaoProduto({
         '&:hover': { bgcolor: alpha('#000', 0.65) },
       },
     },
-    ampliar: {
-      position: 'absolute',
-      top: 6,
-      right: 6,
-      p: 0.5,
-      color: '#fff',
-      bgcolor: alpha('#000', 0.45),
-      backdropFilter: 'blur(4px)',
-      '&:hover': { bgcolor: alpha('#000', 0.65) },
-    },
-    // fundo escuro: a foto inteira (`contain`) sobra nas bordas, e o escuro
-    // some em volta dela em vez de enquadrá-la de branco
-    janelaAmpliada: {
-      borderRadius: 3,
-      overflow: 'hidden',
-      bgcolor: '#0b0b12',
-      backgroundImage: 'none',
-    },
-    fecharAmpliada: {
-      position: 'absolute',
-      top: 10,
-      right: 10,
-      color: '#fff',
-      bgcolor: alpha('#000', 0.45),
-      '&:hover': { bgcolor: alpha('#000', 0.65) },
-    },
     miniaturaCapa: {
       borderColor: theme.palette.primary.main,
       boxShadow: `0 0 0 1px ${theme.palette.primary.main}`,
@@ -371,18 +346,9 @@ function CartaoProduto({
                 <ImageCarousel
                   images={fotos}
                   alt={produto.name || 'Foto do produto'}
+                  ampliavel
                   sx={{ position: 'absolute', inset: 0 }}
                 />
-                <Tooltip title="Ver em tamanho grande">
-                  <IconButton
-                    size="small"
-                    aria-label="Ver em tamanho grande"
-                    onClick={() => setAmpliada(0)}
-                    sx={styles.ampliar}
-                  >
-                    <ZoomOutMap sx={{ fontSize: 16 }} />
-                  </IconButton>
-                </Tooltip>
               </Box>
             ) : (
               <Box
@@ -512,38 +478,13 @@ function CartaoProduto({
               </>
             )}
 
-            <Dialog
-              open={ampliada !== null}
+            {/* as miniaturas abrem a mesma janela, já na foto clicada */}
+            <ImageViewer
+              images={fotos}
+              alt={produto.name || 'Foto do produto'}
+              aberta={ampliada}
               onClose={() => setAmpliada(null)}
-              maxWidth="md"
-              fullWidth
-              PaperProps={{ sx: styles.janelaAmpliada }}
-            >
-              <Box
-                sx={{
-                  position: 'relative',
-                  height: { xs: '60vh', md: '72vh' },
-                }}
-              >
-                {ampliada !== null && (
-                  <ImageCarousel
-                    key={ampliada}
-                    images={fotos}
-                    alt={produto.name || 'Foto do produto'}
-                    ajuste="contain"
-                    inicial={ampliada}
-                    sx={{ position: 'absolute', inset: 0 }}
-                  />
-                )}
-                <IconButton
-                  aria-label="Fechar"
-                  onClick={() => setAmpliada(null)}
-                  sx={styles.fecharAmpliada}
-                >
-                  <Close />
-                </IconButton>
-              </Box>
-            </Dialog>
+            />
           </Box>
 
           <Grid

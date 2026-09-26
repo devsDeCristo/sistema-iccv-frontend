@@ -502,6 +502,7 @@ function ProductOffer({
                     images={produto.images}
                     alt={produto.name}
                     imageClassName="foto-do-produto"
+                    ampliavel
                     // preso às bordas da vitrine: ela é um grid que centraliza,
                     // e ali o `height: 100%` não se resolve — o carrossel crescia
                     // até a altura natural da foto e as bolinhas saíam de vista

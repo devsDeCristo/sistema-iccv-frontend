@@ -1,6 +1,19 @@
 import { useLayoutEffect, useRef, useState } from 'react';
-import { alpha, Box, IconButton, SxProps, Theme } from '@mui/material';
-import { ChevronLeft, ChevronRight } from '@mui/icons-material';
+import {
+  alpha,
+  Box,
+  Dialog,
+  IconButton,
+  SxProps,
+  Theme,
+  Tooltip,
+} from '@mui/material';
+import {
+  ChevronLeft,
+  ChevronRight,
+  Close,
+  ZoomOutMap,
+} from '@mui/icons-material';
 
 interface ImageCarouselProps {
   images: string[];
@@ -14,6 +27,8 @@ interface ImageCarouselProps {
   ajuste?: 'cover' | 'contain';
   /** a foto que aparece primeiro — a miniatura clicada, por exemplo */
   inicial?: number;
+  /** botão no canto que abre as fotos em tamanho grande, na que está na frente */
+  ampliavel?: boolean;
   sx?: SxProps<Theme>;
 }
 
@@ -33,8 +48,10 @@ function ImageCarousel({
   imageClassName,
   ajuste = 'cover',
   inicial = 0,
+  ampliavel = false,
   sx,
 }: ImageCarouselProps) {
+  const [ampliada, setAmpliada] = useState<number | null>(null);
   const trilho = useRef<HTMLDivElement>(null);
   const [atual, setAtual] = useState(inicial);
 
@@ -123,6 +140,39 @@ function ImageCarousel({
         ))}
       </Box>
 
+      {ampliavel && (
+        <>
+          <Tooltip title="Ver em tamanho grande">
+            <IconButton
+              size="small"
+              aria-label="Ver em tamanho grande"
+              onClick={(evento) => {
+                evento.stopPropagation();
+                setAmpliada(atual);
+              }}
+              sx={{
+                position: 'absolute',
+                top: 8,
+                right: 8,
+                p: 0.6,
+                color: '#fff',
+                bgcolor: alpha('#000', 0.45),
+                backdropFilter: 'blur(4px)',
+                '&:hover': { bgcolor: alpha('#000', 0.65) },
+              }}
+            >
+              <ZoomOutMap sx={{ fontSize: 16 }} />
+            </IconButton>
+          </Tooltip>
+          <ImageViewer
+            images={images}
+            alt={alt}
+            aberta={ampliada}
+            onClose={() => setAmpliada(null)}
+          />
+        </>
+      )}
+
       {varias && (
         <>
           <IconButton
@@ -197,4 +247,65 @@ function ImageCarousel({
   );
 }
 
-export { ImageCarousel };
+interface ImageViewerProps {
+  images: string[];
+  alt: string;
+  /** a foto aberta, ou `null` com a janela fechada */
+  aberta: number | null;
+  onClose: () => void;
+}
+
+/**
+ * As fotos em tamanho grande e inteiras (`contain`), sem o corte da moldura do
+ * cartão. Fundo escuro: a foto inteira sobra nas bordas, e o escuro some em
+ * volta dela em vez de enquadrá-la de branco.
+ */
+function ImageViewer({ images, alt, aberta, onClose }: ImageViewerProps) {
+  return (
+    <Dialog
+      open={aberta !== null}
+      onClose={onClose}
+      maxWidth="md"
+      fullWidth
+      // o clique na janela não pode subir para o cartão que a abriu
+      onClick={(evento) => evento.stopPropagation()}
+      PaperProps={{
+        sx: {
+          borderRadius: 3,
+          overflow: 'hidden',
+          bgcolor: '#0b0b12',
+          backgroundImage: 'none',
+        },
+      }}
+    >
+      <Box sx={{ position: 'relative', height: { xs: '60vh', md: '72vh' } }}>
+        {aberta !== null && (
+          <ImageCarousel
+            key={aberta}
+            images={images}
+            alt={alt}
+            ajuste="contain"
+            inicial={aberta}
+            sx={{ position: 'absolute', inset: 0 }}
+          />
+        )}
+        <IconButton
+          aria-label="Fechar"
+          onClick={onClose}
+          sx={{
+            position: 'absolute',
+            top: 10,
+            right: 10,
+            color: '#fff',
+            bgcolor: alpha('#000', 0.45),
+            '&:hover': { bgcolor: alpha('#000', 0.65) },
+          }}
+        >
+          <Close />
+        </IconButton>
+      </Box>
+    </Dialog>
+  );
+}
+
+export { ImageCarousel, ImageViewer };
