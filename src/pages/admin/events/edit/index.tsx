@@ -103,6 +103,9 @@ function Edit() {
         name: groupRole.name,
         capacity: groupRole.capacity,
         link: groupRole.link || '',
+        active: groupRole.active ?? true,
+        opensAt: groupRole.opensAt ?? null,
+        closesAt: groupRole.closesAt ?? null,
         roles: groupRole.roles.map((role) => ({
           id: role.id,
           price: role.price || 0,

@@ -11,6 +11,7 @@ import { CheckRounded, GroupsOutlined } from '@mui/icons-material';
 import { Controller, useFormContext } from 'react-hook-form';
 import { EventDetails, PayLoadGroup, SelectGroupRoleFormType } from '../types';
 import { ocupacao } from '../../../events/utils';
+import { estadoDoGrupo, quandoDoGrupo, useAgoraDosGrupos } from '../groups';
 
 interface FormSelectGroupRoleProps {
   event: EventDetails;
@@ -58,6 +59,8 @@ function FormSelectGroupRole({ event, groups }: FormSelectGroupRoleProps) {
   } = useFormContext<SelectGroupRoleFormType>();
   const theme = useTheme();
   const escondeVagas = !!event?.data?.hideVacancies;
+  // o grupo agendado libera sozinho na hora, sem recarregar a página
+  const agora = useAgoraDosGrupos(event?.groupRoles);
 
   return (
     <Box>
@@ -86,10 +89,26 @@ function FormSelectGroupRole({ event, groups }: FormSelectGroupRoleProps) {
                 groups?.present?.some((g) => g.id === group.id) || false;
               const naEspera =
                 groups?.waitlist?.some((g) => g.id === group.id) || false;
-              const travado = jaInscrito || naEspera;
+              const estado = estadoDoGrupo(group, agora);
+
+              // desligado some; quem já está nele ainda vê o próprio grupo
+              if (estado === 'inativo' && !jaInscrito && !naEspera) {
+                return null;
+              }
+
+              const fechado = estado !== 'aberto';
+              const travado = jaInscrito || naEspera || fechado;
 
               const escolhido = field.value?.includes(group.id) ?? false;
               const soEspera = !travado && vagas.situacao === 'esgotado';
+              const avisoDaJanela =
+                jaInscrito || naEspera
+                  ? null
+                  : estado === 'agendado'
+                    ? `Abre ${quandoDoGrupo(group.opensAt!)}`
+                    : fechado
+                      ? 'Inscrições encerradas'
+                      : null;
 
               const alternar = () => {
                 if (travado) return;
@@ -192,6 +211,17 @@ function FormSelectGroupRole({ event, groups }: FormSelectGroupRoleProps) {
                       {soEspera && (
                         <Etiqueta cor={theme.palette.chips.alert}>
                           Só lista de espera
+                        </Etiqueta>
+                      )}
+                      {avisoDaJanela && (
+                        <Etiqueta
+                          cor={
+                            estado === 'agendado'
+                              ? theme.palette.chips.info
+                              : theme.palette.text.secondary
+                          }
+                        >
+                          {avisoDaJanela}
                         </Etiqueta>
                       )}
                     </Stack>

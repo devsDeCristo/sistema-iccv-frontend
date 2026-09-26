@@ -148,6 +148,12 @@ export interface GroupRole {
   capacity: number;
   /** link do grupo (ex: whatsapp) — visível para quem está inscrito nele */
   link?: string | null;
+  /** desligado, não recebe inscrição; ausente é ligado */
+  active?: boolean;
+  /** ISO: a partir de quando recebe inscrições; nulo é desde já */
+  opensAt?: string | null;
+  /** ISO: até quando recebe; nulo é sem fim */
+  closesAt?: string | null;
   // expanded: boolean;
   roles: {
     id?: string;

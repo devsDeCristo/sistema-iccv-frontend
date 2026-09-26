@@ -43,6 +43,11 @@ import { AZUL_VIVO, VIOLETA_VIVO } from '../../../themes';
 import { StoreCard } from '../../../features/events/components/storeCard';
 import { ehCorHex } from '../../../features/admin/events/eventColors';
 import { quadranteAtivo } from '../../../features/admin/events/eventModules';
+import {
+  estadoDoGrupo,
+  quandoDoGrupo,
+  useAgoraDosGrupos,
+} from '../../../features/admin/events/groups';
 import { useRole } from '../../../hooks/useRole';
 import { Role } from '../../../constants/roles';
 
@@ -115,6 +120,26 @@ function EventsDetails() {
     [event]
   );
   const podeComprarProdutos = produtosAVenda.length > 0;
+
+  // o grupo agendado libera sozinho na hora, sem recarregar a página
+  const agora = useAgoraDosGrupos(event?.groupRoles);
+  /** desligado não aparece para o inscrito */
+  const gruposVisiveis = (event?.groupRoles ?? []).filter(
+    (group) => estadoDoGrupo(group, agora) !== 'inativo'
+  );
+  const gruposAbertos = gruposVisiveis.filter(
+    (group) => estadoDoGrupo(group, agora) === 'aberto'
+  );
+  const proximaAbertura = gruposVisiveis
+    .filter((group) => estadoDoGrupo(group, agora) === 'agendado')
+    .map((group) => group.opensAt!)
+    .sort()[0];
+  const semInscricaoAberta = gruposAbertos.length === 0;
+  const avisoDeFechado = proximaAbertura
+    ? `Inscrições abrem ${quandoDoGrupo(proximaAbertura)}`
+    : gruposVisiveis.length
+      ? 'Inscrições encerradas'
+      : 'Inscrições em breve';
 
   const scrollToTop = () => {
     const outlet = document.getElementById('layout-scroll');
@@ -592,8 +617,8 @@ function EventsDetails() {
       .filter((parte) => !!parte?.trim())
       .join(' · ') || event?.data?.localName;
 
-  /** Vagas restantes somando todos os grupos — o número da ficha */
-  const vagasRestantes = (event?.groupRoles ?? []).reduce((soma, group) => {
+  /** Vagas restantes somando os grupos abertos — o número da ficha */
+  const vagasRestantes = gruposAbertos.reduce((soma, group) => {
     const inscritos = group.roles.reduce(
       (total, role) => total + (role?.registered || 0),
       0
@@ -853,25 +878,29 @@ function EventsDetails() {
             icone={<ConfirmationNumber />}
             rotulo="Tipos de ingresso"
             valor={
-              event?.groupRoles?.length
-                ? `${event.groupRoles.length} ${
-                    event.groupRoles.length === 1
+              gruposVisiveis.length
+                ? `${gruposVisiveis.length} ${
+                    gruposVisiveis.length === 1
                       ? 'tipo disponível'
                       : 'tipos disponíveis'
                   }`
                 : 'Ingressos em breve'
             }
             apoio={
-              event?.data?.hideVacancies
-                ? 'Inscrições abertas'
-                : vagasRestantes > 0
-                  ? 'Vagas disponíveis'
-                  : 'Lista de espera'
+              semInscricaoAberta
+                ? avisoDeFechado
+                : event?.data?.hideVacancies
+                  ? 'Inscrições abertas'
+                  : vagasRestantes > 0
+                    ? 'Vagas disponíveis'
+                    : 'Lista de espera'
             }
             ponto={
-              event?.data?.hideVacancies || vagasRestantes > 0
-                ? theme.palette.chips.success
-                : theme.palette.chips.alert
+              semInscricaoAberta
+                ? theme.palette.chips.info
+                : event?.data?.hideVacancies || vagasRestantes > 0
+                  ? theme.palette.chips.success
+                  : theme.palette.chips.alert
             }
           />
         </Box>
@@ -910,9 +939,9 @@ function EventsDetails() {
               Escolha o tipo de ingresso e veja a disponibilidade de cada opção.
             </Typography>
 
-            {event?.groupRoles?.length ? (
+            {gruposVisiveis.length ? (
               <Box sx={styles.grade}>
-                {event.groupRoles.map((group) => {
+                {gruposVisiveis.map((group) => {
                   const inscritos = group.roles.reduce(
                     (soma, role) => soma + (role?.registered || 0),
                     0
@@ -922,20 +951,33 @@ function EventsDetails() {
                     group.capacity
                   );
                   const esgotado = situacao === 'esgotado';
+                  const estado = estadoDoGrupo(group, agora);
+                  const aberto = estado === 'aberto';
 
                   return (
                     // o cartão inteiro é o botão: com o nome, a barra e as vagas
                     // já dizendo tudo, um "Quero este" dentro de cada um só
                     // acrescentava altura à lista
+                    // fechado não leva à inscrição: lá ele também não abre
                     <Paper
                       key={group.id}
                       elevation={0}
-                      role="button"
-                      tabIndex={0}
-                      sx={styles.cartaoDeGrupo}
-                      onClick={irParaInscricao}
+                      role={aberto ? 'button' : undefined}
+                      tabIndex={aberto ? 0 : undefined}
+                      sx={{
+                        ...styles.cartaoDeGrupo,
+                        ...(!aberto && {
+                          cursor: 'default',
+                          opacity: 0.7,
+                          pointerEvents: 'none',
+                        }),
+                      }}
+                      onClick={aberto ? irParaInscricao : undefined}
                       onKeyDown={(evento: React.KeyboardEvent) => {
-                        if (evento.key === 'Enter' || evento.key === ' ') {
+                        if (
+                          aberto &&
+                          (evento.key === 'Enter' || evento.key === ' ')
+                        ) {
                           evento.preventDefault();
                           irParaInscricao();
                         }
@@ -956,27 +998,44 @@ function EventsDetails() {
                           {group.name}
                         </Typography>
 
-                        {!event.data?.hideVacancies && (
+                        {!aberto ? (
                           <Typography
                             variant="caption"
                             fontWeight={700}
                             sx={{ flexShrink: 0 }}
                             color={
-                              esgotado || situacao === 'ultimas'
-                                ? 'warning.main'
+                              estado === 'agendado'
+                                ? 'info.main'
                                 : 'text.secondary'
                             }
                           >
-                            {esgotado
-                              ? 'Lista de espera'
-                              : `${restantes} vagas`}
+                            {estado === 'agendado'
+                              ? `Abre ${quandoDoGrupo(group.opensAt!)}`
+                              : 'Encerrado'}
                           </Typography>
+                        ) : (
+                          !event.data?.hideVacancies && (
+                            <Typography
+                              variant="caption"
+                              fontWeight={700}
+                              sx={{ flexShrink: 0 }}
+                              color={
+                                esgotado || situacao === 'ultimas'
+                                  ? 'warning.main'
+                                  : 'text.secondary'
+                              }
+                            >
+                              {esgotado
+                                ? 'Lista de espera'
+                                : `${restantes} vagas`}
+                            </Typography>
+                          )
                         )}
                       </Stack>
 
                       {/* a barra mostra o quanto já foi tomado: número sozinho
                         não diz se 20 vagas é muito ou pouco */}
-                      {!event.data?.hideVacancies && (
+                      {aberto && !event.data?.hideVacancies && (
                         <LinearProgress
                           variant="determinate"
                           value={percentual}
@@ -1002,8 +1061,9 @@ function EventsDetails() {
                 startIcon={<ConfirmationNumber />}
                 sx={styles.botaoPrincipal}
                 onClick={irParaInscricao}
+                disabled={semInscricaoAberta}
               >
-                Inscreva-se
+                {semInscricaoAberta ? avisoDeFechado : 'Inscreva-se'}
               </Button>
 
               {registeredGroupsWithLink.map((group) => (

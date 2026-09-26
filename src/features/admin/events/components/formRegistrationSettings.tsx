@@ -10,7 +10,9 @@ import {
   Grid,
   IconButton,
   InputAdornment,
+  Popover,
   Stack,
+  Switch,
   Tooltip,
   Typography,
   useTheme,
@@ -22,11 +24,18 @@ import {
   DeleteOutline,
   ExpandMore,
   GroupsOutlined,
+  Schedule,
 } from '@mui/icons-material';
 import { GroupRole, RegistrationSettingsFormType } from '../types';
 import { Controller, useFormContext, useWatch } from 'react-hook-form';
 import Swal from 'sweetalert2';
 import { sanitizePrice, sanitizeInteger } from '../../../../utils';
+import {
+  campoParaIso,
+  estadoDoGrupo,
+  isoParaCampo,
+  quandoDoGrupo,
+} from '../groups';
 
 /**
  * Grupo e regra nascem vazios para o admin preencher, mas o schema pede número
@@ -85,13 +94,47 @@ function CartaoGrupo({
   const theme = useTheme();
   const {
     control,
+    setValue,
     formState: { errors },
   } = useFormContext<RegistrationSettingsFormType>();
+  const [ancoraDaJanela, setAncoraDaJanela] = useState<HTMLElement | null>(
+    null
+  );
 
   const regras = grupo.roles ?? [];
   const inscritos = contarInscritos(grupo);
   const temInscricoes = inscritos > 0;
   const errosDoGrupo = errors.groupRoles?.[index];
+
+  const temDatas = !!grupo.opensAt || !!grupo.closesAt;
+  const erroNaJanela = Boolean(errosDoGrupo?.closesAt);
+  const limparDatas = () => {
+    for (const campo of ['opensAt', 'closesAt'] as const) {
+      setValue(`groupRoles.${index}.${campo}`, null, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+    }
+  };
+
+  const estado = estadoDoGrupo(grupo);
+  // aberto sem data para encerrar é o normal, e não ganha selo
+  const seloDaJanela =
+    estado === 'inativo'
+      ? { texto: 'Inativo', cor: 'default' as const }
+      : estado === 'agendado'
+        ? {
+            texto: `Abre ${quandoDoGrupo(grupo.opensAt!)}`,
+            cor: 'info' as const,
+          }
+        : estado === 'encerrado'
+          ? { texto: 'Encerrado', cor: 'default' as const }
+          : grupo.closesAt
+            ? {
+                texto: `Aberto até ${quandoDoGrupo(grupo.closesAt)}`,
+                cor: 'success' as const,
+              }
+            : null;
 
   const styles = {
     cartao: {
@@ -154,6 +197,14 @@ function CartaoGrupo({
             label={`${grupo.capacity} vagas`}
           />
         )}
+        {seloDaJanela && (
+          <Chip
+            size="small"
+            variant="outlined"
+            color={seloDaJanela.cor}
+            label={seloDaJanela.texto}
+          />
+        )}
         <Chip
           size="small"
           variant="outlined"
@@ -168,6 +219,53 @@ function CartaoGrupo({
             label={plural(inscritos, 'inscrito', 'inscritos')}
           />
         )}
+
+        {/* os controles do cabeçalho não abrem nem fecham o grupo: clique,
+            tecla e foco param aqui antes de chegar ao acordeão */}
+        <Box
+          onClick={(evento) => evento.stopPropagation()}
+          onKeyDown={(evento) => evento.stopPropagation()}
+          onFocus={(evento) => evento.stopPropagation()}
+          sx={{ display: 'flex', alignItems: 'center' }}
+        >
+          <Tooltip
+            title={
+              erroNaJanela
+                ? 'Datas inválidas: confira a abertura automática'
+                : 'Abertura automática'
+            }
+          >
+            <IconButton
+              size="small"
+              aria-label="Abertura automática"
+              color={erroNaJanela ? 'error' : temDatas ? 'info' : 'default'}
+              onClick={(evento) => setAncoraDaJanela(evento.currentTarget)}
+            >
+              <Schedule fontSize="small" />
+            </IconButton>
+          </Tooltip>
+
+          <Controller
+            control={control}
+            name={`groupRoles.${index}.active`}
+            render={({ field: { onChange, value } }) => (
+              <Tooltip
+                title={
+                  value !== false
+                    ? 'Grupo ligado: recebe inscrições'
+                    : 'Grupo desligado: some da inscrição'
+                }
+              >
+                <Switch
+                  size="small"
+                  checked={value !== false}
+                  onChange={(_, ligado) => onChange(ligado)}
+                  inputProps={{ 'aria-label': 'Grupo ligado' }}
+                />
+              </Tooltip>
+            )}
+          />
+        </Box>
 
         <Tooltip
           title={
@@ -452,6 +550,90 @@ function CartaoGrupo({
           )}
         </Grid>
       </AccordionDetails>
+      {/* fora do cabeçalho: lá dentro, cada clique e cada tecla nos campos de
+          data também abriria e fecharia o grupo. Aqui o Popover vai para um
+          portal, e continua aparecendo com o grupo recolhido */}
+      <Popover
+        open={!!ancoraDaJanela}
+        anchorEl={ancoraDaJanela}
+        onClose={() => setAncoraDaJanela(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+        PaperProps={{
+          sx: {
+            p: 2,
+            width: 340,
+            maxWidth: 'calc(100vw - 32px)',
+            borderRadius: 2,
+          },
+        }}
+      >
+        <Typography variant="subtitle2">Abertura automática</Typography>
+        <Typography variant="caption" color="text.secondary">
+          O grupo abre e encerra as inscrições sozinho nas datas marcadas.
+        </Typography>
+
+        {grupo.active === false && (
+          <Alert severity="info" sx={{ mt: 1.5, py: 0 }}>
+            O grupo está desligado: as datas só valem com ele ligado.
+          </Alert>
+        )}
+
+        <Stack gap={2} sx={{ mt: 2 }}>
+          <Controller
+            control={control}
+            name={`groupRoles.${index}.opensAt`}
+            render={({ field: { onChange, value } }) => (
+              <Input
+                size="small"
+                type="datetime-local"
+                // o calendário nativo segue o tema: sem isto, no escuro o
+                // ícone sai preto sobre o fundo escuro
+                inputProps={{ style: { colorScheme: theme.palette.mode } }}
+                label="Abrir inscrições em"
+                value={isoParaCampo(value)}
+                onChange={(e) => onChange(campoParaIso(e.target.value))}
+                helperText="Vazio: aberto desde já"
+                InputLabelProps={{ shrink: true }}
+              />
+            )}
+          />
+          <Controller
+            control={control}
+            name={`groupRoles.${index}.closesAt`}
+            render={({ field: { onChange, value } }) => (
+              <Input
+                size="small"
+                type="datetime-local"
+                // o calendário nativo segue o tema: sem isto, no escuro o
+                // ícone sai preto sobre o fundo escuro
+                inputProps={{ style: { colorScheme: theme.palette.mode } }}
+                label="Encerrar inscrições em"
+                value={isoParaCampo(value)}
+                onChange={(e) => onChange(campoParaIso(e.target.value))}
+                error={erroNaJanela}
+                helperText={
+                  errosDoGrupo?.closesAt?.message ?? 'Vazio: sem data'
+                }
+                InputLabelProps={{ shrink: true }}
+              />
+            )}
+          />
+        </Stack>
+
+        <Stack direction="row" justifyContent="space-between" sx={{ mt: 2 }}>
+          <Button size="small" disabled={!temDatas} onClick={limparDatas}>
+            Limpar datas
+          </Button>
+          <Button
+            size="small"
+            variant="contained"
+            onClick={() => setAncoraDaJanela(null)}
+          >
+            Pronto
+          </Button>
+        </Stack>
+      </Popover>
     </Accordion>
   );
 }

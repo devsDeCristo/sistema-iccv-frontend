@@ -124,30 +124,45 @@ export const DATE_AND_LOCAL_SCHEMA = z.object({
 });
 export const REGISTRATION_SETTINGS_SCHEMA = z.object({
   groupRoles: z.array(
-    z.object({
-      // id: z.string(),
-      name: z
-        .string({ required_error: DEFAULT_MESSAGE })
-        .refine((value) => !!value),
-      capacity: z.number({ required_error: DEFAULT_MESSAGE }),
-      link: z
-        .string()
-        .max(255, {
-          message: 'Máximo de 255 caracteres',
-        })
-        .optional()
-        .nullable(),
-      roles: z.array(
-        z.object({
-          price: z.number({ required_error: DEFAULT_MESSAGE }),
-          description: z
-            .string({ required_error: DEFAULT_MESSAGE })
-            .refine((value) => !!value),
-          registered: z.number().optional(),
-          waitlisted: z.number().optional(),
-        })
-      ),
-    })
+    z
+      .object({
+        // id: z.string(),
+        name: z
+          .string({ required_error: DEFAULT_MESSAGE })
+          .refine((value) => !!value),
+        capacity: z.number({ required_error: DEFAULT_MESSAGE }),
+        link: z
+          .string()
+          .max(255, {
+            message: 'Máximo de 255 caracteres',
+          })
+          .optional()
+          .nullable(),
+        roles: z.array(
+          z.object({
+            price: z.number({ required_error: DEFAULT_MESSAGE }),
+            description: z
+              .string({ required_error: DEFAULT_MESSAGE })
+              .refine((value) => !!value),
+            registered: z.number().optional(),
+            waitlisted: z.number().optional(),
+          })
+        ),
+        // quando o grupo recebe inscrição; datas em ISO, nulo é sem data
+        active: z.boolean().optional(),
+        opensAt: z.string().nullable().optional(),
+        closesAt: z.string().nullable().optional(),
+      })
+      .refine(
+        (grupo) =>
+          !grupo.opensAt ||
+          !grupo.closesAt ||
+          new Date(grupo.closesAt) > new Date(grupo.opensAt),
+        {
+          message: 'O encerramento precisa vir depois da abertura',
+          path: ['closesAt'],
+        }
+      )
   ),
 });
 export const PRODUCTS_SCHEMA = z.object({
