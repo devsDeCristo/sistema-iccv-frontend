@@ -76,7 +76,9 @@ function DiaDoCalendario({ eventosDoDia, ...props }: DiaProps) {
     ? undefined
     : eventosDoDia?.get(props.day.toDateString());
 
-  const cor = eventos && corDoEvento(eventos[0], theme.palette.primary.main);
+  const cor = eventos
+    ? corDoEvento(eventos[0], theme.palette.primary.main)
+    : theme.palette.primary.main;
 
   const dia = (
     <PickersDay
