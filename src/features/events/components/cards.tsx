@@ -935,4 +935,4 @@ function Cards() {
   );
 }
 
-export { Cards };
+export { Cards, CartazDoEvento };

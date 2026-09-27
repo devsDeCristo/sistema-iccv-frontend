@@ -4,6 +4,7 @@ import {
   Campaign,
   ConfirmationNumber,
   Event,
+  EventNote,
   History,
   Login,
   Logout,
@@ -457,6 +458,11 @@ const SideBar: React.FC<SideBarProps> = ({
           link: '/minhasInscricoes',
           icon: <ConfirmationNumber />,
           title: 'Minhas Inscrições',
+        },
+        {
+          link: '/historicoEventos',
+          icon: <EventNote />,
+          title: 'Eventos',
         },
       ];
 

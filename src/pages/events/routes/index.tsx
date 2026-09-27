@@ -4,6 +4,7 @@ import { EventsDetails } from '../details';
 import { Subscribe } from '../subscribe';
 import { EventProducts } from '../products';
 import { EventQuadrante } from '../quadrante';
+import { HistoricoDeEventos } from '../historico';
 
 function RoutesEvents() {
   return (
@@ -16,6 +17,9 @@ function RoutesEvents() {
       {/* o endereço antigo continua respondendo: era para onde o login levava,
           então tem gente com ele salvo no navegador */}
       <Route path="/eventos" element={<Navigate replace to="/home" />} />
+
+      {/* todos os eventos, com o que já passou — a home só mostra os abertos */}
+      <Route path="/historicoEventos" element={<HistoricoDeEventos />} />
 
       {/* o evento em si continua sob /eventos: a página é de um evento, não da
           home */}
