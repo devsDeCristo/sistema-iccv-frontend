@@ -34,7 +34,8 @@ function HistoricoDeEventos() {
   const porAno = useMemo(() => {
     const anos = new Map<string, Event[]>();
     (Array.isArray(data) ? (data as Event[]) : [])
-      .slice()
+      // evento desligado pela organização não aparece para o usuário
+      .filter((event) => event.status !== 'INACTIVE')
       .sort(
         (a, b) =>
           new Date(b.startDate).getTime() - new Date(a.startDate).getTime()

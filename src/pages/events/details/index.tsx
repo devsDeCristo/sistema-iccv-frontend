@@ -122,16 +122,16 @@ function EventsDetails() {
   const podeComprarProdutos = produtosAVenda.length > 0;
 
   // o grupo agendado libera sozinho na hora, sem recarregar a página
-  const agora = useAgoraDosGrupos(event?.groupRoles);
+  const agora = useAgoraDosGrupos(event?.groupRoles, event?.endDate);
   /** desligado não aparece para o inscrito */
   const gruposVisiveis = (event?.groupRoles ?? []).filter(
-    (group) => estadoDoGrupo(group, agora) !== 'inativo'
+    (group) => estadoDoGrupo(group, agora, event?.endDate) !== 'inativo'
   );
   const gruposAbertos = gruposVisiveis.filter(
-    (group) => estadoDoGrupo(group, agora) === 'aberto'
+    (group) => estadoDoGrupo(group, agora, event?.endDate) === 'aberto'
   );
   const proximaAbertura = gruposVisiveis
-    .filter((group) => estadoDoGrupo(group, agora) === 'agendado')
+    .filter((group) => estadoDoGrupo(group, agora, event?.endDate) === 'agendado')
     .map((group) => group.opensAt!)
     .sort()[0];
   const semInscricaoAberta = gruposAbertos.length === 0;
@@ -951,7 +951,7 @@ function EventsDetails() {
                     group.capacity
                   );
                   const esgotado = situacao === 'esgotado';
-                  const estado = estadoDoGrupo(group, agora);
+                  const estado = estadoDoGrupo(group, agora, event?.endDate);
                   const aberto = estado === 'aberto';
 
                   return (

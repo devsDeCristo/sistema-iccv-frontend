@@ -60,7 +60,7 @@ function FormSelectGroupRole({ event, groups }: FormSelectGroupRoleProps) {
   const theme = useTheme();
   const escondeVagas = !!event?.data?.hideVacancies;
   // o grupo agendado libera sozinho na hora, sem recarregar a página
-  const agora = useAgoraDosGrupos(event?.groupRoles);
+  const agora = useAgoraDosGrupos(event?.groupRoles, event?.endDate);
 
   return (
     <Box>
@@ -89,7 +89,7 @@ function FormSelectGroupRole({ event, groups }: FormSelectGroupRoleProps) {
                 groups?.present?.some((g) => g.id === group.id) || false;
               const naEspera =
                 groups?.waitlist?.some((g) => g.id === group.id) || false;
-              const estado = estadoDoGrupo(group, agora);
+              const estado = estadoDoGrupo(group, agora, event?.endDate);
 
               // desligado some; quem já está nele ainda vê o próprio grupo
               if (estado === 'inativo' && !jaInscrito && !naEspera) {

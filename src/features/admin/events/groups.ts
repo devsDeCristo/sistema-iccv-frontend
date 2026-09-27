@@ -12,14 +12,20 @@ type Janela = Pick<GroupRole, 'active' | 'opensAt' | 'closesAt'>;
 
 export function estadoDoGrupo(
   grupo: Janela,
-  agora = Date.now()
+  agora = Date.now(),
+  /**
+   * Sem data de encerramento no grupo, a inscrição vai até o fim do evento —
+   * a mesma regra do servidor
+   */
+  fimDoEvento?: Date | string | null
 ): EstadoDoGrupo {
+  const encerramento = grupo.closesAt ?? fimDoEvento ?? null;
   // ausente é grupo anterior à opção: ativo e sem datas
   if (grupo.active === false) return 'inativo';
   if (grupo.opensAt && agora < new Date(grupo.opensAt).getTime()) {
     return 'agendado';
   }
-  if (grupo.closesAt && agora >= new Date(grupo.closesAt).getTime()) {
+  if (encerramento && agora >= new Date(encerramento).getTime()) {
     return 'encerrado';
   }
   return 'aberto';
@@ -41,11 +47,16 @@ export const quandoDoGrupo = (iso: string) =>
  * encerra: quem está com a página aberta às 07:59 vê o grupo liberar às 08:00
  * sem recarregar.
  */
-export function useAgoraDosGrupos(grupos: Janela[] = []) {
+export function useAgoraDosGrupos(
+  grupos: Janela[] = [],
+  fimDoEvento?: Date | string | null
+) {
   const [agora, setAgora] = useState(() => Date.now());
 
-  const proxima = grupos
-    .flatMap((grupo) => [grupo.opensAt, grupo.closesAt])
+  const proxima = [
+    ...grupos.flatMap((grupo) => [grupo.opensAt, grupo.closesAt]),
+    fimDoEvento,
+  ]
     .map((data) => (data ? new Date(data).getTime() : NaN))
     .filter((instante) => instante > agora)
     .sort((a, b) => a - b)[0];
