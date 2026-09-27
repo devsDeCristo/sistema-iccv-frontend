@@ -6,6 +6,7 @@ import {
   Paper,
   Skeleton,
   Stack,
+  Tooltip,
   Typography,
   useTheme,
 } from '@mui/material';
@@ -20,6 +21,7 @@ import 'dayjs/locale/pt-br';
 import { useGetEvents } from '../../admin/events/api/getEvents';
 import { useGetGroupsByUser } from '../../admin/events/api/getGroupsByUser';
 import { emAndamento } from '../../admin/events/utils/eventStatus';
+import { ehCorHex } from '../../admin/events/eventColors';
 import { Event, PayLoadGroup } from '../../admin/events/types';
 import { formatarPeriodo, jaAcabou } from '../utils';
 
@@ -52,30 +54,54 @@ function diasDosEventos(eventos: MeuEvento[]) {
 
 type DiaProps = PickersDayProps<Date> & { eventosDoDia?: Map<string, Event[]> };
 
-/** O dia do calendário, pintado quando cai num evento da pessoa */
+/** A cor do evento (a mesma paleta da página dele), ou o azul do sistema */
+function corDoEvento(event: Event, corPadrao: string) {
+  return ehCorHex(event.data?.colors?.primary)
+    ? event.data!.colors!.primary!
+    : corPadrao;
+}
+
+/**
+ * O dia do calendário, pintado quando cai num evento da pessoa — na cor do
+ * próprio evento (a mesma paleta da página dele), e não numa cor genérica do
+ * sistema: é o que deixa claro, olhando o mês inteiro, que um bloco de dias é
+ * de um evento e outro bloco é de outro.
+ *
+ * Dois eventos no mesmo dia (raro) dividem o dia: a marcação usa a cor do
+ * primeiro, e o nome dos dois aparece na dica ao passar o mouse.
+ */
 function DiaDoCalendario({ eventosDoDia, ...props }: DiaProps) {
   const theme = useTheme();
   const eventos = props.outsideCurrentMonth
     ? undefined
     : eventosDoDia?.get(props.day.toDateString());
 
-  return (
+  const cor = eventos && corDoEvento(eventos[0], theme.palette.primary.main);
+
+  const dia = (
     <PickersDay
       {...props}
-      title={eventos?.map((event) => event.name).join(' · ')}
       sx={
         eventos
           ? {
               fontWeight: 700,
-              color: theme.palette.primary.main,
-              backgroundColor: alpha(theme.palette.primary.main, 0.16),
-              '&:hover, &:focus': {
-                backgroundColor: alpha(theme.palette.primary.main, 0.24),
-              },
+              color: cor,
+              backgroundColor: alpha(cor, 0.16),
+              '&:hover, &:focus': { backgroundColor: alpha(cor, 0.24) },
             }
           : undefined
       }
     />
+  );
+
+  // o `title` nativo demora ~1s para aparecer e passa despercebido; a dica do
+  // MUI abre na hora e segue o tema
+  return eventos ? (
+    <Tooltip title={eventos.map((event) => event.name).join(' · ')} arrow>
+      {dia}
+    </Tooltip>
+  ) : (
+    dia
   );
 }
 
@@ -83,6 +109,7 @@ function LinhaDoEvento({ event, naEspera }: MeuEvento) {
   const theme = useTheme();
   const navigate = useNavigate();
   const inicio = dayjs(event.startDate).locale('pt-br');
+  const cor = corDoEvento(event, theme.palette.primary.main);
 
   return (
     <Stack
@@ -97,6 +124,7 @@ function LinhaDoEvento({ event, naEspera }: MeuEvento) {
       }}
       sx={{
         p: 1,
+        pl: 1.25,
         mx: -1,
         borderRadius: 2,
         cursor: 'pointer',
@@ -106,6 +134,18 @@ function LinhaDoEvento({ event, naEspera }: MeuEvento) {
         '&:hover .nome-do-evento': { color: theme.palette.primary.main },
       }}
     >
+      {/* a barra na cor do evento — a mesma do calendário — para quem tem
+          vários eventos na lista achar de relance o dia dele lá em cima */}
+      <Box
+        sx={{
+          flexShrink: 0,
+          alignSelf: 'stretch',
+          width: 4,
+          borderRadius: 999,
+          backgroundColor: cor,
+        }}
+      />
+
       {/* a data em bloco, como folhinha: é o que a pessoa procura primeiro */}
       <Box
         sx={{
@@ -282,7 +322,6 @@ function MinhaAgenda() {
                 day: { eventosDoDia } as Partial<PickersDayProps<unknown>>,
               }}
               sx={{
-     
                 width: '100%',
                 maxWidth: 340,
                 height: 'fit-content',
@@ -302,7 +341,7 @@ function MinhaAgenda() {
               inscrever, eles aparecem aqui e ficam marcados no calendário.
             </Typography>
           ) : (
-            <Stack  sx={{ mt: 0.5 }}>
+            <Stack sx={{ mt: 0.5 }}>
               <Secao titulo="Acontecendo agora" eventos={acontecendo} />
               <Secao titulo="Meus eventos" eventos={proximos} />
             </Stack>

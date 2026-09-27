@@ -25,6 +25,7 @@ import {
   Search,
 } from '@mui/icons-material';
 import { useGetEvents } from '../../admin/events/api/getEvents';
+import { MeusIngressos } from './meusIngressos';
 import { useGetGroupsByUser } from '../../admin/events/api/getGroupsByUser';
 import { emAndamento } from '../../admin/events/utils/eventStatus';
 import { Event } from '../../admin/events/types';
@@ -810,7 +811,7 @@ function Cards() {
   }, [data, isAdmin]);
 
   const filtro = igrejas.length > 1 && (
-    <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1.75 }}>
+    <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 0.5 }}>
       <FiltroDeIgreja
         igrejas={igrejas}
         valor={igrejaAtiva}
@@ -869,6 +870,13 @@ function Cards() {
     return (
       <Box>
         {filtro}
+        {/* os ingressos ficam debaixo do filtro, e ele vale para os dois */}
+        <MeusIngressos
+          igrejaId={igrejaAtiva}
+          igrejaFiltrada={nomeDaIgrejaAtiva}
+        />
+        {/* o título fica mesmo sem evento: a página mantém as duas seções */}
+        <TituloSecao>Próximos eventos</TituloSecao>
         <SemEventos
           igrejaFiltrada={nomeDaIgrejaAtiva}
           onLimparFiltro={() => escolherIgreja(TODAS_AS_IGREJAS)}
@@ -894,6 +902,11 @@ function Cards() {
   return (
     <Box>
       {filtro}
+      {/* os ingressos ficam debaixo do filtro, e ele vale para os dois */}
+      <MeusIngressos
+        igrejaId={igrejaAtiva}
+        igrejaFiltrada={nomeDaIgrejaAtiva}
+      />
 
       {acontecendo.length > 0 && (
         <Box>
