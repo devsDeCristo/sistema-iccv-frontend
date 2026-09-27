@@ -34,7 +34,6 @@ import CapaLogin from '../../../assets/capaLogin2.jpg';
 import {
   contagemRegressiva,
   eventosAbertos,
-  eventosEncerrados,
   filtrarPorIgreja,
   formatarPeriodo,
   igrejasDosEventos,
@@ -121,13 +120,10 @@ function CartazDoEvento({
   event,
   minhaSituacao,
   proximo,
-  encerrado,
 }: {
   event: Event;
   minhaSituacao: MinhaSituacao;
   proximo?: boolean;
-  /** Evento que já acabou: o cartaz entra apagado e não abre */
-  encerrado?: boolean;
 }) {
   const theme = useTheme();
   const navigate = useNavigate();
@@ -160,19 +156,10 @@ function CartazDoEvento({
       // o conteúdo estica na altura toda para a logo poder se centrar nela; é
       // o bloco de texto, lá dentro, que continua apoiado no rodapé
       alignItems: 'stretch',
-      cursor: encerrado ? 'default' : 'pointer',
-      /**
-       * Apagado como campo desabilitado, e a capa perde a cor: é o que separa
-       * o que já passou do que ainda dá para fazer, sem precisar escrever
-       * "encerrado" em cada canto.
-       */
-      ...(encerrado
-        ? { opacity: 0.6, '& .capa-do-evento': { filter: 'grayscale(1)' } }
-        : {
-            // a capa cresce devagar sob o cartaz parado: o movimento é da
-            // foto, e não do bloco inteiro pulando na lista
-            '&:hover .capa-do-evento': { transform: 'scale(1.05)' },
-          }),
+      cursor: 'pointer',
+      // a capa cresce devagar sob o cartaz parado: o movimento é da foto, e
+      // não do bloco inteiro pulando na lista
+      '&:hover .capa-do-evento': { transform: 'scale(1.05)' },
     },
     capa: {
       position: 'absolute',
@@ -327,12 +314,11 @@ function CartazDoEvento({
           ? { boxShadow: `0 12px 30px -6px ${alpha('#fff', 0.6)}` }
           : { backgroundColor: alpha('#000', 0.42) }),
       },
-      '&.Mui-disabled': { color: alpha('#fff', 0.6) },
     },
   };
 
   return (
-    <Paper sx={styles.cartaz} onClick={encerrado ? undefined : abrir}>
+    <Paper sx={styles.cartaz} onClick={abrir}>
       <Box
         className="capa-do-evento"
         sx={styles.capa}
@@ -405,18 +391,13 @@ function CartazDoEvento({
           <Box sx={styles.caixaDoBotao}>
             <Button
               size="small"
-              disabled={encerrado}
               sx={styles.botao}
               onClick={(clique) => {
                 clique.stopPropagation();
                 abrir();
               }}
             >
-              {encerrado
-                ? 'Encerrado'
-                : minhaSituacao
-                  ? 'Ver meu evento'
-                  : 'Ver detalhes'}
+              {minhaSituacao ? 'Ver meu evento' : 'Ver detalhes'}
             </Button>
           </Box>
         </Stack>
@@ -434,8 +415,7 @@ function EsqueletoDoCartaz() {
 
 /**
  * Título de seção da lista. O contador do lado direito responde "quantos são?"
- * sem a pessoa ter que contar as linhas — e some quando a seção não é sobre
- * quantidade, como a dos encerrados.
+ * sem a pessoa ter que contar as linhas.
  */
 function TituloSecao({
   children,
@@ -795,11 +775,6 @@ function Cards() {
     salvarIgreja(igrejaId);
   };
 
-  /**
-   * O recorte é feito no catálogo cru, antes de separar aberto de encerrado:
-   * `eventosEncerrados` devolve só os dois últimos, e filtrar depois deles
-   * deixaria a seção vazia sempre que os dois últimos fossem de outra igreja.
-   */
   const doCatalogo = useMemo(
     () =>
       filtrarPorIgreja(
@@ -814,7 +789,6 @@ function Cards() {
     () => eventosAbertos(doCatalogo, isAdmin),
     [doCatalogo, isAdmin]
   );
-  const encerrados = useMemo(() => eventosEncerrados(doCatalogo), [doCatalogo]);
 
   /**
    * Quantos eventos abertos cada igreja tem — o número que aparece na lista do
@@ -870,28 +844,13 @@ function Cards() {
     return mapa;
   }, [gruposDoUsuario]);
 
-  const cartaz = (event: Event, proximo?: boolean, encerrado?: boolean) => (
+  const cartaz = (event: Event, proximo?: boolean) => (
     <CartazDoEvento
       key={event.id}
       event={event}
       proximo={proximo}
-      encerrado={encerrado}
       minhaSituacao={situacaoPorEvento.get(event.id) ?? null}
     />
-  );
-
-  /**
-   * Os que já acabaram fecham a página, depois dos abertos. Ficam fora do
-   * caminho de quem veio se inscrever, mas seguram a tela no intervalo entre
-   * dois eventos, quando ela ficaria só com o aviso de "nada aberto".
-   */
-  const secaoEncerrados = encerrados.length > 0 && (
-    <Box sx={{ mt: 3 }}>
-      <TituloSecao>Eventos encerrados</TituloSecao>
-      <Stack gap={1.5}>
-        {encerrados.map((event) => cartaz(event, false, true))}
-      </Stack>
-    </Box>
   );
 
   if (isLoading) {
@@ -914,7 +873,6 @@ function Cards() {
           igrejaFiltrada={nomeDaIgrejaAtiva}
           onLimparFiltro={() => escolherIgreja(TODAS_AS_IGREJAS)}
         />
-        {secaoEncerrados}
       </Box>
     );
   }
@@ -930,22 +888,8 @@ function Cards() {
    * tarde do dia em que termina.
    */
   const acontecendo = eventos.filter(emAndamento);
-  const aindaVem = eventos.filter((event) => !acontecendo.includes(event));
-
-  /**
-   * "Próximos" são os que já têm contagem regressiva — até 45 dias. O resto
-   * fica em "Outros eventos", que é onde caem as inscrições abertas com muita
-   * antecedência.
-   *
-   * O primeiro da lista entra em "Próximos" de qualquer jeito: se todo evento
-   * aberto ainda está longe, a página começaria por "Outros eventos", o que soa
-   * estranho para quem chegou.
-   */
-  const proximos = aindaVem.filter(
-    (event, posicao) =>
-      posicao === 0 || contagemRegressiva(event.startDate, event.endDate)
-  );
-  const outros = aindaVem.filter((event) => !proximos.includes(event));
+  // o resto, na ordem de `eventosAbertos`: do que começa antes para o depois
+  const proximos = eventos.filter((event) => !acontecendo.includes(event));
 
   return (
     <Box>
@@ -954,7 +898,7 @@ function Cards() {
       {acontecendo.length > 0 && (
         <Box>
           <TituloSecao quantidade={acontecendo.length}>
-            Em andamento
+            Acontecendo agora
           </TituloSecao>
           <Stack gap={1.5}>
             {acontecendo.map((event) => cartaz(event, true))}
@@ -974,15 +918,6 @@ function Cards() {
           </Stack>
         </Box>
       )}
-
-      {outros.length > 0 && (
-        <Box sx={{ mt: 3 }}>
-          <TituloSecao quantidade={outros.length}>Outros eventos</TituloSecao>
-          <Stack gap={1.5}>{outros.map((event) => cartaz(event))}</Stack>
-        </Box>
-      )}
-
-      {secaoEncerrados}
     </Box>
   );
 }

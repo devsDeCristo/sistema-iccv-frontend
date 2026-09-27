@@ -99,36 +99,19 @@ export function contagemRegressiva(
 }
 
 /**
- * Os últimos eventos que já acabaram: inativos e com a data final no passado.
- *
- * Entram na home depois dos abertos, esmaecidos, para a página não ficar vazia
- * no intervalo entre um evento e outro e para quem participou reencontrar o
- * evento de onde veio.
- *
- * O corte usa o fim do dia da data final, a mesma régua de `contagemRegressiva`:
- * um evento que termina hoje ainda está acontecendo, não é passado.
+ * O evento já acabou: a data final ficou para trás. O corte é o fim do dia
+ * final, a mesma régua de `contagemRegressiva` — um evento que termina hoje
+ * ainda está acontecendo, não é passado.
  */
-export function eventosEncerrados(
-  data: unknown,
-  quantidade = 2,
+export function jaAcabou(
+  event: { endDate?: Date | string | null },
   agora: Date = new Date()
-): Event[] {
-  if (!Array.isArray(data)) return [];
+): boolean {
+  if (!event.endDate) return false;
 
-  return (data as Event[])
-    .filter((event) => {
-      if (event?.status !== 'INACTIVE' || !event.endDate) return false;
+  const fim = dayjs(event.endDate).endOf('day');
 
-      const fim = dayjs(event.endDate).endOf('day');
-
-      return fim.isValid() && fim.isBefore(agora);
-    })
-    // do mais recente para o mais antigo: quem acabou ontem interessa mais que
-    // quem acabou ano passado
-    .sort(
-      (a, b) => new Date(b.endDate).getTime() - new Date(a.endDate).getTime()
-    )
-    .slice(0, quantidade);
+  return fim.isValid() && fim.isBefore(agora);
 }
 
 export type SituacaoVagas = 'aberto' | 'ultimas' | 'esgotado';
@@ -162,8 +145,9 @@ export function ocupacao(
 }
 
 /**
- * Os eventos que a tela mostra: só os ativos, do mais próximo para o mais
- * distante — quem entra aqui quer saber o que vem primeiro.
+ * Os eventos que a tela mostra: só os ativos que ainda não acabaram, do mais
+ * próximo para o mais distante — quem entra aqui quer saber o que vem
+ * primeiro. Evento que passou da data sem ninguém desligar não fica na lista.
  *
  * Recebe o dado cru da query porque `/events` responde uma lista ou um evento
  * só, dependendo do parâmetro, e o hero e a grade precisam da mesma conta.
@@ -173,13 +157,19 @@ export function ocupacao(
  * parâmetro existe para a tela não depender só disso — e para o filtro
  * continuar sendo uma conta pura, testável sem montar React.
  */
-export function eventosAbertos(data: unknown, podeVerTeste = false): Event[] {
+export function eventosAbertos(
+  data: unknown,
+  podeVerTeste = false,
+  agora: Date = new Date()
+): Event[] {
   if (!Array.isArray(data)) return [];
 
   return (data as Event[])
     .filter(
       (event) =>
-        event?.status === 'ACTIVE' || (podeVerTeste && event?.status === 'TEST')
+        (event?.status === 'ACTIVE' ||
+          (podeVerTeste && event?.status === 'TEST')) &&
+        !jaAcabou(event, agora)
     )
     .sort(
       (a, b) =>
