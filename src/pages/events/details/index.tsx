@@ -360,6 +360,14 @@ function EventsDetails() {
           transform: 'scale(1.035)',
           boxShadow: `0 14px 34px -8px ${alpha(VIOLETA_VIVO, 0.85)}`,
         },
+        // inscrições fechadas: sem o degradê e sem o brilho, para não parecer
+        // um botão que ainda leva a algum lugar
+        '&.Mui-disabled': {
+          color: alpha('#fff', 0.7),
+          backgroundImage: 'none',
+          backgroundColor: alpha(theme.palette.text.primary, 0.18),
+          boxShadow: 'none',
+        },
       },
       botaoVidro: {
         height: 50,
@@ -829,8 +837,9 @@ function EventsDetails() {
                 },
               }}
               onClick={irParaInscricao}
+              disabled={semInscricaoAberta}
             >
-              Inscreva-se
+              {semInscricaoAberta ? avisoDeFechado : 'Inscreva-se'}
             </Button>
 
             {podeVerQuadrante && (
