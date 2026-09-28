@@ -1,15 +1,10 @@
-import {
-  Outlet,
-  useLoaderData,
-  useLocation,
-  useRevalidator,
-} from 'react-router-dom';
+import { Outlet, useLoaderData } from 'react-router-dom';
 import SideBar, { AreaSideBar } from '../../components/sideBar';
 import MenuAppBar from '../../components/appBar';
 import { Box, Stack } from '@mui/material';
 import { useUser } from '../../contexts/userContext';
 import { User } from '../../types/user';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { TermsGate } from '../../features/terms/termsGate';
 
 /** Altura da barra do topo (src/components/appBar) */
@@ -58,24 +53,6 @@ export const Layout = ({
       setUser(loaderData);
     }
   }, [loaderData, setUser]);
-
-  /**
-   * O perfil é conferido de novo a cada troca de página, mas depois de a tela
-   * já estar aberta: a navegação não espera por isso (ver `soNaRevalidacao` em
-   * `src/routes`). A primeira tela pula, porque o loader acabou de rodar.
-   */
-  const { pathname } = useLocation();
-  const { revalidate } = useRevalidator();
-  const primeiraTela = useRef(true);
-  useEffect(() => {
-    if (primeiraTela.current) {
-      primeiraTela.current = false;
-      return;
-    }
-    revalidate();
-    // só a troca de caminho dispara; `revalidate` muda de identidade a cada render
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pathname]);
 
   return (
     <Stack sx={{ width: '100%', direction: 'column' }}>
