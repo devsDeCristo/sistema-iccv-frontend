@@ -18,8 +18,10 @@ COPY . .
 # tem efeito. Por isso vem como ARG: cada ambiente gera sua própria imagem.
 ARG VITE_API_URL
 ARG VITE_MODULE_PAYMENT
+ARG VITE_TURNSTILE_SITE_KEY
 ENV VITE_API_URL=$VITE_API_URL
 ENV VITE_MODULE_PAYMENT=$VITE_MODULE_PAYMENT
+ENV VITE_TURNSTILE_SITE_KEY=$VITE_TURNSTILE_SITE_KEY
 RUN yarn build
 
 # ------------------------------------------------------------------ runtime

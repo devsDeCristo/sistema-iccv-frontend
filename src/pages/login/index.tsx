@@ -1,4 +1,5 @@
 import {
+  Alert,
   Box,
   Button,
   CircularProgress,
@@ -14,7 +15,7 @@ import { FormProvider, useForm } from 'react-hook-form';
 import { LOGIN_SCHEMA } from '../../features/login/constants';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { FormLogin } from '../../features/login/components/form';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 // import { setBearerToken } from '../../config/lib/axios/api-client';
 import { usePermission } from '../../hooks/usePermission';
 import {
@@ -28,6 +29,7 @@ import { toast } from 'react-toastify';
 import { useRole } from '../../hooks/useRole';
 import { ADMIN_AREA_ROLES } from '../../constants/roles';
 import { LoginFormType } from '../../features/login/types';
+import { Captcha, CAPTCHA_SITE_KEY } from '../../components/captcha';
 //images
 import CapaLogin from '../../assets/capaLogin2.jpg';
 import Logo from '../../assets/logo-ic.svg?react';
@@ -78,11 +80,47 @@ function Login() {
     resolver: zodResolver(LOGIN_SCHEMA),
   });
 
+  /**
+   * Freio de senha errada (regra no servidor, `protecao-de-login.ts`): depois
+   * de 2 erros o servidor pede o captcha; com 5, bloqueia o login por um tempo.
+   * `versao` remonta o captcha — cada token vale uma tentativa só.
+   */
+  const [captcha, setCaptcha] = useState({
+    pedido: false,
+    token: null as string | null,
+    versao: 0,
+  });
+  const [bloqueio, setBloqueio] = useState<{
+    ate: Date;
+    mensagem: string;
+  } | null>(null);
+
+  // o botão volta sozinho quando o bloqueio acaba
+  useEffect(() => {
+    if (!bloqueio) return;
+    const timer = setTimeout(
+      () => setBloqueio(null),
+      bloqueio.ate.getTime() - Date.now()
+    );
+    return () => clearTimeout(timer);
+  }, [bloqueio]);
+
   function onSubmitForm(data: LoginFormType) {
+    if (bloqueio) return;
+
+    if (captcha.pedido && CAPTCHA_SITE_KEY && !captcha.token) {
+      toast.warning('Conclua a verificação de segurança para continuar.');
+      return;
+    }
+
     const { cpf, password } = data;
     const cleanedCpf = cpf.replace(/[.\-\s]/g, '');
 
-    mutatePostLogin({ document: cleanedCpf, password });
+    mutatePostLogin({
+      document: cleanedCpf,
+      password,
+      captchaToken: captcha.token ?? undefined,
+    });
   }
 
   useEffect(() => {
@@ -125,7 +163,26 @@ function Login() {
       navigate(podeVoltar ? (rotaGuardada as string) : areaInicial);
     },
     onError: (error: any) => {
-      if (error.response.status === 404) {
+      const resposta = error.response?.data;
+
+      if (error.response?.status === 429) {
+        setBloqueio({
+          ate: new Date(resposta?.bloqueadoAte ?? Date.now() + 15 * 60000),
+          mensagem: resposta?.message,
+        });
+      }
+
+      // o token já foi gasto nesta tentativa: se o captcha segue pedido,
+      // vem um desafio novo
+      if (resposta?.captchaRequired || captcha.pedido) {
+        setCaptcha((atual) => ({
+          pedido: true,
+          token: null,
+          versao: atual.versao + 1,
+        }));
+      }
+
+      if (error.response?.status === 404) {
         localStorage.setItem('cpf', JSON.parse(error.config.data).document);
         navigate('/usuario/cadastrar');
         Swal.fire({
@@ -372,11 +429,28 @@ function Login() {
                 <form onSubmit={methods.handleSubmit(onSubmitForm)}>
                   <FormLogin />
 
+                  {captcha.pedido && !bloqueio && (
+                    <Captcha
+                      key={captcha.versao}
+                      onToken={(token) =>
+                        setCaptcha((atual) => ({ ...atual, token }))
+                      }
+                    />
+                  )}
+
+                  {bloqueio && (
+                    <Alert severity="warning" sx={{ mt: 2 }}>
+                      {bloqueio.mensagem} Se esqueceu a senha, use &quot;Esqueci
+                      minha senha&quot; abaixo.
+                    </Alert>
+                  )}
+
                   <Button
                     variant="contained"
                     fullWidth
                     sx={styles.entrar}
                     type="submit"
+                    disabled={!!bloqueio}
                   >
                     {isLoading ? (
                       <CircularProgress size={20} color="inherit" />

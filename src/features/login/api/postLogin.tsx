@@ -3,7 +3,7 @@ import {
   handleResponseSuccess,
   handleResponseThrowError,
 } from '../../../utils/service';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import { API_URL } from '../../../config/env';
 
 const postLogin = (data: any) =>
@@ -11,6 +11,7 @@ const postLogin = (data: any) =>
     .post<{ access_token: string; user: any }>(`${API_URL}/auth/login`, {
       document: data.document,
       password: data.password,
+      captchaToken: data.captchaToken,
     })
     .then((response) => {
       handleResponseSuccess(
@@ -20,7 +21,10 @@ const postLogin = (data: any) =>
       )();
       return response.data;
     })
-    .catch(handleResponseThrowError());
+    // bloqueio (429) vira aviso na própria tela, não toast
+    .catch((error: AxiosError) =>
+      handleResponseThrowError(undefined, error.response?.status !== 429)(error)
+    );
 
 type PostLoginData = Awaited<ReturnType<typeof postLogin>>;
 

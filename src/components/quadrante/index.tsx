@@ -199,15 +199,19 @@ function CartaoPessoa({ pessoa }: { pessoa: Pessoa }) {
   return (
     <article className={`q-cartao${lider ? ' q-lider' : ''}`}>
       <div className="q-topo">
-        <Foto pessoa={pessoa} />
-        <div className="q-identidade">
-          <div className="q-nome">{pessoa.fullName}</div>
+        {/* o selo fica pendurado na borda de baixo da foto: marca o líder sem
+            tomar uma linha do cartão */}
+        <div className="q-foto-caixa">
+          <Foto pessoa={pessoa} />
           {lider && (
             <span className="q-selo-lider">
               <Icone nome="estrela" />
               Líder
             </span>
           )}
+        </div>
+        <div className="q-identidade">
+          <div className="q-nome">{pessoa.fullName}</div>
         </div>
       </div>
 
@@ -498,6 +502,7 @@ function QuadrantePage({ eventId, pageBack }: QuadrantePageProps) {
           // fontFamily: FONTE
         },
 
+      '--q-primaria': paleta.primaria,
       '--q-papel': theme.palette.background.paper,
       '--q-texto': theme.palette.text.primary,
       '--q-texto-2': theme.palette.text.secondary,
@@ -543,7 +548,7 @@ function QuadrantePage({ eventId, pageBack }: QuadrantePageProps) {
       },
       '& .q-grade': {
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+        gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 320px), 1fr))',
         gap: 2,
       },
       '& .q-cartao': {
@@ -564,8 +569,9 @@ function QuadrantePage({ eventId, pageBack }: QuadrantePageProps) {
           position: 'absolute',
           inset: '0 0 auto 0',
           height: 4,
+          // a faixa é do evento, não da equipe: sempre a cor primária
           background:
-            'linear-gradient(90deg, var(--cor), color-mix(in srgb, var(--cor) 35%, transparent))',
+            'linear-gradient(90deg, var(--q-primaria), color-mix(in srgb, var(--q-primaria) 35%, transparent))',
         },
         '&:hover': {
           transform: 'translateY(-2px)',
@@ -608,19 +614,31 @@ function QuadrantePage({ eventId, pageBack }: QuadrantePageProps) {
       },
       '& .q-identidade': { minWidth: 0 },
       '& .q-nome': { fontWeight: 800, fontSize: 16, lineHeight: 1.25 },
+      '& .q-foto-caixa': { position: 'relative', flexShrink: 0 },
+      // espaço para a metade do selo que sai por baixo da foto
+      '& .q-lider .q-foto-caixa': { mb: 1 },
       '& .q-selo-lider': {
-        mt: 0.5,
+        position: 'absolute',
+        left: '50%',
+        bottom: -10,
+        transform: 'translateX(-50%)',
         display: 'inline-flex',
         alignItems: 'center',
-        gap: 0.5,
-        px: 1,
-        height: 22,
+        gap: 0.25,
+        px: 0.75,
+        height: 18,
         borderRadius: 999,
-        fontSize: 12,
-        fontWeight: 700,
-        color: 'var(--cor-texto)',
-        backgroundColor: 'color-mix(in srgb, var(--cor) 16%, transparent)',
-        '& .q-icone': { width: 16, height: 16, color: 'inherit' },
+        whiteSpace: 'nowrap',
+        fontSize: 10,
+        fontWeight: 800,
+        letterSpacing: '0.04em',
+        textTransform: 'uppercase',
+        // sólido e com contorno da cor do cartão: fica legível por cima do
+        // anel da foto
+        color: 'var(--q-papel)',
+        backgroundColor: 'var(--cor-texto)',
+        boxShadow: '0 0 0 2px var(--q-papel)',
+        '& .q-icone': { width: 12, height: 12, color: 'inherit' },
       },
       '& .q-contatos': {
         display: 'flex',
@@ -663,7 +681,7 @@ function QuadrantePage({ eventId, pageBack }: QuadrantePageProps) {
         '&:hover': { backgroundColor: 'rgba(37, 211, 102, 0.12)' },
       },
     }),
-    [theme, escuro]
+    [theme, escuro, paleta.primaria]
   );
 
   /**

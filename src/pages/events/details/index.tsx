@@ -108,9 +108,15 @@ function EventsDetails() {
     [event, groups]
   );
 
-  /** com o quadrante ligado no evento, abrem o admin e os inscritos */
+  /**
+   * Aqui o quadrante é só do inscrito, a partir do primeiro dia do evento — a
+   * mesma regra do servidor. O admin abre pelo painel, a qualquer momento.
+   */
   const podeVerQuadrante =
-    !!event && quadranteAtivo(event.data) && (podeAdministrar || inscrito);
+    !!event &&
+    quadranteAtivo(event.data) &&
+    inscrito &&
+    new Date() >= new Date(event.startDate);
 
   const produtosAVenda = useMemo(
     () =>
