@@ -3,6 +3,7 @@ import {
   createRoutesFromElements,
   Navigate,
   Route,
+  ShouldRevalidateFunction,
 } from 'react-router-dom';
 import { RoutesLogin } from '../pages/login/routes';
 import { RegisterUser } from '../pages/users/register';
@@ -25,6 +26,23 @@ import { UserProvider } from '../contexts/userContext';
 import { RoutesMyRegisters } from '../pages/myRegisters/routers';
 import { RoutesSettings } from '../pages/settings/routes';
 
+/**
+ * A validação da sessão não trava a troca de página.
+ *
+ * Antes o loader rodava a cada mudança de caminho, e a navegação esperava o
+ * `/auth/validate` ir e voltar antes de montar a tela nova — que então fazia os
+ * próprios pedidos: duas viagens em série por clique, sem nada na tela dizendo
+ * que estava carregando. O pedido nem aparece no log do servidor (é silenciado
+ * no interceptor), então a demora parecia vir do nada.
+ *
+ * Agora o loader roda ao entrar na área e quando o `Layout` pede de novo, em
+ * segundo plano, a cada troca de página (`revalidate`, mesma URL). Navegar para
+ * outra URL não espera por ele. Sessão vencida continua caindo no 401 do
+ * interceptor do axios.
+ */
+const soNaRevalidacao: ShouldRevalidateFunction = ({ currentUrl, nextUrl }) =>
+  currentUrl.href === nextUrl.href;
+
 const routers = (): ReturnType<typeof createBrowserRouter> => {
   return createBrowserRouter(
     createRoutesFromElements(
@@ -37,9 +55,7 @@ const routers = (): ReturnType<typeof createBrowserRouter> => {
 
         <Route
           loader={authLoaderAdmin}
-          shouldRevalidate={({ currentUrl, nextUrl }) => {
-            return currentUrl.pathname !== nextUrl.pathname;
-          }}
+          shouldRevalidate={soNaRevalidacao}
           element={
             <UserProvider>
               <Layout isAdmin={true} />
@@ -60,9 +76,7 @@ const routers = (): ReturnType<typeof createBrowserRouter> => {
         */}
         <Route
           loader={authLoaderAdmin}
-          shouldRevalidate={({ currentUrl, nextUrl }) => {
-            return currentUrl.pathname !== nextUrl.pathname;
-          }}
+          shouldRevalidate={soNaRevalidacao}
           element={
             <UserProvider>
               <Layout isAdmin area="configuracoes" />
@@ -74,9 +88,7 @@ const routers = (): ReturnType<typeof createBrowserRouter> => {
 
         <Route
           loader={authLoader}
-          shouldRevalidate={({ currentUrl, nextUrl }) => {
-            return currentUrl.pathname !== nextUrl.pathname;
-          }}
+          shouldRevalidate={soNaRevalidacao}
           element={
             <UserProvider>
               <Layout isAdmin={false} />

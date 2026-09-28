@@ -93,7 +93,16 @@ Arquivos: `src/constants/roles.ts`, `src/hooks/useRole.tsx`, `src/components/req
 - **Grupo configurações** (`authLoaderAdmin`, régua própria): `/configuracoes` (redireciona para `/configuracoes/pagamentos`), `/configuracoes/pagamentos`, `/configuracoes/disparadores` (redireciona para `/configuracoes/disparadores/whatsapp`), `/configuracoes/disparadores/whatsapp`, `/configuracoes/termos`.
 - **Grupo usuário** (`authLoader`): `/home`, `/eventos` (redireciona para `/home`), `/historicoEventos`, `/eventos/:id`, `/eventos/:id/inscricao`, `/eventos/:id/produtos`, `/eventos/:id/quadrante`, `/minhasInscricoes`, `/perfil`.
 
-Cada grupo tem `shouldRevalidate` restrito a mudança de caminho, para o loader de autenticação não rodar de novo a cada troca de query string.
+### A validação da sessão não trava a troca de página
+
+- **Entrar na área** (abrir o app, vir do login, trocar de área): o loader (`authLoader`/`authLoaderAdmin`) roda e a tela só aparece depois dele.
+- **Trocar de página dentro da área:** a navegação **não espera** o loader. O `shouldRevalidate` (`soNaRevalidacao`, em `src/routes/index.tsx`) só aceita rodar de novo quando a URL é a mesma, que é o caso de uma revalidação pedida pelo código.
+- **Revalidação em segundo plano:** a cada troca de caminho, o `Layout` chama `revalidate()` depois de a tela nova já estar aberta. O perfil guardado continua em dia (vínculos, papel), e quem perdeu o acesso ao painel é redirecionado como antes.
+- **Sessão vencida:** qualquer pedido que volte com 401 encerra a sessão, pelo interceptor do axios (`src/config/lib/axios/api-client.ts`).
+- **Por quê:** com o loader rodando antes de cada tela, todo clique esperava o `/auth/validate` ir e voltar e só depois a página fazia os próprios pedidos. Eram duas viagens em série, sem nada na tela indicando carregamento. Esse pedido também não aparece no log do servidor, que silencia as rotas de validação.
+- **Não voltar a travar:** não coloque loader em rota filha nem faça o `shouldRevalidate` devolver `true` para mudança de caminho sem medir o efeito no clique.
+
+Arquivos: `src/routes/index.tsx` e `src/pages/layout/index.tsx`.
 
 ## Ponto de atenção encontrado
 
