@@ -6,9 +6,11 @@ services:
     build:
       context: .
       args:
-        VITE_API_URL: ${VITE_API_URL:-http://localhost:5000}
-        VITE_MODULE_PAYMENT: ${VITE_MODULE_PAYMENT:-false}
-        VITE_TURNSTILE_SITE_KEY: ${VITE_TURNSTILE_SITE_KEY:-}
+        # uma VITE_* por linha: o Dockerfile repassa todas para o build
+        VITE_BUILD_ENV: |
+          VITE_API_URL=${VITE_API_URL:-http://localhost:5000}
+          VITE_MODULE_PAYMENT=${VITE_MODULE_PAYMENT:-false}
+          VITE_TURNSTILE_SITE_KEY=${VITE_TURNSTILE_SITE_KEY:-}
     restart: unless-stopped
     ports:
       - '8080:80'

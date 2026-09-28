@@ -23,6 +23,7 @@ contexto para quem (pessoa ou IA) for mexer nessas telas.
 | Login e cadastro | `/login`, `/usuario/cadastrar` | [login-e-cadastro.md](login-e-cadastro.md) |
 | Termos de Uso | `/termos` | [termos-de-uso.md](termos-de-uso.md) |
 | Layout e navegação | menu, rotas e perfis | [layout-e-navegacao.md](layout-e-navegacao.md) |
+| Deploy | CI, imagem e variáveis `VITE_*` | [deploy.md](deploy.md) |
 | **Painel do admin** | | |
 | Início do painel | `/admin/inicio` | [admin-home.md](admin-home.md) |
 | Eventos (cadastro e edição) | `/admin/eventos` | [admin-eventos.md](admin-eventos.md) |

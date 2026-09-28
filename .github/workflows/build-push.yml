@@ -49,6 +49,19 @@ jobs:
         run: |
           echo "IMAGE_LC=$(echo '${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
+      # Todas as Variables VITE_* do repositório e da organização entram no
+      # build — variável nova entra sozinha, sem declarar aqui nem no
+      # Dockerfile. Variables, e não Secrets: o valor vai para dentro do bundle,
+      # que é público. Um pacote numa linha só (pares separados por \x1f),
+      # porque o build-args da action não aceita valor com quebra de linha.
+      - name: Preparar as variáveis do build
+        env:
+          ALL_VARS: ${{ toJSON(vars) }}
+        run: |
+          PACOTE=$(jq -j 'to_entries | map(select(.key | startswith("VITE_"))) | .[] | "\(.key)=\(.value)\u001f"' <<< "$ALL_VARS")
+          echo "VITE_BUILD_ENV=$PACOTE" >> "$GITHUB_ENV"
+          echo "Variáveis no build: $(jq -r '[keys[] | select(startswith("VITE_"))] | join(", ")' <<< "$ALL_VARS")"
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -60,12 +73,10 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          # VITE_API_URL: cadastre em Settings > Secrets and variables >
-          # Actions > Variables (não é secret, vai embutido no bundle mesmo)
+          # as VITE_* vêm de Settings > Secrets and variables > Actions >
+          # Variables, montadas no passo "Preparar as variáveis do build"
           build-args: |
-            VITE_API_URL=${{ vars.VITE_API_URL }}
-            VITE_MODULE_PAYMENT=${{ vars.VITE_MODULE_PAYMENT }}
-            VITE_TURNSTILE_SITE_KEY=${{ vars.VITE_TURNSTILE_SITE_KEY }}
+            VITE_BUILD_ENV=${{ env.VITE_BUILD_ENV }}
           # provenance/sbom desligados de propósito: eles criam manifests
           # "untagged" extras no package, que confundem a limpeza por retenção
           # (e não agregam nada num build de plataforma única).
