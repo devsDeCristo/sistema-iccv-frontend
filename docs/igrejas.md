@@ -77,7 +77,7 @@ Arquivos: `src/features/admin/churches/index.tsx`, `src/features/admin/churches/
 | --- | --- | --- |
 | `ACTIVE` (Ativa) | verde (`chips.success`) | No ar: aparece no filtro de igrejas da home |
 | `TEST` (Em teste) | laranja (`chips.alert`) | Em implantação: o painel funciona, mas ela não aparece no filtro da home |
-| `INACTIVE` (Inativa) | cinza (`chips.canceled`) | Fora do ar: some do filtro da home; os dados continuam guardados (nada é apagado) |
+| `INACTIVE` (Inativa) | cinza (`chips.canceled`) | Fora do ar: some do filtro da home; os dados continuam guardados (nada é apagado). Admin e financeiro dela viram usuários comuns: perdem a área de admin, ou ficam só com as outras igrejas ativas que administram. Reativar devolve o acesso |
 
 O vocabulário e as cores acompanham de propósito o status do evento (Ativo /
 Inativo / Teste), para não obrigar a aprender duas escalas diferentes.
