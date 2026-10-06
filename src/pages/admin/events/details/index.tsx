@@ -10,7 +10,6 @@ import {
   InputAdornment,
   Chip,
   LinearProgress,
-  useTheme,
   Menu,
   MenuItem,
   IconButton,
@@ -87,10 +86,7 @@ import PdfTeams from '../../../../components/pdfTeams';
 import ModalQrCode from '../../../../features/admin/events/components/modalQrCode';
 import { QrScannerModal } from '../../../../components/qrScanner';
 import { parseBadgeCode } from '../../../../utils/qrcode';
-import {
-  campoBuscaSx,
-  superficieSx,
-} from '../../../../components/listPageStyles';
+import { superficieSx } from '../../../../components/listPageStyles';
 import { NavTabs } from '../../../../components/navTabs';
 import { User } from '../../../../types/user';
 import { ListUsersWaitList } from '../../../../features/admin/events/components/listUsersWaitList';
@@ -195,7 +191,6 @@ function Details() {
   const [openQrScanner, setOpenQrScanner] = useState(false);
 
   const handleCloseModalQrCode = () => setOpenModalQrCode(false);
-  const theme = useTheme();
   const { data: eventData, isLoading: loadingEventDetails } = useGetEvents(
     {
       eventId: eventId,
@@ -338,11 +333,9 @@ function Details() {
     },
     textField: {
       width: { xs: '100%', sm: '350px' },
-      ...campoBuscaSx(theme),
     },
     selectFiltro: {
       width: { xs: '100%', sm: 210 },
-      ...campoBuscaSx(theme),
     },
   };
 

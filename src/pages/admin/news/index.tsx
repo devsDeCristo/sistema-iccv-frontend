@@ -1,15 +1,9 @@
-import {
-  Button,
-  InputAdornment,
-  Paper,
-  TextField,
-  useTheme,
-} from '@mui/material';
+import { Button, InputAdornment, Paper, TextField } from '@mui/material';
 import { Add, Close, Search } from '@mui/icons-material';
 import { useState } from 'react';
 import { PageStyle } from '../../../components/pageStyle';
 import { Header } from '../../../components/header';
-import { campoBuscaSx, superficieSx } from '../../../components/listPageStyles';
+import { superficieSx } from '../../../components/listPageStyles';
 import { NewsAdminList } from '../../../features/news/components/newsAdminList';
 import { NewsFormModal } from '../../../features/news/components/newsFormModal';
 import { News } from '../../../features/news/types';
@@ -17,7 +11,6 @@ import { WhatsappOfflineAlert } from '../../../features/settings/whatsapp/compon
 
 /** Mural de notícias: é daqui que sai o feed da tela de eventos. */
 function NewsAdmin() {
-  const theme = useTheme();
   const [busca, setBusca] = useState('');
   const [emEdicao, setEmEdicao] = useState<News | null>(null);
   const [formAberto, setFormAberto] = useState(false);
@@ -47,7 +40,6 @@ function NewsAdmin() {
     },
     campo: {
       width: { xs: '100%', sm: '380px' },
-      ...campoBuscaSx(theme),
     },
     botao: {
       width: { xs: '100%', sm: 'fit-content' },

@@ -25,7 +25,6 @@ import { moduloAtivo } from '../../events/eventModules';
 import { EventDetails } from '../../events/types';
 import CustomChip from '../../../../components/customChip';
 import {
-  campoBuscaSx,
   superficieSx,
 } from '../../../../components/listPageStyles';
 import { formatCPF } from '../../../../utils';
@@ -328,14 +327,13 @@ function ReceptionStation({ eventId, grupo }: ReceptionStationProps) {
                     grupo === TODOS_OS_GRUPOS ? 'no evento' : `em ${grupo}`
                   } — o participante é encaminhado ao posto de foto após a entrega`
             }
-            sx={{ flex: 1, ...campoBuscaSx(theme) }}
+            sx={{ flex: 1 }}
           />
 
           <Box sx={{ width: { xs: '100%', sm: 260 } }}>
             <InputSelect
               label="Situação"
               size="small"
-              sx={campoBuscaSx(theme)}
               value={situacao}
               onChange={(event) => setSituacao(String(event.target.value))}
               menuOptions={[

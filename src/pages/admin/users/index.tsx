@@ -7,14 +7,13 @@ import {
   Paper,
   TextField,
   Tooltip,
-  useTheme,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { PageStyle } from '../../../components/pageStyle';
 import { Header } from '../../../components/header';
 import { List } from '../../../features/admin/users/components/list';
 import { useRole } from '../../../hooks/useRole';
-import { campoBuscaSx, superficieSx } from '../../../components/listPageStyles';
+import { superficieSx } from '../../../components/listPageStyles';
 import { useState } from 'react';
 import { Add, Close, Search } from '@mui/icons-material';
 import { CardsStatus } from '../../../features/admin/users/components/cardsStatus';
@@ -38,7 +37,6 @@ function Users() {
     ? todasAsIgrejas.map((igreja) => ({ id: igreja.id, name: igreja.name }))
     : churchRoles.map((vinculo) => vinculo.church);
   const mostraFiltroDeIgreja = isSuperAdmin || igrejasDoFiltro.length > 1;
-  const theme = useTheme();
   const styles = {
     boxFilterAndButton: {
       display: 'flex',
@@ -61,11 +59,9 @@ function Users() {
     },
     textField: {
       width: { xs: '100%', sm: '380px' },
-      ...campoBuscaSx(theme),
     },
     selectIgreja: {
       width: { xs: '100%', sm: '220px' },
-      ...campoBuscaSx(theme),
     },
     filtros: {
       display: 'flex',

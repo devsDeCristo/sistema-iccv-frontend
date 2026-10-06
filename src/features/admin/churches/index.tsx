@@ -33,7 +33,6 @@ import Swal from 'sweetalert2';
 import { PageStyle } from '../../../components/pageStyle';
 import { Header } from '../../../components/header';
 import {
-  campoBuscaSx,
   cardTabelaSx,
   dataGridSx,
   superficieSx,
@@ -276,7 +275,6 @@ export function Churches() {
     },
     campo: {
       width: { xs: '100%', sm: '380px' },
-      ...campoBuscaSx(theme),
     },
     botao: {
       width: { xs: '100%', sm: 'fit-content' },

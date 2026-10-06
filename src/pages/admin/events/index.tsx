@@ -4,7 +4,6 @@ import {
   Paper,
   Stack,
   TextField,
-  useTheme,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { PageStyle } from '../../../components/pageStyle';
@@ -17,7 +16,6 @@ import { EventStatusFilter } from '../../../features/admin/events/types';
 import { useRole } from '../../../hooks/useRole';
 import { useGetChurches } from '../../../features/admin/churches/api/getChurches';
 import {
-  campoBuscaSx,
   superficieSx,
 } from '../../../components/listPageStyles';
 
@@ -76,7 +74,6 @@ function Events() {
     igrejasDoFiltro.some((igreja) => igreja.id === churchIdSalvo);
   const churchId =
     mostraFiltroDeIgreja && igrejaSalvaValida ? churchIdSalvo : 'all';
-  const theme = useTheme();
   const styles = {
     boxFilterAndPdf: {
       display: 'flex',
@@ -92,11 +89,9 @@ function Events() {
     },
     textField: {
       width: { xs: '100%', sm: '300px' },
-      ...campoBuscaSx(theme),
     },
     selectStatus: {
       width: { xs: '100%', sm: '200px' },
-      ...campoBuscaSx(theme),
     },
     filters: {
       display: 'flex',

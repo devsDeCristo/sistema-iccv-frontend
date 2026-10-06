@@ -171,6 +171,32 @@ export const myTheme = (colorMode: boolean) =>
           },
         },
       },
+      /**
+       * Todo campo com contorno do sistema (TextField, Select, Autocomplete,
+       * datas) segue o campo de busca das listas: destaca do Paper por tom
+       * (`background.input`), não por sombra, e o foco pinta a borda na cor
+       * primária sem engrossá-la — engrossar empurra o texto um pixel e o
+       * campo "pula" ao focar. Erro e desabilitado ficam com o padrão do MUI.
+       */
+      MuiOutlinedInput: {
+        styleOverrides: {
+          root: ({ theme }) => ({
+            borderRadius: 8,
+            backgroundColor: theme.palette.background.input,
+            '&:hover:not(.Mui-focused):not(.Mui-error):not(.Mui-disabled) .MuiOutlinedInput-notchedOutline':
+              {
+                borderColor: theme.palette.border,
+              },
+            '&.Mui-focused:not(.Mui-error) .MuiOutlinedInput-notchedOutline': {
+              borderWidth: 1,
+              borderColor: theme.palette.primary.main,
+            },
+          }),
+          notchedOutline: ({ theme }) => ({
+            borderColor: theme.palette.divider,
+          }),
+        },
+      },
       MuiAppBar: {
         styleOverrides: {
           root: {

@@ -27,7 +27,6 @@ import {
 import { ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
 import ReactQuillEditor from '../../../components/reactQuillEditor';
-import { campoBuscaSx } from '../../../components/listPageStyles';
 import { useWhatsappConectado } from '../../settings/whatsapp/useWhatsappConectado';
 import { useGetEvents } from '../../admin/events/api/getEvents';
 import { useGetNewsWhatsappGroups } from '../api/getWhatsappGroups';
@@ -320,7 +319,6 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
                     : `${titulo.length}/140`
                 }
                 inputProps={{ maxLength: 140 }}
-                sx={campoBuscaSx(theme)}
               />
 
               <TextField
@@ -332,7 +330,6 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
                 onChange={(evento) => setChamada(evento.target.value)}
                 inputProps={{ maxLength: 280 }}
                 helperText={`Resumo de uma linha, mostrado no mural · ${chamada.length}/280`}
-                sx={campoBuscaSx(theme)}
               />
 
               <Box sx={styles.editor}>
@@ -517,7 +514,6 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
                         ? 'Sem número conectado'
                         : 'Nenhum grupo escolhido'
                   }
-                  sx={campoBuscaSx(theme)}
                 />
               )}
             />

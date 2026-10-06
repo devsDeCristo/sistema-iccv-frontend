@@ -12,7 +12,6 @@ import {
   Stack,
   Tooltip,
   Typography,
-  useTheme,
 } from '@mui/material';
 import {
   ArrowBack,
@@ -27,7 +26,6 @@ import { ReceptionStation } from '../../../features/admin/checkin/components/rec
 import { PhotoStation } from '../../../features/admin/checkin/components/photoStation';
 import { InputSelect } from '../../../components/inputSelect';
 import {
-  campoBuscaSx,
   superficieSx,
 } from '../../../components/listPageStyles';
 import { NavTabs } from '../../../components/navTabs';
@@ -45,7 +43,6 @@ type Posto = 'recepcao' | 'foto';
 
 function Checkin() {
   const { id: eventId = '' } = useParams();
-  const theme = useTheme();
   const navigate = useNavigate();
   const [posto, setPosto] = useState<Posto>('recepcao');
   const [grupo, setGrupo] = useState(TODOS_OS_GRUPOS);
@@ -164,7 +161,6 @@ function Checkin() {
             <InputSelect
               label="Grupo"
               size="small"
-              sx={campoBuscaSx(theme)}
               value={grupo}
               onChange={(event) => setGrupo(String(event.target.value))}
               menuOptions={[

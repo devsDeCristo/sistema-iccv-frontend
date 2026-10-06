@@ -37,6 +37,21 @@ Arquivos: `src/routes/index.tsx`, `src/pages/layout/index.tsx`, `src/components/
 
 Arquivo: `src/components/appBar/index.tsx`.
 
+## Campos de formulário (tema)
+
+Todo campo com contorno (TextField, Select, Autocomplete, datas) tem o mesmo
+visual, definido uma vez no tema (`MuiOutlinedInput` em `src/themes/index.tsx`):
+
+- **Fundo:** `background.input`. O campo se destaca do Paper pelo tom, não por sombra.
+- **Borda:** `divider` parado, `border` no hover, e a cor primária no foco, sem engrossar (engrossar empurra o texto um pixel e o campo "pula").
+- **Raio:** 8px.
+- **Erro e desabilitado:** ficam com o padrão do MUI.
+
+Não repita esse estilo no `sx` de cada tela: campo novo já nasce assim. Até
+06/10/2026 ele vivia em `campoBuscaSx` (`listPageStyles.ts`) e só valia nas
+buscas das listas do admin. O resto do sistema ficava com o contorno padrão do
+MUI.
+
 ## Régua lateral (`src/components/sideBar`)
 
 - Um só conteúdo de menu (`ConteudoNav`) para os dois formatos: fixa ao lado do conteúdo em telas `lg+`, dentro de uma gaveta (`Drawer`) nas menores.
