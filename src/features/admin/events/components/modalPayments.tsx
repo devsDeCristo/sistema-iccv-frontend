@@ -23,11 +23,16 @@ import { discountsResponse } from '../../../../types/user';
 import { formatCurrency } from '../../../../utils';
 import { ReceiptPreviewModal } from './modalReceiptView';
 import { toast } from 'react-toastify';
+import { PaymentResponse } from '../../../../types/user';
+import { AbasDosPagamentos } from './abasDosPagamentos';
 
 interface ModalPaymentProps {
   open: boolean;
   handleClose: () => void;
   payment: any;
+  /** os pagamentos da pessoa (aba "Todos"): com mais de um, viram abas */
+  pagamentos?: PaymentResponse[];
+  onTrocarPagamento?: (pagamento: PaymentResponse) => void;
 }
 
 // O `accept` do input é só uma sugestão na caixa de diálogo do SO, e o
@@ -53,6 +58,8 @@ export function ModalPayment({
   open,
   handleClose,
   payment,
+  pagamentos,
+  onTrocarPagamento,
 }: ModalPaymentProps) {
   const theme = useTheme();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -220,6 +227,12 @@ export function ModalPayment({
               <Close />
             </IconButton>
           </Stack>
+
+          <AbasDosPagamentos
+            pagamentos={pagamentos}
+            atual={payment}
+            onTrocar={onTrocarPagamento}
+          />
 
           {doSistema && (
             <Box

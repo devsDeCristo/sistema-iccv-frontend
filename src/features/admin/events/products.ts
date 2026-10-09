@@ -285,3 +285,12 @@ export function resumoDeProdutos(pedidos: PedidoDeProduto[]): ResumoDeProdutos {
     ),
   };
 }
+
+/**
+ * "Inscrição Cursilhistas" / "Compra avulsa" — qual pagamento é. Nomeia as
+ * abas dos modais de pagamento quando a pessoa tem mais de um (aba "Todos").
+ */
+export const descreverPagamento = (pagamento: PaymentResponse) =>
+  pagamento.purchaseType === 'PRODUCTS'
+    ? 'Compra avulsa'
+    : `Inscrição${pagamento.groupName ? ` ${pagamento.groupName}` : ''}`;

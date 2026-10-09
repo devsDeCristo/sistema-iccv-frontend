@@ -16,7 +16,12 @@ import {
   formatDateTime,
   tempoRelativo,
 } from '../../../../utils';
-import { PaymentMethod, PaymentStatus } from '../../../../types/user';
+import {
+  PaymentMethod,
+  PaymentResponse,
+  PaymentStatus,
+} from '../../../../types/user';
+import { AbasDosPagamentos } from './abasDosPagamentos';
 import {
   PaymentLog,
   PaymentLogSource,
@@ -34,6 +39,9 @@ interface ModalPaymentHistoryProps {
   /** A cobrança em foco; nula enquanto nenhuma linha foi escolhida */
   payment: { id?: string; fullName?: string; amount?: number } | null;
   eventId: string;
+  /** os pagamentos da pessoa (aba "Todos"): com mais de um, viram abas */
+  pagamentos?: PaymentResponse[];
+  onTrocarPagamento?: (pagamento: PaymentResponse) => void;
 }
 
 /**
@@ -224,6 +232,8 @@ export function ModalPaymentHistory({
   handleClose,
   payment,
   eventId,
+  pagamentos,
+  onTrocarPagamento,
 }: ModalPaymentHistoryProps) {
   const theme = useTheme();
 
@@ -275,6 +285,12 @@ export function ModalPaymentHistory({
               <Close />
             </IconButton>
           </Stack>
+
+          <AbasDosPagamentos
+            pagamentos={pagamentos}
+            atual={payment}
+            onTrocar={onTrocarPagamento}
+          />
 
           <Box sx={{ mt: 2.5, maxHeight: '65vh', overflowY: 'auto', pr: 1 }}>
             {isLoading ? (

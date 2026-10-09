@@ -2,7 +2,6 @@ import {
   Box,
   Button,
   Card,
-  Divider,
   IconButton,
   Paper,
   ListItemIcon,
@@ -86,12 +85,6 @@ const distintos = <K extends keyof PaymentResponse>(linha: Linha, campo: K) => [
   ...new Set((linha.pagamentos ?? [linha]).map((p) => p[campo])),
 ];
 
-/** "Inscrição Cursilhistas" / "Compra avulsa" — qual pagamento é, no menu */
-const descreverPagamento = (pagamento: PaymentResponse) =>
-  pagamento.purchaseType === 'PRODUCTS'
-    ? 'Compra avulsa'
-    : `Inscrição${pagamento.groupName ? ` ${pagamento.groupName}` : ''}`;
-
 const getSelectedRowsToExport = ({
   apiRef,
 }: GridGetRowsToExportParams): GridRowId[] => {
@@ -147,7 +140,10 @@ function ListPayments({
   const openMenu = Boolean(anchorEl);
   const [selectedPayment, setSelectedPayment] =
     useState<PaymentResponse | null>(null);
-  /** os pagamentos da linha cujo menu está aberto — mais de um em "Todos" */
+  /**
+   * Os pagamentos da linha cujo menu está aberto — mais de um em "Todos". O
+   * menu é um só; quem navega entre eles são as abas dos modais.
+   */
   const [pagamentosDoMenu, setPagamentosDoMenu] = useState<PaymentResponse[]>(
     []
   );
@@ -495,12 +491,16 @@ function ListPayments({
           open={openModalPayment}
           handleClose={() => setOpenModalPayment(false)}
           payment={selectedPayment}
+          pagamentos={pagamentosDoMenu}
+          onTrocarPagamento={setSelectedPayment}
         />
         <ModalPaymentHistory
           open={openModalHistory}
           handleClose={() => setOpenModalHistory(false)}
           payment={selectedPayment}
           eventId={eventId}
+          pagamentos={pagamentosDoMenu}
+          onTrocarPagamento={setSelectedPayment}
         />
         <Menu
           id="basic-menu"
@@ -511,83 +511,42 @@ function ListPayments({
             'aria-labelledby': 'options-button',
           }}
         >
-          {pagamentosDoMenu.length > 1
-            ? // pessoa com mais de um pagamento (aba "Todos"): as ações são
-              // de cada pagamento, e o menu diz qual é qual
-              pagamentosDoMenu.flatMap((pagamento, indice) => [
-                indice > 0 && <Divider key={`divisor-${pagamento.id}`} />,
-                <Typography
-                  key={`titulo-${pagamento.id}`}
-                  variant="caption"
-                  color="text.secondary"
-                  sx={{ display: 'block', px: 2, pt: 1 }}
-                >
-                  {descreverPagamento(pagamento)} ·{' '}
-                  {formatCurrency(pagamento.amount)}
-                </Typography>,
-                <MenuItem
-                  key={`editar-${pagamento.id}`}
-                  onClick={() => {
-                    setSelectedPayment(pagamento);
-                    setOpenModalPayment(true);
-                    handleClose();
-                  }}
-                >
-                  <ListItemIcon>
-                    <Edit fontSize="small" color="primary" />
-                  </ListItemIcon>
-                  <ListItemText>Editar</ListItemText>
-                </MenuItem>,
-                <MenuItem
-                  key={`historico-${pagamento.id}`}
-                  onClick={() => {
-                    setSelectedPayment(pagamento);
-                    setOpenModalHistory(true);
-                    handleClose();
-                  }}
-                >
-                  <ListItemIcon>
-                    <History fontSize="small" color="action" />
-                  </ListItemIcon>
-                  <ListItemText>Ver histórico</ListItemText>
-                </MenuItem>,
-              ])
-            : [
-                <MenuItem
-                  key="editar"
-                  onClick={() => {
-                    setOpenModalPayment(true);
-                    handleClose();
-                  }}
-                >
-                  <ListItemIcon>
-                    <Edit fontSize="small" color="primary" />
-                  </ListItemIcon>
-                  <ListItemText>Editar </ListItemText>
-                </MenuItem>,
-                <MenuItem key="estornar" sx={{ opacity: 0.3 }}>
-                  <ListItemIcon>
-                    <Reply fontSize="small" color="error" />
-                  </ListItemIcon>
-                  <ListItemText>Extornar </ListItemText>
-                </MenuItem>,
-                // Depois de editar e estornar: as duas mexem no dinheiro, esta
-                // só conta o que já fizeram com ele. É a pergunta que vem antes
-                // de decidir — quem baixou, quando, e se foi gente ou a
-                // conferência automática.
-                <MenuItem
-                  key="historico"
-                  onClick={() => {
-                    setOpenModalHistory(true);
-                    handleClose();
-                  }}
-                >
-                  <ListItemIcon>
-                    <History fontSize="small" color="action" />
-                  </ListItemIcon>
-                  <ListItemText>Ver histórico</ListItemText>
-                </MenuItem>,
-              ]}
+          {[
+            <MenuItem
+              key="editar"
+              onClick={() => {
+                setOpenModalPayment(true);
+                handleClose();
+              }}
+            >
+              <ListItemIcon>
+                <Edit fontSize="small" color="primary" />
+              </ListItemIcon>
+              <ListItemText>Editar </ListItemText>
+            </MenuItem>,
+            <MenuItem key="estornar" sx={{ opacity: 0.3 }}>
+              <ListItemIcon>
+                <Reply fontSize="small" color="error" />
+              </ListItemIcon>
+              <ListItemText>Extornar </ListItemText>
+            </MenuItem>,
+            // Depois de editar e estornar: as duas mexem no dinheiro, esta
+            // só conta o que já fizeram com ele. É a pergunta que vem antes
+            // de decidir — quem baixou, quando, e se foi gente ou a
+            // conferência automática.
+            <MenuItem
+              key="historico"
+              onClick={() => {
+                setOpenModalHistory(true);
+                handleClose();
+              }}
+            >
+              <ListItemIcon>
+                <History fontSize="small" color="action" />
+              </ListItemIcon>
+              <ListItemText>Ver histórico</ListItemText>
+            </MenuItem>,
+          ]}
         </Menu>
       </Card>
     </>

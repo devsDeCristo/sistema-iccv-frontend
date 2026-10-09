@@ -26,10 +26,12 @@ tem perfil financeiro na igreja do evento (não administra) — ver
     - **Método, status e origem:** o valor quando todos coincidem; senão
       "Vários", "1 de 2 pagos" (em laranja) e "Várias". A exportação sai com o
       mesmo texto.
-    - **Ações:** quem tem mais de um pagamento vê no menu cada um, identificado
-      ("Inscrição Cursilhistas · R$ 100,00", "Compra avulsa · R$ 50,00"), com
-      Editar e Ver histórico. O modal recebe sempre o pagamento de verdade,
-      nunca a linha somada.
+    - **Ações:** o menu é o mesmo de sempre (Editar, Estornar, Ver
+      histórico). Quando a pessoa tem mais de um pagamento, os modais de
+      edição e de histórico abrem com **abas**, uma por pagamento
+      ("Inscrição Cursilhistas", "Compra avulsa"), e trocar de aba troca o
+      pagamento exibido (`AbasDosPagamentos`). O modal recebe sempre o
+      pagamento de verdade, nunca a linha somada.
 
     As outras abas continuam com uma linha por pagamento.
   - **Grupos de inscrição:** uma aba por grupo, como na aba Inscritos.
