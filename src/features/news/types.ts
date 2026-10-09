@@ -18,6 +18,45 @@ export interface News {
   updatedAt?: string;
   /** Grupos escolhidos como destino no WhatsApp, com o resultado do envio */
   groups?: NewsDestination[];
+  /** Agendamentos de disparo — só na lista do admin */
+  schedules?: NewsSchedule[];
+}
+
+/**
+ * Agendamento de disparo no WhatsApp: uma vez (`runAt`) ou toda semana
+ * (`weekdays` + `time`, no horário de Brasília). Na hora marcada a notícia vai
+ * para todos os grupos marcados; rascunho é publicado antes.
+ */
+export interface NewsSchedule {
+  id?: string;
+  kind: 'ONCE' | 'WEEKLY';
+  runAt?: string | null;
+  /** 0 = domingo … 6 = sábado */
+  weekdays?: number[];
+  /** "HH:mm" */
+  time?: string | null;
+  /** próximo disparo; nulo quando não há mais */
+  nextRunAt?: string | null;
+  lastRunAt?: string | null;
+}
+
+/** Calendário de disparos da tela de notícias */
+export interface NewsCalendar {
+  feitos: {
+    id: string;
+    at: string;
+    origin: 'PUBLISH' | 'MANUAL' | 'SCHEDULE';
+    sent: number;
+    failed: number;
+    noLink: number;
+    news: { id: string; title: string };
+  }[];
+  agendados: {
+    scheduleId: string;
+    kind: 'ONCE' | 'WEEKLY';
+    at: string;
+    news: { id: string; title: string };
+  }[];
 }
 
 /** Um destino da notícia: o grupo marcado e como terminou o envio. */

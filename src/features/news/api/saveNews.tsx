@@ -5,8 +5,8 @@ import {
   handleResponseSuccess,
   handleResponseThrowError,
 } from '../../../utils/service';
-import { GET_NEWS, GET_NEWS_ADMIN } from '../constants';
-import { NewsPayload } from '../types';
+import { GET_NEWS, GET_NEWS_ADMIN, GET_NEWS_CALENDAR } from '../constants';
+import { News, NewsPayload } from '../types';
 
 interface SaveNewsParams {
   /** Sem id é criação; com id é edição */
@@ -42,10 +42,10 @@ const montarFormData = (data: NewsPayload) => {
 const saveNews = ({ id, data }: SaveNewsParams) => {
   const formData = montarFormData(data);
   const requisicao = id
-    ? apiClient.put(`/news/${id}`, formData, {
+    ? apiClient.put<News>(`/news/${id}`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       })
-    : apiClient.post('/news', formData, {
+    : apiClient.post<News>('/news', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
@@ -55,6 +55,8 @@ const saveNews = ({ id, data }: SaveNewsParams) => {
         response.data,
         id ? 'Notícia atualizada!' : 'Notícia criada!'
       )();
+      // a criação devolve o id, que os agendamentos precisam
+      return response.data;
     })
     .catch(handleResponseThrowError());
 };
@@ -70,6 +72,8 @@ export const useSaveNews = ({
     onSuccess: (...args) => {
       queryClient.invalidateQueries(GET_NEWS);
       queryClient.invalidateQueries(GET_NEWS_ADMIN);
+      // publicar dispara: o histórico do calendário muda
+      queryClient.invalidateQueries(GET_NEWS_CALENDAR);
       onSuccess?.(...args);
     },
     ...options,

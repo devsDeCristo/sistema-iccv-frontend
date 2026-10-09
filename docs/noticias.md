@@ -46,6 +46,28 @@ alteração, status do envio no WhatsApp e ações (editar, reenviar, excluir).
 Arquivos: `src/pages/admin/news/index.tsx`,
 `src/features/news/components/newsAdminList.tsx`.
 
+### Calendário de disparos (`CalendarioDeDisparos`)
+
+Fica entre a busca e a lista. É um calendário do mês (`DateCalendar` do MUI X)
+com uma bolinha em cada dia que teve disparo: **verde** para o que já saiu no
+WhatsApp e **azul** para o que está agendado. Passar o mouse mostra o título
+das notícias do dia.
+
+Ao lado fica a lista do dia escolhido (hoje, ao abrir), com:
+
+- o horário;
+- a notícia;
+- a origem: publicação, reenvio ou agendado; para agendados, "Uma vez" ou "Toda semana";
+- falhas e grupos sem link, quando houver;
+- um chip: "Enviado · N grupo(s)", "Não saiu" ou "Agendado".
+
+Busca um mês por vez (`GET /news/calendar`, chave `GET_NEWS_CALENDAR`), e é
+atualizado ao salvar, reenviar ou agendar. O histórico só tem disparos a partir
+de 09/10/2026, quando passou a ser gravado.
+
+Arquivos: `src/features/news/components/calendarioDeDisparos.tsx`,
+`src/features/news/api/getNewsCalendar.tsx`.
+
 ## Formulário (`NewsFormModal`)
 
 Um modal só para criar e editar, dividido em seções.
@@ -63,6 +85,22 @@ Um modal só para criar e editar, dividido em seções.
   ganham o sufixo "(em teste)"). Fica desabilitado sem número conectado, mas
   os grupos já marcados continuam visíveis. Sem grupo nenhum disponível, um
   aviso aponta para preencher o link na aba de inscrições do evento.
+- **Agendar disparos (`AgendamentosDaNoticia`):** quantos agendamentos
+  quiser, cada um de um tipo:
+  - **"Uma vez":** data e hora (`datetime-local`).
+  - **"Toda semana":** dias da semana em botões D S T Q Q S S e horário. Exemplo: toda terça às 12:00.
+
+  Na hora marcada a notícia sai de novo para todos os grupos marcados. Sem
+  grupo marcado, um aviso diz que não há para onde enviar. Cada agendamento
+  salvo mostra o próximo disparo.
+  - **Conferência antes de salvar:** data no passado, nenhum dia escolhido ou
+    sem horário pinta a linha de vermelho e não deixa salvar. A conferência
+    vem antes de gravar a notícia: se só os agendamentos falhassem depois, a
+    notícia nova já estaria gravada, e salvar de novo criaria outra.
+  - **Ordem de gravação:** primeiro a notícia, depois os agendamentos
+    (`PUT /news/:id/schedules`, com o id que a criação devolve).
+  - **Rascunho com agendamento:** é publicado no primeiro horário agendado. O
+    texto da publicação e o resumo do rodapé dizem isso.
 - **Publicação:** interruptor Publicada/Rascunho. Como rascunho, nada é
   enviado; publicando, sai no mural e, se houver grupos marcados e número
   conectado, também no WhatsApp.
@@ -80,10 +118,12 @@ Arquivo: `src/features/news/components/newsFormModal.tsx`.
 | `event` | `null`/ausente é aviso geral; presente restringe ao evento |
 | `isPublished` | só vem preenchido na lista do admin |
 | `groups` | destinos de WhatsApp desta notícia, cada um com `sentAt`/`error` |
+| `schedules` | agendamentos de disparo (`NewsSchedule`), com `nextRunAt`; só na lista do admin |
 
 Rotas usadas pelo front: `GET /news` (feed), `GET /news/admin` (lista do
 admin), `GET /news/whatsapp-groups` (grupos elegíveis para o formulário),
 `POST /news` e `PUT /news/:id` (salvar), `POST /news/:id/whatsapp` (reenvio),
+`PUT /news/:id/schedules` (agendamentos), `GET /news/calendar` (calendário),
 `DELETE /news/:id` (excluir).
 
 Arquivos: `src/features/news/types.ts`, `src/features/news/api/getNews.tsx`,

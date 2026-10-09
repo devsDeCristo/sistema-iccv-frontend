@@ -1,6 +1,6 @@
 import dayjs from 'dayjs';
 import 'dayjs/locale/pt-br';
-import { News } from './types';
+import { News, NewsSchedule } from './types';
 
 /**
  * Data que a notícia mostra: a da publicação, caindo para a de criação enquanto
@@ -24,4 +24,23 @@ export function dataDaNoticia(
   if (dia.isSame(hoje, 'year')) return data.format('D [de] MMMM');
 
   return data.format('D [de] MMMM [de] YYYY');
+}
+
+/**
+ * O que falta em cada agendamento para poder salvar, ou `null` se está pronto.
+ * Conferido antes de salvar a notícia: falhar depois deixaria a notícia gravada
+ * e os agendamentos não.
+ */
+export function problemaDoAgendamento(agendamento: NewsSchedule) {
+  if (agendamento.kind === 'ONCE') {
+    if (!agendamento.runAt) return 'Informe a data e a hora.';
+    if (dayjs(agendamento.runAt).isBefore(dayjs())) {
+      return 'A data precisa ser futura.';
+    }
+    return null;
+  }
+
+  if (!agendamento.weekdays?.length) return 'Escolha ao menos um dia.';
+  if (!agendamento.time) return 'Informe o horário.';
+  return null;
 }

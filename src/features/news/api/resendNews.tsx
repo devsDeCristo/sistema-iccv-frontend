@@ -3,7 +3,7 @@ import { toast } from 'react-toastify';
 import { apiClient } from '../../../config/lib/axios/api-client';
 import { queryClient } from '../../../config/lib/react-query/query-client';
 import { handleResponseThrowError } from '../../../utils/service';
-import { GET_NEWS_ADMIN } from '../constants';
+import { GET_NEWS_ADMIN, GET_NEWS_CALENDAR } from '../constants';
 
 interface ResendNewsResult {
   enviados: number;
@@ -27,6 +27,7 @@ export const useResendNews = ({
     mutationFn: resendNews,
     onSuccess: (resultado, ...resto) => {
       queryClient.invalidateQueries(GET_NEWS_ADMIN);
+      queryClient.invalidateQueries(GET_NEWS_CALENDAR);
 
       // o reenvio pode terminar sem sair nada (grupo sem link, WhatsApp fora do
       // ar) — dizer só "enviado" nesses casos seria mentira

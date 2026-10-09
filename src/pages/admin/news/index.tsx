@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { PageStyle } from '../../../components/pageStyle';
 import { Header } from '../../../components/header';
 import { superficieSx } from '../../../components/listPageStyles';
+import { CalendarioDeDisparos } from '../../../features/news/components/calendarioDeDisparos';
 import { NewsAdminList } from '../../../features/news/components/newsAdminList';
 import { NewsFormModal } from '../../../features/news/components/newsFormModal';
 import { News } from '../../../features/news/types';
@@ -90,6 +91,8 @@ function NewsAdmin() {
           Nova notícia
         </Button>
       </Paper>
+
+      <CalendarioDeDisparos />
 
       <NewsAdminList search={busca} onEdit={abrirEdicao} />
 

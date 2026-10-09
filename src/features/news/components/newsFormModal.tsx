@@ -31,7 +31,10 @@ import { useWhatsappConectado } from '../../settings/whatsapp/useWhatsappConecta
 import { useGetEvents } from '../../admin/events/api/getEvents';
 import { useGetNewsWhatsappGroups } from '../api/getWhatsappGroups';
 import { useSaveNews } from '../api/saveNews';
-import { News, WhatsappTargetGroup } from '../types';
+import { useSaveNewsSchedules } from '../api/saveNewsSchedules';
+import { News, NewsSchedule, WhatsappTargetGroup } from '../types';
+import { problemaDoAgendamento } from '../utils';
+import { AgendamentosDaNoticia } from './agendamentosDaNoticia';
 
 /** Limite do arquivo, o mesmo da capa do evento. */
 const TAMANHO_MAXIMO = 2 * 1024 * 1024;
@@ -86,7 +89,12 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
   /** vazio = aviso para todos; com evento, só quem está nele vê */
   const [eventoDoAnuncio, setEventoDoAnuncio] = useState('');
   const [arrastando, setArrastando] = useState(false);
-  const [erros, setErros] = useState<{ titulo?: boolean; texto?: boolean }>({});
+  const [agendamentos, setAgendamentos] = useState<NewsSchedule[]>([]);
+  const [erros, setErros] = useState<{
+    titulo?: boolean;
+    texto?: boolean;
+    agendamentos?: boolean;
+  }>({});
 
   // a lista só é buscada com o modal aberto: é tela de admin, não vale manter
   // consulta viva atrás dela
@@ -119,6 +127,7 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
     setArquivo(null);
     setRemoverImagem(false);
     setEventoDoAnuncio(news?.event?.id || '');
+    setAgendamentos(news?.schedules ?? []);
     setErros({});
   }, [open, news]);
 
@@ -146,9 +155,9 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
     return () => URL.revokeObjectURL(endereco);
   }, [arquivo]);
 
-  const { mutate: salvar, isLoading } = useSaveNews({
-    onSuccess: () => onClose(),
-  });
+  const { mutateAsync: salvar, isLoading } = useSaveNews();
+  const { mutateAsync: salvarAgendamentos, isLoading: agendando } =
+    useSaveNewsSchedules();
 
   const previa = previaLocal ?? imagemAtual;
 
@@ -183,7 +192,11 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
 
     if (semNumero) return 'Sem número conectado: nada sai no WhatsApp agora.';
 
-    if (!publicada) return 'Como rascunho, nada é enviado.';
+    if (!publicada) {
+      return agendamentos.length
+        ? 'Rascunho: é publicada e enviada no primeiro horário agendado.'
+        : 'Como rascunho, nada é enviado.';
+    }
 
     if (news?.isPublished) {
       return 'Já publicada: salvar não reenvia. Use o Reenviar na lista.';
@@ -192,15 +205,21 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
     return `Ao salvar, sai para ${destinos.length} grupo(s) no WhatsApp.`;
   };
 
-  const enviar = () => {
-    const problemas = { titulo: !titulo.trim(), texto: textoVazio };
+  const enviar = async () => {
+    const problemas = {
+      titulo: !titulo.trim(),
+      texto: textoVazio,
+      // conferido antes de salvar a notícia: se só os agendamentos falhassem,
+      // a notícia nova ficaria gravada e salvar de novo criaria outra
+      agendamentos: agendamentos.some(problemaDoAgendamento),
+    };
 
-    if (problemas.titulo || problemas.texto) {
+    if (problemas.titulo || problemas.texto || problemas.agendamentos) {
       setErros(problemas);
       return;
     }
 
-    salvar({
+    const salva = await salvar({
       id: news?.id,
       data: {
         title: titulo.trim(),
@@ -213,6 +232,14 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
         groupRoleIds: destinos.map((grupo) => grupo.id),
       },
     });
+
+    // só quando há o que gravar: notícia sem agendamento, antes e depois, não
+    // precisa de mais uma chamada
+    if (salva?.id && (agendamentos.length || news?.schedules?.length)) {
+      await salvarAgendamentos({ newsId: salva.id, schedules: agendamentos });
+    }
+
+    onClose();
   };
 
   const styles = {
@@ -546,6 +573,32 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
 
           <Divider />
 
+          <Secao titulo="Agendar disparos">
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+              Na hora marcada, a notícia sai de novo para todos os grupos
+              marcados acima. Pode ser uma vez ou toda semana (ex.: toda terça
+              às 12:00), no horário de Brasília.
+            </Typography>
+
+            <AgendamentosDaNoticia
+              value={agendamentos}
+              mostrarProblemas={erros.agendamentos}
+              onChange={(lista) => {
+                setAgendamentos(lista);
+                if (erros.agendamentos && !lista.some(problemaDoAgendamento))
+                  setErros((atual) => ({ ...atual, agendamentos: false }));
+              }}
+            />
+
+            {agendamentos.length > 0 && !destinos.length && (
+              <Alert severity="info" sx={{ mt: 1.5, borderRadius: 2 }}>
+                Sem grupo marcado, o agendamento não tem para onde enviar.
+              </Alert>
+            )}
+          </Secao>
+
+          <Divider />
+
           <Secao titulo="Publicação">
             <Box sx={styles.publicacao}>
               <Switch
@@ -560,7 +613,9 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
                 <Typography variant="body2" color="text.secondary">
                   {publicada
                     ? 'Aparece no mural dos inscritos assim que você salvar.'
-                    : 'Só o admin vê. Nada é enviado enquanto estiver assim.'}
+                    : agendamentos.length
+                      ? 'Só o admin vê até o primeiro horário agendado, quando é publicada.'
+                      : 'Só o admin vê. Nada é enviado enquanto estiver assim.'}
                 </Typography>
               </Box>
             </Box>
@@ -587,8 +642,12 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
         </Button>
         <Button
           variant="contained"
-          disabled={isLoading}
-          onClick={enviar}
+          disabled={isLoading || agendando}
+          onClick={() => {
+            // o erro já virou aviso na tela (`handleResponseThrowError`); o
+            // modal fica aberto para corrigir
+            enviar().catch(() => undefined);
+          }}
           sx={{ borderRadius: 2, textTransform: 'none' }}
         >
           {news ? 'Salvar' : 'Criar notícia'}
