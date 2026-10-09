@@ -16,10 +16,21 @@ import { Check, Church, UnfoldMore } from '@mui/icons-material';
 import { EscopoDeIgreja } from './useIgrejaSelecionada';
 
 interface Props {
-  escopo: EscopoDeIgreja;
+  escopo: Pick<
+    EscopoDeIgreja,
+    'igrejas' | 'churchId' | 'escolher' | 'carregando' | 'podeTrocar'
+  >;
   /** O que está sendo configurado, para o aviso na hora de trocar */
-  oQueMuda: string;
+  oQueMuda?: string;
+  /**
+   * Oferece "Todas as igrejas" (valor `'all'`) — o padrão das listagens. As
+   * telas de configuração não têm: lá tudo é de uma igreja.
+   */
+  todas?: boolean;
 }
+
+/** O valor de "Todas as igrejas" no seletor */
+export const TODAS_AS_IGREJAS = 'all';
 
 /**
  * Quem responde "de qual igreja é isto que estou vendo".
@@ -38,12 +49,13 @@ interface Props {
  * clique. Esconder a linha faria a tela do admin parecer "a configuração do
  * sistema", que é justamente a leitura errada.
  */
-function ChurchScopeBar({ escopo, oQueMuda }: Props) {
+function ChurchScopeBar({ escopo, oQueMuda, todas = false }: Props) {
   const theme = useTheme();
   const [menu, setMenu] = useState<HTMLElement | null>(null);
   const { igrejas, churchId, escolher, carregando, podeTrocar } = escopo;
 
   const atual = igrejas.find((igreja) => igreja.id === churchId);
+  const emTodas = todas && churchId === TODAS_AS_IGREJAS;
 
   const styles = {
     /**
@@ -122,15 +134,18 @@ function ChurchScopeBar({ escopo, oQueMuda }: Props) {
         component="span"
         sx={{
           ...styles.nome,
-          color: !atual
-            ? theme.palette.primary.main
-            : podeTrocar
-              ? theme.palette.text.primary
-              : theme.palette.text.secondary,
+          color:
+            !atual && !emTodas
+              ? theme.palette.primary.main
+              : podeTrocar
+                ? theme.palette.text.primary
+                : theme.palette.text.secondary,
         }}
       >
         {/* nenhuma escolhida ainda: com várias, a tela não escolhe sozinha */}
-        {atual?.name ?? (podeTrocar ? 'Escolha a igreja' : '—')}
+        {emTodas
+          ? 'Todas as igrejas'
+          : (atual?.name ?? (podeTrocar ? 'Escolha a igreja' : '—'))}
       </Box>
 
       {/*
@@ -207,21 +222,47 @@ function ChurchScopeBar({ escopo, oQueMuda }: Props) {
         transformOrigin={{ vertical: 'top', horizontal: 'right' }}
         PaperProps={{ sx: { minWidth: 240, maxWidth: 320, mt: 0.5 } }}
       >
-        <Typography
-          variant="caption"
-          sx={{
-            display: 'block',
-            px: 2,
-            pt: 0.5,
-            pb: 1,
-            color: 'text.secondary',
-            whiteSpace: 'normal',
-          }}
-        >
-          Cada igreja tem {oQueMuda}.
-        </Typography>
+        {oQueMuda && [
+          <Typography
+            key="legenda"
+            variant="caption"
+            sx={{
+              display: 'block',
+              px: 2,
+              pt: 0.5,
+              pb: 1,
+              color: 'text.secondary',
+              whiteSpace: 'normal',
+            }}
+          >
+            Cada igreja tem {oQueMuda}.
+          </Typography>,
+          <Divider key="divisor" />,
+        ]}
 
-        <Divider />
+        {todas && (
+          <MenuItem
+            selected={emTodas}
+            onClick={() => {
+              escolher(TODAS_AS_IGREJAS);
+              setMenu(null);
+            }}
+            sx={{
+              py: 1,
+              '&.Mui-selected': {
+                backgroundColor: 'transparent',
+                '&:hover': { backgroundColor: theme.palette.background.hover },
+              },
+            }}
+          >
+            <ListItemIcon sx={{ minWidth: 30 }}>
+              {emTodas && <Check fontSize="small" color="primary" />}
+            </ListItemIcon>
+            <Typography noWrap fontSize={14} fontWeight={emTodas ? 600 : 400}>
+              Todas as igrejas
+            </Typography>
+          </MenuItem>
+        )}
 
         {igrejas.map((igreja) => (
           <MenuItem

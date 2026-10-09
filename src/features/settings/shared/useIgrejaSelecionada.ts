@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
+import { useIgrejaEscolhida } from '../../../hooks/useIgrejaEscolhida';
 import { useRole } from '../../../hooks/useRole';
 import { useGetChurches } from '../../admin/churches/api/getChurches';
 
@@ -6,17 +7,6 @@ export interface IgrejaDoPainel {
   id: string;
   name: string;
 }
-
-/**
- * Onde fica guardada a igreja escolhida.
- *
- * `sessionStorage` e não estado da tela: Pagamentos e Disparadores são duas
- * páginas, e sem isto trocar de aba voltaria para a primeira igreja da lista —
- * quem administra várias teria que reescolher a cada clique. Some ao fechar a
- * aba, que é o certo para um recorte de trabalho: na sessão seguinte a pessoa
- * não herda um contexto que já não lembra ter escolhido.
- */
-const CHAVE = 'configuracoes_igreja';
 
 export interface EscopoDeIgreja {
   igrejas: IgrejaDoPainel[];
@@ -61,14 +51,11 @@ export function useIgrejaSelecionada(): EscopoDeIgreja {
     [isSuperAdmin, todasAsIgrejas, igrejasQueAdministra]
   );
 
-  const [escolhida, setEscolhida] = useState<string | null>(() => {
-    try {
-      return sessionStorage.getItem(CHAVE);
-    } catch {
-      // navegador com armazenamento bloqueado: cai no padrão da lista
-      return null;
-    }
-  });
+  // A mesma escolha de todos os módulos (`useIgrejaEscolhida`, no
+  // `localStorage`): quem escolheu a Filial em Notícias abre Pagamentos e
+  // WhatsApp já na Filial. "Todas as igrejas" não serve aqui — a configuração
+  // é sempre de uma —, e então a tela pede a escolha.
+  const [escolhida, setEscolhida] = useIgrejaEscolhida();
 
   // A escolha guardada só vale enquanto a igreja continuar na lista: um vínculo
   // removido deixaria a tela presa numa igreja que a API recusa.
@@ -80,14 +67,7 @@ export function useIgrejaSelecionada(): EscopoDeIgreja {
     igrejas.find((igreja) => igreja.id === escolhida)?.id ??
     (igrejas.length === 1 ? igrejas[0].id : null);
 
-  const escolher = (id: string) => {
-    setEscolhida(id);
-    try {
-      sessionStorage.setItem(CHAVE, id);
-    } catch {
-      // sem persistir: a escolha vale só nesta tela, e isso é melhor que falhar
-    }
-  };
+  const escolher = (id: string) => setEscolhida(id);
 
   const carregando = isSuperAdmin && isLoading;
 

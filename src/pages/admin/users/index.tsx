@@ -3,7 +3,6 @@ import {
   Button,
   IconButton,
   InputAdornment,
-  MenuItem,
   Paper,
   TextField,
   Tooltip,
@@ -17,26 +16,18 @@ import { superficieSx } from '../../../components/listPageStyles';
 import { useState } from 'react';
 import { Add, Close, Search } from '@mui/icons-material';
 import { CardsStatus } from '../../../features/admin/users/components/cardsStatus';
-import { useGetChurches } from '../../../features/admin/churches/api/getChurches';
+import { SeletorDeIgreja } from '../../../components/seletorDeIgreja';
+import { useIgrejaEscolhida } from '../../../hooks/useIgrejaEscolhida';
 
 function Users() {
   const navigate = useNavigate();
   const [searchUser, setSearchUser] = useState('');
-  // 'all' e não vazio: com valor vazio o campo fica em branco e o rótulo não
-  // sobe. Só o super admin escolhe — a lista do admin já vem recortada
-  const [churchId, setChurchId] = useState('all');
+  // a lente da igreja: traz quem está nos eventos dela mais os
+  // administradores dela. Escolhida no seletor padrão, no canto superior
+  // direito; a lista de usuários é das igrejas que a pessoa administra
+  const [churchId, setChurchId] = useIgrejaEscolhida();
 
-  const { isAdmin, isSuperAdmin, churchRoles } = useRole();
-  const { data: todasAsIgrejas = [] } = useGetChurches({
-    enabled: isSuperAdmin,
-  });
-
-  // o super admin escolhe entre todas; quem administra mais de uma, entre as
-  // dela. Com uma igreja só não há o que filtrar
-  const igrejasDoFiltro = isSuperAdmin
-    ? todasAsIgrejas.map((igreja) => ({ id: igreja.id, name: igreja.name }))
-    : churchRoles.map((vinculo) => vinculo.church);
-  const mostraFiltroDeIgreja = isSuperAdmin || igrejasDoFiltro.length > 1;
+  const { isAdmin } = useRole();
   const styles = {
     boxFilterAndButton: {
       display: 'flex',
@@ -60,9 +51,6 @@ function Users() {
     textField: {
       width: { xs: '100%', sm: '380px' },
     },
-    selectIgreja: {
-      width: { xs: '100%', sm: '220px' },
-    },
     filtros: {
       display: 'flex',
       flexDirection: { xs: 'column', sm: 'row' },
@@ -73,7 +61,9 @@ function Users() {
   };
   return (
     <PageStyle>
-      <Header title="Usuários" />
+      <Header title="Usuários">
+        <SeletorDeIgreja value={churchId} onChange={setChurchId} />
+      </Header>
       <CardsStatus />
       <Paper sx={styles.boxFilterAndButton}>
         <Box sx={styles.filtros}>
@@ -107,28 +97,6 @@ function Users() {
             }}
             onChange={(e) => setSearchUser(e.target.value)}
           />
-
-          {/* a lente da igreja: traz quem está nos eventos dela mais os
-            administradores dela. Só aparece para quem tem mais de uma igreja
-            para olhar — com uma só, a lista já é dela */}
-          {mostraFiltroDeIgreja && (
-            <TextField
-              select
-              label="Igreja"
-              variant="outlined"
-              size="small"
-              value={churchId}
-              sx={styles.selectIgreja}
-              onChange={(e) => setChurchId(e.target.value)}
-            >
-              <MenuItem value="all">Todas</MenuItem>
-              {igrejasDoFiltro.map((igreja) => (
-                <MenuItem key={igreja.id} value={igreja.id}>
-                  {igreja.name}
-                </MenuItem>
-              ))}
-            </TextField>
-          )}
         </Box>
         <Button
           variant="contained"

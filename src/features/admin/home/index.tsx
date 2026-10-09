@@ -1,6 +1,9 @@
-import { Box, MenuItem, Stack, TextField } from '@mui/material';
-import { useState } from 'react';
-import { useIgrejasDoSeletor } from '../../../hooks/useIgrejasDoSeletor';
+import { Box, Stack } from '@mui/material';
+import {
+  SeletorDeIgreja,
+  TODAS_AS_IGREJAS,
+} from '../../../components/seletorDeIgreja';
+import { useIgrejaEscolhida } from '../../../hooks/useIgrejaEscolhida';
 import { Header } from '../../../components/header';
 import { PageStyle } from '../../../components/pageStyle';
 import { useGetDashboard } from './api/getDashboard';
@@ -60,13 +63,10 @@ export function Home({ churchId }: HomeProps = {}) {
    * qual ver — "Todas as igrejas" é o padrão. Aberta pela lista de igrejas, a
    * home já vem com a igreja e não mostra o seletor.
    */
-  // a home é também do financeiro: entram as igrejas onde ele é financeiro
-  const { igrejas, mostraSeletor } = useIgrejasDoSeletor({
-    incluirFinanceiro: true,
-  });
-  const [escolhida, setEscolhida] = useState('all');
+  // a mesma escolha de todos os módulos (`useIgrejaEscolhida`)
+  const [escolhida, setEscolhida] = useIgrejaEscolhida();
   const igrejaDaTela =
-    churchId ?? (escolhida === 'all' ? undefined : escolhida);
+    churchId ?? (escolhida === TODAS_AS_IGREJAS ? undefined : escolhida);
 
   const { data } = useGetDashboard(igrejaDaTela);
 
@@ -107,23 +107,22 @@ export function Home({ churchId }: HomeProps = {}) {
           />
         ) : (
           <>
-            {mostraSeletor && (
-              <TextField
-                select
-                size="small"
-                label="Igreja"
+            {/* o seletor padrão, no canto superior direito da página; a
+                home é também do financeiro, então entram as igrejas dele */}
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'flex-end',
+                // sem seletor (uma igreja só) a caixa some, e não sobra vão
+                '&:empty': { display: 'none' },
+              }}
+            >
+              <SeletorDeIgreja
                 value={escolhida}
-                onChange={(evento) => setEscolhida(evento.target.value)}
-                sx={{ width: { xs: '100%', sm: 280 }, alignSelf: 'flex-end' }}
-              >
-                <MenuItem value="all">Todas as igrejas</MenuItem>
-                {igrejas.map((igreja) => (
-                  <MenuItem key={igreja.id} value={igreja.id}>
-                    {igreja.name}
-                  </MenuItem>
-                ))}
-              </TextField>
-            )}
+                onChange={setEscolhida}
+                incluirFinanceiro
+              />
+            </Box>
             <Hero churches={data?.churches} role={data?.role} />
           </>
         )}

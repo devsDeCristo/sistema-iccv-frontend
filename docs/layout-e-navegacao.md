@@ -113,23 +113,33 @@ Arquivos: `src/constants/roles.ts`, `src/hooks/useRole.tsx`, `src/components/req
 
 ### Seletor de igreja (multitenant)
 
-Toda tela de uma feature que é por igreja tem um seletor de igreja. Nunca se
-deduz "a primeira igreja" para super admin ou dev.
+Toda tela de uma feature que é por igreja tem o seletor de igreja **no canto
+superior direito**, como `children` do `Header` ("Igreja selecionada" + o
+alternador). É o mesmo lugar e o mesmo desenho em todas as telas, para
+ninguém procurar a igreja de um jeito em cada uma. Nunca se deduz "a primeira
+igreja" para super admin ou dev.
 
-- **Hook `useIgrejasDoSeletor`** (`src/hooks/useIgrejasDoSeletor.ts`):
-  - super admin e dev: todas as igrejas (`useGetChurches`);
+- **Componente `SeletorDeIgreja`** (`src/components/seletorDeIgreja`): o
+  padrão das listagens (notícias, usuários, eventos, início). Por dentro usa o
+  `ChurchScopeBar` das Configurações com a opção **"Todas as igrejas"**
+  (`'all'`), que é o padrão. Esconde-se quando só há uma igreja e devolve
+  "Todas" quando a escolha deixou de valer. As telas só passam `value` e
+  `onChange`.
+- **Uma escolha só para o painel inteiro (`useIgrejaEscolhida`):** fica no
+  `localStorage` (`useFiltroSalvo`, separada por usuário). Escolher a Filial
+  em Notícias abre Usuários, Eventos, Início e Configurações já na Filial, e
+  continua assim ao voltar outro dia. As Configurações usam a mesma escolha;
+  como lá a configuração é sempre de uma igreja, "Todas" faz a tela pedir uma.
+- **Quais igrejas (`useIgrejasDoSeletor`):**
+  - super admin e dev: todas (`useGetChurches`);
   - admin: as suas (`igrejasQueAdministra`);
-  - `mostraSeletor` é falso quando só há uma, e aí vale ela.
-  - `incluirFinanceiro: true`: entram também as igrejas onde a pessoa é
-    financeira (telas que o financeiro usa, como a home).
-- **Listagens:** "Todas as igrejas" é o padrão, e cada linha mostra de qual
-  igreja é.
+  - `incluirFinanceiro: true`: também as igrejas onde a pessoa é financeira
+    (início e eventos, telas que o financeiro usa).
 - **Criação** (evento, notícia): a igreja é a primeira pergunta do
-  formulário, obrigatória e sem sugestão. Na edição da notícia, o seletor
-  também aparece, com a igreja atual.
-- **Quem usa:** notícias (lista, calendário e formulário) e a home do painel
-  (`/admin/inicio`, com `incluirFinanceiro`). Admin/usuários e
-  admin/eventos têm a mesma regra escrita na própria página.
+  formulário, obrigatória e sem sugestão. Isso é um campo do formulário, e não
+  o seletor da tela.
+- **Exceção:** a home de uma igreja aberta pela lista de igrejas já vem com a
+  igreja na URL e não mostra o seletor.
 
 ## Rotas (`src/routes/index.tsx`)
 

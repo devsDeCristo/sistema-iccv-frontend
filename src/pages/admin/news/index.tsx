@@ -1,11 +1,4 @@
-import {
-  Box,
-  Button,
-  InputAdornment,
-  MenuItem,
-  Paper,
-  TextField,
-} from '@mui/material';
+import { Box, Button, InputAdornment, Paper, TextField } from '@mui/material';
 import { Add, Close, Search } from '@mui/icons-material';
 import { useState } from 'react';
 import { PageStyle } from '../../../components/pageStyle';
@@ -15,7 +8,8 @@ import { CalendarioDeDisparos } from '../../../features/news/components/calendar
 import { NewsAdminList } from '../../../features/news/components/newsAdminList';
 import { NewsFormModal } from '../../../features/news/components/newsFormModal';
 import { News } from '../../../features/news/types';
-import { useIgrejasDoSeletor } from '../../../hooks/useIgrejasDoSeletor';
+import { SeletorDeIgreja } from '../../../components/seletorDeIgreja';
+import { useIgrejaEscolhida } from '../../../hooks/useIgrejaEscolhida';
 import { WhatsappOfflineAlert } from '../../../features/settings/whatsapp/components/whatsappOfflineAlert';
 
 /** Mural de notícias: é daqui que sai o feed da tela de eventos. */
@@ -24,11 +18,9 @@ function NewsAdmin() {
   const [emEdicao, setEmEdicao] = useState<News | null>(null);
   const [formAberto, setFormAberto] = useState(false);
 
-  // Multitenant: a tela começa em todas as igrejas que a pessoa alcança e o
-  // seletor recorta para uma. Super admin e dev escolhem entre todas, quem
-  // administra várias entre as suas; com uma só, o seletor nem aparece
-  const { igrejas, mostraSeletor } = useIgrejasDoSeletor();
-  const [churchId, setChurchId] = useState('all');
+  // Multitenant: a igreja do seletor padrão (canto superior direito), a mesma
+  // em todos os módulos — "Todas as igrejas" até a pessoa escolher uma
+  const [churchId, setChurchId] = useIgrejaEscolhida();
 
   const abrirNova = () => {
     setEmEdicao(null);
@@ -56,11 +48,6 @@ function NewsAdmin() {
     campo: {
       width: { xs: '100%', sm: '380px' },
     },
-    campoIgreja: {
-      width: { xs: '100%', sm: '240px' },
-      // empurra o botão para a direita, como antes
-      mr: { sm: 'auto' },
-    },
     botao: {
       width: { xs: '100%', sm: 'fit-content' },
       borderRadius: 2,
@@ -72,7 +59,9 @@ function NewsAdmin() {
       <Header
         title="Notícias"
         description="Avisos que aparecem no mural dos inscritos"
-      />
+      >
+        <SeletorDeIgreja value={churchId} onChange={setChurchId} />
+      </Header>
 
       <WhatsappOfflineAlert />
 
@@ -100,24 +89,6 @@ function NewsAdmin() {
             ) : null,
           }}
         />
-
-        {mostraSeletor && (
-          <TextField
-            select
-            size="small"
-            label="Igreja"
-            value={churchId}
-            sx={styles.campoIgreja}
-            onChange={(evento) => setChurchId(evento.target.value)}
-          >
-            <MenuItem value="all">Todas as igrejas</MenuItem>
-            {igrejas.map((igreja) => (
-              <MenuItem key={igreja.id} value={igreja.id}>
-                {igreja.name}
-              </MenuItem>
-            ))}
-          </TextField>
-        )}
 
         <Button
           variant="contained"

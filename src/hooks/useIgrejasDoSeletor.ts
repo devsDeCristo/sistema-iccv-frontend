@@ -15,7 +15,9 @@ import { useRole } from './useRole';
  */
 export function useIgrejasDoSeletor({ incluirFinanceiro = false } = {}) {
   const { isSuperAdmin, igrejasQueAdministra, churchRoles } = useRole();
-  const { data: todas = [] } = useGetChurches({ enabled: isSuperAdmin });
+  const { data: todas = [], isLoading } = useGetChurches({
+    enabled: isSuperAdmin,
+  });
 
   const igrejas = isSuperAdmin
     ? todas.map((igreja) => ({ id: igreja.id, name: igreja.name }))
@@ -23,5 +25,10 @@ export function useIgrejasDoSeletor({ incluirFinanceiro = false } = {}) {
       ? churchRoles.map((vinculo) => vinculo.church)
       : igrejasQueAdministra;
 
-  return { igrejas, mostraSeletor: igrejas.length > 1 };
+  return {
+    igrejas,
+    mostraSeletor: igrejas.length > 1,
+    /** a lista do super admin ainda não chegou */
+    carregando: isSuperAdmin && isLoading,
+  };
 }

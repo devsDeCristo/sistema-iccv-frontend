@@ -14,10 +14,9 @@ import { useFiltroSalvo } from '../../../hooks/useFiltroSalvo';
 import { Add } from '@mui/icons-material';
 import { EventStatusFilter } from '../../../features/admin/events/types';
 import { useRole } from '../../../hooks/useRole';
-import { useGetChurches } from '../../../features/admin/churches/api/getChurches';
-import {
-  superficieSx,
-} from '../../../components/listPageStyles';
+import { SeletorDeIgreja } from '../../../components/seletorDeIgreja';
+import { useIgrejaEscolhida } from '../../../hooks/useIgrejaEscolhida';
+import { superficieSx } from '../../../components/listPageStyles';
 
 const STATUS_OPTIONS: { value: EventStatusFilter; label: string }[] = [
   { value: 'active', label: 'Ativos' },
@@ -33,7 +32,7 @@ const ehStatus = (valor: unknown): valor is EventStatusFilter =>
 
 function Events() {
   const navigate = useNavigate();
-  const { isAdmin, isSuperAdmin, churchRoles } = useRole();
+  const { isAdmin } = useRole();
   // os filtros ficam salvos no navegador: quem volta para a lista depois de
   // abrir um evento encontra ela do jeito que deixou
   const [search, setSearch] = useFiltroSalvo('eventos:busca', '', ehTexto);
@@ -42,38 +41,11 @@ function Events() {
     'active',
     ehStatus
   );
-  // 'all' e não string vazia: com valor vazio o campo fica em branco e o
-  // rótulo não sobe, destoando do Status ao lado. Só o super admin escolhe —
-  // o admin já recebe do backend apenas os eventos da igreja dele
-  const [churchIdSalvo, setChurchId] = useFiltroSalvo(
-    'eventos:igreja',
-    'all',
-    ehTexto
-  );
-  const { data: todasAsIgrejas = [], isFetched: igrejasCarregadas } =
-    useGetChurches({
-      enabled: isSuperAdmin,
-    });
-
-  // o super admin filtra entre todas; quem administra mais de uma, entre as
-  // dela. Com uma igreja só a lista já é de uma igreja só
-  const igrejasDoFiltro = isSuperAdmin
-    ? todasAsIgrejas.map((igreja) => ({ id: igreja.id, name: igreja.name }))
-    : churchRoles.map((vinculo) => vinculo.church);
-  const mostraFiltroDeIgreja = isSuperAdmin || igrejasDoFiltro.length > 1;
-
-  /**
-   * A igreja salva pode ter deixado de valer: foi apagada, ou a pessoa perdeu
-   * o vínculo com ela. Filtrar por ela esvaziaria a lista sem explicação, então
-   * vale "Todas". Enquanto a lista de igrejas do super admin carrega, a salva
-   * é mantida — senão o filtro piscaria para "Todas" e voltaria.
-   */
-  const igrejaSalvaValida =
-    churchIdSalvo === 'all' ||
-    (isSuperAdmin && !igrejasCarregadas) ||
-    igrejasDoFiltro.some((igreja) => igreja.id === churchIdSalvo);
-  const churchId =
-    mostraFiltroDeIgreja && igrejaSalvaValida ? churchIdSalvo : 'all';
+  // A igreja do seletor padrão, no canto superior direito — a mesma em todos
+  // os módulos e lembrada entre visitas. O seletor devolve "Todas" quando a
+  // salva deixou de valer (igreja apagada, vínculo removido). A lista de
+  // eventos é também do financeiro, então entram as igrejas dele
+  const [churchId, setChurchId] = useIgrejaEscolhida();
   const styles = {
     boxFilterAndPdf: {
       display: 'flex',
@@ -103,7 +75,13 @@ function Events() {
   };
   return (
     <PageStyle>
-      <Header title="Eventos"></Header>
+      <Header title="Eventos">
+        <SeletorDeIgreja
+          value={churchId}
+          onChange={setChurchId}
+          incluirFinanceiro
+        />
+      </Header>
       <CardsStatus />
       <Stack gap={2}>
         <Paper component="div" sx={styles.boxFilterAndPdf}>
@@ -131,26 +109,6 @@ function Events() {
                 </MenuItem>
               ))}
             </TextField>
-
-            {/* o admin não precisa: a lista dele já vem só com a igreja dele */}
-            {mostraFiltroDeIgreja && (
-              <TextField
-                select
-                label="Igreja"
-                variant="outlined"
-                size="small"
-                value={churchId}
-                sx={styles.selectStatus}
-                onChange={(e) => setChurchId(e.target.value)}
-              >
-                <MenuItem value="all">Todas</MenuItem>
-                {igrejasDoFiltro.map((igreja) => (
-                  <MenuItem key={igreja.id} value={igreja.id}>
-                    {igreja.name}
-                  </MenuItem>
-                ))}
-              </TextField>
-            )}
           </Stack>
 
           {isAdmin && (

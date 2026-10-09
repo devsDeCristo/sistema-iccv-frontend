@@ -26,7 +26,7 @@ título):
 - **Quem vê o quê:** super admin e dev enxergam todas as igrejas (via listagem de igrejas); admin vê só as que administra.
 - **Sem igreja vinculada:** admin sem nenhuma igreja recebe um aviso informativo em vez da tela de configuração.
 - **Só uma igreja:** o controle vira rótulo fixo (sem seta, sem menu) — não faz sentido oferecer troca de contexto quando não há para onde trocar.
-- **Persistência:** a igreja escolhida fica em `sessionStorage` (chave `configuracoes_igreja`), não em estado de página — trocar entre Pagamentos e WhatsApp mantém a mesma igreja selecionada. Some ao fechar a aba.
+- **Persistência:** é a mesma escolha de igreja do painel inteiro (`useIgrejaEscolhida`, no `localStorage`, separada por usuário). Quem escolheu a Filial em Notícias abre Pagamentos e WhatsApp já na Filial. Se a escolha for "Todas as igrejas", a tela pede uma. Até 09/10/2026 era um `sessionStorage` só das Configurações.
 - **Sem escolha, nada é deduzido (multitenant):** com uma igreja só, ela vale sozinha. Com várias (super admin, dev, admin de mais de uma), a tela começa sem igreja: a barra mostra "Escolha a igreja" e o conteúdo dá lugar a um aviso pedindo a escolha (`precisaEscolher`). Nenhuma igreja é consultada antes disso. Até 09/10/2026 a tela começava na primeira igreja da lista, e o super admin podia parear o número ou cadastrar a conta de recebimento na igreja errada sem perceber.
 - **Vínculo removido:** se a igreja guardada sai da lista de quem a pessoa administra, a escolha é descartada e a tela volta a pedir uma igreja (ou usa a única, se só sobrou uma).
 - **Trocar de igreja reinicia o formulário em andamento:** a tela de WhatsApp derruba número digitado e volta para o modo QR ao trocar de igreja (evita parear o telefone errado).

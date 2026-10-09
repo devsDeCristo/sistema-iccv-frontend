@@ -26,8 +26,9 @@ Arquivos: `src/features/news/components/newsFeed.tsx`,
 
 ## Administração (`/admin/noticias`)
 
-**Seletor de igreja (multitenant).** Na barra de busca há um seletor de igreja
-(`useIgrejasDoSeletor`, a mesma regra do filtro de admin/usuários):
+**Seletor de igreja (multitenant).** No canto superior direito, o seletor
+padrão (`SeletorDeIgreja`, ver `docs/layout-e-navegacao.md`), com a mesma
+escolha de igreja dos outros módulos:
 
 - super admin e dev escolhem entre todas as igrejas;
 - quem administra várias escolhe entre as suas;
