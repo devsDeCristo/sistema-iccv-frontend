@@ -29,11 +29,19 @@ function DispatcherWhatsapp() {
         title="WhatsApp"
         description="O número que avisa os inscritos desta igreja"
       >
-        <ChurchScopeBar escopo={escopo} oQueMuda="o próprio número de disparo" />
+        <ChurchScopeBar
+          escopo={escopo}
+          oQueMuda="o próprio número de disparo"
+        />
       </Header>
 
       <Stack spacing={2.5}>
-        {escopo.semIgreja ? (
+        {escopo.precisaEscolher ? (
+          <Alert severity="info">
+            Escolha no topo da página qual igreja você quer configurar: cada
+            igreja tem o próprio número de disparo.
+          </Alert>
+        ) : escopo.semIgreja ? (
           <Alert severity="info">
             Você não administra nenhuma igreja. O número de disparo é
             configurado por igreja, por quem administra ela.

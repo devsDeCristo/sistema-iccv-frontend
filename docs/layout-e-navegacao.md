@@ -120,12 +120,15 @@ deduz "a primeira igreja" para super admin ou dev.
   - super admin e dev: todas as igrejas (`useGetChurches`);
   - admin: as suas (`igrejasQueAdministra`);
   - `mostraSeletor` é falso quando só há uma, e aí vale ela.
+  - `incluirFinanceiro: true`: entram também as igrejas onde a pessoa é
+    financeira (telas que o financeiro usa, como a home).
 - **Listagens:** "Todas as igrejas" é o padrão, e cada linha mostra de qual
   igreja é.
 - **Criação** (evento, notícia): a igreja é a primeira pergunta do
   formulário, obrigatória e sem sugestão. Na edição da notícia, o seletor
   também aparece, com a igreja atual.
-- **Quem usa:** notícias (lista, calendário e formulário). Admin/usuários e
+- **Quem usa:** notícias (lista, calendário e formulário) e a home do painel
+  (`/admin/inicio`, com `incluirFinanceiro`). Admin/usuários e
   admin/eventos têm a mesma regra escrita na própria página.
 
 ## Rotas (`src/routes/index.tsx`)

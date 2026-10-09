@@ -27,6 +27,11 @@ export interface EscopoDeIgreja {
   podeTrocar: boolean;
   /** A pessoa não administra igreja nenhuma: não há o que configurar */
   semIgreja: boolean;
+  /**
+   * Há mais de uma e nenhuma foi escolhida ainda: a tela pede a escolha em
+   * vez de mostrar a configuração de uma igreja que ninguém escolheu
+   */
+  precisaEscolher: boolean;
 }
 
 /**
@@ -67,10 +72,13 @@ export function useIgrejaSelecionada(): EscopoDeIgreja {
 
   // A escolha guardada só vale enquanto a igreja continuar na lista: um vínculo
   // removido deixaria a tela presa numa igreja que a API recusa.
+  //
+  // Sem escolha, só a igreja única vale sozinha. Com várias, nada é deduzido:
+  // a tela começava na primeira da lista, e o super admin pareava o número ou
+  // cadastrava a conta de recebimento na igreja errada sem perceber.
   const churchId =
     igrejas.find((igreja) => igreja.id === escolhida)?.id ??
-    igrejas[0]?.id ??
-    null;
+    (igrejas.length === 1 ? igrejas[0].id : null);
 
   const escolher = (id: string) => {
     setEscolhida(id);
@@ -90,5 +98,6 @@ export function useIgrejaSelecionada(): EscopoDeIgreja {
     carregando,
     podeTrocar: igrejas.length > 1,
     semIgreja: !carregando && igrejas.length === 0,
+    precisaEscolher: !carregando && igrejas.length > 1 && !churchId,
   };
 }

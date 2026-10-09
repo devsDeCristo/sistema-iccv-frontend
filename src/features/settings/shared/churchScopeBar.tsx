@@ -122,12 +122,15 @@ function ChurchScopeBar({ escopo, oQueMuda }: Props) {
         component="span"
         sx={{
           ...styles.nome,
-          color: podeTrocar
-            ? theme.palette.text.primary
-            : theme.palette.text.secondary,
+          color: !atual
+            ? theme.palette.primary.main
+            : podeTrocar
+              ? theme.palette.text.primary
+              : theme.palette.text.secondary,
         }}
       >
-        {atual?.name ?? '—'}
+        {/* nenhuma escolhida ainda: com várias, a tela não escolhe sozinha */}
+        {atual?.name ?? (podeTrocar ? 'Escolha a igreja' : '—')}
       </Box>
 
       {/*

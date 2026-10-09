@@ -1,4 +1,6 @@
-import { Box, Stack } from '@mui/material';
+import { Box, MenuItem, Stack, TextField } from '@mui/material';
+import { useState } from 'react';
+import { useIgrejasDoSeletor } from '../../../hooks/useIgrejasDoSeletor';
 import { Header } from '../../../components/header';
 import { PageStyle } from '../../../components/pageStyle';
 import { useGetDashboard } from './api/getDashboard';
@@ -53,7 +55,20 @@ interface HomeProps {
  * blocos, e é assim que um deles fica para trás.
  */
 export function Home({ churchId }: HomeProps = {}) {
-  const { data } = useGetDashboard(churchId);
+  /**
+   * Multitenant: no `/admin/inicio`, quem alcança mais de uma igreja escolhe
+   * qual ver — "Todas as igrejas" é o padrão. Aberta pela lista de igrejas, a
+   * home já vem com a igreja e não mostra o seletor.
+   */
+  // a home é também do financeiro: entram as igrejas onde ele é financeiro
+  const { igrejas, mostraSeletor } = useIgrejasDoSeletor({
+    incluirFinanceiro: true,
+  });
+  const [escolhida, setEscolhida] = useState('all');
+  const igrejaDaTela =
+    churchId ?? (escolhida === 'all' ? undefined : escolhida);
+
+  const { data } = useGetDashboard(igrejaDaTela);
 
   /**
    * A igreja aberta vem da própria resposta, e não da lista de igrejas: assim
@@ -62,8 +77,9 @@ export function Home({ churchId }: HomeProps = {}) {
    */
   const igreja = data?.churches?.[0];
 
-  // quem vê várias igrejas precisa saber de qual é cada tarefa
-  const varias = data?.scope === 'system';
+  // quem vê várias igrejas precisa saber de qual é cada tarefa — o super admin
+  // no sistema e quem administra mais de uma em "Todas as igrejas"
+  const varias = data?.scope === 'system' || (data?.churches?.length ?? 0) > 1;
 
   /**
    * Sem nenhum evento ativo, a API manda o último encerrado no lugar para a
@@ -90,7 +106,26 @@ export function Home({ churchId }: HomeProps = {}) {
             pageBack="/admin/igrejas"
           />
         ) : (
-          <Hero churches={data?.churches} role={data?.role} />
+          <>
+            {mostraSeletor && (
+              <TextField
+                select
+                size="small"
+                label="Igreja"
+                value={escolhida}
+                onChange={(evento) => setEscolhida(evento.target.value)}
+                sx={{ width: { xs: '100%', sm: 280 }, alignSelf: 'flex-end' }}
+              >
+                <MenuItem value="all">Todas as igrejas</MenuItem>
+                {igrejas.map((igreja) => (
+                  <MenuItem key={igreja.id} value={igreja.id}>
+                    {igreja.name}
+                  </MenuItem>
+                ))}
+              </TextField>
+            )}
+            <Hero churches={data?.churches} role={data?.role} />
+          </>
         )}
 
         {/* a igreja em números: só os eventos em jogo */}

@@ -33,6 +33,15 @@ function PaymentProviders({ escopo }: Props) {
 
   const { data, isLoading } = useGetPaymentProviders(escopo.churchId);
 
+  if (escopo.precisaEscolher) {
+    return (
+      <Alert severity="info">
+        Escolha no topo da página qual igreja você quer configurar: cada igreja
+        tem a própria conta de recebimento.
+      </Alert>
+    );
+  }
+
   if (escopo.semIgreja) {
     return (
       <Alert severity="info">

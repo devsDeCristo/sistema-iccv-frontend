@@ -23,6 +23,21 @@ que chegue sem seção.
 
 Arquivos: `src/pages/admin/home/routes/index.tsx`, `src/auth/functions/authLoaderAdmin.tsx`, `src/routes/index.tsx`.
 
+## Seletor de igreja (multitenant)
+
+No `/admin/inicio`, quem alcança mais de uma igreja (super admin, dev, admin
+ou financeiro de várias) tem um seletor **Igreja** no topo. O padrão é
+**"Todas as igrejas"**, a home de sempre. Escolher uma abre a home daquela
+igreja (`GET /dashboard?churchId=…`), com o perfil que a pessoa tem **nela**:
+quem é financeiro na igreja vê a home do financeiro. O seletor usa
+`useIgrejasDoSeletor({ incluirFinanceiro: true })`, porque a home também é do
+financeiro. Na home aberta pela lista de igrejas (`churchHome`) o seletor não
+aparece, porque a igreja já veio na URL.
+
+- **De qual igreja é cada pendência:** aparece o nome da igreja sempre que a
+  tela tem mais de uma, seja o super admin no sistema ou quem administra
+  várias em "Todas". Antes só aparecia para o super admin.
+
 ## Faixa de abertura (`Hero`)
 
 - Saudação do dia + primeiro nome de quem entrou, com foto e um selo de perfil
