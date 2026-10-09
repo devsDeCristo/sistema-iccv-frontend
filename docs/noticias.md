@@ -25,19 +25,30 @@ Arquivos: `src/features/news/components/newsFeed.tsx`,
 ## Administração (`/admin/noticias`)
 
 Lista em grade (`NewsAdminList`) com busca por título/chamada e botão "Nova
-notícia". Colunas: capa, título/chamada, situação (Publicada/Rascunho),
-público (evento restrito ou "Todos"), data de publicação, autor, última
-alteração, status do envio no WhatsApp e ações (editar, reenviar, excluir).
+notícia". São quatro colunas, só o necessário para decidir o que fazer com a
+notícia:
 
+| Coluna | O que mostra |
+| --- | --- |
+| **Notícia** | miniatura da capa, título e, embaixo, o público ("Todos os usuários" ou "Só: {evento}") |
+| **Situação** | chip Publicada, Agendada ou Rascunho, com a data de publicação embaixo (a do último disparo agendado, que conta como nova publicação) |
+| **Disparadores** | um chip por canal por onde a notícia sai (ver abaixo) |
+| ações | editar, reenviar no WhatsApp e excluir |
+
+- **Colunas que saíram (09/10/2026):** capa (foi para dentro da coluna
+  Notícia), público (virou a linha de baixo do título), publicada em (foi para
+  a coluna Situação), autor e última alteração. Era informação que não muda a
+  decisão, e a tabela não cabia ao lado do calendário.
 - **Situação:** rascunho só é visto pelo admin; publicada aparece no feed;
   **Agendada** (publicada sem `publishedAt`) espera o primeiro horário para
   entrar no mural.
-- **Público:** tooltip explica quem vê — "Só quem está em {evento} —
-  inscritos e lista de espera" ou "Todos os usuários".
-- **Coluna WhatsApp:** mostra quantos destinos já receberam
-  (`enviados/total`), com chip verde quando todos receberam, laranja/neutro
-  em andamento e vermelho quando há erro — o tooltip lista os destinos com o
-  motivo do erro, ou os destinos alcançados.
+- **Disparadores:**
+  - **Mural:** verde quando a notícia está no ar e cinza quando ainda não
+    está. O tooltip diz quem vê.
+  - **WhatsApp N/M:** só aparece com destino marcado, contando grupos de
+    evento e links avulsos (`destinosDaNoticia`). Verde quando todos
+    receberam, vermelho com erro e neutro em andamento. O tooltip lista os
+    destinos, ou o motivo de cada erro.
 - **Reenviar (ícone do WhatsApp):** desabilitado sem grupo marcado na notícia
   ou sem número de WhatsApp conectado (tooltip explica qual dos dois é o
   motivo, apontando "Configurações → Disparadores"). Confirma antes de
@@ -51,7 +62,12 @@ Arquivos: `src/pages/admin/news/index.tsx`,
 ### Calendário de disparos (`CalendarioDeDisparos`)
 
 Fica **ao lado da lista** em tela larga (`lg`, coluna de 352px, com o
-calendário em cima e os disparos do dia embaixo), e abaixo dela em tela menor. É um calendário do mês (`DateCalendar` do MUI X)
+calendário em cima e os disparos do dia embaixo), e abaixo dela em tela menor.
+O `DateCalendar` do MUI tem 320px fixos e, com o cartão ocupando a largura
+toda, encostava no canto. Por isso ele ocupa a largura disponível até 460px,
+centralizado e com os dias espalhados. A partir de `sm` os dias crescem de 36
+para 44px; na coluna estreita (`lg`) voltam a 36. A legenda fica centralizada
+embaixo. É um calendário do mês (`DateCalendar` do MUI X)
 com uma bolinha em cada dia que teve disparo: **verde** para o que já saiu no
 WhatsApp e **azul** para o que está agendado. Passar o mouse mostra o título
 das notícias do dia.
@@ -85,6 +101,12 @@ Um modal só para criar e editar, em **4 passos** (`Stepper` do MUI):
    - **Agendar:** pede ao menos um horário. A notícia vai como `scheduled` e
      entra no mural no primeiro horário.
    - **Imediatamente:** apaga os horários que a notícia tinha.
+   - **Horário "uma vez" que já passou** (`nextRunAt` nulo) aparece
+     **desabilitado**, como histórico: "Disparado em …", ou "Não disparou"
+     quando o servidor estava fora do ar. Ele não é validado (antes travava a
+     edição com "a data precisa ser futura"), não tem lixeira e não vai no
+     salvar; o backend o mantém. Com só histórico, a notícia abre em "Agendar"
+     e salva sem cobrar horário novo.
 4. **Publicação:** o resumo (título, imagem, mural, WhatsApp, quando) e o
    interruptor de rascunho. Rascunho não publica nem envia, nem nos horários
    agendados.

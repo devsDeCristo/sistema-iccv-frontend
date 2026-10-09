@@ -35,6 +35,11 @@ interface AgendamentosDaNoticiaProps {
   onChange: (agendamentos: NewsSchedule[]) => void;
   /** mostra o que falta em cada linha — só depois da primeira tentativa */
   mostrarProblemas?: boolean;
+  /**
+   * "Uma vez" que já passou: aparece desabilitado, como histórico. Não é
+   * validado nem volta no salvar — o backend o mantém.
+   */
+  disparados?: NewsSchedule[];
 }
 
 /**
@@ -45,6 +50,7 @@ function AgendamentosDaNoticia({
   value,
   onChange,
   mostrarProblemas,
+  disparados = [],
 }: AgendamentosDaNoticiaProps) {
   const trocar = (indice: number, parte: Partial<NewsSchedule>) =>
     onChange(
@@ -55,6 +61,54 @@ function AgendamentosDaNoticia({
 
   return (
     <Stack gap={1.5}>
+      {disparados.map((agendamento) => (
+        <Box
+          key={agendamento.id}
+          sx={{
+            p: 1.5,
+            borderRadius: 2,
+            border: '1px solid',
+            borderColor: 'divider',
+            opacity: 0.7,
+          }}
+        >
+          <Stack
+            direction={{ xs: 'column', sm: 'row' }}
+            alignItems={{ xs: 'stretch', sm: 'center' }}
+            gap={1.5}
+          >
+            <TextField
+              select
+              size="small"
+              disabled
+              value="ONCE"
+              sx={{ minWidth: 150 }}
+            >
+              <MenuItem value="ONCE">Uma vez</MenuItem>
+            </TextField>
+            <TextField
+              type="datetime-local"
+              size="small"
+              disabled
+              value={paraCampo(agendamento.runAt)}
+              sx={{ flex: 1 }}
+            />
+          </Stack>
+
+          <Typography
+            variant="caption"
+            color="text.secondary"
+            sx={{ display: 'block', mt: 1 }}
+          >
+            {agendamento.lastRunAt
+              ? `Disparado em ${dayjs(agendamento.lastRunAt).format(
+                  'DD/MM [às] HH:mm'
+                )}`
+              : 'Não disparou: o servidor estava fora do ar no horário'}
+          </Typography>
+        </Box>
+      ))}
+
       {value.map((agendamento, indice) => {
         const problema = mostrarProblemas
           ? problemaDoAgendamento(agendamento)

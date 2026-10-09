@@ -231,16 +231,35 @@ function CalendarioDeDisparos() {
             slotProps={{
               day: { disparosDoDia } as Partial<PickersDayProps<unknown>>,
             }}
+            // O DateCalendar tem 320px fixos e encostava no canto quando o
+            // cartão ocupa a largura toda (tela menor, abaixo da lista). Aqui
+            // ele cresce até 460px, centralizado, com os dias maiores; na
+            // coluna estreita ao lado da lista (lg) volta ao tamanho padrão.
             sx={{
-              m: 0,
+              width: '100%',
+              maxWidth: 460,
+              height: 'auto',
+              maxHeight: 'none',
+              mx: 'auto',
               '& .MuiPickersCalendarHeader-label': {
                 textTransform: 'capitalize',
+              },
+              '& .MuiDayCalendar-header, & .MuiDayCalendar-weekContainer': {
+                justifyContent: 'space-around',
+              },
+              '& .MuiPickersDay-root, & .MuiDayCalendar-weekDayLabel': {
+                width: { xs: 36, sm: 44, lg: 36 },
+                height: { xs: 36, sm: 44, lg: 36 },
+              },
+              // seis semanas cabem sem cortar: (dia + 4px de margem) × 6
+              '& .MuiPickersSlideTransition-root': {
+                minHeight: { xs: 240, sm: 288, lg: 240 },
               },
             }}
           />
         </LocalizationProvider>
 
-        <Stack direction="row" gap={2} sx={{ px: 2, mt: -1 }}>
+        <Stack direction="row" justifyContent="center" gap={2} sx={{ mt: 1 }}>
           <Legenda cor="chips.success" texto="Enviado" />
           <Legenda cor="chips.info" texto="Agendado" />
         </Stack>

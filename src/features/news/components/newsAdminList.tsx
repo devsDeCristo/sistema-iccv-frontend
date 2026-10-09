@@ -17,7 +17,6 @@ import {
 import Swal from 'sweetalert2';
 import CustomChip from '../../../components/customChip';
 import { cardTabelaSx, dataGridSx } from '../../../components/listPageStyles';
-import { formatDateTime } from '../../../utils';
 import { useGetNewsAdmin } from '../api/getNewsAdmin';
 import { useDeleteNews } from '../api/deleteNews';
 import { useResendNews } from '../api/resendNews';
@@ -101,153 +100,121 @@ function NewsAdminList({
 
   const columns: GridColDef[] = [
     {
-      field: 'imageUrl',
-      headerName: '',
-      sortable: false,
-      width: 72,
-      renderCell: (params) =>
-        params.value ? (
-          <Box
-            component="img"
-            src={params.value as string}
-            alt=""
-            sx={{ width: 52, height: 34, objectFit: 'cover', borderRadius: 1 }}
-          />
-        ) : (
-          <ImageNotSupportedOutlined
-            sx={{ fontSize: 20, color: 'text.disabled' }}
-          />
-        ),
-    },
-    {
       field: 'title',
       headerName: 'Notícia',
       flex: 2,
-      minWidth: 240,
+      minWidth: 220,
       cellClassName: 'celula-destaque',
-      renderCell: (params) => (
-        <Stack sx={{ py: 0.5, minWidth: 0 }}>
-          <Typography sx={{ fontSize: '0.9375rem', fontWeight: 500 }} noWrap>
-            {params.value}
-          </Typography>
-          {params.row.summary && (
-            <Typography
-              noWrap
-              sx={{ fontSize: '0.8125rem', color: 'text.secondary' }}
-            >
-              {params.row.summary}
-            </Typography>
-          )}
-        </Stack>
-      ),
+      // a capa e o público entram aqui, e não em colunas próprias: a tabela
+      // fica só com o que se olha para decidir — situação, data e WhatsApp
+      renderCell: (params) => {
+        const news = params.row as News;
+
+        return (
+          <Stack
+            direction="row"
+            alignItems="center"
+            gap={1.5}
+            sx={{ minWidth: 0 }}
+          >
+            {news.imageUrl ? (
+              <Box
+                component="img"
+                src={news.imageUrl}
+                alt=""
+                sx={{
+                  flexShrink: 0,
+                  width: 52,
+                  height: 34,
+                  objectFit: 'cover',
+                  borderRadius: 1,
+                }}
+              />
+            ) : (
+              <Box
+                sx={{
+                  flexShrink: 0,
+                  width: 52,
+                  height: 34,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <ImageNotSupportedOutlined
+                  sx={{ fontSize: 20, color: 'text.disabled' }}
+                />
+              </Box>
+            )}
+            <Stack sx={{ py: 0.5, minWidth: 0 }}>
+              <Typography
+                sx={{ fontSize: '0.9375rem', fontWeight: 500 }}
+                noWrap
+              >
+                {params.value}
+              </Typography>
+              <Typography
+                noWrap
+                sx={{ fontSize: '0.8125rem', color: 'text.secondary' }}
+              >
+                {news.event ? `Só: ${news.event.name}` : 'Todos os usuários'}
+              </Typography>
+            </Stack>
+          </Stack>
+        );
+      },
     },
     {
       field: 'isPublished',
       headerName: 'Situação',
-      width: 130,
+      width: 120,
       renderCell: (params) => {
         // publicada sem data = agendada: entra no mural no primeiro horário
         const agendada = params.value && !(params.row as News).publishedAt;
 
         return (
-          <CustomChip
-            size="small"
-            label={
-              agendada ? 'Agendada' : params.value ? 'Publicada' : 'Rascunho'
-            }
-            customColor={
-              agendada
-                ? theme.palette.chips.info
-                : params.value
-                  ? theme.palette.chips.success
-                  : theme.palette.chips.pending
-            }
-          />
+          <Stack alignItems="flex-start" gap={0.25}>
+            <CustomChip
+              size="small"
+              label={
+                agendada ? 'Agendada' : params.value ? 'Publicada' : 'Rascunho'
+              }
+              customColor={
+                agendada
+                  ? theme.palette.chips.info
+                  : params.value
+                    ? theme.palette.chips.success
+                    : theme.palette.chips.pending
+              }
+            />
+            {/* a data de publicação vem junto da situação, e não numa coluna
+                própria: as duas respondem "está no ar desde quando?" */}
+            {(params.row as News).publishedAt && (
+              <Typography
+                sx={{
+                  fontSize: '0.75rem',
+                  color: 'text.secondary',
+                  fontVariantNumeric: 'tabular-nums',
+                }}
+              >
+                {dataDaNoticia(params.row as News)}
+              </Typography>
+            )}
+          </Stack>
         );
       },
     },
     {
-      // quem enxerga o anúncio no mural. Sem evento é aviso geral — o padrão
-      field: 'event',
-      headerName: 'Público',
+      // um chip por disparador — por onde a notícia sai —, cada um com a
+      // própria situação: o mural (sistema) e o WhatsApp
+      field: 'disparadores',
+      headerName: 'Disparadores',
       sortable: false,
-      width: 190,
+      width: 200,
       renderCell: (params) => {
-        const evento = (params.row as News).event;
-
-        return (
-          <Tooltip
-            title={
-              evento
-                ? `Só quem está em ${evento.name} — inscritos e lista de espera`
-                : 'Todos os usuários'
-            }
-          >
-            <span>
-              <CustomChip
-                size="small"
-                label={evento ? evento.name : 'Todos'}
-                customColor={
-                  evento
-                    ? theme.palette.chips.pending
-                    : theme.palette.chips.success
-                }
-              />
-            </span>
-          </Tooltip>
-        );
-      },
-    },
-    {
-      // `dateTime` com valor de Date, e não a string já formatada: senão a
-      // coluna ordenaria em ordem alfabética de "Hoje, 19:08"
-      field: 'publishedAt',
-      headerName: 'Publicada em',
-      type: 'dateTime',
-      width: 160,
-      cellClassName: 'celula-numerica',
-      valueGetter: (params) =>
-        params.row.publishedAt ? new Date(params.row.publishedAt) : null,
-      valueFormatter: (params) =>
-        params.value
-          ? dataDaNoticia({
-              publishedAt: params.value,
-              createdAt: params.value,
-            })
-          : '—',
-    },
-    {
-      field: 'author',
-      headerName: 'Autor',
-      width: 180,
-      valueGetter: (params) => params.row.author?.fullName || '—',
-    },
-    {
-      field: 'updatedAt',
-      headerName: 'Última alteração',
-      type: 'dateTime',
-      width: 170,
-      cellClassName: 'celula-numerica',
-      valueGetter: (params) =>
-        params.row.updatedAt ? new Date(params.row.updatedAt) : null,
-      valueFormatter: (params) =>
-        params.value ? formatDateTime(params.value) : '—',
-    },
-    {
-      field: 'whatsapp',
-      headerName: 'WhatsApp',
-      sortable: false,
-      width: 150,
-      renderCell: (params) => {
-        const destinos = destinosDaNoticia(params.row as News);
-
-        if (!destinos.length) {
-          return (
-            <Typography sx={{ fontSize: '0.8125rem', color: 'text.secondary' }}>
-              —
-            </Typography>
-          );
-        }
+        const news = params.row as News;
+        const noAr = !!news.isPublished && !!news.publishedAt;
+        const destinos = destinosDaNoticia(news);
 
         const enviados = destinos.filter((destino) => destino.sentAt).length;
         const comErro = destinos.filter(
@@ -256,33 +223,57 @@ function NewsAdminList({
         const tudoEnviado = enviados === destinos.length;
 
         return (
-          <Tooltip
-            title={
-              comErro.length
-                ? comErro
-                    .map((destino) => `${destino.nome}: ${destino.error}`)
-                    .join(' | ')
-                : destinos.map((destino) => destino.nome).join(', ')
-            }
-          >
-            <span>
-              <CustomChip
-                size="small"
-                label={
-                  tudoEnviado
-                    ? `Enviado (${enviados})`
-                    : `${enviados}/${destinos.length}`
+          <Stack direction="row" gap={0.75}>
+            <Tooltip
+              title={
+                noAr
+                  ? `No mural: ${
+                      news.event
+                        ? `só quem está em ${news.event.name}`
+                        : 'todos os usuários'
+                    }`
+                  : 'Ainda não está no mural'
+              }
+            >
+              <span>
+                <CustomChip
+                  size="small"
+                  label="Mural"
+                  customColor={
+                    noAr
+                      ? theme.palette.chips.success
+                      : theme.palette.text.disabled
+                  }
+                />
+              </span>
+            </Tooltip>
+
+            {destinos.length > 0 && (
+              <Tooltip
+                title={
+                  comErro.length
+                    ? comErro
+                        .map((destino) => `${destino.nome}: ${destino.error}`)
+                        .join(' | ')
+                    : destinos.map((destino) => destino.nome).join(', ')
                 }
-                customColor={
-                  tudoEnviado
-                    ? theme.palette.chips.success
-                    : comErro.length
-                    ? theme.palette.chips.canceled
-                    : theme.palette.chips.pending
-                }
-              />
-            </span>
-          </Tooltip>
+              >
+                <span>
+                  <CustomChip
+                    size="small"
+                    label={`WhatsApp ${enviados}/${destinos.length}`}
+                    customColor={
+                      tudoEnviado
+                        ? theme.palette.chips.success
+                        : comErro.length
+                          ? theme.palette.chips.canceled
+                          : theme.palette.chips.pending
+                    }
+                  />
+                </span>
+              </Tooltip>
+            )}
+          </Stack>
         );
       },
     },
@@ -290,7 +281,7 @@ function NewsAdminList({
       field: 'acoes',
       headerName: '',
       sortable: false,
-      width: 150,
+      width: 124,
       renderCell: (params) => (
         <Stack direction="row" gap={0.5}>
           <Tooltip title="Editar">

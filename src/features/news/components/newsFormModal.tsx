@@ -157,6 +157,17 @@ function CartaoDeDisparador({
   );
 }
 
+/**
+ * Agendamentos que ainda vão disparar — os editáveis. O "uma vez" que já
+ * passou fica com `nextRunAt` nulo: aparece desabilitado, como histórico, e
+ * fica fora da validação e do salvar. Validado, cobraria "data futura" de um
+ * horário que já passou e travaria a edição da notícia.
+ */
+const pendentes = (agendamentos?: NewsSchedule[]) =>
+  (agendamentos ?? []).filter(
+    (agendamento) => agendamento.kind !== 'ONCE' || !!agendamento.nextRunAt
+  );
+
 function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
   const theme = useTheme();
   const inputArquivo = useRef<HTMLInputElement>(null);
@@ -219,7 +230,7 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
     setArquivo(null);
     setRemoverImagem(false);
     setEventoDoAnuncio(news?.event?.id || '');
-    setAgendamentos(news?.schedules ?? []);
+    setAgendamentos(pendentes(news?.schedules));
     setLinks(news?.groupLinks?.map((destino) => destino.link) ?? []);
     setLinkInvalido(null);
     setUsaWhatsapp(!!(news?.groups?.length || news?.groupLinks?.length));
@@ -285,6 +296,11 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
    * óbvia: notícia já publicada não reenvia sozinha.
    */
   // grupos de inscrição e links avulsos: os dois recebem a notícia
+  // "uma vez" que já passou: aparece desabilitado, como histórico
+  const disparados = (news?.schedules ?? []).filter(
+    (agendamento) => !pendentes([agendamento]).length
+  );
+
   // com o WhatsApp desligado, os grupos marcados não valem
   const totalDeDestinos = usaWhatsapp ? destinos.length + links.length : 0;
 
@@ -300,12 +316,16 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
         ? ''
         : ` e envia para ${totalDeDestinos} grupo(s)`;
 
+    // já no ar: publicada e com data (a agendada fica sem data até sair)
+    const noAr = !!news?.isPublished && !!news.publishedAt;
+
     if (modo === 'agendar') {
-      return `Publica no mural${whatsapp} no primeiro horário agendado.`;
+      return noAr
+        ? `Já no mural. Em cada horário agendado, volta ao topo${whatsapp}.`
+        : `Publica no mural${whatsapp} no primeiro horário agendado.`;
     }
 
-    // já no ar: publicada e com data (a agendada fica sem data até sair)
-    if (news?.isPublished && news.publishedAt) {
+    if (noAr) {
       return 'Já publicada: salvar não reenvia. Use o Reenviar na lista.';
     }
 
@@ -321,8 +341,10 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
       // conferido antes de salvar a notícia: se só os agendamentos falhassem,
       // a notícia nova ficaria gravada e salvar de novo criaria outra
       return {
+        // só histórico (horários já disparados) também vale: nada a cobrar
         agendamentos:
-          !agendamentos.length || agendamentos.some(problemaDoAgendamento),
+          (!agendamentos.length && !disparados.length) ||
+          agendamentos.some(problemaDoAgendamento),
       };
     }
     return {};
@@ -886,6 +908,7 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
                 <Box sx={{ mt: 2 }}>
                   <AgendamentosDaNoticia
                     value={agendamentos}
+                    disparados={disparados}
                     mostrarProblemas={erros.agendamentos}
                     onChange={(lista) => {
                       setAgendamentos(lista);
