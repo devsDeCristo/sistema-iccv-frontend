@@ -175,13 +175,14 @@ function LinhaDoDisparo({ disparo }: { disparo: Disparo }) {
  * Calendário de disparos da tela de notícias: o que já saiu no WhatsApp e o
  * que está agendado, mês a mês. Ao lado, os disparos do dia escolhido.
  */
-function CalendarioDeDisparos() {
+/** `churchId`: a igreja do seletor da tela — o calendário é dela */
+function CalendarioDeDisparos({ churchId }: { churchId: string }) {
   const [mes, setMes] = useState(() => dayjs().startOf('month').toDate());
   const [diaEscolhido, setDiaEscolhido] = useState(() => new Date());
 
   const inicio = mes;
   const fim = dayjs(mes).add(1, 'month').toDate();
-  const { data, isLoading } = useGetNewsCalendar(inicio, fim);
+  const { data, isLoading } = useGetNewsCalendar(inicio, fim, churchId);
 
   const disparosDoDia = useMemo(() => {
     const mapa = new Map<string, Disparo[]>();

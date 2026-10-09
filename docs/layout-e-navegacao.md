@@ -111,6 +111,23 @@ Arquivo: `src/components/sideBar/index.tsx`.
 
 Arquivos: `src/constants/roles.ts`, `src/hooks/useRole.tsx`, `src/components/requireRole/index.tsx`.
 
+### Seletor de igreja (multitenant)
+
+Toda tela de uma feature que é por igreja tem um seletor de igreja. Nunca se
+deduz "a primeira igreja" para super admin ou dev.
+
+- **Hook `useIgrejasDoSeletor`** (`src/hooks/useIgrejasDoSeletor.ts`):
+  - super admin e dev: todas as igrejas (`useGetChurches`);
+  - admin: as suas (`igrejasQueAdministra`);
+  - `mostraSeletor` é falso quando só há uma, e aí vale ela.
+- **Listagens:** "Todas as igrejas" é o padrão, e cada linha mostra de qual
+  igreja é.
+- **Criação** (evento, notícia): a igreja é a primeira pergunta do
+  formulário, obrigatória e sem sugestão. Na edição da notícia, o seletor
+  também aparece, com a igreja atual.
+- **Quem usa:** notícias (lista, calendário e formulário). Admin/usuários e
+  admin/eventos têm a mesma regra escrita na própria página.
+
 ## Rotas (`src/routes/index.tsx`)
 
 - **Públicas:** `/login`, `/esqueci-senha`, `/usuario/cadastrar`, `/termos`.

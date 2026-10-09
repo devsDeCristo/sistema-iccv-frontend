@@ -27,12 +27,15 @@ import { dataDaNoticia, destinosDaNoticia } from '../utils';
 function NewsAdminList({
   search,
   onEdit,
+  churchId,
 }: {
   search: string;
   onEdit: (news: News) => void;
+  /** a igreja do seletor da tela: a lista é dela */
+  churchId: string;
 }) {
   const theme = useTheme();
-  const { data, isLoading } = useGetNewsAdmin();
+  const { data, isLoading } = useGetNewsAdmin(churchId);
   const { semNumero } = useWhatsappConectado();
   const { mutate: reenviar, isLoading: reenviando } = useResendNews();
 
@@ -157,7 +160,14 @@ function NewsAdminList({
                 noWrap
                 sx={{ fontSize: '0.8125rem', color: 'text.secondary' }}
               >
-                {news.event ? `Só: ${news.event.name}` : 'Todos os usuários'}
+                {/* a igreja na frente: na visão "Todas as igrejas" a lista
+                    mistura notícias de várias */}
+                {[
+                  news.church?.name,
+                  news.event ? `Só: ${news.event.name}` : 'Todos os usuários',
+                ]
+                  .filter(Boolean)
+                  .join(' · ')}
               </Typography>
             </Stack>
           </Stack>

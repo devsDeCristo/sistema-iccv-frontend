@@ -60,6 +60,9 @@ function ItemDoFeed({ news, onClick }: { news: News; onClick: () => void }) {
           {/* anúncio restrito a um evento: quem lê só chegou aqui porque está
               nele, e saber de qual se trata evita confusão com outro cursilho */}
           {news.event && ` · ${news.event.name}`}
+          {/* aviso para todos: o mural é de todas as igrejas, então diz de
+              qual delas saiu */}
+          {!news.event && news.church && ` · ${news.church.name}`}
         </Typography>
         <Typography
           className="titulo-noticia"

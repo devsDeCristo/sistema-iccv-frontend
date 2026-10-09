@@ -59,6 +59,11 @@ function NewsModal({
                   }}
                 >
                   {dataDaNoticia(news)}
+                  {news.event
+                    ? ` · ${news.event.name}`
+                    : news.church
+                      ? ` · ${news.church.name}`
+                      : ''}
                   {news.author?.fullName ? ` · ${news.author.fullName}` : ''}
                 </Typography>
               </Box>

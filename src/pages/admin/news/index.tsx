@@ -1,4 +1,11 @@
-import { Box, Button, InputAdornment, Paper, TextField } from '@mui/material';
+import {
+  Box,
+  Button,
+  InputAdornment,
+  MenuItem,
+  Paper,
+  TextField,
+} from '@mui/material';
 import { Add, Close, Search } from '@mui/icons-material';
 import { useState } from 'react';
 import { PageStyle } from '../../../components/pageStyle';
@@ -8,6 +15,7 @@ import { CalendarioDeDisparos } from '../../../features/news/components/calendar
 import { NewsAdminList } from '../../../features/news/components/newsAdminList';
 import { NewsFormModal } from '../../../features/news/components/newsFormModal';
 import { News } from '../../../features/news/types';
+import { useIgrejasDoSeletor } from '../../../hooks/useIgrejasDoSeletor';
 import { WhatsappOfflineAlert } from '../../../features/settings/whatsapp/components/whatsappOfflineAlert';
 
 /** Mural de notícias: é daqui que sai o feed da tela de eventos. */
@@ -15,6 +23,12 @@ function NewsAdmin() {
   const [busca, setBusca] = useState('');
   const [emEdicao, setEmEdicao] = useState<News | null>(null);
   const [formAberto, setFormAberto] = useState(false);
+
+  // Multitenant: a tela começa em todas as igrejas que a pessoa alcança e o
+  // seletor recorta para uma. Super admin e dev escolhem entre todas, quem
+  // administra várias entre as suas; com uma só, o seletor nem aparece
+  const { igrejas, mostraSeletor } = useIgrejasDoSeletor();
+  const [churchId, setChurchId] = useState('all');
 
   const abrirNova = () => {
     setEmEdicao(null);
@@ -41,6 +55,11 @@ function NewsAdmin() {
     },
     campo: {
       width: { xs: '100%', sm: '380px' },
+    },
+    campoIgreja: {
+      width: { xs: '100%', sm: '240px' },
+      // empurra o botão para a direita, como antes
+      mr: { sm: 'auto' },
     },
     botao: {
       width: { xs: '100%', sm: 'fit-content' },
@@ -82,6 +101,24 @@ function NewsAdmin() {
           }}
         />
 
+        {mostraSeletor && (
+          <TextField
+            select
+            size="small"
+            label="Igreja"
+            value={churchId}
+            sx={styles.campoIgreja}
+            onChange={(evento) => setChurchId(evento.target.value)}
+          >
+            <MenuItem value="all">Todas as igrejas</MenuItem>
+            {igrejas.map((igreja) => (
+              <MenuItem key={igreja.id} value={igreja.id}>
+                {igreja.name}
+              </MenuItem>
+            ))}
+          </TextField>
+        )}
+
         <Button
           variant="contained"
           startIcon={<Add />}
@@ -103,10 +140,14 @@ function NewsAdmin() {
         }}
       >
         <Box sx={{ flex: 1, minWidth: 0, width: '100%' }}>
-          <NewsAdminList search={busca} onEdit={abrirEdicao} />
+          <NewsAdminList
+            search={busca}
+            onEdit={abrirEdicao}
+            churchId={churchId}
+          />
         </Box>
         <Box sx={{ width: { xs: '100%', lg: 352 }, flexShrink: 0 }}>
-          <CalendarioDeDisparos />
+          <CalendarioDeDisparos churchId={churchId} />
         </Box>
       </Box>
 

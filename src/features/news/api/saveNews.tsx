@@ -25,6 +25,7 @@ const montarFormData = (data: NewsPayload) => {
   formData.append('content', data.content);
   formData.append('isPublished', String(data.isPublished));
   formData.append('scheduled', String(!!data.scheduled));
+  if (data.churchId) formData.append('churchId', data.churchId);
   if (data.summary) formData.append('summary', data.summary);
   if (data.imageFile) formData.append('imageFile', data.imageFile);
   if (data.removeImage) formData.append('removeImage', 'true');

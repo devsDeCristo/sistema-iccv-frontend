@@ -13,8 +13,12 @@ export interface News {
    * restringe o mural a quem está no evento.
    */
   event?: { id: string; name: string } | null;
+  /** igreja de onde a notícia saiu — o mural mostra no aviso para todos */
+  church?: { id: string; name: string } | null;
   /** Só vem na lista do admin (`/news/admin`) */
   isPublished?: boolean;
+  /** igreja dona: define por qual número de WhatsApp a notícia sai */
+  churchId?: string | null;
   updatedAt?: string;
   /** Grupos escolhidos como destino no WhatsApp, com o resultado do envio */
   groups?: NewsDestination[];
@@ -87,7 +91,7 @@ export interface WhatsappTargetGroup {
   id: string;
   name: string;
   temLink: boolean;
-  event: { id: string; name: string; status: string };
+  event: { id: string; name: string; status: string; churchId: string };
 }
 
 export interface NewsPayload {
@@ -105,6 +109,8 @@ export interface NewsPayload {
   groupRoleIds?: string[];
   /** Links de convite de grupos avulsos (https://chat.whatsapp.com/...) */
   groupLinks?: string[];
+  /** igreja da notícia (só na criação): número de WhatsApp e nome no mural */
+  churchId?: string | null;
   /** publicar no primeiro horário agendado, e não ao salvar */
   scheduled?: boolean;
 }

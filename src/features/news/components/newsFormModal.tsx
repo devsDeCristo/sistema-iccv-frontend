@@ -37,6 +37,7 @@ import { ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import ReactQuillEditor from '../../../components/reactQuillEditor';
+import { useIgrejasDoSeletor } from '../../../hooks/useIgrejasDoSeletor';
 import { useWhatsappConectado } from '../../settings/whatsapp/useWhatsappConectado';
 import { useGetEvents } from '../../admin/events/api/getEvents';
 import { useGetNewsWhatsappGroups } from '../api/getWhatsappGroups';
@@ -189,10 +190,18 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
   const [linkInvalido, setLinkInvalido] = useState<string | null>(null);
   /** o WhatsApp é um disparador opcional; o mural (sistema) sempre vale */
   const [usaWhatsapp, setUsaWhatsapp] = useState(false);
+  /** igreja da notícia na criação — quem administra mais de uma escolhe */
+  const [igrejaEscolhida, setIgrejaEscolhida] = useState('');
+  // super admin e dev escolhem entre todas; quem administra, entre as suas
+  const { igrejas, mostraSeletor } = useIgrejasDoSeletor();
+  // com uma igreja só não há pergunta: é ela. String, e não o array (novo a
+  // cada render), porque é dependência do efeito que recarrega o formulário
+  const unicaIgreja = mostraSeletor ? '' : (igrejas[0]?.id ?? '');
   /** publicar ao salvar ou no primeiro horário agendado */
   const [modo, setModo] = useState<'agora' | 'agendar'>('agora');
   const [passo, setPasso] = useState(0);
   const [erros, setErros] = useState<{
+    igreja?: boolean;
     titulo?: boolean;
     texto?: boolean;
     agendamentos?: boolean;
@@ -208,14 +217,49 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
     { enabled: open }
   );
 
-  const { semNumero } = useWhatsappConectado();
   const navigate = useNavigate();
 
-  const listaGrupos = useMemo(() => grupos ?? [], [grupos]);
-  const listaEventos = useMemo(
+  const todosOsEventos = useMemo(
     () => (Array.isArray(eventos) ? eventos : []),
     [eventos]
   );
+
+  /**
+   * A igreja da notícia, que define por qual número de WhatsApp ela sai. Na
+   * edição é a gravada; na criação, a mesma conta do backend
+   * (`igrejaDaPublicacao`): a do evento escolhido, se for uma das que a pessoa
+   * administra, senão a primeira delas. Sem nenhuma (super admin sem vínculo),
+   * a notícia fica sem igreja e não sai no WhatsApp.
+   */
+  const igrejaDaNoticia = igrejaEscolhida || null;
+  const nomeDaIgreja =
+    igrejas.find((igreja) => igreja.id === igrejaEscolhida)?.name ??
+    (igrejaEscolhida === news?.churchId ? news?.church?.name : undefined);
+
+  // Multitenant: o formulário só oferece o que é da igreja da notícia — os
+  // eventos do público e os grupos de WhatsApp. O backend confere de novo.
+  const listaEventos = useMemo(
+    () =>
+      igrejaDaNoticia
+        ? todosOsEventos.filter(
+            (evento) => evento.church?.id === igrejaDaNoticia
+          )
+        : todosOsEventos,
+    [todosOsEventos, igrejaDaNoticia]
+  );
+  const listaGrupos = useMemo(
+    () =>
+      (grupos ?? []).filter(
+        (grupo) => grupo.event.churchId === igrejaDaNoticia
+      ),
+    [grupos, igrejaDaNoticia]
+  );
+
+  // a situação do número **desta** igreja — sem passar a igreja, o gancho só
+  // responde para quem administra exatamente uma, e o aviso sumia para o
+  // super admin e para quem administra várias
+  const { semNumero } = useWhatsappConectado(igrejaDaNoticia);
+  const semIgreja = !igrejaDaNoticia;
 
   // reabrir o modal precisa recarregar o formulário: sem isto a segunda edição
   // abriria com os dados da primeira
@@ -235,9 +279,10 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
     setLinkInvalido(null);
     setUsaWhatsapp(!!(news?.groups?.length || news?.groupLinks?.length));
     setModo(news?.schedules?.length ? 'agendar' : 'agora');
+    setIgrejaEscolhida(news ? (news.churchId ?? unicaIgreja) : unicaIgreja);
     setErros({});
     setPasso(0);
-  }, [open, news]);
+  }, [open, news, unicaIgreja]);
 
   // os destinos só podem ser marcados depois que a lista de grupos chega
   useEffect(() => {
@@ -335,7 +380,11 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
   /** O que falta em cada passo; vazio quando o passo está pronto */
   const problemasDoPasso = (indice: number) => {
     if (indice === 0) {
-      return { titulo: !titulo.trim(), texto: textoVazio };
+      return {
+        igreja: !igrejaDaNoticia,
+        titulo: !titulo.trim(),
+        texto: textoVazio,
+      };
     }
     if (indice === 2 && modo === 'agendar') {
       // conferido antes de salvar a notícia: se só os agendamentos falhassem,
@@ -387,6 +436,7 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
         groupRoleIds: usaWhatsapp ? destinos.map((grupo) => grupo.id) : [],
         groupLinks: usaWhatsapp ? links : [],
         scheduled: modo === 'agendar',
+        churchId: igrejaDaNoticia,
       },
     });
 
@@ -498,7 +548,8 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
               >
                 <StepLabel
                   error={
-                    (indice === 0 && !!(erros.titulo || erros.texto)) ||
+                    (indice === 0 &&
+                      !!(erros.igreja || erros.titulo || erros.texto)) ||
                     (indice === 2 && !!erros.agendamentos)
                   }
                 >
@@ -514,6 +565,44 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
             <>
               <Secao titulo="Conteúdo">
                 <Stack gap={2.5}>
+                  {/* Multitenant: como na criação de evento, a igreja é a
+                      primeira pergunta — define o número de WhatsApp, o nome
+                      no mural e o que os outros passos oferecem. Na criação
+                      começa vazia (sem sugestão); na edição, com a atual, e
+                      dá para trocar. */}
+                  {/* sem igreja nenhuma (super admin antes de cadastrar)
+                      também aparece, para o erro ter onde ficar */}
+                  {igrejas.length !== 1 && (
+                    <TextField
+                      select
+                      size="small"
+                      label="Igreja da notícia *"
+                      value={igrejaEscolhida}
+                      onChange={(evento) => {
+                        setIgrejaEscolhida(evento.target.value);
+                        // evento e grupos eram da igreja anterior
+                        setEventoDoAnuncio('');
+                        setDestinos([]);
+                        if (erros.igreja)
+                          setErros((atual) => ({ ...atual, igreja: false }));
+                      }}
+                      error={erros.igreja}
+                      helperText={
+                        !igrejas.length
+                          ? 'Nenhuma igreja cadastrada — crie uma no menu Igrejas antes de publicar.'
+                          : erros.igreja
+                            ? 'Escolha de qual igreja é a notícia.'
+                            : 'A notícia sai em nome desta igreja, pelo número de WhatsApp dela.'
+                      }
+                    >
+                      {igrejas.map((igreja) => (
+                        <MenuItem key={igreja.id} value={igreja.id}>
+                          {igreja.name}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                  )}
+
                   <TextField
                     label="Título"
                     size="small"
@@ -669,6 +758,19 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
                 titulo="Sistema"
                 descricao="O mural de notícias dos inscritos. Toda notícia publicada aparece nele."
               >
+                {/* Multitenant: a igreja da notícia define o número de
+                    WhatsApp, o nome no mural e o que pode ser escolhido aqui.
+                    Na criação, quem administra mais de uma escolhe; na edição
+                    ela é fixa. */}
+                {nomeDaIgreja && (
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ mb: 2 }}
+                  >
+                    Sai em nome de <strong>{nomeDaIgreja}</strong>.
+                  </Typography>
+                )}
                 <TextField
                   label="Quem vê no mural"
                   // sem isto o "Todos os usuários" (valor vazio) não aparece
@@ -701,34 +803,42 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
                 ligado={usaWhatsapp}
                 onLigar={setUsaWhatsapp}
               >
+                {/* fora do "ligado": sem número, avisa mesmo com o WhatsApp
+                    desligado — quem desligou pode ter feito isso por não ver
+                    os grupos, e o motivo é outro */}
+                {semIgreja && (
+                  <Alert severity="warning" sx={{ borderRadius: 2, mb: 2 }}>
+                    <strong>Esta notícia não tem igreja</strong>, então não há
+                    número de WhatsApp por onde enviar. Isso acontece com quem
+                    não administra nenhuma igreja; o mural funciona normalmente.
+                  </Alert>
+                )}
+                {semNumero && (
+                  <Alert
+                    severity="warning"
+                    sx={{ borderRadius: 2, mb: 2 }}
+                    action={
+                      <Button
+                        color="inherit"
+                        size="small"
+                        sx={{ textTransform: 'none', fontWeight: 600 }}
+                        onClick={() => {
+                          onClose();
+                          navigate('/configuracoes/disparadores/whatsapp');
+                        }}
+                      >
+                        Configurar
+                      </Button>
+                    }
+                  >
+                    <strong>Nenhum disparador de WhatsApp conectado.</strong>{' '}
+                    Sem ele, a notícia não sai em grupo nenhum — nem agora, nem
+                    nos agendamentos. Ela pode ser salva do mesmo jeito.
+                  </Alert>
+                )}
+
                 {usaWhatsapp && (
                   <Stack>
-                    {semNumero && (
-                      <Alert
-                        severity="warning"
-                        sx={{ borderRadius: 2, mb: 2 }}
-                        action={
-                          <Button
-                            color="inherit"
-                            size="small"
-                            sx={{ textTransform: 'none', fontWeight: 600 }}
-                            onClick={() => {
-                              onClose();
-                              navigate('/configuracoes/disparadores/whatsapp');
-                            }}
-                          >
-                            Configurar
-                          </Button>
-                        }
-                      >
-                        <strong>
-                          Nenhum disparador de WhatsApp conectado.
-                        </strong>{' '}
-                        Sem ele, a notícia não sai em grupo nenhum — nem agora,
-                        nem nos agendamentos. Ela pode ser salva do mesmo jeito.
-                      </Alert>
-                    )}
-
                     <Autocomplete
                       multiple
                       size="small"

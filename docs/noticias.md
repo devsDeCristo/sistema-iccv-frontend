@@ -22,7 +22,20 @@ Arquivos: `src/features/news/components/newsFeed.tsx`,
 `src/features/news/components/newsModal.tsx`, `src/features/news/utils.ts`
 (`dataDaNoticia`).
 
+- **De qual igreja:** o aviso para todos mostra o nome da igreja de onde saiu, na linha da data (feed e modal). O anúncio de evento mostra o evento.
+
 ## Administração (`/admin/noticias`)
+
+**Seletor de igreja (multitenant).** Na barra de busca há um seletor de igreja
+(`useIgrejasDoSeletor`, a mesma regra do filtro de admin/usuários):
+
+- super admin e dev escolhem entre todas as igrejas;
+- quem administra várias escolhe entre as suas;
+- com uma só, o seletor fica escondido.
+
+O padrão é **"Todas as igrejas"**, todas as que a pessoa alcança; escolher uma
+recorta a lista e o calendário. Na lista, a linha de baixo do título mostra a
+igreja de cada notícia.
 
 Lista em grade (`NewsAdminList`) com busca por título/chamada e botão "Nova
 notícia". São quatro colunas, só o necessário para decidir o que fazer com a
@@ -91,9 +104,19 @@ Arquivos: `src/features/news/components/calendarioDeDisparos.tsx`,
 
 Um modal só para criar e editar, em **4 passos** (`Stepper` do MUI):
 
-1. **Conteúdo:** texto e imagem.
+1. **Conteúdo:** a igreja, o texto e a imagem.
+   - **Igreja da notícia** é a primeira pergunta, como "Igreja do evento" na
+     criação de evento. É obrigatória e começa vazia, sem sugestão; não deixa
+     avançar sem ela. Com uma igreja só, o campo fica escondido e vale ela. Na
+     **edição** o seletor também aparece, com a igreja atual, e dá para trocar.
+     Trocar a igreja limpa o evento do público e os grupos, que eram da
+     anterior.
 2. **Disparadores:** por onde a notícia sai, em cartões (`CartaoDeDisparador`).
    - **Sistema:** o mural, sempre ligado, com o "Quem vê no mural".
+     - **Igreja (multitenant):** aparece como texto ("Sai em nome de …"). Ela
+       é perguntada no passo Conteúdo (ver abaixo).
+     - **Listas recortadas:** os eventos do público e os grupos de WhatsApp
+       oferecidos são só os da igreja da notícia. O backend confere de novo.
    - **WhatsApp:** com chave de ligar. Ligado, mostra o aviso de disparador,
      os grupos de evento e os links avulsos. Desligado, salva sem grupo
      nenhum.
@@ -133,7 +156,12 @@ As seções de cada passo:
   feed e, se houver disparo, como foto anexada no WhatsApp.
 - **Quem vê no mural:** select de evento; vazio é aviso geral, e escolher um
   evento restringe a quem está inscrito ou na lista de espera dele.
-- **Aviso de disparador:** sem número de WhatsApp conectado, o passo do
+- **Aviso de disparador:** consulta o número **da igreja da notícia**
+  (`useWhatsappConectado(igrejaDaNoticia)`), e não "a igreja de quem está
+  logado". Sem isso, o aviso não aparecia para o super admin nem para quem
+  administra várias igrejas. Aparece mesmo com o WhatsApp desligado, e há um
+  aviso próprio para notícia sem igreja.
+  Sem número de WhatsApp conectado, o passo do
   WhatsApp abre com um aviso no topo e o botão "Configurar", que leva a
   Configurações → Disparadores → WhatsApp. O aviso diz que nada sai, nem nos
   agendamentos, e que a notícia pode ser salva do mesmo jeito.
