@@ -2,6 +2,7 @@ import {
   Box,
   Button,
   Card,
+  Divider,
   IconButton,
   Paper,
   ListItemIcon,
@@ -30,12 +31,13 @@ import { useParams } from 'react-router-dom';
 import {
   Edit,
   History,
+  ListAlt,
   MoreVert,
   Reply,
   ShoppingBagOutlined,
 } from '@mui/icons-material';
 import { PaymentResponse } from '../../../../types/user';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import CustomChip from '../../../../components/customChip';
 import { ABA_COMPRAS_DE_PRODUTOS, itensDoPagamento } from '../products';
 import {
@@ -54,6 +56,42 @@ import {
   dataGridSx,
 } from '../../../../components/listPageStyles';
 import { NavTabs } from '../../../../components/navTabs';
+/** A aba que mostra todos os pagamentos do evento, sem recorte de grupo */
+const ABA_TODOS = 'Todos';
+
+/**
+ * Em "Todos", uma linha por pessoa: a inscrição e as compras avulsas dela
+ * juntas. `pagamentos` guarda os de verdade — é por eles que as ações
+ * (editar, histórico) andam, nunca pela linha somada.
+ */
+type Linha = PaymentResponse & { pagamentos?: PaymentResponse[] };
+
+function porPessoa(lista: PaymentResponse[]): Linha[] {
+  const daPessoa = new Map<string, PaymentResponse[]>();
+  lista.forEach((pagamento) => {
+    const chave = pagamento.userId ?? pagamento.id;
+    daPessoa.set(chave, [...(daPessoa.get(chave) ?? []), pagamento]);
+  });
+
+  return [...daPessoa.values()].map((pagamentos) => ({
+    ...pagamentos[0],
+    id: `pessoa-${pagamentos[0].userId ?? pagamentos[0].id}`,
+    amount: pagamentos.reduce((soma, p) => soma + (p.amount ?? 0), 0),
+    pagamentos,
+  }));
+}
+
+/** Os valores de um campo nos pagamentos da linha, sem repetição */
+const distintos = <K extends keyof PaymentResponse>(linha: Linha, campo: K) => [
+  ...new Set((linha.pagamentos ?? [linha]).map((p) => p[campo])),
+];
+
+/** "Inscrição Cursilhistas" / "Compra avulsa" — qual pagamento é, no menu */
+const descreverPagamento = (pagamento: PaymentResponse) =>
+  pagamento.purchaseType === 'PRODUCTS'
+    ? 'Compra avulsa'
+    : `Inscrição${pagamento.groupName ? ` ${pagamento.groupName}` : ''}`;
+
 const getSelectedRowsToExport = ({
   apiRef,
 }: GridGetRowsToExportParams): GridRowId[] => {
@@ -109,9 +147,14 @@ function ListPayments({
   const openMenu = Boolean(anchorEl);
   const [selectedPayment, setSelectedPayment] =
     useState<PaymentResponse | null>(null);
+  /** os pagamentos da linha cujo menu está aberto — mais de um em "Todos" */
+  const [pagamentosDoMenu, setPagamentosDoMenu] = useState<PaymentResponse[]>(
+    []
+  );
   const [openModalPayment, setOpenModalPayment] = useState(false);
   const [openModalHistory, setOpenModalHistory] = useState(false);
-  const [panel, setPanel] = useState<string>('1');
+  // "Todos" de partida: é a primeira aba, e a que mostra o evento inteiro
+  const [panel, setPanel] = useState<string>(ABA_TODOS);
   const handleClose = () => {
     setAnchorEl(null);
   };
@@ -125,16 +168,15 @@ function ListPayments({
    * grupo de inscrição.
    */
   const temComprasAvulsas = !!event?.products?.length;
-  useEffect(() => {
-    if (groupsRules.length > 0) {
-      setPanel(groupsRules[0]);
-    }
-  }, [groupsRules]);
   const handleClickOptions = (
     event: React.MouseEvent<HTMLElement>,
     params: GridCellParams
   ) => {
-    setSelectedPayment(params.row as PaymentResponse);
+    const linha = params.row as Linha;
+    const pagamentos = linha.pagamentos ?? [linha];
+    setPagamentosDoMenu(pagamentos);
+    // o modal recebe sempre um pagamento de verdade, não a linha somada
+    setSelectedPayment(pagamentos[0]);
     setAnchorEl(event.currentTarget);
   };
   const columns: GridColDef[] = [
@@ -180,9 +222,15 @@ function ListPayments({
       field: 'method',
       headerName: 'Método de Pagamento',
       width: 180,
+      valueGetter: (params) =>
+        distintos(params.row as Linha, 'method').length > 1
+          ? 'Vários'
+          : params.row.method,
       renderCell: (params) => (
         <CustomChip
-          label={PAYMENT_METHODS(params.value)}
+          label={
+            params.value === 'Vários' ? 'Vários' : PAYMENT_METHODS(params.value)
+          }
           customColor={theme.palette.chips.info}
         />
       ),
@@ -192,12 +240,29 @@ function ListPayments({
       headerName: 'Status',
       // "Reembolsado" chegava como "Reembols…" em 120
       width: 145,
-      renderCell: (params) => (
-        <CustomChip
-          label={PAYMENT_STATUS(params.value)}
-          customColor={PAYMENT_STATUS_COLOR(params.value, theme)}
-        />
-      ),
+      // pessoa com pagamentos em situações diferentes: "1 de 2 pagos"
+      valueGetter: (params) => {
+        const linha = params.row as Linha;
+        if (distintos(linha, 'status').length <= 1) return linha.status;
+        const pagamentos = linha.pagamentos ?? [];
+        const pagos = pagamentos.filter((p) => p.status === 'PAID').length;
+        return `${pagos} de ${pagamentos.length} pagos`;
+      },
+      renderCell: (params) => {
+        const resumo =
+          !!(params.row as Linha).pagamentos &&
+          params.value !== params.row.status;
+        return (
+          <CustomChip
+            label={resumo ? params.value : PAYMENT_STATUS(params.value)}
+            customColor={
+              resumo
+                ? theme.palette.chips.alert
+                : PAYMENT_STATUS_COLOR(params.value, theme)
+            }
+          />
+        );
+      },
     },
     {
       field: 'receivedFrom',
@@ -208,9 +273,15 @@ function ListPayments({
       // mais longas, e o chip do MUI corta com reticências antes de deixar o
       // texto vazar
       width: 200,
+      valueGetter: (params) =>
+        distintos(params.row as Linha, 'receivedFrom').length > 1
+          ? 'Várias'
+          : params.row.receivedFrom,
       renderCell: (params) => (
         <CustomChip
-          label={PAYMENT_ORIGIN(params.value)}
+          label={
+            params.value === 'Várias' ? 'Várias' : PAYMENT_ORIGIN(params.value)
+          }
           customColor={theme.palette.info.main}
         />
       ),
@@ -231,17 +302,26 @@ function ListPayments({
       sortable: false,
       // é o texto que a exportação lê; sem isto a planilha sairia vazia — e é
       // por ela que se separa a entrega das camisas
-      valueGetter: (params) =>
-        itensDoPagamento(params.row as PaymentResponse).join('; '),
+      valueGetter: (params) => {
+        const linha = params.row as Linha;
+        return (linha.pagamentos ?? [linha])
+          .flatMap(itensDoPagamento)
+          .join('; ');
+      },
       renderCell: (params) => {
-        const pagamento = params.row as PaymentResponse;
-        const itens = itensDoPagamento(pagamento);
+        // em "Todos", os itens de todos os pagamentos da pessoa juntos
+        const linha = params.row as Linha;
+        const pagamentos = linha.pagamentos ?? [linha];
+        const itens = pagamentos.flatMap(itensDoPagamento);
+        const temAvulsa = pagamentos.some((p) => p.purchaseType === 'PRODUCTS');
 
         return (
           <Stack gap={0.25} sx={{ py: 0.75 }}>
-            {pagamento.purchaseType === 'PRODUCTS' && (
+            {temAvulsa && (
               <Typography variant="caption" color="text.secondary">
-                Compra avulsa
+                {pagamentos.length > 1
+                  ? 'Inclui compra avulsa'
+                  : 'Compra avulsa'}
               </Typography>
             )}
             {itens.map((item) => (
@@ -276,7 +356,9 @@ function ListPayments({
     },
   ];
   const filteredByGroup = (payments: PaymentResponse[]) => {
-    if (!panel || groupsRules.length === 0) return payments;
+    if (!panel || panel === ABA_TODOS || groupsRules.length === 0) {
+      return payments;
+    }
     return payments.filter((payment) => {
       if (panel === ABA_COMPRAS_DE_PRODUTOS) {
         return payment.purchaseType === 'PRODUCTS';
@@ -295,9 +377,23 @@ function ListPayments({
         payment.userId?.toLowerCase() === search.toLowerCase()
     );
     filtered = filteredByGroup(filtered);
-    return filtered;
+    // "Todos": uma linha por pessoa, com os produtos juntos
+    return panel === ABA_TODOS ? porPessoa(filtered) : filtered;
   };
   const comprasAvulsasAtivas = panel === ABA_COMPRAS_DE_PRODUTOS;
+  const todosAtivo = panel === ABA_TODOS;
+
+  /** Botão de recorte ao lado da régua de grupos: "Todos" e "Produtos Avulsos" */
+  const recorte = (ativo: boolean) => ({
+    flex: 1,
+    borderRadius: 2,
+    minHeight: 36,
+    px: 1.5,
+    textTransform: 'capitalize',
+    whiteSpace: 'nowrap',
+    color: ativo ? 'text.primary' : 'text.disabled',
+    backgroundColor: ativo ? theme.palette.background.hover : 'transparent',
+  });
 
   return (
     <>
@@ -307,12 +403,29 @@ function ListPayments({
           alignItems="stretch"
           gap={1}
         >
+          {/* "Todos" no começo, no mesmo desenho de "Produtos Avulsos": é um
+              recorte ao lado dos grupos — o evento inteiro —, não mais um
+              grupo */}
+          <Paper
+            sx={{ borderRadius: 3, p: 0.5, flexShrink: 0, display: 'flex' }}
+          >
+            <Button
+              fullWidth
+              onClick={() => setPanel(ABA_TODOS)}
+              startIcon={<ListAlt />}
+              sx={recorte(todosAtivo)}
+            >
+              {ABA_TODOS}
+            </Button>
+          </Paper>
+
           <Box sx={{ flex: 1, minWidth: 0 }}>
             <NavTabs
               fullWidth
-              // a régua fica com o grupo ativo; nas compras avulsas nenhum
-              // grupo está selecionado, e `false` é como o MUI diz isso
-              value={comprasAvulsasAtivas ? false : panel}
+              // a régua fica com o grupo ativo; em "Todos" e nas compras
+              // avulsas nenhum grupo está selecionado, e `false` é como o MUI
+              // diz isso
+              value={comprasAvulsasAtivas || todosAtivo ? false : panel}
               onChange={setPanel}
               options={groupsRules.map((groupName) => ({
                 value: groupName,
@@ -339,26 +452,11 @@ function ListPayments({
                 fullWidth
                 onClick={() =>
                   setPanel(
-                    comprasAvulsasAtivas
-                      ? groupsRules[0]
-                      : ABA_COMPRAS_DE_PRODUTOS
+                    comprasAvulsasAtivas ? ABA_TODOS : ABA_COMPRAS_DE_PRODUTOS
                   )
                 }
                 startIcon={<ShoppingBagOutlined />}
-                sx={{
-                  flex: 1,
-                  borderRadius: 2,
-                  minHeight: 36,
-                  px: 1.5,
-                  textTransform: 'capitalize',
-                  whiteSpace: 'nowrap',
-                  color: comprasAvulsasAtivas
-                    ? 'text.primary'
-                    : 'text.disabled',
-                  backgroundColor: comprasAvulsasAtivas
-                    ? theme.palette.background.hover
-                    : 'transparent',
-                }}
+                sx={recorte(comprasAvulsasAtivas)}
               >
                 {ABA_COMPRAS_DE_PRODUTOS}
               </Button>
@@ -413,40 +511,83 @@ function ListPayments({
             'aria-labelledby': 'options-button',
           }}
         >
-          <MenuItem
-            onClick={() => {
-              setOpenModalPayment(true);
-              handleClose();
-            }}
-          >
-            <ListItemIcon>
-              <Edit fontSize="small" color="primary" />
-            </ListItemIcon>
-            <ListItemText>Editar </ListItemText>
-          </MenuItem>
-          <MenuItem sx={{ opacity: 0.3 }}>
-            <ListItemIcon>
-              <Reply fontSize="small" color="error" />
-            </ListItemIcon>
-            <ListItemText>Extornar </ListItemText>
-          </MenuItem>
-          {/*
-            Depois de editar e estornar: as duas mexem no dinheiro, esta só
-            conta o que já fizeram com ele. É a pergunta que vem antes de
-            decidir — quem baixou, quando, e se foi gente ou a conferência
-            automática.
-          */}
-          <MenuItem
-            onClick={() => {
-              setOpenModalHistory(true);
-              handleClose();
-            }}
-          >
-            <ListItemIcon>
-              <History fontSize="small" color="action" />
-            </ListItemIcon>
-            <ListItemText>Ver histórico</ListItemText>
-          </MenuItem>
+          {pagamentosDoMenu.length > 1
+            ? // pessoa com mais de um pagamento (aba "Todos"): as ações são
+              // de cada pagamento, e o menu diz qual é qual
+              pagamentosDoMenu.flatMap((pagamento, indice) => [
+                indice > 0 && <Divider key={`divisor-${pagamento.id}`} />,
+                <Typography
+                  key={`titulo-${pagamento.id}`}
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ display: 'block', px: 2, pt: 1 }}
+                >
+                  {descreverPagamento(pagamento)} ·{' '}
+                  {formatCurrency(pagamento.amount)}
+                </Typography>,
+                <MenuItem
+                  key={`editar-${pagamento.id}`}
+                  onClick={() => {
+                    setSelectedPayment(pagamento);
+                    setOpenModalPayment(true);
+                    handleClose();
+                  }}
+                >
+                  <ListItemIcon>
+                    <Edit fontSize="small" color="primary" />
+                  </ListItemIcon>
+                  <ListItemText>Editar</ListItemText>
+                </MenuItem>,
+                <MenuItem
+                  key={`historico-${pagamento.id}`}
+                  onClick={() => {
+                    setSelectedPayment(pagamento);
+                    setOpenModalHistory(true);
+                    handleClose();
+                  }}
+                >
+                  <ListItemIcon>
+                    <History fontSize="small" color="action" />
+                  </ListItemIcon>
+                  <ListItemText>Ver histórico</ListItemText>
+                </MenuItem>,
+              ])
+            : [
+                <MenuItem
+                  key="editar"
+                  onClick={() => {
+                    setOpenModalPayment(true);
+                    handleClose();
+                  }}
+                >
+                  <ListItemIcon>
+                    <Edit fontSize="small" color="primary" />
+                  </ListItemIcon>
+                  <ListItemText>Editar </ListItemText>
+                </MenuItem>,
+                <MenuItem key="estornar" sx={{ opacity: 0.3 }}>
+                  <ListItemIcon>
+                    <Reply fontSize="small" color="error" />
+                  </ListItemIcon>
+                  <ListItemText>Extornar </ListItemText>
+                </MenuItem>,
+                // Depois de editar e estornar: as duas mexem no dinheiro, esta
+                // só conta o que já fizeram com ele. É a pergunta que vem antes
+                // de decidir — quem baixou, quando, e se foi gente ou a
+                // conferência automática.
+                <MenuItem
+                  key="historico"
+                  onClick={() => {
+                    setOpenModalHistory(true);
+                    handleClose();
+                  }}
+                >
+                  <ListItemIcon>
+                    <History fontSize="small" color="action" />
+                  </ListItemIcon>
+                  <ListItemText>Ver histórico</ListItemText>
+                </MenuItem>,
+              ]}
         </Menu>
       </Card>
     </>

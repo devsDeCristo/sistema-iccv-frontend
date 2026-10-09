@@ -18,8 +18,26 @@ tem perfil financeiro na igreja do evento (não administra) — ver
 - **Cards de resumo** (`CardsPayments`): montante total, receita realizada
   (soma de pagamentos `PAID`) e receita pendente (soma do resto), vindos da
   mesma consulta da tabela.
-- **Abas por grupo de inscrição**, como na aba Inscritos; compra avulsa de
-  produto (sem grupo) fica fora da régua de grupos, numa aba própria.
+- **Abas:** "Todos", os grupos de inscrição e "Produtos Avulsos".
+  - **Todos** vem primeiro e é a aba inicial, com **uma linha por pessoa**: a
+    inscrição e as compras avulsas dela juntas (`porPessoa`).
+    - **Valor:** somado.
+    - **Produtos:** os de todos os pagamentos ("Inclui compra avulsa" quando há).
+    - **Método, status e origem:** o valor quando todos coincidem; senão
+      "Vários", "1 de 2 pagos" (em laranja) e "Várias". A exportação sai com o
+      mesmo texto.
+    - **Ações:** quem tem mais de um pagamento vê no menu cada um, identificado
+      ("Inscrição Cursilhistas · R$ 100,00", "Compra avulsa · R$ 50,00"), com
+      Editar e Ver histórico. O modal recebe sempre o pagamento de verdade,
+      nunca a linha somada.
+
+    As outras abas continuam com uma linha por pagamento.
+  - **Grupos de inscrição:** uma aba por grupo, como na aba Inscritos.
+  - **Produtos Avulsos:** compra de produto sem grupo.
+
+  "Todos" e "Produtos Avulsos" são botões em superfície própria, no mesmo
+  desenho, um de cada lado da régua de grupos, porque não são grupos. Até
+  09/10/2026 a tela abria no primeiro grupo e não havia como ver todos juntos.
 - **Busca:** nome, CPF ou id exato (bipagem do crachá lê o id do usuário, não
   o do pagamento).
 - **Colunas:**
