@@ -23,7 +23,7 @@ import { useDeleteNews } from '../api/deleteNews';
 import { useResendNews } from '../api/resendNews';
 import { useWhatsappConectado } from '../../settings/whatsapp/useWhatsappConectado';
 import { News } from '../types';
-import { dataDaNoticia } from '../utils';
+import { dataDaNoticia, destinosDaNoticia } from '../utils';
 
 function NewsAdminList({
   search,
@@ -49,7 +49,7 @@ function NewsAdminList({
   // sem número conectado o disparo só gravaria falha em cada destino; o botão
   // fica de fora, e o porquê vai no tooltip para não virar botão morto
   const motivoDoReenvio = (news: News) => {
-    if (!news.groups?.length) return 'Sem grupo marcado para envio';
+    if (!destinosDaNoticia(news).length) return 'Sem grupo marcado para envio';
 
     if (semNumero) {
       return 'WhatsApp desconectado — conecte um número em Configurações → Disparadores';
@@ -62,7 +62,7 @@ function NewsAdminList({
   // receberam: quem já viu a notícia vai vê-la de novo, e mensagem em grupo não
   // se desfaz — por isso a confirmação
   const confirmarReenvio = (news: News) => {
-    const total = news.groups?.length || 0;
+    const total = destinosDaNoticia(news).length;
 
     Swal.fire({
       title: 'Reenviar no WhatsApp?',
@@ -230,7 +230,7 @@ function NewsAdminList({
       sortable: false,
       width: 150,
       renderCell: (params) => {
-        const destinos = (params.row as News).groups ?? [];
+        const destinos = destinosDaNoticia(params.row as News);
 
         if (!destinos.length) {
           return (
@@ -251,17 +251,9 @@ function NewsAdminList({
             title={
               comErro.length
                 ? comErro
-                    .map(
-                      (destino) =>
-                        `${destino.groupRole.event.name} / ${destino.groupRole.name}: ${destino.error}`
-                    )
+                    .map((destino) => `${destino.nome}: ${destino.error}`)
                     .join(' | ')
-                : destinos
-                    .map(
-                      (destino) =>
-                        `${destino.groupRole.event.name} / ${destino.groupRole.name}`
-                    )
-                    .join(', ')
+                : destinos.map((destino) => destino.nome).join(', ')
             }
           >
             <span>
@@ -308,7 +300,7 @@ function NewsAdminList({
                 disabled={
                   reenviando ||
                   semNumero ||
-                  !(params.row as News).groups?.length
+                  !destinosDaNoticia(params.row as News).length
                 }
                 onClick={() => confirmarReenvio(params.row as News)}
               >

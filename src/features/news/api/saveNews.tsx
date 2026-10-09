@@ -35,6 +35,7 @@ const montarFormData = (data: NewsPayload) => {
   // sempre vai, mesmo vazio: é assim que o backend entende "tirei todos os
   // destinos" em vez de "não mexi neles"
   formData.append('groupRoleIds', JSON.stringify(data.groupRoleIds ?? []));
+  formData.append('groupLinks', JSON.stringify(data.groupLinks ?? []));
 
   return formData;
 };

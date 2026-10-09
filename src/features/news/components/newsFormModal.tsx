@@ -29,6 +29,7 @@ import {
   ImageOutlined,
 } from '@mui/icons-material';
 import { ReactNode, useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import ReactQuillEditor from '../../../components/reactQuillEditor';
 import { useWhatsappConectado } from '../../settings/whatsapp/useWhatsappConectado';
@@ -37,14 +38,14 @@ import { useGetNewsWhatsappGroups } from '../api/getWhatsappGroups';
 import { useSaveNews } from '../api/saveNews';
 import { useSaveNewsSchedules } from '../api/saveNewsSchedules';
 import { News, NewsSchedule, WhatsappTargetGroup } from '../types';
-import { problemaDoAgendamento } from '../utils';
+import { ehLinkDeGrupo, problemaDoAgendamento } from '../utils';
 import { AgendamentosDaNoticia } from './agendamentosDaNoticia';
 
 /**
  * Os passos do formulário. Era uma página só, longa, e o que mais pesa — os
  * grupos e os agendamentos do WhatsApp — ficava no fim, depois do editor.
  */
-const PASSOS = ['Conteúdo', 'Imagem e público', 'WhatsApp', 'Publicação'];
+const PASSOS = ['Conteúdo', 'WhatsApp', 'Publicação'];
 
 /** Limite do arquivo, o mesmo da capa do evento. */
 const TAMANHO_MAXIMO = 2 * 1024 * 1024;
@@ -100,6 +101,9 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
   const [eventoDoAnuncio, setEventoDoAnuncio] = useState('');
   const [arrastando, setArrastando] = useState(false);
   const [agendamentos, setAgendamentos] = useState<NewsSchedule[]>([]);
+  /** links de convite de grupos que não são de inscrição de evento */
+  const [links, setLinks] = useState<string[]>([]);
+  const [linkInvalido, setLinkInvalido] = useState<string | null>(null);
   const [passo, setPasso] = useState(0);
   const [erros, setErros] = useState<{
     titulo?: boolean;
@@ -118,6 +122,7 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
   );
 
   const { semNumero } = useWhatsappConectado();
+  const navigate = useNavigate();
 
   const listaGrupos = useMemo(() => grupos ?? [], [grupos]);
   const listaEventos = useMemo(
@@ -139,6 +144,8 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
     setRemoverImagem(false);
     setEventoDoAnuncio(news?.event?.id || '');
     setAgendamentos(news?.schedules ?? []);
+    setLinks(news?.groupLinks?.map((destino) => destino.link) ?? []);
+    setLinkInvalido(null);
     setErros({});
     setPasso(0);
   }, [open, news]);
@@ -199,8 +206,11 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
    * grupos e a chave de publicação —, e a regra de quando o envio sai não é
    * óbvia: notícia já publicada não reenvia sozinha.
    */
+  // grupos de inscrição e links avulsos: os dois recebem a notícia
+  const totalDeDestinos = destinos.length + links.length;
+
   const resumoDoEnvio = () => {
-    if (!destinos.length) return 'Nenhum grupo marcado: não sai no WhatsApp.';
+    if (!totalDeDestinos) return 'Nenhum grupo marcado: não sai no WhatsApp.';
 
     if (semNumero) return 'Sem número conectado: nada sai no WhatsApp agora.';
 
@@ -214,7 +224,7 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
       return 'Já publicada: salvar não reenvia. Use o Reenviar na lista.';
     }
 
-    return `Ao salvar, sai para ${destinos.length} grupo(s) no WhatsApp.`;
+    return `Ao salvar, sai para ${totalDeDestinos} grupo(s) no WhatsApp.`;
   };
 
   /** O que falta em cada passo; vazio quando o passo está pronto */
@@ -222,7 +232,7 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
     if (indice === 0) {
       return { titulo: !titulo.trim(), texto: textoVazio };
     }
-    if (indice === 2) {
+    if (indice === 1) {
       // conferido antes de salvar a notícia: se só os agendamentos falhassem,
       // a notícia nova ficaria gravada e salvar de novo criaria outra
       return { agendamentos: agendamentos.some(problemaDoAgendamento) };
@@ -265,6 +275,7 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
         removeImage: removerImagem,
         eventId: eventoDoAnuncio || null,
         groupRoleIds: destinos.map((grupo) => grupo.id),
+        groupLinks: links,
       },
     });
 
@@ -375,7 +386,7 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
                 <StepLabel
                   error={
                     (indice === 0 && !!(erros.titulo || erros.texto)) ||
-                    (indice === 2 && !!erros.agendamentos)
+                    (indice === 1 && !!erros.agendamentos)
                   }
                 >
                   {rotulo}
@@ -387,64 +398,64 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
 
         <Stack gap={3}>
           {passo === 0 && (
-            <Secao titulo="Conteúdo">
-              <Stack gap={2.5}>
-                <TextField
-                  label="Título"
-                  size="small"
-                  value={titulo}
-                  onChange={(evento) => {
-                    setTitulo(evento.target.value);
-                    if (erros.titulo)
-                      setErros((atual) => ({ ...atual, titulo: false }));
-                  }}
-                  error={erros.titulo}
-                  helperText={
-                    erros.titulo
-                      ? 'Dê um título para a notícia.'
-                      : `${titulo.length}/140`
-                  }
-                  inputProps={{ maxLength: 140 }}
-                />
-
-                <TextField
-                  label="Chamada"
-                  size="small"
-                  multiline
-                  minRows={2}
-                  value={chamada}
-                  onChange={(evento) => setChamada(evento.target.value)}
-                  inputProps={{ maxLength: 280 }}
-                  helperText={`Resumo de uma linha, mostrado no mural · ${chamada.length}/280`}
-                />
-
-                <Box>
-                  <ReactQuillEditor
-                    error={erros.texto}
-                    value={texto}
-                    onChange={(valor) => {
-                      setTexto(valor);
-                      if (erros.texto)
-                        setErros((atual) => ({ ...atual, texto: false }));
+            <>
+              <Secao titulo="Conteúdo">
+                <Stack gap={2.5}>
+                  <TextField
+                    label="Título"
+                    size="small"
+                    value={titulo}
+                    onChange={(evento) => {
+                      setTitulo(evento.target.value);
+                      if (erros.titulo)
+                        setErros((atual) => ({ ...atual, titulo: false }));
                     }}
+                    error={erros.titulo}
+                    helperText={
+                      erros.titulo
+                        ? 'Dê um título para a notícia.'
+                        : `${titulo.length}/140`
+                    }
+                    inputProps={{ maxLength: 140 }}
                   />
 
-                  {erros.texto && (
-                    <Typography
-                      variant="caption"
-                      color="error"
-                      sx={{ display: 'block', mt: 1 }}
-                    >
-                      Escreva o texto da notícia.
-                    </Typography>
-                  )}
-                </Box>
-              </Stack>
-            </Secao>
-          )}
+                  <TextField
+                    label="Chamada"
+                    size="small"
+                    multiline
+                    minRows={2}
+                    value={chamada}
+                    onChange={(evento) => setChamada(evento.target.value)}
+                    inputProps={{ maxLength: 280 }}
+                    helperText={`Resumo de uma linha, mostrado no mural · ${chamada.length}/280`}
+                  />
 
-          {passo === 1 && (
-            <>
+                  <Box>
+                    <ReactQuillEditor
+                      error={erros.texto}
+                      value={texto}
+                      onChange={(valor) => {
+                        setTexto(valor);
+                        if (erros.texto)
+                          setErros((atual) => ({ ...atual, texto: false }));
+                      }}
+                    />
+
+                    {erros.texto && (
+                      <Typography
+                        variant="caption"
+                        color="error"
+                        sx={{ display: 'block', mt: 1 }}
+                      >
+                        Escreva o texto da notícia.
+                      </Typography>
+                    )}
+                  </Box>
+                </Stack>
+              </Secao>
+
+              <Divider />
+
               <Secao titulo="Imagem">
                 <input
                   ref={inputArquivo}
@@ -535,35 +546,38 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
                   </Box>
                 )}
               </Secao>
-
-              <Divider />
-
-              <Secao titulo="Quem vê no mural">
-                <TextField
-                  select
-                  size="small"
-                  fullWidth
-                  value={eventoDoAnuncio}
-                  onChange={(evento) => setEventoDoAnuncio(evento.target.value)}
-                  helperText={
-                    eventoDoAnuncio
-                      ? 'Só quem está neste evento vê o anúncio — inscritos e lista de espera.'
-                      : 'O anúncio aparece para todos os usuários.'
-                  }
-                >
-                  <MenuItem value="">Todos os usuários</MenuItem>
-                  {listaEventos.map((evento) => (
-                    <MenuItem key={evento.id} value={evento.id}>
-                      {evento.name}
-                    </MenuItem>
-                  ))}
-                </TextField>
-              </Secao>
             </>
           )}
 
-          {passo === 2 && (
+          {passo === 1 && (
             <>
+              {/* no topo do passo, e não só embaixo do campo: sem disparador
+                  nada deste passo vai sair, e o caminho para resolver é outro
+                  lugar do sistema */}
+              {semNumero && (
+                <Alert
+                  severity="warning"
+                  sx={{ borderRadius: 2 }}
+                  action={
+                    <Button
+                      color="inherit"
+                      size="small"
+                      sx={{ textTransform: 'none', fontWeight: 600 }}
+                      onClick={() => {
+                        onClose();
+                        navigate('/configuracoes/disparadores/whatsapp');
+                      }}
+                    >
+                      Configurar
+                    </Button>
+                  }
+                >
+                  <strong>Nenhum disparador de WhatsApp conectado.</strong> Sem
+                  ele, a notícia não sai em grupo nenhum — nem agora, nem nos
+                  agendamentos. Ela pode ser salva do mesmo jeito.
+                </Alert>
+              )}
+
               <Secao titulo="Envio no WhatsApp">
                 <Autocomplete
                   multiple
@@ -618,20 +632,67 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
                   entre elas.
                 </Typography>
 
-                {semNumero && (
-                  <Alert severity="warning" sx={{ mt: 1.5, borderRadius: 2 }}>
-                    Nenhum número conectado ao WhatsApp, então não dá para
-                    escolher grupos agora. Conecte em Configurações →
-                    Disparadores; a notícia pode ser salva do mesmo jeito.
+                {!semNumero && !listaGrupos.length && (
+                  <Alert severity="info" sx={{ mt: 1.5, borderRadius: 2 }}>
+                    Nenhum grupo de evento disponível. Preencha o link do grupo
+                    de WhatsApp no cadastro do evento, na aba de inscrições — ou
+                    cole o link de um grupo abaixo.
                   </Alert>
                 )}
 
-                {!semNumero && !listaGrupos.length && (
-                  <Alert severity="info" sx={{ mt: 1.5, borderRadius: 2 }}>
-                    Nenhum grupo disponível. Preencha o link do grupo de
-                    WhatsApp no cadastro do evento, na aba de inscrições.
-                  </Alert>
-                )}
+                <Autocomplete
+                  multiple
+                  freeSolo
+                  // ao sair do campo, o link colado vira chip sem precisar do Enter
+                  autoSelect
+                  size="small"
+                  disabled={semNumero}
+                  options={[] as string[]}
+                  value={links}
+                  sx={{ mt: 2 }}
+                  onChange={(_, valor) => {
+                    // colar vários de uma vez (um por linha) também vale
+                    const novos = valor
+                      .flatMap((item) => String(item).split(/\s+/))
+                      .filter(Boolean)
+                      // `?mode=...` do "copiar link" do WhatsApp: o mesmo grupo
+                      .map((link) => link.replace(/[?#].*$/, ''));
+                    const invalido = novos.find((link) => !ehLinkDeGrupo(link));
+
+                    if (invalido) {
+                      setLinkInvalido(invalido);
+                      return;
+                    }
+
+                    setLinkInvalido(null);
+                    setLinks([...new Set(novos)]);
+                  }}
+                  renderTags={(valor, getTagProps) =>
+                    valor.map((link, index) => (
+                      <Chip
+                        {...getTagProps({ index })}
+                        key={link}
+                        size="small"
+                        label={link.replace(/^https?:\/\//, '')}
+                      />
+                    ))
+                  }
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="Outros grupos (link)"
+                      placeholder={
+                        links.length ? '' : 'Cole o link do grupo e tecle Enter'
+                      }
+                      error={!!linkInvalido}
+                      helperText={
+                        linkInvalido
+                          ? `"${linkInvalido}" não é link de grupo do WhatsApp (https://chat.whatsapp.com/...).`
+                          : 'Grupos que não são de inscrição de evento: o geral da igreja, de um ministério. O número da igreja precisa estar no grupo.'
+                      }
+                    />
+                  )}
+                />
               </Secao>
 
               <Divider />
@@ -660,7 +721,7 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
                   }}
                 />
 
-                {agendamentos.length > 0 && !destinos.length && (
+                {agendamentos.length > 0 && !totalDeDestinos && (
                   <Alert severity="info" sx={{ mt: 1.5, borderRadius: 2 }}>
                     Sem grupo marcado, o agendamento não tem para onde enviar.
                   </Alert>
@@ -669,8 +730,32 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
             </>
           )}
 
-          {passo === 3 && (
+          {passo === 2 && (
             <>
+              <Secao titulo="Quem vê no mural">
+                <TextField
+                  select
+                  size="small"
+                  fullWidth
+                  value={eventoDoAnuncio}
+                  onChange={(evento) => setEventoDoAnuncio(evento.target.value)}
+                  helperText={
+                    eventoDoAnuncio
+                      ? 'Só quem está neste evento vê o anúncio — inscritos e lista de espera.'
+                      : 'O anúncio aparece para todos os usuários.'
+                  }
+                >
+                  <MenuItem value="">Todos os usuários</MenuItem>
+                  {listaEventos.map((evento) => (
+                    <MenuItem key={evento.id} value={evento.id}>
+                      {evento.name}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Secao>
+
+              <Divider />
+
               <Secao titulo="Revisão">
                 <Stack
                   divider={<Divider flexItem />}
@@ -693,8 +778,8 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
                     ],
                     [
                       'WhatsApp',
-                      destinos.length
-                        ? `${destinos.length} grupo(s)`
+                      totalDeDestinos
+                        ? `${totalDeDestinos} grupo(s)`
                         : 'Nenhum grupo',
                     ],
                     [
@@ -724,6 +809,8 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
                   ))}
                 </Stack>
               </Secao>
+
+              <Divider />
 
               <Secao titulo="Publicação">
                 <Box sx={styles.publicacao}>

@@ -18,6 +18,8 @@ export interface News {
   updatedAt?: string;
   /** Grupos escolhidos como destino no WhatsApp, com o resultado do envio */
   groups?: NewsDestination[];
+  /** Grupos avulsos, colados como link de convite, com o resultado do envio */
+  groupLinks?: NewsGroupLink[];
   /** Agendamentos de disparo — só na lista do admin */
   schedules?: NewsSchedule[];
 }
@@ -72,6 +74,14 @@ export interface NewsDestination {
   };
 }
 
+/** Grupo de WhatsApp avulso: o link colado, que não é grupo de inscrição */
+export interface NewsGroupLink {
+  id: string;
+  link: string;
+  sentAt: string | null;
+  error: string | null;
+}
+
 /** Grupo oferecido no formulário: tem link e é de evento no ar. */
 export interface WhatsappTargetGroup {
   id: string;
@@ -93,4 +103,6 @@ export interface NewsPayload {
   eventId?: string | null;
   /** Grupos de inscrição que recebem esta notícia no WhatsApp */
   groupRoleIds?: string[];
+  /** Links de convite de grupos avulsos (https://chat.whatsapp.com/...) */
+  groupLinks?: string[];
 }

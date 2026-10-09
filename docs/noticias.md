@@ -70,12 +70,11 @@ Arquivos: `src/features/news/components/calendarioDeDisparos.tsx`,
 
 ## Formulário (`NewsFormModal`)
 
-Um modal só para criar e editar, em **4 passos** (`Stepper` do MUI):
+Um modal só para criar e editar, em **3 passos** (`Stepper` do MUI):
 
-1. **Conteúdo**
-2. **Imagem e público**
-3. **WhatsApp:** grupos e agendamentos
-4. **Publicação:** revisão e interruptor
+1. **Conteúdo:** texto e imagem
+2. **WhatsApp:** grupos de evento, links avulsos e agendamentos
+3. **Publicação:** quem vê no mural, revisão e interruptor
 
 Navegação:
 
@@ -99,6 +98,16 @@ As seções de cada passo:
   feed e, se houver disparo, como foto anexada no WhatsApp.
 - **Quem vê no mural:** select de evento; vazio é aviso geral, e escolher um
   evento restringe a quem está inscrito ou na lista de espera dele.
+- **Aviso de disparador:** sem número de WhatsApp conectado, o passo do
+  WhatsApp abre com um aviso no topo e o botão "Configurar", que leva a
+  Configurações → Disparadores → WhatsApp. O aviso diz que nada sai, nem nos
+  agendamentos, e que a notícia pode ser salva do mesmo jeito.
+- **Outros grupos (link):** campo livre, abaixo do select, para colar o link de
+  convite de grupos que não são de inscrição de evento.
+  - Cada link vira um chip; colar vários, um por linha, também vale.
+  - O `?mode=...` do "copiar link" é removido.
+  - O que não é link de grupo (`ehLinkDeGrupo`) é recusado com mensagem.
+  - Os links contam como destino no resumo, na revisão e na lista do admin (`destinosDaNoticia`).
 - **Envio no WhatsApp:** autocomplete múltiplo com os grupos de inscrição que
   têm link de WhatsApp preenchido, agrupados por evento (eventos em teste
   ganham o sufixo "(em teste)"). Fica desabilitado sem número conectado, mas

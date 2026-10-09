@@ -44,3 +44,29 @@ export function problemaDoAgendamento(agendamento: NewsSchedule) {
   if (!agendamento.time) return 'Informe o horário.';
   return null;
 }
+
+/**
+ * Link de convite de grupo do WhatsApp, o único aceito no campo de links
+ * avulsos. O backend confere de novo e padroniza.
+ */
+export const ehLinkDeGrupo = (link: string) =>
+  /^(https?:\/\/)?chat\.whatsapp\.com\/(invite\/)?[A-Za-z0-9]{10,}/.test(
+    link.trim()
+  );
+
+/**
+ * Todos os destinos de WhatsApp da notícia — grupos de inscrição e links
+ * avulsos — no mesmo formato, para a lista contar e mostrar os dois juntos.
+ */
+export const destinosDaNoticia = (news: News) => [
+  ...(news.groups ?? []).map((destino) => ({
+    nome: `${destino.groupRole.event.name} / ${destino.groupRole.name}`,
+    sentAt: destino.sentAt,
+    error: destino.error,
+  })),
+  ...(news.groupLinks ?? []).map((destino) => ({
+    nome: destino.link.replace(/^https?:\/\//, ''),
+    sentAt: destino.sentAt,
+    error: destino.error,
+  })),
+];
