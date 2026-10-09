@@ -9,8 +9,11 @@ import {
   DialogContent,
   DialogTitle,
   Divider,
+  FormControlLabel,
   IconButton,
   MenuItem,
+  Radio,
+  RadioGroup,
   Stack,
   Step,
   StepButton,
@@ -25,8 +28,10 @@ import { alpha } from '@mui/material/styles';
 import {
   AddPhotoAlternateOutlined,
   Close,
+  CampaignOutlined,
   DeleteOutline,
   ImageOutlined,
+  WhatsApp,
 } from '@mui/icons-material';
 import { ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -45,7 +50,7 @@ import { AgendamentosDaNoticia } from './agendamentosDaNoticia';
  * Os passos do formulário. Era uma página só, longa, e o que mais pesa — os
  * grupos e os agendamentos do WhatsApp — ficava no fim, depois do editor.
  */
-const PASSOS = ['Conteúdo', 'WhatsApp', 'Publicação'];
+const PASSOS = ['Conteúdo', 'Disparadores', 'Agendamento', 'Publicação'];
 
 /** Limite do arquivo, o mesmo da capa do evento. */
 const TAMANHO_MAXIMO = 2 * 1024 * 1024;
@@ -85,6 +90,73 @@ function Secao({ titulo, children }: { titulo: string; children: ReactNode }) {
   );
 }
 
+interface CartaoDeDisparadorProps {
+  icone: ReactNode;
+  titulo: string;
+  descricao: string;
+  /** sem `onLigar`, o disparador é fixo (o mural vale sempre) */
+  ligado?: boolean;
+  onLigar?: (ligado: boolean) => void;
+  children?: ReactNode;
+}
+
+/** Um disparador — por onde a notícia sai —, com a chave de ligar quando há */
+function CartaoDeDisparador({
+  icone,
+  titulo,
+  descricao,
+  ligado = true,
+  onLigar,
+  children,
+}: CartaoDeDisparadorProps) {
+  return (
+    <Box
+      sx={{
+        p: 2,
+        borderRadius: 3,
+        border: '1px solid',
+        borderColor: 'divider',
+      }}
+    >
+      <Stack
+        direction="row"
+        alignItems="center"
+        gap={1.5}
+        sx={{ mb: children && ligado ? 2 : 0 }}
+      >
+        <Box
+          sx={{
+            display: 'flex',
+            p: 1,
+            borderRadius: 2,
+            color: ligado ? 'primary.main' : 'text.disabled',
+            backgroundColor: 'background.hover',
+          }}
+        >
+          {icone}
+        </Box>
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Typography sx={{ fontSize: '0.9375rem', fontWeight: 600 }}>
+            {titulo}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            {descricao}
+          </Typography>
+        </Box>
+        {onLigar && (
+          <Switch
+            checked={ligado}
+            onChange={(evento) => onLigar(evento.target.checked)}
+            inputProps={{ 'aria-label': `Usar ${titulo}` }}
+          />
+        )}
+      </Stack>
+
+      {children}
+    </Box>
+  );
+}
+
 function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
   const theme = useTheme();
   const inputArquivo = useRef<HTMLInputElement>(null);
@@ -104,6 +176,10 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
   /** links de convite de grupos que não são de inscrição de evento */
   const [links, setLinks] = useState<string[]>([]);
   const [linkInvalido, setLinkInvalido] = useState<string | null>(null);
+  /** o WhatsApp é um disparador opcional; o mural (sistema) sempre vale */
+  const [usaWhatsapp, setUsaWhatsapp] = useState(false);
+  /** publicar ao salvar ou no primeiro horário agendado */
+  const [modo, setModo] = useState<'agora' | 'agendar'>('agora');
   const [passo, setPasso] = useState(0);
   const [erros, setErros] = useState<{
     titulo?: boolean;
@@ -146,6 +222,8 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
     setAgendamentos(news?.schedules ?? []);
     setLinks(news?.groupLinks?.map((destino) => destino.link) ?? []);
     setLinkInvalido(null);
+    setUsaWhatsapp(!!(news?.groups?.length || news?.groupLinks?.length));
+    setModo(news?.schedules?.length ? 'agendar' : 'agora');
     setErros({});
     setPasso(0);
   }, [open, news]);
@@ -207,24 +285,31 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
    * óbvia: notícia já publicada não reenvia sozinha.
    */
   // grupos de inscrição e links avulsos: os dois recebem a notícia
-  const totalDeDestinos = destinos.length + links.length;
+  // com o WhatsApp desligado, os grupos marcados não valem
+  const totalDeDestinos = usaWhatsapp ? destinos.length + links.length : 0;
 
+  /**
+   * O que acontece ao salvar. Fica no rodapé porque junta escolhas de passos
+   * diferentes — disparadores, quando e rascunho.
+   */
   const resumoDoEnvio = () => {
-    if (!totalDeDestinos) return 'Nenhum grupo marcado: não sai no WhatsApp.';
+    if (!publicada) return 'Rascunho: nada é publicado nem enviado.';
 
-    if (semNumero) return 'Sem número conectado: nada sai no WhatsApp agora.';
+    const whatsapp =
+      !totalDeDestinos || semNumero
+        ? ''
+        : ` e envia para ${totalDeDestinos} grupo(s)`;
 
-    if (!publicada) {
-      return agendamentos.length
-        ? 'Rascunho: é publicada e enviada no primeiro horário agendado.'
-        : 'Como rascunho, nada é enviado.';
+    if (modo === 'agendar') {
+      return `Publica no mural${whatsapp} no primeiro horário agendado.`;
     }
 
-    if (news?.isPublished) {
+    // já no ar: publicada e com data (a agendada fica sem data até sair)
+    if (news?.isPublished && news.publishedAt) {
       return 'Já publicada: salvar não reenvia. Use o Reenviar na lista.';
     }
 
-    return `Ao salvar, sai para ${totalDeDestinos} grupo(s) no WhatsApp.`;
+    return `Ao salvar, publica no mural${whatsapp}.`;
   };
 
   /** O que falta em cada passo; vazio quando o passo está pronto */
@@ -232,10 +317,13 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
     if (indice === 0) {
       return { titulo: !titulo.trim(), texto: textoVazio };
     }
-    if (indice === 1) {
+    if (indice === 2 && modo === 'agendar') {
       // conferido antes de salvar a notícia: se só os agendamentos falhassem,
       // a notícia nova ficaria gravada e salvar de novo criaria outra
-      return { agendamentos: agendamentos.some(problemaDoAgendamento) };
+      return {
+        agendamentos:
+          !agendamentos.length || agendamentos.some(problemaDoAgendamento),
+      };
     }
     return {};
   };
@@ -274,15 +362,18 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
         imageFile: arquivo,
         removeImage: removerImagem,
         eventId: eventoDoAnuncio || null,
-        groupRoleIds: destinos.map((grupo) => grupo.id),
-        groupLinks: links,
+        groupRoleIds: usaWhatsapp ? destinos.map((grupo) => grupo.id) : [],
+        groupLinks: usaWhatsapp ? links : [],
+        scheduled: modo === 'agendar',
       },
     });
 
     // só quando há o que gravar: notícia sem agendamento, antes e depois, não
     // precisa de mais uma chamada
-    if (salva?.id && (agendamentos.length || news?.schedules?.length)) {
-      await salvarAgendamentos({ newsId: salva.id, schedules: agendamentos });
+    // "Imediatamente" apaga os horários que a notícia tinha
+    const horarios = modo === 'agendar' ? agendamentos : [];
+    if (salva?.id && (horarios.length || news?.schedules?.length)) {
+      await salvarAgendamentos({ newsId: salva.id, schedules: horarios });
     }
 
     onClose();
@@ -386,7 +477,7 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
                 <StepLabel
                   error={
                     (indice === 0 && !!(erros.titulo || erros.texto)) ||
-                    (indice === 1 && !!erros.agendamentos)
+                    (indice === 2 && !!erros.agendamentos)
                   }
                 >
                   {rotulo}
@@ -551,189 +642,16 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
 
           {passo === 1 && (
             <>
-              {/* no topo do passo, e não só embaixo do campo: sem disparador
-                  nada deste passo vai sair, e o caminho para resolver é outro
-                  lugar do sistema */}
-              {semNumero && (
-                <Alert
-                  severity="warning"
-                  sx={{ borderRadius: 2 }}
-                  action={
-                    <Button
-                      color="inherit"
-                      size="small"
-                      sx={{ textTransform: 'none', fontWeight: 600 }}
-                      onClick={() => {
-                        onClose();
-                        navigate('/configuracoes/disparadores/whatsapp');
-                      }}
-                    >
-                      Configurar
-                    </Button>
-                  }
-                >
-                  <strong>Nenhum disparador de WhatsApp conectado.</strong> Sem
-                  ele, a notícia não sai em grupo nenhum — nem agora, nem nos
-                  agendamentos. Ela pode ser salva do mesmo jeito.
-                </Alert>
-              )}
-
-              <Secao titulo="Envio no WhatsApp">
-                <Autocomplete
-                  multiple
-                  size="small"
-                  // sem número conectado a escolha não leva a nada: o disparo só
-                  // gravaria falha em cada grupo. Os já marcados continuam à vista,
-                  // porque a notícia em edição pode ter sido montada antes da queda
-                  disabled={semNumero}
-                  options={listaGrupos}
-                  value={destinos}
-                  onChange={(_, valor) => setDestinos(valor)}
-                  isOptionEqualToValue={(opcao, valor) => opcao.id === valor.id}
-                  getOptionLabel={(grupo) => grupo.name}
-                  // agrupa por evento: o mesmo nome de grupo aparece em vários
-                  // cursilhos, e sem o cabeçalho não dá para saber qual é qual
-                  groupBy={(grupo) =>
-                    grupo.event.status === 'TEST'
-                      ? `${grupo.event.name} (em teste)`
-                      : grupo.event.name
-                  }
-                  renderTags={(valor, getTagProps) =>
-                    valor.map((grupo, index) => (
-                      <Chip
-                        {...getTagProps({ index })}
-                        key={grupo.id}
-                        size="small"
-                        label={`${grupo.event.name} / ${grupo.name}`}
-                      />
-                    ))
-                  }
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      placeholder={
-                        destinos.length
-                          ? ''
-                          : semNumero
-                            ? 'Sem número conectado'
-                            : 'Nenhum grupo escolhido'
-                      }
-                    />
-                  )}
-                />
-
-                <Typography
-                  variant="caption"
-                  color="text.secondary"
-                  sx={{ display: 'block', mt: 1 }}
-                >
-                  A lista traz os grupos com link preenchido, de eventos ativos
-                  ou em teste. As mensagens saem uma de cada vez, com intervalo
-                  entre elas.
-                </Typography>
-
-                {!semNumero && !listaGrupos.length && (
-                  <Alert severity="info" sx={{ mt: 1.5, borderRadius: 2 }}>
-                    Nenhum grupo de evento disponível. Preencha o link do grupo
-                    de WhatsApp no cadastro do evento, na aba de inscrições — ou
-                    cole o link de um grupo abaixo.
-                  </Alert>
-                )}
-
-                <Autocomplete
-                  multiple
-                  freeSolo
-                  // ao sair do campo, o link colado vira chip sem precisar do Enter
-                  autoSelect
-                  size="small"
-                  disabled={semNumero}
-                  options={[] as string[]}
-                  value={links}
-                  sx={{ mt: 2 }}
-                  onChange={(_, valor) => {
-                    // colar vários de uma vez (um por linha) também vale
-                    const novos = valor
-                      .flatMap((item) => String(item).split(/\s+/))
-                      .filter(Boolean)
-                      // `?mode=...` do "copiar link" do WhatsApp: o mesmo grupo
-                      .map((link) => link.replace(/[?#].*$/, ''));
-                    const invalido = novos.find((link) => !ehLinkDeGrupo(link));
-
-                    if (invalido) {
-                      setLinkInvalido(invalido);
-                      return;
-                    }
-
-                    setLinkInvalido(null);
-                    setLinks([...new Set(novos)]);
-                  }}
-                  renderTags={(valor, getTagProps) =>
-                    valor.map((link, index) => (
-                      <Chip
-                        {...getTagProps({ index })}
-                        key={link}
-                        size="small"
-                        label={link.replace(/^https?:\/\//, '')}
-                      />
-                    ))
-                  }
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      label="Outros grupos (link)"
-                      placeholder={
-                        links.length ? '' : 'Cole o link do grupo e tecle Enter'
-                      }
-                      error={!!linkInvalido}
-                      helperText={
-                        linkInvalido
-                          ? `"${linkInvalido}" não é link de grupo do WhatsApp (https://chat.whatsapp.com/...).`
-                          : 'Grupos que não são de inscrição de evento: o geral da igreja, de um ministério. O número da igreja precisa estar no grupo.'
-                      }
-                    />
-                  )}
-                />
-              </Secao>
-
-              <Divider />
-
-              <Secao titulo="Agendar disparos">
-                <Typography
-                  variant="body2"
-                  color="text.secondary"
-                  sx={{ mb: 1.5 }}
-                >
-                  Na hora marcada, a notícia sai de novo para todos os grupos
-                  marcados acima. Pode ser uma vez ou toda semana (ex.: toda
-                  terça às 12:00), no horário de Brasília.
-                </Typography>
-
-                <AgendamentosDaNoticia
-                  value={agendamentos}
-                  mostrarProblemas={erros.agendamentos}
-                  onChange={(lista) => {
-                    setAgendamentos(lista);
-                    if (
-                      erros.agendamentos &&
-                      !lista.some(problemaDoAgendamento)
-                    )
-                      setErros((atual) => ({ ...atual, agendamentos: false }));
-                  }}
-                />
-
-                {agendamentos.length > 0 && !totalDeDestinos && (
-                  <Alert severity="info" sx={{ mt: 1.5, borderRadius: 2 }}>
-                    Sem grupo marcado, o agendamento não tem para onde enviar.
-                  </Alert>
-                )}
-              </Secao>
-            </>
-          )}
-
-          {passo === 2 && (
-            <>
-              <Secao titulo="Quem vê no mural">
+              <CartaoDeDisparador
+                icone={<CampaignOutlined />}
+                titulo="Sistema"
+                descricao="O mural de notícias dos inscritos. Toda notícia publicada aparece nele."
+              >
                 <TextField
+                  label="Quem vê no mural"
+                  // sem isto o "Todos os usuários" (valor vazio) não aparece
+                  SelectProps={{ displayEmpty: true }}
+                  InputLabelProps={{ shrink: true }}
                   select
                   size="small"
                   fullWidth
@@ -752,11 +670,253 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
                     </MenuItem>
                   ))}
                 </TextField>
-              </Secao>
+              </CartaoDeDisparador>
 
-              <Divider />
+              <CartaoDeDisparador
+                icone={<WhatsApp />}
+                titulo="WhatsApp"
+                descricao="Envia a notícia nos grupos, pelo número da igreja."
+                ligado={usaWhatsapp}
+                onLigar={setUsaWhatsapp}
+              >
+                {usaWhatsapp && (
+                  <Stack>
+                    {semNumero && (
+                      <Alert
+                        severity="warning"
+                        sx={{ borderRadius: 2, mb: 2 }}
+                        action={
+                          <Button
+                            color="inherit"
+                            size="small"
+                            sx={{ textTransform: 'none', fontWeight: 600 }}
+                            onClick={() => {
+                              onClose();
+                              navigate('/configuracoes/disparadores/whatsapp');
+                            }}
+                          >
+                            Configurar
+                          </Button>
+                        }
+                      >
+                        <strong>
+                          Nenhum disparador de WhatsApp conectado.
+                        </strong>{' '}
+                        Sem ele, a notícia não sai em grupo nenhum — nem agora,
+                        nem nos agendamentos. Ela pode ser salva do mesmo jeito.
+                      </Alert>
+                    )}
 
-              <Secao titulo="Revisão">
+                    <Autocomplete
+                      multiple
+                      size="small"
+                      // sem número conectado a escolha não leva a nada: o disparo só
+                      // gravaria falha em cada grupo. Os já marcados continuam à vista,
+                      // porque a notícia em edição pode ter sido montada antes da queda
+                      disabled={semNumero}
+                      options={listaGrupos}
+                      value={destinos}
+                      onChange={(_, valor) => setDestinos(valor)}
+                      isOptionEqualToValue={(opcao, valor) =>
+                        opcao.id === valor.id
+                      }
+                      getOptionLabel={(grupo) => grupo.name}
+                      // agrupa por evento: o mesmo nome de grupo aparece em vários
+                      // cursilhos, e sem o cabeçalho não dá para saber qual é qual
+                      groupBy={(grupo) =>
+                        grupo.event.status === 'TEST'
+                          ? `${grupo.event.name} (em teste)`
+                          : grupo.event.name
+                      }
+                      renderTags={(valor, getTagProps) =>
+                        valor.map((grupo, index) => (
+                          <Chip
+                            {...getTagProps({ index })}
+                            key={grupo.id}
+                            size="small"
+                            label={`${grupo.event.name} / ${grupo.name}`}
+                          />
+                        ))
+                      }
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          placeholder={
+                            destinos.length
+                              ? ''
+                              : semNumero
+                                ? 'Sem número conectado'
+                                : 'Nenhum grupo escolhido'
+                          }
+                        />
+                      )}
+                    />
+
+                    <Typography
+                      variant="caption"
+                      color="text.secondary"
+                      sx={{ display: 'block', mt: 1 }}
+                    >
+                      A lista traz os grupos com link preenchido, de eventos
+                      ativos ou em teste. As mensagens saem uma de cada vez, com
+                      intervalo entre elas.
+                    </Typography>
+
+                    {!semNumero && !listaGrupos.length && (
+                      <Alert severity="info" sx={{ mt: 1.5, borderRadius: 2 }}>
+                        Nenhum grupo de evento disponível. Preencha o link do
+                        grupo de WhatsApp no cadastro do evento, na aba de
+                        inscrições — ou cole o link de um grupo abaixo.
+                      </Alert>
+                    )}
+
+                    <Autocomplete
+                      multiple
+                      freeSolo
+                      // ao sair do campo, o link colado vira chip sem precisar do Enter
+                      autoSelect
+                      size="small"
+                      disabled={semNumero}
+                      options={[] as string[]}
+                      value={links}
+                      sx={{ mt: 2 }}
+                      onChange={(_, valor) => {
+                        // colar vários de uma vez (um por linha) também vale
+                        const novos = valor
+                          .flatMap((item) => String(item).split(/\s+/))
+                          .filter(Boolean)
+                          // `?mode=...` do "copiar link" do WhatsApp: o mesmo grupo
+                          .map((link) => link.replace(/[?#].*$/, ''));
+                        const invalido = novos.find(
+                          (link) => !ehLinkDeGrupo(link)
+                        );
+
+                        if (invalido) {
+                          setLinkInvalido(invalido);
+                          return;
+                        }
+
+                        setLinkInvalido(null);
+                        setLinks([...new Set(novos)]);
+                      }}
+                      renderTags={(valor, getTagProps) =>
+                        valor.map((link, index) => (
+                          <Chip
+                            {...getTagProps({ index })}
+                            key={link}
+                            size="small"
+                            label={link.replace(/^https?:\/\//, '')}
+                          />
+                        ))
+                      }
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          label="Outros grupos (link)"
+                          placeholder={
+                            links.length
+                              ? ''
+                              : 'Cole o link do grupo e tecle Enter'
+                          }
+                          error={!!linkInvalido}
+                          helperText={
+                            linkInvalido
+                              ? `"${linkInvalido}" não é link de grupo do WhatsApp (https://chat.whatsapp.com/...).`
+                              : 'Grupos que não são de inscrição de evento: o geral da igreja, de um ministério. O número da igreja precisa estar no grupo.'
+                          }
+                        />
+                      )}
+                    />
+                  </Stack>
+                )}
+              </CartaoDeDisparador>
+            </>
+          )}
+
+          {passo === 2 && (
+            <Secao titulo="Quando publicar">
+              <RadioGroup
+                value={modo}
+                onChange={(evento) => {
+                  setModo(evento.target.value as 'agora' | 'agendar');
+                  setErros((atual) => ({ ...atual, agendamentos: false }));
+                }}
+              >
+                <FormControlLabel
+                  value="agora"
+                  control={<Radio />}
+                  label={
+                    <Box>
+                      <Typography sx={{ fontWeight: 600 }}>
+                        Imediatamente
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Publica e envia ao salvar.
+                      </Typography>
+                    </Box>
+                  }
+                  sx={{
+                    alignItems: 'flex-start',
+                    mb: 1.5,
+                    '& .MuiRadio-root': { mt: -0.5 },
+                  }}
+                />
+                <FormControlLabel
+                  value="agendar"
+                  control={<Radio />}
+                  label={
+                    <Box>
+                      <Typography sx={{ fontWeight: 600 }}>Agendar</Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Entra no mural no primeiro horário marcado e, em cada
+                        horário, sai de novo nos grupos do WhatsApp. Pode ser
+                        uma vez ou toda semana (ex.: toda terça às 12:00), no
+                        horário de Brasília.
+                      </Typography>
+                    </Box>
+                  }
+                  sx={{
+                    alignItems: 'flex-start',
+                    '& .MuiRadio-root': { mt: -0.5 },
+                  }}
+                />
+              </RadioGroup>
+
+              {modo === 'agendar' && (
+                <Box sx={{ mt: 2 }}>
+                  <AgendamentosDaNoticia
+                    value={agendamentos}
+                    mostrarProblemas={erros.agendamentos}
+                    onChange={(lista) => {
+                      setAgendamentos(lista);
+                      if (
+                        erros.agendamentos &&
+                        !lista.some(problemaDoAgendamento)
+                      )
+                        setErros((atual) => ({
+                          ...atual,
+                          agendamentos: false,
+                        }));
+                    }}
+                  />
+
+                  {erros.agendamentos && !agendamentos.length && (
+                    <Typography
+                      variant="caption"
+                      color="error"
+                      sx={{ display: 'block', mt: 1 }}
+                    >
+                      Adicione ao menos um horário.
+                    </Typography>
+                  )}
+                </Box>
+              )}
+            </Secao>
+          )}
+
+          {passo === 3 && (
+            <>
+              <Secao titulo="Resumo">
                 <Stack
                   divider={<Divider flexItem />}
                   sx={{
@@ -770,23 +930,27 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
                     ['Título', titulo.trim()],
                     ['Imagem', previa ? 'Com imagem' : 'Sem imagem'],
                     [
-                      'Quem vê no mural',
+                      'Mural',
                       eventoDoAnuncio
-                        ? (listaEventos.find((e) => e.id === eventoDoAnuncio)
-                            ?.name ?? 'Um evento')
+                        ? `Só quem está em ${
+                            listaEventos.find((e) => e.id === eventoDoAnuncio)
+                              ?.name ?? 'um evento'
+                          }`
                         : 'Todos os usuários',
                     ],
                     [
                       'WhatsApp',
-                      totalDeDestinos
-                        ? `${totalDeDestinos} grupo(s)`
-                        : 'Nenhum grupo',
+                      !usaWhatsapp
+                        ? 'Desligado'
+                        : totalDeDestinos
+                          ? `${totalDeDestinos} grupo(s)`
+                          : 'Nenhum grupo',
                     ],
                     [
-                      'Agendamentos',
-                      agendamentos.length
-                        ? `${agendamentos.length} agendamento(s)`
-                        : 'Nenhum',
+                      'Quando',
+                      modo === 'agendar'
+                        ? `${agendamentos.length} horário(s) agendado(s)`
+                        : 'Imediatamente',
                     ],
                   ].map(([rotulo, valor]) => (
                     <Stack
@@ -810,9 +974,7 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
                 </Stack>
               </Secao>
 
-              <Divider />
-
-              <Secao titulo="Publicação">
+              <Secao titulo="Rascunho">
                 <Box sx={styles.publicacao}>
                   <Switch
                     checked={publicada}
@@ -821,14 +983,14 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
 
                   <Box>
                     <Typography sx={{ fontSize: '0.9375rem', fontWeight: 600 }}>
-                      {publicada ? 'Publicada' : 'Rascunho'}
+                      {publicada ? 'Pronta para publicar' : 'Rascunho'}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                      {publicada
-                        ? 'Aparece no mural dos inscritos assim que você salvar.'
-                        : agendamentos.length
-                          ? 'Só o admin vê até o primeiro horário agendado, quando é publicada.'
-                          : 'Só o admin vê. Nada é enviado enquanto estiver assim.'}
+                      {!publicada
+                        ? 'Só o admin vê. Nada é publicado nem enviado — nem nos horários agendados.'
+                        : modo === 'agendar'
+                          ? 'Entra no mural no primeiro horário agendado.'
+                          : 'Aparece no mural assim que você salvar.'}
                     </Typography>
                   </Box>
                 </Box>

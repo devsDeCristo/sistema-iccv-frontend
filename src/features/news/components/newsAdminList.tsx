@@ -145,17 +145,26 @@ function NewsAdminList({
       field: 'isPublished',
       headerName: 'Situação',
       width: 130,
-      renderCell: (params) => (
-        <CustomChip
-          size="small"
-          label={params.value ? 'Publicada' : 'Rascunho'}
-          customColor={
-            params.value
-              ? theme.palette.chips.success
-              : theme.palette.chips.pending
-          }
-        />
-      ),
+      renderCell: (params) => {
+        // publicada sem data = agendada: entra no mural no primeiro horário
+        const agendada = params.value && !(params.row as News).publishedAt;
+
+        return (
+          <CustomChip
+            size="small"
+            label={
+              agendada ? 'Agendada' : params.value ? 'Publicada' : 'Rascunho'
+            }
+            customColor={
+              agendada
+                ? theme.palette.chips.info
+                : params.value
+                  ? theme.palette.chips.success
+                  : theme.palette.chips.pending
+            }
+          />
+        );
+      },
     },
     {
       // quem enxerga o anúncio no mural. Sem evento é aviso geral — o padrão

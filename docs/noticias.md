@@ -29,7 +29,9 @@ notícia". Colunas: capa, título/chamada, situação (Publicada/Rascunho),
 público (evento restrito ou "Todos"), data de publicação, autor, última
 alteração, status do envio no WhatsApp e ações (editar, reenviar, excluir).
 
-- **Situação:** rascunho só é visto pelo admin; publicada aparece no feed.
+- **Situação:** rascunho só é visto pelo admin; publicada aparece no feed;
+  **Agendada** (publicada sem `publishedAt`) espera o primeiro horário para
+  entrar no mural.
 - **Público:** tooltip explica quem vê — "Só quem está em {evento} —
   inscritos e lista de espera" ou "Todos os usuários".
 - **Coluna WhatsApp:** mostra quantos destinos já receberam
@@ -48,7 +50,8 @@ Arquivos: `src/pages/admin/news/index.tsx`,
 
 ### Calendário de disparos (`CalendarioDeDisparos`)
 
-Fica entre a busca e a lista. É um calendário do mês (`DateCalendar` do MUI X)
+Fica **ao lado da lista** em tela larga (`lg`, coluna de 352px, com o
+calendário em cima e os disparos do dia embaixo), e abaixo dela em tela menor. É um calendário do mês (`DateCalendar` do MUI X)
 com uma bolinha em cada dia que teve disparo: **verde** para o que já saiu no
 WhatsApp e **azul** para o que está agendado. Passar o mouse mostra o título
 das notícias do dia.
@@ -70,11 +73,21 @@ Arquivos: `src/features/news/components/calendarioDeDisparos.tsx`,
 
 ## Formulário (`NewsFormModal`)
 
-Um modal só para criar e editar, em **3 passos** (`Stepper` do MUI):
+Um modal só para criar e editar, em **4 passos** (`Stepper` do MUI):
 
-1. **Conteúdo:** texto e imagem
-2. **WhatsApp:** grupos de evento, links avulsos e agendamentos
-3. **Publicação:** quem vê no mural, revisão e interruptor
+1. **Conteúdo:** texto e imagem.
+2. **Disparadores:** por onde a notícia sai, em cartões (`CartaoDeDisparador`).
+   - **Sistema:** o mural, sempre ligado, com o "Quem vê no mural".
+   - **WhatsApp:** com chave de ligar. Ligado, mostra o aviso de disparador,
+     os grupos de evento e os links avulsos. Desligado, salva sem grupo
+     nenhum.
+3. **Agendamento:** "Imediatamente" (publica e envia ao salvar) ou "Agendar".
+   - **Agendar:** pede ao menos um horário. A notícia vai como `scheduled` e
+     entra no mural no primeiro horário.
+   - **Imediatamente:** apaga os horários que a notícia tinha.
+4. **Publicação:** o resumo (título, imagem, mural, WhatsApp, quando) e o
+   interruptor de rascunho. Rascunho não publica nem envia, nem nos horários
+   agendados.
 
 Navegação:
 

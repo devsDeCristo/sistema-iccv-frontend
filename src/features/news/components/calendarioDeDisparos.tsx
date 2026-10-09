@@ -209,17 +209,18 @@ function CalendarioDeDisparos() {
     .format('dddd, D [de] MMMM');
 
   return (
+    // coluna estreita ao lado da lista de notícias: o calendário em cima e os
+    // disparos do dia embaixo
     <Paper
       sx={{
         ...superficieSx,
-        mb: 2,
         p: 2,
         display: 'flex',
-        flexDirection: { xs: 'column', md: 'row' },
-        gap: { xs: 1, md: 3 },
+        flexDirection: 'column',
+        gap: 1,
       }}
     >
-      <Box sx={{ flexShrink: 0 }}>
+      <Box>
         <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={ptBR}>
           <DateCalendar
             value={diaEscolhido}
@@ -245,7 +246,7 @@ function CalendarioDeDisparos() {
         </Stack>
       </Box>
 
-      <Box sx={{ flex: 1, minWidth: 0, pt: { md: 1.5 } }}>
+      <Box sx={{ minWidth: 0, px: 1 }}>
         <Typography
           sx={{
             mb: 1,

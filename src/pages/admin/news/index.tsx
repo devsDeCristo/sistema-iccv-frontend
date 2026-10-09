@@ -1,4 +1,4 @@
-import { Button, InputAdornment, Paper, TextField } from '@mui/material';
+import { Box, Button, InputAdornment, Paper, TextField } from '@mui/material';
 import { Add, Close, Search } from '@mui/icons-material';
 import { useState } from 'react';
 import { PageStyle } from '../../../components/pageStyle';
@@ -92,9 +92,23 @@ function NewsAdmin() {
         </Button>
       </Paper>
 
-      <CalendarioDeDisparos />
-
-      <NewsAdminList search={busca} onEdit={abrirEdicao} />
+      {/* lado a lado em tela larga: a lista ocupa o resto e o calendário fica
+          na largura dele; em tela menor, o calendário desce para baixo */}
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: { xs: 'column', lg: 'row' },
+          alignItems: 'flex-start',
+          gap: 2,
+        }}
+      >
+        <Box sx={{ flex: 1, minWidth: 0, width: '100%' }}>
+          <NewsAdminList search={busca} onEdit={abrirEdicao} />
+        </Box>
+        <Box sx={{ width: { xs: '100%', lg: 352 }, flexShrink: 0 }}>
+          <CalendarioDeDisparos />
+        </Box>
+      </Box>
 
       <NewsFormModal
         open={formAberto}

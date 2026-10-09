@@ -105,4 +105,6 @@ export interface NewsPayload {
   groupRoleIds?: string[];
   /** Links de convite de grupos avulsos (https://chat.whatsapp.com/...) */
   groupLinks?: string[];
+  /** publicar no primeiro horário agendado, e não ao salvar */
+  scheduled?: boolean;
 }
