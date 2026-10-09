@@ -1,4 +1,4 @@
-import { Box } from '@mui/material';
+import { Box, Theme } from '@mui/material';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import CustomToolbar from './customToolbar';
@@ -32,6 +32,8 @@ try {
 interface ReactQuillEditorProps {
   value: string | undefined;
   onChange: (content: any) => void;
+  /** borda vermelha, como a de um TextField com erro */
+  error?: boolean;
 }
 
 const modules = {
@@ -91,9 +93,74 @@ const formats = [
  */
 const alturaDoEditor = { '& .ql-editor': { minHeight: 180 } };
 
-function ReactQuillEditor({ value, onChange }: ReactQuillEditorProps) {
+/**
+ * O editor com a cara dos outros campos do sistema (o `MuiOutlinedInput` do
+ * tema): fundo `background.input`, borda `divider`, `border` no hover e a cor
+ * primária no foco, raio de 8px. O tema "snow" do Quill traz borda cinza
+ * clara e ícones pretos, que no tema escuro ficavam quase invisíveis.
+ */
+const visualDoCampo = (error?: boolean) => (theme: Theme) => {
+  const icone = theme.palette.text.secondary;
+  const ativo = theme.palette.primary.main;
+
+  return {
+    ...alturaDoEditor,
+    borderRadius: '8px',
+    border: '1px solid',
+    borderColor: error ? theme.palette.error.main : theme.palette.divider,
+    backgroundColor: theme.palette.background.input,
+    overflow: 'hidden',
+    transition: 'border-color .15s',
+    '&:hover': {
+      borderColor: error ? theme.palette.error.main : theme.palette.border,
+    },
+    '&:focus-within': {
+      borderColor: error ? theme.palette.error.main : ativo,
+    },
+
+    '& .ql-toolbar.ql-snow, & .ql-container.ql-snow': { border: 'none' },
+    '& .ql-toolbar.ql-snow': {
+      borderBottom: `1px solid ${theme.palette.divider}`,
+      padding: '6px 8px',
+    },
+    '& .ql-container': {
+      fontFamily: theme.typography.fontFamily,
+      fontSize: '0.9375rem',
+      color: theme.palette.text.primary,
+    },
+    '& .ql-editor.ql-blank::before': {
+      color: theme.palette.text.disabled,
+      fontStyle: 'normal',
+    },
+
+    // ícones e seletores da barra: discretos parados, primária ao usar
+    '& .ql-snow .ql-stroke': { stroke: icone },
+    '& .ql-snow .ql-fill, & .ql-snow .ql-stroke.ql-fill': { fill: icone },
+    '& .ql-snow .ql-picker': { color: icone },
+    '& .ql-snow button:hover .ql-stroke, & .ql-snow button.ql-active .ql-stroke, & .ql-snow .ql-picker-label:hover .ql-stroke, & .ql-snow .ql-picker-label.ql-active .ql-stroke':
+      { stroke: ativo },
+    '& .ql-snow button:hover .ql-fill, & .ql-snow button.ql-active .ql-fill': {
+      fill: ativo,
+    },
+    '& .ql-snow .ql-picker-label:hover, & .ql-snow .ql-picker-label.ql-active, & .ql-snow .ql-picker-item:hover, & .ql-snow .ql-picker-item.ql-selected':
+      { color: ativo },
+    '& .ql-snow .ql-picker-options': {
+      backgroundColor: theme.palette.background.paper,
+      border: `1px solid ${theme.palette.divider}`,
+      borderRadius: '8px',
+    },
+    '& .ql-snow .ql-tooltip': {
+      backgroundColor: theme.palette.background.paper,
+      color: theme.palette.text.primary,
+      border: `1px solid ${theme.palette.divider}`,
+      boxShadow: 'none',
+    },
+  };
+};
+
+function ReactQuillEditor({ value, onChange, error }: ReactQuillEditorProps) {
   return (
-    <Box sx={alturaDoEditor}>
+    <Box sx={visualDoCampo(error)}>
       <CustomToolbar />
       <ReactQuill
         theme="snow"

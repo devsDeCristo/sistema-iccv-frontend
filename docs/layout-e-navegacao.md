@@ -47,6 +47,17 @@ visual, definido uma vez no tema (`MuiOutlinedInput` em `src/themes/index.tsx`):
 - **Raio:** 8px.
 - **Erro e desabilitado:** ficam com o padrão do MUI.
 
+O **editor de texto rico** (`ReactQuillEditor`, Quill) não é um
+`OutlinedInput`, então segue o mesmo visual com CSS próprio
+(`src/components/reactQuillEditor/index.tsx`):
+
+- fundo, borda, hover, foco e raio iguais aos dos campos;
+- ícones da barra em `text.secondary`, e o botão ativo na cor primária;
+- prop `error` para a borda vermelha de validação.
+
+Antes ele usava o visual "snow" do Quill, com borda clara e ícones pretos que
+sumiam no tema escuro.
+
 Não repita esse estilo no `sx` de cada tela: campo novo já nasce assim. Até
 06/10/2026 ele vivia em `campoBuscaSx` (`listPageStyles.ts`) e só valia nas
 buscas das listas do admin. O resto do sistema ficava com o contorno padrão do

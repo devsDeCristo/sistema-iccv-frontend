@@ -70,7 +70,26 @@ Arquivos: `src/features/news/components/calendarioDeDisparos.tsx`,
 
 ## Formulário (`NewsFormModal`)
 
-Um modal só para criar e editar, dividido em seções.
+Um modal só para criar e editar, em **4 passos** (`Stepper` do MUI):
+
+1. **Conteúdo**
+2. **Imagem e público**
+3. **WhatsApp:** grupos e agendamentos
+4. **Publicação:** revisão e interruptor
+
+Navegação:
+
+- **Criação:** "Próximo" só avança com o passo pronto. O que falta fica
+  marcado no campo, e o passo fica vermelho no topo. Dá para voltar a um passo
+  já feito clicando nele.
+- **Edição:** os passos são livres (clica e vai), e o "Salvar" fica sempre
+  disponível. Mudar só o título não obriga a percorrer tudo.
+- **Ao salvar:** confere todos os passos e volta para o primeiro com problema.
+- **Revisão:** o último passo resume título, imagem, público, grupos e
+  agendamentos antes de criar.
+- **Altura mínima:** o modal tem altura mínima para não "pular" entre passos.
+
+As seções de cada passo:
 
 - **Conteúdo:** título (até 140 caracteres, obrigatório), chamada (até 280,
   opcional, é o resumo do feed) e o corpo em editor rico (Quill), também

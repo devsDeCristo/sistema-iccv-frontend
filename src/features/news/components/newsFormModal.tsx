@@ -12,6 +12,10 @@ import {
   IconButton,
   MenuItem,
   Stack,
+  Step,
+  StepButton,
+  StepLabel,
+  Stepper,
   Switch,
   TextField,
   Typography,
@@ -35,6 +39,12 @@ import { useSaveNewsSchedules } from '../api/saveNewsSchedules';
 import { News, NewsSchedule, WhatsappTargetGroup } from '../types';
 import { problemaDoAgendamento } from '../utils';
 import { AgendamentosDaNoticia } from './agendamentosDaNoticia';
+
+/**
+ * Os passos do formulário. Era uma página só, longa, e o que mais pesa — os
+ * grupos e os agendamentos do WhatsApp — ficava no fim, depois do editor.
+ */
+const PASSOS = ['Conteúdo', 'Imagem e público', 'WhatsApp', 'Publicação'];
 
 /** Limite do arquivo, o mesmo da capa do evento. */
 const TAMANHO_MAXIMO = 2 * 1024 * 1024;
@@ -90,6 +100,7 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
   const [eventoDoAnuncio, setEventoDoAnuncio] = useState('');
   const [arrastando, setArrastando] = useState(false);
   const [agendamentos, setAgendamentos] = useState<NewsSchedule[]>([]);
+  const [passo, setPasso] = useState(0);
   const [erros, setErros] = useState<{
     titulo?: boolean;
     texto?: boolean;
@@ -129,6 +140,7 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
     setEventoDoAnuncio(news?.event?.id || '');
     setAgendamentos(news?.schedules ?? []);
     setErros({});
+    setPasso(0);
   }, [open, news]);
 
   // os destinos só podem ser marcados depois que a lista de grupos chega
@@ -205,17 +217,40 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
     return `Ao salvar, sai para ${destinos.length} grupo(s) no WhatsApp.`;
   };
 
-  const enviar = async () => {
-    const problemas = {
-      titulo: !titulo.trim(),
-      texto: textoVazio,
+  /** O que falta em cada passo; vazio quando o passo está pronto */
+  const problemasDoPasso = (indice: number) => {
+    if (indice === 0) {
+      return { titulo: !titulo.trim(), texto: textoVazio };
+    }
+    if (indice === 2) {
       // conferido antes de salvar a notícia: se só os agendamentos falhassem,
       // a notícia nova ficaria gravada e salvar de novo criaria outra
-      agendamentos: agendamentos.some(problemaDoAgendamento),
-    };
+      return { agendamentos: agendamentos.some(problemaDoAgendamento) };
+    }
+    return {};
+  };
 
-    if (problemas.titulo || problemas.texto || problemas.agendamentos) {
-      setErros(problemas);
+  const passoComProblema = (indice: number) =>
+    Object.values(problemasDoPasso(indice)).some(Boolean);
+
+  /** Só avança com o passo atual pronto; o que falta fica marcado nele */
+  const avancar = () => {
+    if (passoComProblema(passo)) {
+      setErros((atual) => ({ ...atual, ...problemasDoPasso(passo) }));
+      return;
+    }
+    setPasso((atual) => atual + 1);
+  };
+
+  const enviar = async () => {
+    // na edição dá para pular de passo, então o salvar confere todos e volta
+    // para o primeiro que tem problema
+    const comProblema = PASSOS.findIndex((_, indice) =>
+      passoComProblema(indice)
+    );
+    if (comProblema >= 0) {
+      setErros((atual) => ({ ...atual, ...problemasDoPasso(comProblema) }));
+      setPasso(comProblema);
       return;
     }
 
@@ -269,12 +304,6 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
       backdropFilter: 'blur(4px)',
       '&:hover': { backgroundColor: alpha('#000000', 0.72) },
     },
-    // o Quill traz a própria moldura; aqui só se pinta a dele quando há erro
-    editor: {
-      '& .ql-toolbar, & .ql-container': erros.texto
-        ? { borderColor: theme.palette.error.main }
-        : {},
-    },
     publicacao: {
       display: 'flex',
       alignItems: 'center',
@@ -326,300 +355,399 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
 
       <Divider />
 
-      <DialogContent sx={{ pt: 3 }}>
-        <Stack gap={3}>
-          <Secao titulo="Conteúdo">
-            <Stack gap={2.5}>
-              <TextField
-                label="Título"
-                size="small"
-                value={titulo}
-                onChange={(evento) => {
-                  setTitulo(evento.target.value);
-                  if (erros.titulo)
-                    setErros((atual) => ({ ...atual, titulo: false }));
-                }}
-                error={erros.titulo}
-                helperText={
-                  erros.titulo
-                    ? 'Dê um título para a notícia.'
-                    : `${titulo.length}/140`
-                }
-                inputProps={{ maxLength: 140 }}
-              />
-
-              <TextField
-                label="Chamada"
-                size="small"
-                multiline
-                minRows={2}
-                value={chamada}
-                onChange={(evento) => setChamada(evento.target.value)}
-                inputProps={{ maxLength: 280 }}
-                helperText={`Resumo de uma linha, mostrado no mural · ${chamada.length}/280`}
-              />
-
-              <Box sx={styles.editor}>
-                <ReactQuillEditor
-                  value={texto}
-                  onChange={(valor) => {
-                    setTexto(valor);
-                    if (erros.texto)
-                      setErros((atual) => ({ ...atual, texto: false }));
-                  }}
-                />
-
-                {erros.texto && (
-                  <Typography
-                    variant="caption"
-                    color="error"
-                    sx={{ display: 'block', mt: 1 }}
-                  >
-                    Escreva o texto da notícia.
-                  </Typography>
-                )}
-              </Box>
-            </Stack>
-          </Secao>
-
-          <Divider />
-
-          <Secao titulo="Imagem">
-            <input
-              ref={inputArquivo}
-              hidden
-              type="file"
-              accept="image/*"
-              onChange={(evento) => {
-                escolherArquivo(evento.target.files?.[0]);
-                // permite escolher o mesmo arquivo de novo depois de remover
-                evento.target.value = '';
-              }}
-            />
-
-            {previa ? (
-              <Box
-                sx={{
-                  position: 'relative',
-                  borderRadius: 3,
-                  overflow: 'hidden',
-                  border: '1px solid',
-                  borderColor: 'divider',
-                }}
+      {/* altura mínima: sem ela o modal muda de tamanho a cada passo e
+          "pula" na tela */}
+      <DialogContent sx={{ pt: 3, minHeight: { md: 520 } }}>
+        <Stepper
+          activeStep={passo}
+          nonLinear={!!news}
+          alternativeLabel
+          sx={{ mb: 3 }}
+        >
+          {PASSOS.map((rotulo, indice) => (
+            <Step key={rotulo} completed={!news && indice < passo}>
+              {/* na edição tudo já está preenchido e dá para ir direto ao
+                  passo; na criação, só voltar aos que já passaram */}
+              <StepButton
+                disabled={!news && indice > passo}
+                onClick={() => setPasso(indice)}
               >
-                <Box
-                  component="img"
-                  src={previa}
-                  alt="Prévia da imagem"
-                  sx={{
-                    display: 'block',
-                    width: '100%',
-                    maxHeight: 260,
-                    objectFit: 'cover',
+                <StepLabel
+                  error={
+                    (indice === 0 && !!(erros.titulo || erros.texto)) ||
+                    (indice === 2 && !!erros.agendamentos)
+                  }
+                >
+                  {rotulo}
+                </StepLabel>
+              </StepButton>
+            </Step>
+          ))}
+        </Stepper>
+
+        <Stack gap={3}>
+          {passo === 0 && (
+            <Secao titulo="Conteúdo">
+              <Stack gap={2.5}>
+                <TextField
+                  label="Título"
+                  size="small"
+                  value={titulo}
+                  onChange={(evento) => {
+                    setTitulo(evento.target.value);
+                    if (erros.titulo)
+                      setErros((atual) => ({ ...atual, titulo: false }));
+                  }}
+                  error={erros.titulo}
+                  helperText={
+                    erros.titulo
+                      ? 'Dê um título para a notícia.'
+                      : `${titulo.length}/140`
+                  }
+                  inputProps={{ maxLength: 140 }}
+                />
+
+                <TextField
+                  label="Chamada"
+                  size="small"
+                  multiline
+                  minRows={2}
+                  value={chamada}
+                  onChange={(evento) => setChamada(evento.target.value)}
+                  inputProps={{ maxLength: 280 }}
+                  helperText={`Resumo de uma linha, mostrado no mural · ${chamada.length}/280`}
+                />
+
+                <Box>
+                  <ReactQuillEditor
+                    error={erros.texto}
+                    value={texto}
+                    onChange={(valor) => {
+                      setTexto(valor);
+                      if (erros.texto)
+                        setErros((atual) => ({ ...atual, texto: false }));
+                    }}
+                  />
+
+                  {erros.texto && (
+                    <Typography
+                      variant="caption"
+                      color="error"
+                      sx={{ display: 'block', mt: 1 }}
+                    >
+                      Escreva o texto da notícia.
+                    </Typography>
+                  )}
+                </Box>
+              </Stack>
+            </Secao>
+          )}
+
+          {passo === 1 && (
+            <>
+              <Secao titulo="Imagem">
+                <input
+                  ref={inputArquivo}
+                  hidden
+                  type="file"
+                  accept="image/*"
+                  onChange={(evento) => {
+                    escolherArquivo(evento.target.files?.[0]);
+                    // permite escolher o mesmo arquivo de novo depois de remover
+                    evento.target.value = '';
                   }}
                 />
 
-                <Stack
-                  direction="row"
-                  spacing={1}
-                  sx={{ position: 'absolute', right: 12, bottom: 12 }}
-                >
-                  <Button
-                    size="small"
-                    startIcon={<ImageOutlined />}
-                    sx={styles.botaoSobreImagem}
-                    onClick={() => inputArquivo.current?.click()}
-                  >
-                    Trocar
-                  </Button>
-                  <Button
-                    size="small"
-                    startIcon={<DeleteOutline />}
-                    sx={styles.botaoSobreImagem}
-                    onClick={() => {
-                      setArquivo(null);
-                      setImagemAtual(null);
-                      setRemoverImagem(true);
+                {previa ? (
+                  <Box
+                    sx={{
+                      position: 'relative',
+                      borderRadius: 3,
+                      overflow: 'hidden',
+                      border: '1px solid',
+                      borderColor: 'divider',
                     }}
                   >
-                    Remover
-                  </Button>
-                </Stack>
-              </Box>
-            ) : (
-              <Box
-                sx={styles.solta}
-                onClick={() => inputArquivo.current?.click()}
-                onDragOver={(evento) => {
-                  evento.preventDefault();
-                  setArrastando(true);
-                }}
-                onDragLeave={() => setArrastando(false)}
-                onDrop={(evento) => {
-                  evento.preventDefault();
-                  setArrastando(false);
-                  escolherArquivo(evento.dataTransfer.files?.[0]);
-                }}
-              >
-                <AddPhotoAlternateOutlined
-                  sx={{ fontSize: 40, color: 'text.disabled' }}
-                />
-                <Typography variant="body2">
-                  Arraste uma imagem aqui ou clique para escolher
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  Até 2MB. Vai junto da mensagem no WhatsApp, como foto com
-                  legenda.
-                </Typography>
-              </Box>
-            )}
-          </Secao>
+                    <Box
+                      component="img"
+                      src={previa}
+                      alt="Prévia da imagem"
+                      sx={{
+                        display: 'block',
+                        width: '100%',
+                        maxHeight: 260,
+                        objectFit: 'cover',
+                      }}
+                    />
 
-          <Divider />
+                    <Stack
+                      direction="row"
+                      spacing={1}
+                      sx={{ position: 'absolute', right: 12, bottom: 12 }}
+                    >
+                      <Button
+                        size="small"
+                        startIcon={<ImageOutlined />}
+                        sx={styles.botaoSobreImagem}
+                        onClick={() => inputArquivo.current?.click()}
+                      >
+                        Trocar
+                      </Button>
+                      <Button
+                        size="small"
+                        startIcon={<DeleteOutline />}
+                        sx={styles.botaoSobreImagem}
+                        onClick={() => {
+                          setArquivo(null);
+                          setImagemAtual(null);
+                          setRemoverImagem(true);
+                        }}
+                      >
+                        Remover
+                      </Button>
+                    </Stack>
+                  </Box>
+                ) : (
+                  <Box
+                    sx={styles.solta}
+                    onClick={() => inputArquivo.current?.click()}
+                    onDragOver={(evento) => {
+                      evento.preventDefault();
+                      setArrastando(true);
+                    }}
+                    onDragLeave={() => setArrastando(false)}
+                    onDrop={(evento) => {
+                      evento.preventDefault();
+                      setArrastando(false);
+                      escolherArquivo(evento.dataTransfer.files?.[0]);
+                    }}
+                  >
+                    <AddPhotoAlternateOutlined
+                      sx={{ fontSize: 40, color: 'text.disabled' }}
+                    />
+                    <Typography variant="body2">
+                      Arraste uma imagem aqui ou clique para escolher
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Até 2MB. Vai junto da mensagem no WhatsApp, como foto com
+                      legenda.
+                    </Typography>
+                  </Box>
+                )}
+              </Secao>
 
-          <Secao titulo="Quem vê no mural">
-            <TextField
-              select
-              size="small"
-              fullWidth
-              value={eventoDoAnuncio}
-              onChange={(evento) => setEventoDoAnuncio(evento.target.value)}
-              helperText={
-                eventoDoAnuncio
-                  ? 'Só quem está neste evento vê o anúncio — inscritos e lista de espera.'
-                  : 'O anúncio aparece para todos os usuários.'
-              }
-            >
-              <MenuItem value="">Todos os usuários</MenuItem>
-              {listaEventos.map((evento) => (
-                <MenuItem key={evento.id} value={evento.id}>
-                  {evento.name}
-                </MenuItem>
-              ))}
-            </TextField>
-          </Secao>
+              <Divider />
 
-          <Divider />
-
-          <Secao titulo="Envio no WhatsApp">
-            <Autocomplete
-              multiple
-              size="small"
-              // sem número conectado a escolha não leva a nada: o disparo só
-              // gravaria falha em cada grupo. Os já marcados continuam à vista,
-              // porque a notícia em edição pode ter sido montada antes da queda
-              disabled={semNumero}
-              options={listaGrupos}
-              value={destinos}
-              onChange={(_, valor) => setDestinos(valor)}
-              isOptionEqualToValue={(opcao, valor) => opcao.id === valor.id}
-              getOptionLabel={(grupo) => grupo.name}
-              // agrupa por evento: o mesmo nome de grupo aparece em vários
-              // cursilhos, e sem o cabeçalho não dá para saber qual é qual
-              groupBy={(grupo) =>
-                grupo.event.status === 'TEST'
-                  ? `${grupo.event.name} (em teste)`
-                  : grupo.event.name
-              }
-              renderTags={(valor, getTagProps) =>
-                valor.map((grupo, index) => (
-                  <Chip
-                    {...getTagProps({ index })}
-                    key={grupo.id}
-                    size="small"
-                    label={`${grupo.event.name} / ${grupo.name}`}
-                  />
-                ))
-              }
-              renderInput={(params) => (
+              <Secao titulo="Quem vê no mural">
                 <TextField
-                  {...params}
-                  placeholder={
-                    destinos.length
-                      ? ''
-                      : semNumero
-                        ? 'Sem número conectado'
-                        : 'Nenhum grupo escolhido'
+                  select
+                  size="small"
+                  fullWidth
+                  value={eventoDoAnuncio}
+                  onChange={(evento) => setEventoDoAnuncio(evento.target.value)}
+                  helperText={
+                    eventoDoAnuncio
+                      ? 'Só quem está neste evento vê o anúncio — inscritos e lista de espera.'
+                      : 'O anúncio aparece para todos os usuários.'
                   }
+                >
+                  <MenuItem value="">Todos os usuários</MenuItem>
+                  {listaEventos.map((evento) => (
+                    <MenuItem key={evento.id} value={evento.id}>
+                      {evento.name}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Secao>
+            </>
+          )}
+
+          {passo === 2 && (
+            <>
+              <Secao titulo="Envio no WhatsApp">
+                <Autocomplete
+                  multiple
+                  size="small"
+                  // sem número conectado a escolha não leva a nada: o disparo só
+                  // gravaria falha em cada grupo. Os já marcados continuam à vista,
+                  // porque a notícia em edição pode ter sido montada antes da queda
+                  disabled={semNumero}
+                  options={listaGrupos}
+                  value={destinos}
+                  onChange={(_, valor) => setDestinos(valor)}
+                  isOptionEqualToValue={(opcao, valor) => opcao.id === valor.id}
+                  getOptionLabel={(grupo) => grupo.name}
+                  // agrupa por evento: o mesmo nome de grupo aparece em vários
+                  // cursilhos, e sem o cabeçalho não dá para saber qual é qual
+                  groupBy={(grupo) =>
+                    grupo.event.status === 'TEST'
+                      ? `${grupo.event.name} (em teste)`
+                      : grupo.event.name
+                  }
+                  renderTags={(valor, getTagProps) =>
+                    valor.map((grupo, index) => (
+                      <Chip
+                        {...getTagProps({ index })}
+                        key={grupo.id}
+                        size="small"
+                        label={`${grupo.event.name} / ${grupo.name}`}
+                      />
+                    ))
+                  }
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      placeholder={
+                        destinos.length
+                          ? ''
+                          : semNumero
+                            ? 'Sem número conectado'
+                            : 'Nenhum grupo escolhido'
+                      }
+                    />
+                  )}
                 />
-              )}
-            />
 
-            <Typography
-              variant="caption"
-              color="text.secondary"
-              sx={{ display: 'block', mt: 1 }}
-            >
-              A lista traz os grupos com link preenchido, de eventos ativos ou
-              em teste. As mensagens saem uma de cada vez, com intervalo entre
-              elas.
-            </Typography>
-
-            {semNumero && (
-              <Alert severity="warning" sx={{ mt: 1.5, borderRadius: 2 }}>
-                Nenhum número conectado ao WhatsApp, então não dá para escolher
-                grupos agora. Conecte em Configurações → Disparadores; a notícia
-                pode ser salva do mesmo jeito.
-              </Alert>
-            )}
-
-            {!semNumero && !listaGrupos.length && (
-              <Alert severity="info" sx={{ mt: 1.5, borderRadius: 2 }}>
-                Nenhum grupo disponível. Preencha o link do grupo de WhatsApp no
-                cadastro do evento, na aba de inscrições.
-              </Alert>
-            )}
-          </Secao>
-
-          <Divider />
-
-          <Secao titulo="Agendar disparos">
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
-              Na hora marcada, a notícia sai de novo para todos os grupos
-              marcados acima. Pode ser uma vez ou toda semana (ex.: toda terça
-              às 12:00), no horário de Brasília.
-            </Typography>
-
-            <AgendamentosDaNoticia
-              value={agendamentos}
-              mostrarProblemas={erros.agendamentos}
-              onChange={(lista) => {
-                setAgendamentos(lista);
-                if (erros.agendamentos && !lista.some(problemaDoAgendamento))
-                  setErros((atual) => ({ ...atual, agendamentos: false }));
-              }}
-            />
-
-            {agendamentos.length > 0 && !destinos.length && (
-              <Alert severity="info" sx={{ mt: 1.5, borderRadius: 2 }}>
-                Sem grupo marcado, o agendamento não tem para onde enviar.
-              </Alert>
-            )}
-          </Secao>
-
-          <Divider />
-
-          <Secao titulo="Publicação">
-            <Box sx={styles.publicacao}>
-              <Switch
-                checked={publicada}
-                onChange={(evento) => setPublicada(evento.target.checked)}
-              />
-
-              <Box>
-                <Typography sx={{ fontSize: '0.9375rem', fontWeight: 600 }}>
-                  {publicada ? 'Publicada' : 'Rascunho'}
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ display: 'block', mt: 1 }}
+                >
+                  A lista traz os grupos com link preenchido, de eventos ativos
+                  ou em teste. As mensagens saem uma de cada vez, com intervalo
+                  entre elas.
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {publicada
-                    ? 'Aparece no mural dos inscritos assim que você salvar.'
-                    : agendamentos.length
-                      ? 'Só o admin vê até o primeiro horário agendado, quando é publicada.'
-                      : 'Só o admin vê. Nada é enviado enquanto estiver assim.'}
+
+                {semNumero && (
+                  <Alert severity="warning" sx={{ mt: 1.5, borderRadius: 2 }}>
+                    Nenhum número conectado ao WhatsApp, então não dá para
+                    escolher grupos agora. Conecte em Configurações →
+                    Disparadores; a notícia pode ser salva do mesmo jeito.
+                  </Alert>
+                )}
+
+                {!semNumero && !listaGrupos.length && (
+                  <Alert severity="info" sx={{ mt: 1.5, borderRadius: 2 }}>
+                    Nenhum grupo disponível. Preencha o link do grupo de
+                    WhatsApp no cadastro do evento, na aba de inscrições.
+                  </Alert>
+                )}
+              </Secao>
+
+              <Divider />
+
+              <Secao titulo="Agendar disparos">
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ mb: 1.5 }}
+                >
+                  Na hora marcada, a notícia sai de novo para todos os grupos
+                  marcados acima. Pode ser uma vez ou toda semana (ex.: toda
+                  terça às 12:00), no horário de Brasília.
                 </Typography>
-              </Box>
-            </Box>
-          </Secao>
+
+                <AgendamentosDaNoticia
+                  value={agendamentos}
+                  mostrarProblemas={erros.agendamentos}
+                  onChange={(lista) => {
+                    setAgendamentos(lista);
+                    if (
+                      erros.agendamentos &&
+                      !lista.some(problemaDoAgendamento)
+                    )
+                      setErros((atual) => ({ ...atual, agendamentos: false }));
+                  }}
+                />
+
+                {agendamentos.length > 0 && !destinos.length && (
+                  <Alert severity="info" sx={{ mt: 1.5, borderRadius: 2 }}>
+                    Sem grupo marcado, o agendamento não tem para onde enviar.
+                  </Alert>
+                )}
+              </Secao>
+            </>
+          )}
+
+          {passo === 3 && (
+            <>
+              <Secao titulo="Revisão">
+                <Stack
+                  divider={<Divider flexItem />}
+                  sx={{
+                    px: 2,
+                    borderRadius: 3,
+                    border: '1px solid',
+                    borderColor: 'divider',
+                  }}
+                >
+                  {[
+                    ['Título', titulo.trim()],
+                    ['Imagem', previa ? 'Com imagem' : 'Sem imagem'],
+                    [
+                      'Quem vê no mural',
+                      eventoDoAnuncio
+                        ? (listaEventos.find((e) => e.id === eventoDoAnuncio)
+                            ?.name ?? 'Um evento')
+                        : 'Todos os usuários',
+                    ],
+                    [
+                      'WhatsApp',
+                      destinos.length
+                        ? `${destinos.length} grupo(s)`
+                        : 'Nenhum grupo',
+                    ],
+                    [
+                      'Agendamentos',
+                      agendamentos.length
+                        ? `${agendamentos.length} agendamento(s)`
+                        : 'Nenhum',
+                    ],
+                  ].map(([rotulo, valor]) => (
+                    <Stack
+                      key={rotulo}
+                      direction="row"
+                      justifyContent="space-between"
+                      gap={2}
+                      sx={{ py: 1.25 }}
+                    >
+                      <Typography variant="body2" color="text.secondary">
+                        {rotulo}
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        sx={{ fontWeight: 600, textAlign: 'right' }}
+                      >
+                        {valor}
+                      </Typography>
+                    </Stack>
+                  ))}
+                </Stack>
+              </Secao>
+
+              <Secao titulo="Publicação">
+                <Box sx={styles.publicacao}>
+                  <Switch
+                    checked={publicada}
+                    onChange={(evento) => setPublicada(evento.target.checked)}
+                  />
+
+                  <Box>
+                    <Typography sx={{ fontSize: '0.9375rem', fontWeight: 600 }}>
+                      {publicada ? 'Publicada' : 'Rascunho'}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {publicada
+                        ? 'Aparece no mural dos inscritos assim que você salvar.'
+                        : agendamentos.length
+                          ? 'Só o admin vê até o primeiro horário agendado, quando é publicada.'
+                          : 'Só o admin vê. Nada é enviado enquanto estiver assim.'}
+                    </Typography>
+                  </Box>
+                </Box>
+              </Secao>
+            </>
+          )}
         </Stack>
       </DialogContent>
 
@@ -635,23 +763,37 @@ function NewsFormModal({ open, news, onClose }: NewsFormModalProps) {
         </Typography>
 
         <Button
-          onClick={onClose}
+          onClick={passo === 0 ? onClose : () => setPasso(passo - 1)}
           sx={{ borderRadius: 2, textTransform: 'none' }}
         >
-          Cancelar
+          {passo === 0 ? 'Cancelar' : 'Voltar'}
         </Button>
-        <Button
-          variant="contained"
-          disabled={isLoading || agendando}
-          onClick={() => {
-            // o erro já virou aviso na tela (`handleResponseThrowError`); o
-            // modal fica aberto para corrigir
-            enviar().catch(() => undefined);
-          }}
-          sx={{ borderRadius: 2, textTransform: 'none' }}
-        >
-          {news ? 'Salvar' : 'Criar notícia'}
-        </Button>
+
+        {/* na edição o salvar fica sempre à mão: mudar só o título não
+            obriga a percorrer os quatro passos */}
+        {passo < PASSOS.length - 1 && (
+          <Button
+            variant={news ? 'outlined' : 'contained'}
+            onClick={avancar}
+            sx={{ borderRadius: 2, textTransform: 'none' }}
+          >
+            Próximo
+          </Button>
+        )}
+        {(news || passo === PASSOS.length - 1) && (
+          <Button
+            variant="contained"
+            disabled={isLoading || agendando}
+            onClick={() => {
+              // o erro já virou aviso na tela (`handleResponseThrowError`); o
+              // modal fica aberto para corrigir
+              enviar().catch(() => undefined);
+            }}
+            sx={{ borderRadius: 2, textTransform: 'none' }}
+          >
+            {news ? 'Salvar' : 'Criar notícia'}
+          </Button>
+        )}
       </DialogActions>
     </Dialog>
   );

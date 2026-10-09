@@ -1,4 +1,3 @@
-import { useTheme } from '@mui/material';
 import formats from './toolbarOptions';
 // import formats from './ToolbarOptions.js';
 interface FormatDataProps {
@@ -22,14 +21,10 @@ const renderSingle = (formatData: FormatDataProps) => {
   return <button className={className} value={value}></button>;
 };
 const CustomToolbar = () => {
-  const theme = useTheme();
   return (
-    <div
-      id="toolbar"
-      style={{
-        backgroundColor: theme.palette.background.hover,
-      }}
-    >
+    // o visual (fundo, borda, ícones) vem do `ReactQuillEditor`, junto com o
+    // resto do campo
+    <div id="toolbar">
       {formats.map((classes: FormatDataProps[]) => {
         return (
           <span className="ql-formats">
