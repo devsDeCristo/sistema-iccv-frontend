@@ -64,7 +64,7 @@ function Users() {
       <Header title="Usuários">
         <SeletorDeIgreja value={churchId} onChange={setChurchId} />
       </Header>
-      <CardsStatus />
+      <CardsStatus churchId={churchId} />
       <Paper sx={styles.boxFilterAndButton}>
         <Box sx={styles.filtros}>
           <TextField

@@ -21,10 +21,13 @@ import { emAndamento } from '../utils/eventStatus';
  * Os números vêm da mesma query da lista abaixo, então a tela não faz uma
  * chamada a mais para montar os cards.
  */
-export const CardsStatus = () => {
+export const CardsStatus = ({ churchId = 'all' }: { churchId?: string }) => {
   const theme = useTheme();
   const { data, isLoading } = useGetEvents({ painel: true });
-  const events = Array.isArray(data) ? (data as Event[]) : [];
+  // a igreja do seletor da tela: os números seguem o mesmo recorte da lista
+  const events = (Array.isArray(data) ? (data as Event[]) : []).filter(
+    (event) => churchId === 'all' || event.church?.id === churchId
+  );
 
   const ativos = events.filter((event) => event.status === 'ACTIVE').length;
   const inativos = events.filter((event) => event.status === 'INACTIVE').length;
@@ -35,7 +38,7 @@ export const CardsStatus = () => {
     {
       title: 'Total de eventos',
       value: events.length,
-      subtitle: 'Cadastrados no sistema',
+      subtitle: churchId === 'all' ? 'Cadastrados no sistema' : 'Nesta igreja',
       icon: <Layers sx={{ fontSize: 20 }} />,
       color: theme.palette.primary.main,
     },

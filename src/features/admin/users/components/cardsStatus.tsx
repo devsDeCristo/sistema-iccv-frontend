@@ -21,23 +21,28 @@ import { useGetUsers } from '../api/getUsers';
  * Os números vêm da mesma query da lista abaixo, então a tela não faz uma
  * chamada a mais para montar os cards.
  */
-export const CardsStatus = () => {
+export const CardsStatus = ({ churchId = 'all' }: { churchId?: string }) => {
   const theme = useTheme();
-  const { data, isLoading } = useGetUsers({});
+  // a igreja do seletor da tela: os números seguem o mesmo recorte da lista
+  // (e a mesma query, então não há chamada a mais)
+  const { data, isLoading } = useGetUsers({
+    churchId: churchId === 'all' ? undefined : churchId,
+  });
   const users = Array.isArray(data) ? (data as User[]) : [];
 
   const cards: StatusCard[] = [
     {
       title: 'Total de usuários',
       value: users.length,
-      subtitle: 'Cadastrados no sistema',
+      subtitle: churchId === 'all' ? 'Cadastrados no sistema' : 'Nesta igreja',
       icon: <Groups sx={{ fontSize: 20 }} />,
       color: theme.palette.primary.main,
     },
     {
       title: 'Acesso ao painel',
       value: users.filter(
-        (user) => user.role !== undefined && ADMIN_AREA_ROLES.includes(user.role)
+        (user) =>
+          user.role !== undefined && ADMIN_AREA_ROLES.includes(user.role)
       ).length,
       subtitle: 'Perfis administrativos',
       icon: <AdminPanelSettings sx={{ fontSize: 20 }} />,

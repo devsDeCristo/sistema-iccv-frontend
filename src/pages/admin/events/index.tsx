@@ -82,7 +82,7 @@ function Events() {
           incluirFinanceiro
         />
       </Header>
-      <CardsStatus />
+      <CardsStatus churchId={churchId} />
       <Stack gap={2}>
         <Paper component="div" sx={styles.boxFilterAndPdf}>
           <Stack sx={styles.filters}>

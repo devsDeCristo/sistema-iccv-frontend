@@ -10,12 +10,15 @@ inscrição por grupo também (`docs/inscricao-em-grupos.md`).
 - **Cards de resumo:** total, ativos, inativos, em teste e "em andamento"
   (eventos cuja data cobre hoje, dia inteiro nas duas pontas). Os números vêm da
   mesma consulta da tabela, sem chamada extra.
-- **Filtros:** busca por nome, status (Ativos/Inativos/Em teste/Todos) e, para
-  quem administra mais de uma igreja ou é super admin, filtro por igreja. Os
-  três filtros ficam salvos no navegador entre visitas.
-- **Igreja do admin:** quem administra uma igreja só vê os eventos dela — o
-  filtro de igreja nem aparece. Se a igreja salva no filtro deixou de existir ou
-  de pertencer à pessoa, o filtro volta para "Todas" em silêncio.
+  Seguem a igreja do seletor (canto superior direito), com o mesmo recorte
+  da lista; numa igreja escolhida, o total diz "Nesta igreja".
+- **Filtros:** busca por nome e status (Ativos/Inativos/Em teste/Todos), salvos
+  no navegador entre visitas.
+- **Igreja:** escolhida no seletor padrão, no canto superior direito
+  (`SeletorDeIgreja`), com a mesma escolha dos outros módulos. Ele aparece para
+  o super admin e para quem administra ou é financeiro em mais de uma igreja.
+  Quem tem uma igreja só vê os eventos dela, sem seletor. Se a igreja escolhida
+  deixou de existir ou de pertencer à pessoa, volta para "Todas" em silêncio.
 - **Ações por linha**, num menu de três pontos:
   - **Abrir página do evento:** em nova aba.
   - **Detalhes:** vai para o painel de inscritos do evento.
