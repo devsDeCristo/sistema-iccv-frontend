@@ -1,11 +1,13 @@
 import { ReactNode } from 'react';
 import {
+  AccountBalanceWallet,
   ArrowBack,
   Campaign,
   ConfirmationNumber,
   Event,
   EventNote,
   History,
+  Inventory2,
   Login,
   Logout,
   Payments,
@@ -14,6 +16,7 @@ import {
   Church,
   WhatsApp,
   SpaceDashboard,
+  Storefront,
   Gavel,
 } from '@mui/icons-material';
 import { Link, useLocation } from 'react-router-dom';
@@ -44,6 +47,11 @@ type ItemMenu = {
   title: string;
   /** Marca a linha com a etiqueta "Novo!" — para estrear uma tela no menu */
   novo?: boolean;
+  /**
+   * Módulo anunciado, ainda sem tela: etiqueta "Em breve" em laranja, e a
+   * linha não navega (o `link` serve só de chave)
+   */
+  emBreve?: boolean;
   /**
    * Telas de dentro desta, recuadas sob ela na régua.
    *
@@ -114,11 +122,24 @@ function TituloSecao({ children }: { children: ReactNode }) {
  * O degradê usa o par de cores vivas do tema, o mesmo das faixas tingidas — no
  * escuro, clareado, porque violeta cheio sobre o papel quase preto some.
  */
-function EtiquetaNovo() {
+/** O laranja da etiqueta "Em breve": o tom de alerta do sistema, em degradê */
+const LARANJA_VIVO = '#F97316';
+const AMBAR_VIVO = '#F59E0B';
+
+function Etiqueta({
+  texto,
+  de,
+  ate,
+}: {
+  texto: string;
+  /** começo e fim do degradê da letra */
+  de: string;
+  ate: string;
+}) {
   const theme = useTheme();
   const escuro = theme.palette.mode === 'dark';
-  const inicio = escuro ? lighten(AZUL_VIVO, 0.35) : AZUL_VIVO;
-  const fim = escuro ? lighten(VIOLETA_VIVO, 0.35) : VIOLETA_VIVO;
+  const inicio = escuro ? lighten(de, 0.35) : de;
+  const fim = escuro ? lighten(ate, 0.35) : ate;
 
   return (
     <Typography
@@ -141,7 +162,7 @@ function EtiquetaNovo() {
         WebkitTextFillColor: 'transparent',
       }}
     >
-      Novo!
+      {texto}
     </Typography>
   );
 }
@@ -170,9 +191,10 @@ function ItemNav({
 
   return (
     <Stack
-      component={Link}
-      to={item.link}
-      onClick={onClick}
+      // "Em breve" ainda não tem tela: a linha aparece, mas não navega
+      {...(item.emBreve
+        ? { component: 'div', 'aria-disabled': true }
+        : { component: Link, to: item.link, onClick })}
       direction="row"
       alignItems="center"
       gap={2}
@@ -195,6 +217,11 @@ function ItemNav({
         },
         // o ícone acompanha a cor do item; sem isto ele fica preso no tom padrão
         '& svg': { fontSize: filho ? 18 : 22, color: 'inherit' },
+        ...(item.emBreve && {
+          cursor: 'default',
+          color: theme.palette.text.disabled,
+          '&:hover': { backgroundColor: 'transparent' },
+        }),
       }}
     >
       {item.icon}
@@ -219,7 +246,13 @@ function ItemNav({
           {item.title}
         </Typography>
 
-        {item.novo && <EtiquetaNovo />}
+        {item.emBreve ? (
+          <Etiqueta texto="Em breve" de={LARANJA_VIVO} ate={AMBAR_VIVO} />
+        ) : (
+          item.novo && (
+            <Etiqueta texto="Novo!" de={AZUL_VIVO} ate={VIOLETA_VIVO} />
+          )
+        )}
       </Stack>
     </Stack>
   );
@@ -231,13 +264,17 @@ function ItemNav({
  * estava escrito duas vezes no arquivo, e cada ajuste tinha que ser feito nos
  * dois lugares.
  */
+/** Um grupo da régua: título em caixa alta e as linhas dele */
+interface SecaoMenu {
+  titulo: string;
+  itens: ItemMenu[];
+}
+
 function ConteudoNav({
-  itens,
-  titulo,
+  secoes,
   onNavigate,
 }: {
-  itens: ItemMenu[];
-  titulo: string;
+  secoes: SecaoMenu[];
   onNavigate?: () => void;
 }) {
   const { pathname } = useLocation();
@@ -271,43 +308,49 @@ function ConteudoNav({
      * marca empurrava o "Sair" para fora da tela.
      */
     <Stack sx={{ flexGrow: 1, minHeight: 0, py: 3 }}>
-      <TituloSecao>{titulo}</TituloSecao>
+      {secoes
+        .filter((secao) => secao.itens.length > 0)
+        .map(({ titulo, itens }, indice) => (
+          <Box key={titulo} sx={{ mt: indice > 0 ? 3 : 0 }}>
+            <TituloSecao>{titulo}</TituloSecao>
 
-      <Box sx={{ px: 1.5 }}>
-        {itens.map((item) => (
-          <Box key={item.link}>
-            <ItemNav
-              item={item}
-              ativo={acendeu(item)}
-              onClick={onNavigate}
-            />
-
-            {/* Fio à esquerda em vez de só recuo: com o recuo sozinho, uma
-                lista de dois ou três canais lia como itens soltos tortos. */}
-            {item.filhos?.length ? (
-              <Box
-                sx={{
-                  ml: 3,
-                  pl: 1.5,
-                  mb: 0.5,
-                  borderLeft: 1,
-                  borderColor: 'divider',
-                }}
-              >
-                {item.filhos.map((canal) => (
+            <Box sx={{ px: 1.5 }}>
+              {itens.map((item) => (
+                <Box key={item.link}>
                   <ItemNav
-                    key={canal.link}
-                    item={canal}
-                    ativo={estaAtivo(canal.link)}
+                    item={item}
+                    ativo={acendeu(item)}
                     onClick={onNavigate}
-                    filho
                   />
-                ))}
-              </Box>
-            ) : null}
+
+                  {/* Fio à esquerda em vez de só recuo: com o recuo sozinho, uma
+                lista de dois ou três canais lia como itens soltos tortos. */}
+                  {item.filhos?.length ? (
+                    <Box
+                      sx={{
+                        ml: 3,
+                        pl: 1.5,
+                        mb: 0.5,
+                        borderLeft: 1,
+                        borderColor: 'divider',
+                      }}
+                    >
+                      {item.filhos.map((canal) => (
+                        <ItemNav
+                          key={canal.link}
+                          item={canal}
+                          ativo={estaAtivo(canal.link)}
+                          onClick={onNavigate}
+                          filho
+                        />
+                      ))}
+                    </Box>
+                  ) : null}
+                </Box>
+              ))}
+            </Box>
           </Box>
         ))}
-      </Box>
 
       {/* sair fica colado no rodapé da régua, longe do menu do dia a dia */}
       <Box sx={{ mt: 'auto', px: 1.5, pt: 2 }}>
@@ -413,40 +456,6 @@ const SideBar: React.FC<SideBarProps> = ({
               },
             ]
           : []),
-        {
-          link: '/admin/eventos',
-          icon: <Event />,
-          title: 'Eventos',
-        },
-        // publicar notícia é do admin; o financeiro não entra aqui
-        ...(isAdminRole
-          ? [
-              {
-                link: '/admin/noticias',
-                icon: <Campaign />,
-                title: 'Notícias',
-                novo: true,
-              },
-            ]
-          : []),
-        // registro de atividades é do dev: mostra o antes e o depois de
-        // qualquer tabela, dado pessoal de inscrito incluído
-        ...(isDev
-          ? [
-              {
-                link: '/admin/atividades',
-                icon: <History />,
-                title: 'Registro de Atividades',
-                novo: true,
-              },
-              {
-                link: '/admin/logins',
-                icon: <Login />,
-                title: 'Registro de Login',
-                novo: true,
-              },
-            ]
-          : []),
       ]
     : [
         {
@@ -466,15 +475,94 @@ const SideBar: React.FC<SideBarProps> = ({
         },
       ];
 
-  const itens =
-    areaAtual === 'configuracoes' ? itensConfiguracoes : itensPainel;
+  /**
+   * Os módulos do sistema — o que se opera por evento ou por igreja —, num
+   * grupo próprio abaixo do de administração (quem acessa, quem administra,
+   * o que aconteceu).
+   */
+  const itensModulos: ItemMenu[] = isAdmin
+    ? [
+        {
+          link: '/admin/eventos',
+          icon: <Event />,
+          title: 'Eventos',
+        },
+        // publicar notícia é do admin; o financeiro não entra aqui
+        ...(isAdminRole
+          ? [
+              {
+                link: '/admin/noticias',
+                icon: <Campaign />,
+                title: 'Notícias',
+                novo: true,
+              },
+            ]
+          : []),
+        // anunciado, ainda sem tela
+        {
+          link: '#financeiro',
+          icon: <AccountBalanceWallet />,
+          title: 'Financeiro',
+          emBreve: true,
+        },
+        {
+          link: '#patrimonio',
+          icon: <Inventory2 />,
+          title: 'Patrimônio',
+          emBreve: true,
+        },
+        {
+          link: '#loja',
+          icon: <Storefront />,
+          title: 'Loja',
+          emBreve: true,
+        },
+      ]
+    : [];
 
-  const titulo =
+  /**
+   * Manutenção, no fim da régua: os registros do sistema. Não são trabalho do
+   * dia a dia do painel, e sim de quem cuida do funcionamento.
+   */
+  const itensManutencao: ItemMenu[] = isAdmin
+    ? [
+        // o registro de atividades (antes e depois de qualquer tabela, de
+        // todas as igrejas) é de quem já atravessa todas: dev e super admin
+        ...(isSuperAdmin
+          ? [
+              {
+                link: '/admin/atividades',
+                icon: <History />,
+                title: 'Registro de Atividades',
+                novo: true,
+              },
+            ]
+          : []),
+        // tentativas de login (documento, IP, aparelho) são investigação de
+        // segurança: só o dev
+        ...(isDev
+          ? [
+              {
+                link: '/admin/logins',
+                icon: <Login />,
+                title: 'Registro de Login',
+                novo: true,
+              },
+            ]
+          : []),
+      ]
+    : [];
+
+  const secoes: SecaoMenu[] =
     areaAtual === 'configuracoes'
-      ? 'Configurações'
+      ? [{ titulo: 'Configurações', itens: itensConfiguracoes }]
       : areaAtual === 'admin'
-        ? 'Administrador'
-        : 'Inscrições';
+        ? [
+            { titulo: 'Administrador', itens: itensPainel },
+            { titulo: 'Módulos', itens: itensModulos },
+            { titulo: 'Manutenção', itens: itensManutencao },
+          ]
+        : [{ titulo: 'Inscrições', itens: itensPainel }];
 
   return (
     <>
@@ -499,7 +587,7 @@ const SideBar: React.FC<SideBarProps> = ({
           borderRight: `1px dashed ${theme.palette.divider}`,
         }}
       >
-        <ConteudoNav itens={itens} titulo={titulo} />
+        <ConteudoNav secoes={secoes} />
       </Box>
 
       {/* Gaveta do celular */}
@@ -550,11 +638,7 @@ const SideBar: React.FC<SideBarProps> = ({
           </Typography>
         </Stack>
 
-        <ConteudoNav
-          itens={itens}
-          titulo={titulo}
-          onNavigate={() => setOpenDrawer(false)}
-        />
+        <ConteudoNav secoes={secoes} onNavigate={() => setOpenDrawer(false)} />
       </Drawer>
     </>
   );

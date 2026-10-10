@@ -4,9 +4,9 @@ Duas telas de auditoria do painel administrativo: uma lista tudo que foi criado,
 
 ## Acesso
 
-- **Quem entra:** só o perfil `DEV` (`Role.DEV`). Nem `SUPER_ADMIN` acessa — a rota de `/admin/atividades` chama isso de propósito no comentário do código, e a API responde 403 do mesmo jeito para quem não é dev.
-- **Guard:** `RequireRole allowedRoles={[Role.DEV]}` em volta das duas rotas.
-- **Motivo:** a coluna "Conteúdo" do Registro de Atividades mostra o antes e o depois de qualquer tabela, incluindo dado pessoal de inscrito — por isso o acesso não desce nem para o super admin.
+- **Registro de Atividades (`/admin/atividades`):** dev e super admin (`RequireRole allowedRoles={SUPER_ADMIN_ROLES}`). A coluna "Conteúdo" mostra o antes e o depois de qualquer tabela, de todas as igrejas, incluindo dado pessoal de inscrito; por isso só entra quem já atravessa todas elas, e o admin de igreja não. Até 10/10/2026 era só o dev.
+- **Registro de Login (`/admin/logins`):** só o dev (`RequireRole allowedRoles={[Role.DEV]}`). Documento, IP e aparelho de cada tentativa são investigação de segurança.
+- **A API confere o mesmo:** `GET /logs*` para dev e super admin, e `GET /logs/login-attempts` só para o dev.
 
 Arquivos: `src/pages/admin/logs/routes/index.tsx`, `src/pages/admin/logins/routes/index.tsx`, `src/constants/roles.ts`.
 

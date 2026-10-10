@@ -71,16 +71,29 @@ MUI.
 
 ### Itens por perfil
 
-**Painel (`admin`)**
+**Painel (`admin`)**: três seções. **Administrador** reúne quem acessa e quem
+administra; **Módulos**, o que se opera por evento ou por igreja;
+**Manutenção**, no fim, os registros do sistema (dev e super admin). Cada seção tem seu título em caixa alta e só aparece se tiver
+alguma linha para o perfil (`ConteudoNav` recebe uma lista de `secoes`).
 
-| Item | Papéis que veem |
-| --- | --- |
-| Início | todos os quatro perfis do painel |
-| Usuários | `isAdminRole` (dev, super admin, admin) — financeiro não gerencia usuários |
-| Igrejas | `isSuperAdmin` (dev, super admin) |
-| Eventos | todos os quatro perfis do painel |
-| Notícias | `isAdminRole` — financeiro não publica |
-| Registro de Atividades / Registro de Login | `isDev` apenas |
+| Seção | Item | Papéis que veem |
+| --- | --- | --- |
+| Administrador | Início | todos os quatro perfis do painel |
+| Administrador | Usuários | `isAdminRole` (dev, super admin, admin) — financeiro não gerencia usuários |
+| Administrador | Igrejas | `isSuperAdmin` (dev, super admin) |
+| Módulos | Eventos | todos os quatro perfis do painel |
+| Módulos | Notícias | `isAdminRole` — financeiro não publica |
+| Módulos | Financeiro, Patrimônio, Loja | todos os perfis do painel — **em breve**: etiqueta "EM BREVE" em laranja, linha apagada e sem navegação (ainda não há tela) |
+| Manutenção | Registro de Atividades | `isSuperAdmin` (dev, super admin) |
+| Manutenção | Registro de Login | `isDev` apenas |
+
+Módulo novo do sistema entra em `itensModulos`, e não no grupo Administrador.
+
+**Etiquetas da linha:** "NOVO!" (`novo`), com degradê azul e violeta, estreia
+uma tela. "EM BREVE" (`emBreve`), com degradê laranja e âmbar, anuncia um
+módulo que ainda não existe: a linha não é link, não reage ao hover e o nome
+fica com a cor de desabilitado. Quando a tela existir, troque `emBreve` por
+`novo` e aponte o `link` para a rota.
 
 **Configurações (`configuracoes`)**
 
