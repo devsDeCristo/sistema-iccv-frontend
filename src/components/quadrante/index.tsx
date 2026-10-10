@@ -29,6 +29,7 @@ import FileSaver from 'file-saver';
 import { toast } from 'react-toastify';
 import { PageStyle } from '../pageStyle';
 import { apiClient } from '../../config/lib/axios/api-client';
+import { pedirPdfNaFila } from '../../utils/pdfNaFila';
 import { useGetQuadrante } from '../../features/admin/events/api/getQuadrante';
 import { QuadranteData } from '../../features/admin/events/types';
 import { ehCorHex } from '../../features/admin/events/eventColors';
@@ -467,9 +468,13 @@ function QuadrantePage({ eventId, pageBack }: QuadrantePageProps) {
   async function baixarPdf() {
     setBaixando(true);
     try {
-      const resposta = await apiClient.get(`/events/${eventId}/quadrante/pdf`, {
-        responseType: 'blob',
-      });
+      // o servidor gera um PDF por vez: o aviso mostra a posição na fila
+      const resposta = await pedirPdfNaFila((headers) =>
+        apiClient.get(`/events/${eventId}/quadrante/pdf`, {
+          responseType: 'blob',
+          headers,
+        })
+      );
 
       const nomeArquivo =
         /filename="(.+)"/.exec(

@@ -33,6 +33,8 @@ Arquivo: `src/components/quadrante/index.tsx`.
 
 Botão "Baixar PDF" no cartaz, desabilitado enquanto não há equipe nenhuma. Chama `GET /events/:eventId/quadrante/pdf` (resposta em blob) e salva o arquivo com o nome que vier no cabeçalho `Content-Disposition`, ou `quadrante.pdf` como padrão. A tela não monta o PDF: ele sai pronto do servidor — a versão em tela é um documento à parte, pensado para navegar e buscar, não uma cópia do PDF. Falha na geração mostra toast de erro, sem travar a tela.
 
+**Fila de geração:** o servidor gera um PDF de cada vez (dois ao mesmo tempo estouravam a memória do container). O pedido vai por `pedirPdfNaFila` (`src/utils/pdfNaFila.ts`), que sorteia um código, manda no cabeçalho `X-Pedido-Pdf` e, enquanto o arquivo não chega, pergunta a posição em `GET /pdf/fila/:codigo` a cada 1,5s. Com gente na frente aparece um aviso — "Você está na fila para gerar o PDF: 2º lugar…", que vira "Sua vez! Gerando o PDF…" — e ele some quando o pedido termina, dando certo ou não. Sem fila, o aviso nem aparece. Falhar ao consultar a posição não atrapalha o PDF; com mais de 20 na fila, o servidor recusa na hora com "tente de novo em instantes".
+
 Regras de geração do arquivo (crachás, memória, layout de página) ficam no servidor: repositório `ic-backend`, `docs/quadrante.md`.
 
 ## Impressão pelo navegador

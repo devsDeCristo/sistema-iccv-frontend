@@ -2,6 +2,7 @@ import { AxiosError } from 'axios';
 import { apiClient } from '../../../../config/lib/axios/api-client';
 import { PdfNameCase, PdfSection } from '../../../../types/pdf';
 import { formatNameCase, limitToTwoNames } from '../../../../utils';
+import { pedirPdfNaFila } from '../../../../utils/pdfNaFila';
 
 /** Uma seção como o servidor recebe: o cabeçalho e os nomes já formatados */
 interface SecaoDeCrachas {
@@ -55,10 +56,13 @@ export async function postGenerateBadges({
   withQrCode,
 }: GerarCrachasParams): Promise<Blob> {
   try {
-    const { data } = await apiClient.post<Blob>(
-      `/events/${eventId}/crachas/pdf`,
-      { sections: montarSecoes(sections, nameCase), blankCount, withQrCode },
-      { responseType: 'blob' }
+    // o servidor gera um PDF por vez: o aviso mostra a posição na fila
+    const { data } = await pedirPdfNaFila((headers) =>
+      apiClient.post<Blob>(
+        `/events/${eventId}/crachas/pdf`,
+        { sections: montarSecoes(sections, nameCase), blankCount, withQrCode },
+        { responseType: 'blob', headers }
+      )
     );
     return data;
   } catch (erro) {

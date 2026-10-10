@@ -42,6 +42,10 @@ Arquivos: `src/features/admin/events/components/pdfGenerator/modalGeneratePdf.ts
 `src/features/admin/events/components/pdfGenerator/modalGenerateBadge.tsx`,
 `src/features/admin/events/api/postGenerateBadges.ts`.
 
+- **Fila de geração:** o pedido do crachá passa pela mesma fila do quadrante —
+  um PDF de cada vez no servidor, com aviso da posição para quem espera
+  (`pedirPdfNaFila`, ver `docs/quadrante.md`, "Geração do PDF").
+
 ## Envelopes — gerados no navegador
 
 Diferente do crachá, o envelope é montado no próprio navegador com
