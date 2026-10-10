@@ -17,7 +17,6 @@ import {
   Church,
   WhatsApp,
   SpaceDashboard,
-  Storefront,
   Gavel,
 } from '@mui/icons-material';
 import { Link, useLocation } from 'react-router-dom';
