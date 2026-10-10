@@ -22,6 +22,7 @@ import {
   GridToolbar,
   selectedGridRowsSelector,
   GridCellParams,
+  GridRowSelectionModel,
   ptBR,
 } from '@mui/x-data-grid';
 import { useGetUsers } from '../api/getUsers';
@@ -44,6 +45,8 @@ import {
 import { useState } from 'react';
 import { User } from '../../../../types/user';
 import { ModalEditRole } from './modalEditRole';
+import { BarraDeSelecao } from './barraDeSelecao';
+import { ModalPermissaoEmMassa } from './modalPermissaoEmMassa';
 import CustomChip from '../../../../components/customChip';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
@@ -112,7 +115,10 @@ function List({
   const devRowBlocked = rowSelected?.role === Role.DEV && !isDev;
   const theme = useTheme();
   const navigate = useNavigate();
-  const { isSuperAdmin } = useRole();
+  const { isSuperAdmin, isAdmin } = useRole();
+  /** marcados na tabela: alimentam a barra flutuante e a exportação */
+  const [selecionados, setSelecionados] = useState<GridRowSelectionModel>([]);
+  const [emMassaAberto, setEmMassaAberto] = useState(false);
 
   /** Cor de cada perfil de acesso, na paleta de chips do tema */
   const ROLE_CHIP_COLOR: Record<number, string> = {
@@ -403,7 +409,22 @@ function List({
     );
 
   return (
-    <Card elevation={0} sx={cardTabelaSx}>
+    <Card
+      elevation={0}
+      sx={{
+        ...cardTabelaSx,
+        // o lugar da barra flutuante no fim da página: a página rola o
+        // bastante para a tabela e a paginação saírem de trás dela. É a
+        // barra (52px de altura + 16/24px do fundo) mais 8px de folga, menos
+        // os 32px de respiro que a página já tem embaixo (`PageStyle`)
+        mb: selecionados.length ? { xs: 5.5, sm: 6.5 } : 0,
+      }}
+    >
+      <BarraDeSelecao
+        quantos={selecionados.length}
+        onEditarPermissao={isAdmin ? () => setEmMassaAberto(true) : undefined}
+        onLimpar={() => setSelecionados([])}
+      />
       <DataGrid
         rows={filteredData(data || [])}
         // onRowClick={handleRowClick}
@@ -412,6 +433,16 @@ function List({
         // }}
         rowHeight={65}
         autoHeight={true}
+        // marcar é pela caixa, e não pelo clique na linha: as células copiam
+        // o valor no clique, e cada cópia marcaria a pessoa sem querer
+        checkboxSelection
+        disableRowSelectionOnClick
+        rowSelectionModel={selecionados}
+        onRowSelectionModelChange={setSelecionados}
+        // a busca esconde linhas, mas não desmarca quem já foi marcado
+        keepNonExistentRowsSelected
+        // a contagem fica na barra flutuante; no rodapé seria a mesma coisa duas vezes
+        hideFooterSelectedRowCount
         columns={columns}
         loading={isLoading}
         slots={{ toolbar: GridToolbar }}
@@ -446,6 +477,16 @@ function List({
         }}
         sx={dataGridSx(theme)}
         localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
+      />
+      <ModalPermissaoEmMassa
+        open={emMassaAberto}
+        userIds={selecionados.map(String)}
+        churchIdDaTela={churchId === 'all' ? undefined : churchId}
+        onClose={() => setEmMassaAberto(false)}
+        onConcluir={(recusados) => {
+          setEmMassaAberto(false);
+          setSelecionados(recusados);
+        }}
       />
       <ModalEditRole
         open={openModalEditRole}
