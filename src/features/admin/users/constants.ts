@@ -21,9 +21,15 @@ export const REGISTER_USERS_SCHEMA = z.object({
     required_error: DEFAULT_MESSAGE,
   }),
   badgeName: z.string().optional(),
-  email: z.string({
-    required_error: DEFAULT_MESSAGE,
-  }),
+  // obrigatório de verdade: é por ele que chegam a redefinição de senha, o
+  // código do vínculo com o Google e os avisos de segurança
+  email: z
+    .string({
+      required_error: DEFAULT_MESSAGE,
+    })
+    .trim()
+    .min(1, DEFAULT_MESSAGE)
+    .email('Informe um e-mail válido'),
   cpf: z
     .string({
       required_error: DEFAULT_MESSAGE,

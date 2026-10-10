@@ -172,7 +172,25 @@ function Login() {
   // as recusas do Google (sem cadastro vinculado, token inválido) já saem
   // em toast com a mensagem da API
   const { mutate: entrarComGoogle, isLoading: entrandoComGoogle } =
-    usePostGoogleLogin({ onSuccess: abrirSessao });
+    usePostGoogleLogin({
+      onSuccess: abrirSessao,
+      // nenhum cadastro com o e-mail da conta Google: vai para o cadastro,
+      // como no CPF não cadastrado, já com o e-mail e o nome do Google
+      onError: (error: any) => {
+        const resposta = error.response?.data;
+        if (!resposta?.semCadastro) return;
+
+        sessionStorage.setItem('cadastro:email', resposta.email ?? '');
+        sessionStorage.setItem('cadastro:nome', resposta.nome ?? '');
+        navigate('/usuario/cadastrar');
+        Swal.fire({
+          title: 'Atenção',
+          text: 'Você ainda não tem cadastro. Complete os seus dados para se inscrever no(s) evento(s).',
+          icon: 'info',
+          confirmButtonText: 'Ok',
+        });
+      },
+    });
 
   const { mutate: mutatePostLogin, isLoading } = usePostLogin({
     onSuccess: abrirSessao,

@@ -405,6 +405,10 @@ function Form({
                     onChange={onChange}
                     required
                     label="E-mail"
+                    type="email"
+                    autoComplete="email"
+                    error={!!errors.email}
+                    errorMessage={errors.email?.message}
                   />
                 )}
               />

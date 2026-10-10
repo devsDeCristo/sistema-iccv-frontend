@@ -1,5 +1,5 @@
 import { MutationOptions, useMutation } from 'react-query';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import { handleResponseThrowError } from '../../../utils/service';
 import { API_URL } from '../../../config/env';
 
@@ -10,7 +10,13 @@ const postGoogleLogin = (credential: string) =>
       credential,
     })
     .then((response) => response.data)
-    .catch(handleResponseThrowError());
+    // sem cadastro vai para a tela de cadastro, com aviso próprio: sem toast
+    .catch((error: AxiosError<{ semCadastro?: boolean }>) =>
+      handleResponseThrowError(
+        undefined,
+        !error.response?.data?.semCadastro
+      )(error)
+    );
 
 type PostGoogleLoginData = Awaited<ReturnType<typeof postGoogleLogin>>;
 

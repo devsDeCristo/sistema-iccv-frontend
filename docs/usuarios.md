@@ -63,7 +63,7 @@ Arquivo: `src/pages/admin/users/edit/index.tsx`.
 | Data de nascimento | Sim | define se exige dados do responsável |
 | Celular | Sim | telefone válido com máscara |
 | Contato de emergência | Sim (menor de idade: some, vira "Telefone do responsável") | telefone válido |
-| E-mail | Sim | — |
+| E-mail | Sim | formato de e-mail válido; vazio é barrado no zod e no servidor; não pode ser de outro cadastro (o servidor responde 409) |
 | Profissão | Sim | mínimo 2 caracteres |
 | CEP | Sim (formato) | 8 dígitos quando preenchido; busca automática de endereço |
 | Rua, Bairro, Cidade, Estado | Sim | preenchidos pela busca de CEP ou à mão |

@@ -15,7 +15,8 @@ depois de entrar.
 - **Já logado ao abrir `/login`:** redireciona sozinho para `/admin/inicio` (quem entra no painel) ou `/eventos` conforme o papel.
 - **Link para os Termos de Uso** (`/termos`) e para o cadastro (`/usuario/cadastrar`).
 
-- **Entrar com Google:** abaixo do "Entrar", depois de um divisor "ou", o botão oficial do Google (`BotaoDoGoogle`). Ele entrega um ID token, que vai para `POST /auth/google`; a resposta é a mesma do login por CPF, e a sessão abre pelo mesmo caminho (`abrirSessao`). Recusa (conta Google sem cadastro vinculado, token inválido) sai em toast com a mensagem da API, sem levar ao cadastro. Sem `VITE_GOOGLE_CLIENT_ID`, nem o botão nem o divisor aparecem, e o subtítulo volta a falar só de CPF e senha.
+- **Entrar com Google:** abaixo do "Entrar", depois de um divisor "ou", o botão oficial do Google (`BotaoDoGoogle`). Ele entrega um ID token, que vai para `POST /auth/google`; a resposta é a mesma do login por CPF, e a sessão abre pelo mesmo caminho (`abrirSessao`). Recusa (token inválido, ou conta que não pode entrar) sai em toast com a mensagem genérica da API.
+- **Google sem cadastro:** quando nenhum cadastro tem o e-mail da conta Google, a API responde `404` com `semCadastro: true`, `email` e `nome`. A tela faz como no CPF não cadastrado: leva para `/usuario/cadastrar`, com o aviso "Você ainda não tem cadastro...", e sem toast. E-mail e nome da conta Google vão pelo `sessionStorage` (`cadastro:email`, `cadastro:nome`) e já chegam preenchidos no cadastro. O cadastro não vincula o Google; a próxima entrada com ele vincula, pelas regras do servidor. Sem `VITE_GOOGLE_CLIENT_ID`, nem o botão nem o divisor aparecem, e o subtítulo volta a falar só de CPF e senha.
 
 Arquivos: `src/pages/login/index.tsx`, `src/features/login/components/form.tsx`, `src/features/login/api/postLogin.tsx`, `src/features/login/api/postGoogleLogin.tsx`, `src/features/login/constants.ts`.
 
@@ -39,7 +40,8 @@ Arquivo: `src/auth/session.ts`.
 
 ## Cadastro (`/usuario/cadastrar`)
 
-- **Público:** acessível sem login, a partir do login (link "Criar cadastro") ou por CPF não encontrado.
+- **Público:** acessível sem login, a partir do login (link "Criar cadastro"), por CPF não encontrado (CPF preenchido) ou por conta Google sem cadastro (nome e e-mail preenchidos).
+- **E-mail obrigatório e válido:** o zod (`REGISTER_USERS_SCHEMA`) recusa vazio ("Campo obrigatório") e formato inválido ("Informe um e-mail válido"); o servidor também recusa cadastro sem e-mail. Vale para os três formulários que usam o `Form`: cadastro público, cadastro pelo painel e perfil.
 - **Dados pessoais:** o mesmo formulário (`Form`) usado no cadastro pelo admin e na edição de perfil.
 - **Senha:** seção própria, com o mesmo schema da redefinição de senha (`NEW_PASSWORD_SCHEMA`, 8 a 72 caracteres, confirmação igual) — é a senha com que a pessoa vai entrar depois.
 - **Aceite dos Termos de Uso:** checkbox obrigatório, com o texto "Li e aceito os Termos de Uso. Se este cadastro for de menor de idade, declaro ser o responsável legal por ele." Sem marcar, o envio é bloqueado (toast de erro) e o formulário não é submetido. O servidor é quem registra versão, data, IP e aparelho do aceite — o aceite na tela é só a marcação. Ver `docs/termos-de-uso.md`.

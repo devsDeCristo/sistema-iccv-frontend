@@ -128,8 +128,11 @@ function SecaoDaSenha() {
 
 function RegisterUser() {
   const cpfLogin = localStorage.getItem('cpf') || '';
+  // vindo do "Entrar com Google" sem cadastro: e-mail e nome da conta Google
+  const emailDoGoogle = sessionStorage.getItem('cadastro:email') || '';
+  const nomeDoGoogle = sessionStorage.getItem('cadastro:nome') || '';
   const DEFAULT_VALUES: CadastroComSenha = {
-    fullName: '',
+    fullName: nomeDoGoogle,
     // o formulário tem o campo, e sem valor inicial o input nasce não
     // controlado e troca de tipo na primeira digitada
     badgeName: '',
@@ -137,7 +140,7 @@ function RegisterUser() {
     birthday: null,
     cellphone: '',
     emergencyContact: '',
-    email: '',
+    email: emailDoGoogle,
     worker: 1,
     profession: '',
     zipCode: '',
