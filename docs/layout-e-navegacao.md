@@ -67,7 +67,23 @@ MUI.
 
 - Um só conteúdo de menu (`ConteudoNav`) para os dois formatos: fixa ao lado do conteúdo em telas `lg+`, dentro de uma gaveta (`Drawer`) nas menores.
 - O item ativo é o que corresponde exatamente à rota atual (ou prefixo dela); itens com sub-itens ("filhos", hoje só "Disparadores › WhatsApp") só acendem no encaixe exato, não pelo prefixo, para não acender duas linhas ao mesmo tempo.
-- "Sair" fica sempre no rodapé da régua, separado do menu do dia a dia.
+- A régua não tem "Sair": ele fica só no menu da conta (avatar) da barra do topo.
+
+### Recolher a régua
+
+A régua fixa da tela grande pode ser recolhida, nas três áreas (admin, usuário
+e configurações), por um ícone (`IconButton`, sem borda) no topo. Aberta, o
+ícone é `MenuOpen` ("Recolher menu"), preso no canto da régua a 10px do topo e
+da direita; recolhida, é o `Menu` ("Expandir menu"), centralizado no lugar do
+traço.
+
+- **Recolhida (65px):** só os ícones. O nome aparece numa dica ao passar o
+  mouse (com "(em breve)" nos módulos anunciados). Os títulos das seções viram
+  um traço curto e as etiquetas somem. Os canais (Disparadores › WhatsApp)
+  ficam na mesma coluna, sem recuo.
+- **Lembrada entre visitas:** a escolha fica no navegador, por usuário
+  (`useFiltroSalvo('sidebar:recolhida')`).
+- **Celular:** a gaveta não muda. Ela já abre e fecha, e não mostra o botão.
 
 ### Itens por perfil
 

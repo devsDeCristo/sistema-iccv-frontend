@@ -7,9 +7,10 @@ import {
   Event,
   EventNote,
   History,
+  Menu as MenuIcon,
+  MenuOpen,
   Inventory2,
   Login,
-  Logout,
   Payments,
   People,
   Send,
@@ -24,19 +25,23 @@ import {
   alpha,
   Box,
   Drawer,
+  IconButton,
   lighten,
   Stack,
   Theme,
+  Tooltip,
   Typography,
   useTheme,
 } from '@mui/material';
 import Logo from '../../assets/logo-ic.svg?react';
 import { useRole } from '../../hooks/useRole';
-import { useUser } from '../../contexts/userContext';
+import { useFiltroSalvo } from '../../hooks/useFiltroSalvo';
 import { AZUL_VIVO, VIOLETA_VIVO } from '../../themes';
 
 /** Largura da régua lateral, a mesma nos dois modos (fixa e gaveta) */
 const LARGURA = 260;
+/** Recolhida: só a coluna dos ícones */
+const LARGURA_RECOLHIDA = 65;
 
 /** Altura da barra do topo, de onde a lateral começa na tela grande */
 const ALTURA_APPBAR = 70;
@@ -93,14 +98,36 @@ const corDestaque = (theme: Theme) =>
     : theme.palette.primary.main;
 
 /** Rótulo da seção: só tipografia, sem faixa nem fundo */
-function TituloSecao({ children }: { children: ReactNode }) {
-  return (
+function TituloSecao({
+  children,
+  recolhida = false,
+  acao,
+}: {
+  children: ReactNode;
+  recolhida?: boolean;
+  /** controle à direita do título — o botão de recolher, na primeira seção */
+  acao?: ReactNode;
+}) {
+  // Recolhida, o nome não cabe. Na primeira seção o lugar dele é do botão de
+  // expandir, no centro da coluna; nas outras, um traço curto ainda separa os
+  // grupos
+  if (recolhida) {
+    return acao ? (
+      <Box sx={{ display: 'flex', justifyContent: 'center', mb: 1.5 }}>
+        {acao}
+      </Box>
+    ) : (
+      <Box
+        sx={{ mx: 2.5, mb: 1, mt: 1, borderTop: 1, borderColor: 'divider' }}
+      />
+    );
+  }
+
+  const nome = (
     <Typography
       component="div"
       color="text.disabled"
       sx={{
-        px: 2.5,
-        mb: 1,
         fontSize: 11,
         fontWeight: 700,
         letterSpacing: '0.07em',
@@ -109,6 +136,52 @@ function TituloSecao({ children }: { children: ReactNode }) {
     >
       {children}
     </Typography>
+  );
+
+  // Aberta, o botão fica no canto da régua (10px do topo e da direita), fora
+  // do fluxo do título
+  return (
+    <Box sx={{ pl: 2.5, pr: 2, mb: 1 }}>
+      {nome}
+      {acao && (
+        <Box sx={{ position: 'absolute', top: 10, right: 10 }}>{acao}</Box>
+      )}
+    </Box>
+  );
+}
+
+/**
+ * Recolher/expandir a régua da tela grande.
+ *
+ * No topo, na linha do título da primeira seção: é onde se procura um
+ * controle da própria régua, e ali ele não abre um vão a mais. Um IconButton
+ * simples, sem borda: é ajuste de tela, não ação do dia a dia.
+ */
+function BotaoRecolher({
+  recolhida,
+  onClick,
+}: {
+  recolhida: boolean;
+  onClick: () => void;
+}) {
+  const titulo = recolhida ? 'Expandir menu' : 'Recolher menu';
+
+  return (
+    <Tooltip title={titulo} placement="right">
+      <IconButton
+        size="small"
+        onClick={onClick}
+        aria-label={titulo}
+        aria-expanded={!recolhida}
+        sx={{ color: 'text.secondary' }}
+      >
+        {recolhida ? (
+          <MenuIcon fontSize="small" />
+        ) : (
+          <MenuOpen fontSize="small" />
+        )}
+      </IconButton>
+    </Tooltip>
   );
 }
 
@@ -179,28 +252,34 @@ function ItemNav({
   ativo,
   onClick,
   filho = false,
+  recolhida = false,
 }: {
   item: ItemMenu;
   ativo: boolean;
   onClick?: () => void;
   /** Linha de dentro de outra: menor, mais baixa e sem peso de seção */
   filho?: boolean;
+  /** Régua recolhida: só o ícone, com o nome na dica ao passar o mouse */
+  recolhida?: boolean;
 }) {
   const theme = useTheme();
   const destaque = corDestaque(theme);
 
-  return (
+  const linha = (
     <Stack
       // "Em breve" ainda não tem tela: a linha aparece, mas não navega
       {...(item.emBreve
         ? { component: 'div', 'aria-disabled': true }
         : { component: Link, to: item.link, onClick })}
+      aria-label={recolhida ? item.title : undefined}
       direction="row"
       alignItems="center"
       gap={2}
       sx={{
         minHeight: filho ? 36 : 44,
         px: 2,
+        // recolhida, o ícone fica no meio da coluna
+        justifyContent: recolhida ? 'center' : 'flex-start',
         mb: 0.5,
         borderRadius: 2,
         textDecoration: 'none',
@@ -228,33 +307,47 @@ function ItemNav({
 
       {/* a etiqueta anda junto do nome, e não encostada na parede direita da
           régua: colada no texto ela se lê como parte do item */}
-      <Stack
-        width={'100%'}
-        direction="row"
-        alignItems="center"
-        justifyContent={'space-between'}
-        sx={{ minWidth: 0 }}
-      >
-        <Typography
-          noWrap
-          sx={{
-            fontSize: filho ? 13.5 : 14,
-            fontWeight: ativo ? 600 : 500,
-            color: 'inherit',
-          }}
+      {!recolhida && (
+        <Stack
+          width={'100%'}
+          direction="row"
+          alignItems="center"
+          justifyContent={'space-between'}
+          sx={{ minWidth: 0 }}
         >
-          {item.title}
-        </Typography>
+          <Typography
+            noWrap
+            sx={{
+              fontSize: filho ? 13.5 : 14,
+              fontWeight: ativo ? 600 : 500,
+              color: 'inherit',
+            }}
+          >
+            {item.title}
+          </Typography>
 
-        {item.emBreve ? (
-          <Etiqueta texto="Em breve" de={LARANJA_VIVO} ate={AMBAR_VIVO} />
-        ) : (
-          item.novo && (
-            <Etiqueta texto="Novo!" de={AZUL_VIVO} ate={VIOLETA_VIVO} />
-          )
-        )}
-      </Stack>
+          {item.emBreve ? (
+            <Etiqueta texto="Em breve" de={LARANJA_VIVO} ate={AMBAR_VIVO} />
+          ) : (
+            item.novo && (
+              <Etiqueta texto="Novo!" de={AZUL_VIVO} ate={VIOLETA_VIVO} />
+            )
+          )}
+        </Stack>
+      )}
     </Stack>
+  );
+
+  // recolhida, o nome sai da linha e vai para a dica
+  return recolhida ? (
+    <Tooltip
+      placement="right"
+      title={item.emBreve ? `${item.title} (em breve)` : item.title}
+    >
+      {linha}
+    </Tooltip>
+  ) : (
+    linha
   );
 }
 
@@ -273,12 +366,17 @@ interface SecaoMenu {
 function ConteudoNav({
   secoes,
   onNavigate,
+  recolhida = false,
+  onAlternar,
 }: {
   secoes: SecaoMenu[];
   onNavigate?: () => void;
+  /** só ícones (régua da tela grande) */
+  recolhida?: boolean;
+  /** recolher/expandir; ausente na gaveta do celular, que já abre e fecha */
+  onAlternar?: () => void;
 }) {
   const { pathname } = useLocation();
-  const { logout } = useUser();
 
   const estaAtivo = (link: string) =>
     pathname === link || pathname.startsWith(`${link}/`);
@@ -293,26 +391,27 @@ function ConteudoNav({
   const acendeu = (item: ItemMenu) =>
     item.filhos?.length ? pathname === item.link : estaAtivo(item.link);
 
-  // `logout` do contexto já limpa o storage, zera o usuário e leva para o
-  // login — antes a saída era um link que só limpava o storage, e o nome do
-  // usuário anterior ficava no ar até a página ser recarregada
-  const sair = () => {
-    onNavigate?.();
-    logout();
-  };
-
   return (
     /**
      * Cresce até o fim do espaço que sobra, em vez de fixar 100% de altura: na
-     * gaveta o miolo divide o papel com a marca em cima, e altura cheia somada à
-     * marca empurrava o "Sair" para fora da tela.
+     * gaveta o miolo divide o papel com a marca em cima. Sair fica no avatar
+     * da barra do topo, e não na régua.
      */
-    <Stack sx={{ flexGrow: 1, minHeight: 0, py: 3 }}>
+    <Stack sx={{ position: 'relative', flexGrow: 1, minHeight: 0, py: 3 }}>
       {secoes
         .filter((secao) => secao.itens.length > 0)
         .map(({ titulo, itens }, indice) => (
           <Box key={titulo} sx={{ mt: indice > 0 ? 3 : 0 }}>
-            <TituloSecao>{titulo}</TituloSecao>
+            <TituloSecao
+              recolhida={recolhida}
+              acao={
+                indice === 0 && onAlternar ? (
+                  <BotaoRecolher recolhida={recolhida} onClick={onAlternar} />
+                ) : undefined
+              }
+            >
+              {titulo}
+            </TituloSecao>
 
             <Box sx={{ px: 1.5 }}>
               {itens.map((item) => (
@@ -321,19 +420,25 @@ function ConteudoNav({
                     item={item}
                     ativo={acendeu(item)}
                     onClick={onNavigate}
+                    recolhida={recolhida}
                   />
 
                   {/* Fio à esquerda em vez de só recuo: com o recuo sozinho, uma
                 lista de dois ou três canais lia como itens soltos tortos. */}
                   {item.filhos?.length ? (
                     <Box
-                      sx={{
-                        ml: 3,
-                        pl: 1.5,
-                        mb: 0.5,
-                        borderLeft: 1,
-                        borderColor: 'divider',
-                      }}
+                      // recolhida, os canais ficam na coluna dos ícones, sem recuo
+                      sx={
+                        recolhida
+                          ? { mb: 0.5 }
+                          : {
+                              ml: 3,
+                              pl: 1.5,
+                              mb: 0.5,
+                              borderLeft: 1,
+                              borderColor: 'divider',
+                            }
+                      }
                     >
                       {item.filhos.map((canal) => (
                         <ItemNav
@@ -342,6 +447,7 @@ function ConteudoNav({
                           ativo={estaAtivo(canal.link)}
                           onClick={onNavigate}
                           filho
+                          recolhida={recolhida}
                         />
                       ))}
                     </Box>
@@ -351,15 +457,6 @@ function ConteudoNav({
             </Box>
           </Box>
         ))}
-
-      {/* sair fica colado no rodapé da régua, longe do menu do dia a dia */}
-      <Box sx={{ mt: 'auto', px: 1.5, pt: 2 }}>
-        <ItemNav
-          item={{ link: '/login', icon: <Logout />, title: 'Sair' }}
-          ativo={false}
-          onClick={sair}
-        />
-      </Box>
     </Stack>
   );
 }
@@ -373,6 +470,12 @@ const SideBar: React.FC<SideBarProps> = ({
 }) => {
   const theme = useTheme();
   const { isAdmin: isAdminRole, isDev, isSuperAdmin } = useRole();
+  // recolher vale para a régua da tela grande, e é lembrado entre visitas
+  const [recolhida, setRecolhida] = useFiltroSalvo(
+    'sidebar:recolhida',
+    false,
+    (valor): valor is boolean => typeof valor === 'boolean'
+  );
 
   const areaAtual: AreaSideBar = area ?? (isAdmin ? 'admin' : 'usuario');
 
@@ -511,12 +614,12 @@ const SideBar: React.FC<SideBarProps> = ({
           title: 'Patrimônio',
           emBreve: true,
         },
-        {
-          link: '#loja',
-          icon: <Storefront />,
-          title: 'Loja',
-          emBreve: true,
-        },
+        // {
+        //   link: '#loja',
+        //   icon: <Storefront />,
+        //   title: 'Loja',
+        //   emBreve: true,
+        // },
       ]
     : [];
 
@@ -573,7 +676,11 @@ const SideBar: React.FC<SideBarProps> = ({
           display: validRole ? { xs: 'none', lg: 'flex' } : 'none',
           flexDirection: 'column',
           flexShrink: 0,
-          width: LARGURA,
+          width: recolhida ? LARGURA_RECOLHIDA : LARGURA,
+          transition: theme.transitions.create('width', {
+            duration: theme.transitions.duration.shorter,
+          }),
+          overflowX: 'hidden',
           height: `calc(100vh - ${ALTURA_APPBAR}px)`,
           position: 'sticky',
           top: ALTURA_APPBAR,
@@ -587,7 +694,11 @@ const SideBar: React.FC<SideBarProps> = ({
           borderRight: `1px dashed ${theme.palette.divider}`,
         }}
       >
-        <ConteudoNav secoes={secoes} />
+        <ConteudoNav
+          secoes={secoes}
+          recolhida={recolhida}
+          onAlternar={() => setRecolhida(!recolhida)}
+        />
       </Box>
 
       {/* Gaveta do celular */}
