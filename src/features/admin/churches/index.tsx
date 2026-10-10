@@ -1,5 +1,7 @@
 import {
+  alpha,
   Autocomplete,
+  Box,
   Button,
   Card,
   Dialog,
@@ -11,13 +13,13 @@ import {
   InputAdornment,
   MenuItem,
   Paper,
+  Skeleton,
   Stack,
   TextField,
   Tooltip,
   Typography,
   useTheme,
 } from '@mui/material';
-import { DataGrid, GridColDef, ptBR } from '@mui/x-data-grid';
 import {
   Add,
   Close,
@@ -26,15 +28,17 @@ import {
   Search,
   ChurchOutlined,
   SpaceDashboard,
+  PersonOutline,
+  EventOutlined,
+  AdminPanelSettingsOutlined,
 } from '@mui/icons-material';
-import { useState } from 'react';
+import { ReactNode, useState } from 'react';
+import { sombraSuperficie } from '../../../themes';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import { PageStyle } from '../../../components/pageStyle';
 import { Header } from '../../../components/header';
 import {
-  cardTabelaSx,
-  dataGridSx,
   barraLarguraCheiaNoCelularSx,
   superficieSx,
 } from '../../../components/listPageStyles';
@@ -150,111 +154,205 @@ export function Churches() {
     return 'Remover igreja';
   };
 
-  const columns: GridColDef[] = [
-    {
-      field: 'name',
-      headerName: 'Igreja',
-      flex: 2,
-      minWidth: 220,
-      cellClassName: 'celula-destaque',
-      renderCell: (params) => (
-        <Stack direction="row" alignItems="center" gap={1.5} sx={{ minWidth: 0 }}>
-          <ChurchOutlined sx={{ fontSize: 20, color: 'text.disabled' }} />
-          <Typography sx={{ fontSize: '0.9375rem', fontWeight: 500 }} noWrap>
-            {params.value}
-          </Typography>
-        </Stack>
-      ),
-    },
-    {
-      field: 'status',
-      headerName: 'Situação',
-      width: 120,
-      align: 'center',
-      headerAlign: 'center',
-      renderCell: (params) => (
-        <CustomChip
-          label={CHURCH_STATUS_LABELS[params.value as ChurchStatus] ?? '—'}
-          // as mesmas cores do status do evento: teste em atenção, porque é
-          // uma igreja que existe mas ainda não está no ar
-          customColor={
-            params.value === 'ACTIVE'
-              ? theme.palette.chips.success
-              : params.value === 'TEST'
-                ? theme.palette.chips.alert
-                : theme.palette.chips.canceled
-          }
-          size="small"
-        />
-      ),
-    },
-    {
-      field: 'eventos',
-      headerName: 'Eventos',
-      width: 120,
-      align: 'right',
-      headerAlign: 'right',
-      cellClassName: 'celula-numerica',
-      valueGetter: (params) => contarEventos(params.row as Church),
-    },
-    {
-      // não é "pessoas": inscrito não pertence a igreja nenhuma, o que conta
-      // aqui é quem entra no painel dela — admin e financeiro
-      field: 'administradores',
-      headerName: 'Administradores',
-      width: 170,
-      align: 'right',
-      headerAlign: 'right',
-      cellClassName: 'celula-numerica',
-      valueGetter: (params) => contarAdmins(params.row as Church),
-    },
-    {
-      field: 'acoes',
-      headerName: '',
-      sortable: false,
-      filterable: false,
-      width: 150,
-      align: 'right',
-      renderCell: (params) => {
-        const church = params.row as Church;
+  /**
+   * Uma igreja por cartão. A tabela tinha cinco colunas para no máximo uma
+   * dúzia de igrejas, e no celular virava rolagem lateral; o cartão mostra o
+   * mesmo — nome, situação, líder, eventos e quem administra — e as ações
+   * ficam no rodapé dele.
+   *
+   * O acabamento é o dos cards de resumo (`StatusCards`): aro e tinta suave na
+   * cor da situação, e o cartão sobe um pouco no hover. Quatro por linha na
+   * tela grande deixa o cartão estreito, por isso os números vêm um embaixo
+   * do outro, rótulo à esquerda e valor à direita, e não lado a lado.
+   */
+  const cartao = (church: Church) => {
+    const cor =
+      church.status === 'ACTIVE'
+        ? theme.palette.chips.success
+        : church.status === 'TEST'
+          ? theme.palette.chips.alert
+          : theme.palette.chips.canceled;
+    const escuro = theme.palette.mode === 'dark';
 
-        return (
-          <Stack direction="row" gap={0.5} justifyContent="flex-end">
-            {/*
-              Primeiro da linha porque é o que se faz com uma igreja no dia a
-              dia: abri-la. Renomear e remover são as raras, e ficam depois.
-            */}
-            <Tooltip title="Abrir a home desta igreja">
+    const numero = (icone: ReactNode, rotulo: string, valor: number) => (
+      <Stack
+        direction="row"
+        alignItems="center"
+        gap={1}
+        sx={{
+          px: 1.25,
+          py: 0.75,
+          borderRadius: 2,
+          backgroundColor: alpha(theme.palette.text.primary, 0.04),
+          color: 'text.secondary',
+          '& svg': { fontSize: 16 },
+        }}
+      >
+        {icone}
+        <Typography sx={{ fontSize: '0.8125rem', flex: 1 }} noWrap>
+          {rotulo}
+        </Typography>
+        <Typography
+          sx={{
+            fontSize: '0.9375rem',
+            fontWeight: 700,
+            color: 'text.primary',
+            fontVariantNumeric: 'tabular-nums',
+          }}
+        >
+          {valor}
+        </Typography>
+      </Stack>
+    );
+
+    return (
+      <Card
+        key={church.id}
+        elevation={0}
+        sx={{
+          borderRadius: 3,
+          display: 'flex',
+          flexDirection: 'column',
+          boxShadow: `0 0 0 1px ${alpha(cor, 0.24)}, ${sombraSuperficie(
+            escuro
+          )}`,
+          backgroundImage: `linear-gradient(160deg, ${alpha(
+            cor,
+            0.1
+          )}, transparent 55%)`,
+          transition: theme.transitions.create(['transform', 'box-shadow'], {
+            duration: theme.transitions.duration.shorter,
+          }),
+          '&:hover': {
+            transform: 'translateY(-3px)',
+            boxShadow: `0 0 0 1px ${alpha(cor, 0.4)}, 0 12px 28px -8px ${alpha(
+              cor,
+              0.32
+            )}`,
+          },
+          // inativa fica apagada: continua na lista, mas fora do ar
+          opacity: church.status === 'INACTIVE' ? 0.75 : 1,
+        }}
+      >
+        <Box
+          sx={{ p: 2.25, flex: 1, display: 'flex', flexDirection: 'column' }}
+        >
+          <Stack
+            direction="row"
+            alignItems="flex-start"
+            justifyContent="space-between"
+            gap={1}
+          >
+            <Box
+              sx={{
+                width: 44,
+                height: 44,
+                borderRadius: 2.5,
+                display: 'grid',
+                placeItems: 'center',
+                color: cor,
+                backgroundColor: alpha(cor, 0.14),
+              }}
+            >
+              <ChurchOutlined />
+            </Box>
+            <CustomChip
+              label={CHURCH_STATUS_LABELS[church.status] ?? '—'}
+              // as mesmas cores do status do evento: teste em atenção, porque
+              // é uma igreja que existe mas ainda não está no ar
+              customColor={cor}
+              size="small"
+            />
+          </Stack>
+
+          <Typography
+            title={church.name}
+            sx={{
+              mt: 1.75,
+              fontSize: '1rem',
+              fontWeight: 700,
+              lineHeight: 1.3,
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+            }}
+          >
+            {church.name}
+          </Typography>
+
+          <Stack
+            direction="row"
+            alignItems="center"
+            gap={0.5}
+            sx={{ mt: 0.5, color: 'text.secondary', minWidth: 0 }}
+          >
+            <PersonOutline sx={{ fontSize: 16, flexShrink: 0 }} />
+            <Typography sx={{ fontSize: '0.8125rem' }} noWrap>
+              {church.spiritualLeader?.fullName ?? 'Sem líder definido'}
+            </Typography>
+          </Stack>
+
+          {/* não é "pessoas": inscrito não pertence a igreja nenhuma, o que
+              conta aqui é quem entra no painel dela — admin e financeiro.
+              No pé do cartão (`mt: auto`): os da mesma linha da grade têm a
+              mesma altura, então os números alinham com nome curto ou longo */}
+          <Stack gap={0.75} sx={{ mt: 'auto', pt: 2 }}>
+            {numero(<EventOutlined />, 'Eventos', contarEventos(church))}
+            {numero(
+              <AdminPanelSettingsOutlined />,
+              'Administradores',
+              contarAdmins(church)
+            )}
+          </Stack>
+        </Box>
+
+        <Divider />
+
+        <Stack
+          direction="row"
+          alignItems="center"
+          gap={0.5}
+          sx={{ px: 1.25, py: 0.75 }}
+        >
+          {/*
+            Primeiro e com texto porque é o que se faz com uma igreja no dia a
+            dia: abri-la. Editar e remover são os raros, e ficam como ícone.
+          */}
+          <Button
+            size="small"
+            startIcon={<SpaceDashboard fontSize="small" />}
+            onClick={() => navigate(`/admin/igrejas/${church.id}`)}
+            sx={{ mr: 'auto', textTransform: 'none', fontWeight: 600 }}
+          >
+            Abrir painel
+          </Button>
+          <Tooltip title="Editar">
+            <IconButton
+              size="small"
+              aria-label="Editar"
+              onClick={() => abrirForm(church)}
+            >
+              <EditOutlined fontSize="small" />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title={motivoDaRemocao(church)}>
+            <span>
               <IconButton
                 size="small"
-                color="primary"
-                onClick={() => navigate(`/admin/igrejas/${church.id}`)}
+                color="error"
+                aria-label="Remover igreja"
+                disabled={temVinculos(church)}
+                onClick={() => confirmarExclusao(church)}
               >
-                <SpaceDashboard fontSize="small" />
+                <Delete fontSize="small" />
               </IconButton>
-            </Tooltip>
-            <Tooltip title="Editar">
-              <IconButton size="small" onClick={() => abrirForm(church)}>
-                <EditOutlined fontSize="small" />
-              </IconButton>
-            </Tooltip>
-            <Tooltip title={motivoDaRemocao(church)}>
-              <span>
-                <IconButton
-                  size="small"
-                  color="error"
-                  disabled={temVinculos(church)}
-                  onClick={() => confirmarExclusao(church)}
-                >
-                  <Delete fontSize="small" />
-                </IconButton>
-              </span>
-            </Tooltip>
-          </Stack>
-        );
-      },
-    },
-  ];
+            </span>
+          </Tooltip>
+        </Stack>
+      </Card>
+    );
+  };
 
   const termo = busca.trim().toLowerCase();
   const linhas = (data ?? []).filter(
@@ -282,6 +380,16 @@ export function Churches() {
     botao: {
       width: { xs: '100%', sm: 'fit-content' },
       borderRadius: 2,
+    },
+    grade: {
+      display: 'grid',
+      gap: 2,
+      gridTemplateColumns: {
+        xs: 'minmax(0, 1fr)',
+        sm: 'repeat(2, minmax(0, 1fr))',
+        md: 'repeat(3, minmax(0, 1fr))',
+        lg: 'repeat(4, minmax(0, 1fr))',
+      },
     },
   };
 
@@ -327,26 +435,28 @@ export function Churches() {
         </Button>
       </Paper>
 
-      <Card elevation={0} sx={cardTabelaSx}>
-        <DataGrid
-          rows={linhas}
-          columns={columns}
-          loading={isLoading}
-          autoHeight
-          rowHeight={56}
-          columnHeaderHeight={44}
-          disableRowSelectionOnClick
-          pageSizeOptions={[10, 25, 50]}
-          initialState={{ pagination: { paginationModel: { pageSize: 10 } } }}
-          sx={dataGridSx(theme)}
-          localeText={{
-            ...ptBR.components.MuiDataGrid.defaultProps.localeText,
-            noRowsLabel: termo
+      {isLoading ? (
+        <Box sx={styles.grade}>
+          {[0, 1, 2, 3].map((i) => (
+            <Skeleton
+              key={i}
+              variant="rounded"
+              height={236}
+              sx={{ borderRadius: 3 }}
+            />
+          ))}
+        </Box>
+      ) : linhas.length ? (
+        <Box sx={styles.grade}>{linhas.map(cartao)}</Box>
+      ) : (
+        <Paper sx={{ ...superficieSx, p: 4, textAlign: 'center' }}>
+          <Typography color="text.secondary">
+            {termo
               ? 'Nenhuma igreja com esse nome'
-              : 'Nenhuma igreja cadastrada',
-          }}
-        />
-      </Card>
+              : 'Nenhuma igreja cadastrada'}
+          </Typography>
+        </Paper>
+      )}
 
       <Dialog
         open={formAberto}
