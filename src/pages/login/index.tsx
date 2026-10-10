@@ -485,7 +485,11 @@ function Login() {
                 <>
                   <Divider sx={styles.ou}>ou</Divider>
                   {entrandoComGoogle ? (
-                    <Stack alignItems="center" sx={{ minHeight: 44 }}>
+                    <Stack
+                      alignItems="center"
+                      justifyContent="center"
+                      sx={{ minHeight: 46 }}
+                    >
                       <CircularProgress size={24} />
                     </Stack>
                   ) : (

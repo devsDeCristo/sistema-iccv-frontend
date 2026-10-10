@@ -730,7 +730,11 @@ function ContasVinculadas() {
               uma tentativa e não deve sair antes da senha */}
           <Box sx={{ mt: 2.5 }}>
             {vinculando ? (
-              <Stack alignItems="center" sx={{ minHeight: 44 }}>
+              <Stack
+                alignItems="center"
+                justifyContent="center"
+                sx={{ minHeight: 46 }}
+              >
                 <CircularProgress size={24} />
               </Stack>
             ) : (

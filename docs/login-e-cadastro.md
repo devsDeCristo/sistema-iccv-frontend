@@ -24,7 +24,8 @@ Arquivos: `src/pages/login/index.tsx`, `src/features/login/components/form.tsx`,
 - Carrega o script do Google Identity Services (`accounts.google.com/gsi/client`) uma vez só, na primeira tela que precisar dele, como o captcha da Cloudflare.
 - O `initialize` do Google é global, com um callback só: ele repassa o token para quem estiver montado (o login ou a janela de vínculo do perfil).
 - `ux_mode: 'popup'` e `auto_select: false`: entrar é sempre um clique da pessoa.
-- Tema `outline` no claro e `filled_black` no escuro; largura da caixa, até os 400px que o Google aceita.
+- **Visual do sistema por cima do oficial:** o botão oficial é um iframe do Google, que o CSS da página não alcança. O que aparece é o nosso botão (contorno, 46px de altura como o "Entrar", largura toda, "G" de quatro cores e "Entrar com Google" ou "Continuar com Google"). O oficial fica por cima, transparente (`opacity: 0.0001`) e esticado por `transform: scale` até cobrir o nosso, porque o Google desenha no máximo 400×40px. O clique, o foco do teclado e o nome lido pelo leitor de tela são do botão oficial; o nosso é `aria-hidden`. Hover e foco aparecem pelo contêiner (`:hover`, `:focus-within`).
+- O botão só aparece depois que o script carrega, para nunca mostrar um botão que não responde.
 - Se o script não carregar (bloqueador, rede), o botão some e CPF e senha seguem funcionando.
 - Quem confere o token é a API; o front só repassa. Regras no `ic-backend`, `docs/autenticacao.md` ("Login com Google").
 
