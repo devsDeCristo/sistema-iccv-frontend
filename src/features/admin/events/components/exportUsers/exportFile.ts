@@ -1,8 +1,15 @@
 import FileSaver from 'file-saver';
 import * as XLSX from 'xlsx';
 
-/** Nome de arquivo seguro a partir do nome do evento */
-export function buildFileName(eventName: string, extension: string) {
+/**
+ * Nome de arquivo seguro a partir do nome do evento. `sufixo` diz o que é o
+ * arquivo: "inscritos" (o padrão), "pedidos-para-fornecedor"...
+ */
+export function buildFileName(
+  eventName: string,
+  extension: string,
+  sufixo = 'inscritos'
+) {
   const slug = (eventName || 'evento')
     // NFD separa o acento da letra; o filtro seguinte descarta só o acento
     .normalize('NFD')
@@ -10,7 +17,7 @@ export function buildFileName(eventName: string, extension: string) {
     .replace(/^-|-$/g, '')
     .toLowerCase();
 
-  return `${slug || 'evento'}-inscritos.${extension}`;
+  return `${slug || 'evento'}-${sufixo}.${extension}`;
 }
 
 export function exportXlsx(data: string[][], fileName: string) {

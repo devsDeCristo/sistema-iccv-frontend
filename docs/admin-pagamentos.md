@@ -60,7 +60,10 @@ tem perfil financeiro na igreja do evento (não administra) — ver
     aparecem na mesma célula.
 - **Exportar:** CSV nativo da grade (`GridToolbarExport`), respeitando a
   seleção/filtro atual.
-- **Conferir no gateway** (só perfil de desenvolvimento): pergunta ao gateway o
+- **Conferir no gateway** (só perfil de desenvolvimento, e só quando a igreja
+  do evento tem cobrança online de pé: módulo de cobrança ligado e gateway
+  ativo — o `church.chargesOnline` que vem junto do evento; sem isso não há
+  cobrança para conferir): pergunta ao gateway o
   status de cada cobrança pendente do evento. Existe para não esperar a
   conferência automática (roda sozinha de tempos em tempos) quando o retorno
   do gateway se perdeu. Fica fora do alcance de quem administra porque cada
@@ -114,6 +117,43 @@ Arquivo: `src/features/admin/events/components/modalPaymentHistory.tsx`, `src/fe
   evento, com foto, é clicável — filtra a tabela abaixo por aquele produto
   clicando de novo no mesmo item para voltar a "todos".
 - **Filtros:** busca (nome, CPF ou produto), produto e status do pagamento.
+- **Exportar** (menu na barra, **PDF**), sempre com o que os filtros deixam
+  na tela — a mesma regra da tabela (`filtrarPedidos`). Filtrando por "Pago",
+  por exemplo, o pedido ao fornecedor conta só o que foi pago. Com um produto
+  filtrado, o arquivo leva só os itens dele (na tela a compra aparece
+  inteira).
+  - **A cara do evento** (`PdfDoEvento`, `src/features/admin/events/pdfDoEvento.tsx`,
+    com `@react-pdf/renderer`, o mesmo dos outros PDFs do sistema):
+    - **Faixa de abertura:** a **capa** do evento de ponta a ponta, com um véu
+      escuro para o texto ler em qualquer foto; por cima, a **logo** num quadro
+      branco e, em branco, o nome do evento, a igreja e o período. Capa e logo
+      vêm da consulta com imagens, a mesma dos crachás. Sem capa, a faixa é da
+      cor principal do evento.
+    - **Cores do evento** (`data.colors.primary`): tingem o título do
+      relatório, o cabeçalho da tabela (fundo clareado da mesma cor) e os
+      subtotais e o total. Sem paleta, ou com uma cor inválida, fica o índigo
+      do sistema.
+    - Embaixo da faixa: o que é o relatório, os filtros que valeram
+      ("Filtros: nenhum" quando não há) e "Exportado em … por …". Quem abre o
+      arquivo depois sabe que ele é o recorte da tela, e não "tudo".
+  - **Tabela:** cabeçalho das colunas repetido em toda página, linhas finas
+    entre os itens, quantidades alinhadas à direita, subtotal e total em
+    negrito, e rodapé com o nome do evento, a contagem e "Página X de Y". O
+    negrito é pela família (`Helvetica-Bold`): com a fonte embutida do
+    react-pdf o `fontWeight` sozinho não muda nada.
+  - **Com comprador** (`relatorioComComprador`, página deitada — são nove
+    colunas): uma linha por item — comprador, CPF, e-mail, produto, variação,
+    quantidade, compra (avulsa ou com a inscrição), pagamento e quando foi
+    entregue —, terminando no total de peças. Para conferir e entregar.
+  - **Para pedido** (`relatorioParaPedido`, página em pé): produto, variação e
+    quantidade somada de todas as compras, sem ninguém. Com mais de um
+    produto, cada um com mais de uma variação ganha subtotal; no fim, o total.
+    A lista para encomendar do fornecedor.
+  - **Ordem das variações** (`compararVariacoes`): tamanho de roupa do menor ao
+    maior (PP, P, M, G, GG, XG...) — em ordem alfabética, G vinha antes de M e
+    P; o resto (cores, "Única", números) segue o alfabeto, número em ordem
+    numérica.
+  - Sem compra nenhuma nos filtros, um aviso no lugar de um arquivo vazio.
 - **Uma linha por compra**, com todos os itens dentro — quem leva duas
   camisas paga uma vez só.
 - **Coluna Compra:** "Avulsa" (comprada solta na loja) ou "Com a inscrição".

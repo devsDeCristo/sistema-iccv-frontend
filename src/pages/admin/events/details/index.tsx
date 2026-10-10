@@ -1,5 +1,16 @@
 import { Header } from '../../../../components/header';
 import { BotaoDaBarra } from '../../../../components/botaoDaBarra';
+import { useGetPayments } from '../../../../features/admin/events/api/getPayments';
+import {
+  filtrarPedidos,
+  pedidosDeProdutos,
+  relatorioComComprador,
+  relatorioParaPedido,
+} from '../../../../features/admin/events/products';
+import { buildFileName } from '../../../../features/admin/events/components/exportUsers/exportFile';
+import { PdfDoEvento } from '../../../../features/admin/events/pdfDoEvento';
+import { getStoredUser } from '../../../../auth/session';
+import { formatDate, formatDateTime } from '../../../../utils';
 import { PageStyle } from '../../../../components/pageStyle';
 import {
   Box,
@@ -11,6 +22,7 @@ import {
   InputAdornment,
   Chip,
   LinearProgress,
+  ListItemText,
   Menu,
   MenuItem,
   IconButton,
@@ -93,11 +105,14 @@ import {
   superficieSx,
 } from '../../../../components/listPageStyles';
 import { NavTabs } from '../../../../components/navTabs';
-import { User } from '../../../../types/user';
+import { PaymentResponse, User } from '../../../../types/user';
 import { ListUsersWaitList } from '../../../../features/admin/events/components/listUsersWaitList';
 import { ListPayments } from '../../../../features/admin/events/components/listPayments';
 import { ListProductOrders } from '../../../../features/admin/events/components/listProductOrders';
-import { statusPaymentOptions } from '../../../../features/admin/events/constants';
+import {
+  PAYMENT_STATUS,
+  statusPaymentOptions,
+} from '../../../../features/admin/events/constants';
 import {
   BotaoEsconderValores,
   CardsPayments,
@@ -217,6 +232,14 @@ function Details() {
    * de admin num evento onde a API só a reconhece como financeiro.
    */
   const { isAdminDoEvento, resolvido } = useEventRole(event?.churchId);
+
+  /**
+   * "Conferir no gateway" só faz sentido com cobrança online de pé: módulo de
+   * cobrança ligado na igreja e gateway ativo. É o `chargesOnline` que o
+   * servidor já manda junto do evento (`igrejaCobraOnline`) — sem consulta a
+   * mais. Sem isso não há cobrança para conferir, e o botão só confundiria.
+   */
+  const temGatewayAtivo = !!event?.church?.chargesOnline;
 
   // quartos e equipes são carregados aqui só para os PDFs dessas abas.
   // Quem não administra esta igreja não tem acesso a esses endpoints: sem o
@@ -475,6 +498,110 @@ function Details() {
   /** Aba de pagamentos: outro conjunto de dados, segue no CSV nativo da grade */
   const handleExportPayments = () => {
     apiRefUsers.current?.exportDataAsCsv();
+  };
+
+  /**
+   * Aba Produtos: dois PDFs a partir das compras que os filtros deixam
+   * na tela — com comprador (uma linha por item) ou para pedido (produto,
+   * variação e quantidade somada, para o fornecedor). Os pagamentos já estão
+   * no cache da tabela: a mesma consulta, sem chamada nova.
+   */
+  const [anchorElExportProdutos, setAnchorElExportProdutos] =
+    useState<null | HTMLElement>(null);
+  const { data: pagamentosDoEvento } = useGetPayments(
+    { eventId },
+    { enabled: !!eventId && pageValue === 'produtos' }
+  );
+
+  const exportarPedidos = async (tipo: 'comprador' | 'pedido') => {
+    setAnchorElExportProdutos(null);
+    const pedidos = filtrarPedidos(
+      pedidosDeProdutos(pagamentosDoEvento as PaymentResponse[]),
+      {
+        search: searchUser,
+        produtoId: produtoFiltro,
+        status: statusProdutoFiltro,
+      }
+    );
+
+    if (!pedidos.length) {
+      toast.info('Nenhuma compra com os filtros atuais para exportar.');
+      return;
+    }
+
+    const produto = produtoFiltro || undefined;
+    const { colunas, linhas } =
+      tipo === 'comprador'
+        ? relatorioComComprador(pedidos, produto, PAYMENT_STATUS)
+        : relatorioParaPedido(pedidos, produto);
+
+    // o que valeu na hora de exportar: quem abre o arquivo depois precisa
+    // saber que ele não é "tudo", e sim o recorte da tela
+    const filtros = [
+      produto &&
+        `Produto: ${
+          event?.products?.find((item) => item.id === produto)?.name ?? '—'
+        }`,
+      statusProdutoFiltro &&
+        `Pagamento: ${PAYMENT_STATUS(statusProdutoFiltro as any)}`,
+      searchUser.trim() && `Busca: "${searchUser.trim()}"`,
+    ].filter(Boolean);
+    const quem = getStoredUser()?.fullName;
+
+    const comprador = tipo === 'comprador';
+    // a logo do evento vem só na consulta com imagens, a mesma dos crachás
+    const eventoComImagens = await carregarEventoParaPdf();
+
+    try {
+      const blob = await pdf(
+        <PdfDoEvento
+          titulo={
+            comprador
+              ? 'Pedidos de produtos · com comprador'
+              : 'Pedido de produtos · para o fornecedor'
+          }
+          evento={{
+            nome: event?.name ?? 'Evento',
+            igreja: event?.church?.name,
+            periodo: event
+              ? [event.startDate, event.endDate]
+                  .map((data) => formatDate(data))
+                  .filter((data, i, datas) => i === 0 || data !== datas[0])
+                  .join(' a ')
+              : undefined,
+          }}
+          capa={eventoComImagens?.data?.coverBase64}
+          logo={eventoComImagens?.data?.logoBase64}
+          cores={event?.data?.colors}
+          detalhes={[
+            `Filtros: ${filtros.length ? filtros.join('  ·  ') : 'nenhum'}`,
+            `Exportado em ${formatDateTime(new Date())}${
+              quem ? ` por ${quem}` : ''
+            }`,
+          ]}
+          colunas={colunas}
+          linhas={linhas}
+          // nove colunas não cabem em pé
+          orientacao={comprador ? 'landscape' : 'portrait'}
+          rodape={
+            comprador
+              ? `${pedidos.length} ${pedidos.length === 1 ? 'compra' : 'compras'}`
+              : 'Quantidades somadas de todas as compras listadas'
+          }
+        />
+      ).toBlob();
+
+      FileSaver.saveAs(
+        blob,
+        buildFileName(
+          event?.name ?? '',
+          'pdf',
+          comprador ? 'pedidos-com-comprador' : 'pedido-de-produtos'
+        )
+      );
+    } catch {
+      toast.error('Não foi possível gerar o PDF.');
+    }
   };
 
   const handleOpenExport = (format: ExportFormat) => {
@@ -795,7 +922,7 @@ function Details() {
                 vira uma rajada de chamadas na conta da igreja. Quem administra
                 espera o relógio ou lança a baixa manual.
               */}
-              {isDev && (
+              {isDev && temGatewayAtivo && (
                 <Tooltip title="Pergunta ao gateway o que aconteceu com as cobranças pendentes deste evento">
                   <span>
                     <BotaoDaBarra
@@ -892,6 +1019,15 @@ function Details() {
                   </MenuItem>
                 ))}
               </TextField>
+
+              <BotaoDaBarra
+                variant="outlined"
+                onClick={(e) => setAnchorElExportProdutos(e.currentTarget)}
+                startIcon={<Download />}
+                endIcon={<ExpandMore />}
+              >
+                Exportar
+              </BotaoDaBarra>
             </Stack>
           </Paper>
 
@@ -1102,6 +1238,25 @@ function Details() {
           .xlsx (planilha Excel)
         </MenuItem>
         <MenuItem onClick={() => handleOpenExport('pdf')}>.pdf</MenuItem>
+      </Menu>
+
+      <Menu
+        anchorEl={anchorElExportProdutos}
+        open={Boolean(anchorElExportProdutos)}
+        onClose={() => setAnchorElExportProdutos(null)}
+      >
+        <MenuItem onClick={() => exportarPedidos('comprador')}>
+          <ListItemText
+            primary="Com comprador"
+            secondary="Uma linha por item, com quem comprou"
+          />
+        </MenuItem>
+        <MenuItem onClick={() => exportarPedidos('pedido')}>
+          <ListItemText
+            primary="Para pedido"
+            secondary="Produto, variação e quantidade somada"
+          />
+        </MenuItem>
       </Menu>
 
       <ModalExportUsers
