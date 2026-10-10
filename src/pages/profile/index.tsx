@@ -56,6 +56,7 @@ import { NEW_PASSWORD_SCHEMA } from '../../features/login/constants';
 import {
   mensagemDoErro,
   useChangePassword,
+  useConfirmarVinculoGoogle,
   useContasVinculadas,
   useDesvincularGoogle,
   useGetMe,
@@ -589,17 +590,25 @@ function CabecalhoDoPerfil({
 function ContasVinculadas() {
   const theme = useTheme();
   const { data: contas, isLoading } = useContasVinculadas();
-  const { mutate: vincular, isLoading: vinculando } = useVincularGoogle();
+  const { mutate: vincular, isLoading: pedindoCodigo } = useVincularGoogle();
+  const { mutate: confirmar, isLoading: confirmando } =
+    useConfirmarVinculoGoogle();
+  const vinculando = pedindoCodigo || confirmando;
   const { mutate: desvincular, isLoading: desvinculando } =
     useDesvincularGoogle();
   const [janela, setJanela] = useState<'vincular' | 'desvincular' | null>(null);
   const [senha, setSenha] = useState('');
+  /** o e-mail (mascarado) para onde o código foi; preenchido = passo 2 */
+  const [codigoPara, setCodigoPara] = useState<string | null>(null);
+  const [codigo, setCodigo] = useState('');
   const [erro, setErro] = useState<string>();
 
   const google = contas?.find((conta) => conta.provider === 'GOOGLE');
 
   const abrir = (qual: 'vincular' | 'desvincular') => {
     setSenha('');
+    setCodigo('');
+    setCodigoPara(null);
     setErro(undefined);
     setJanela(qual);
   };
@@ -608,16 +617,28 @@ function ContasVinculadas() {
     vincular(
       { credential, currentPassword: senha },
       {
-        onSuccess: (conta) => {
-          setJanela(null);
-          toast.success(
-            `Conta Google ${conta.email} vinculada. Enviamos um aviso para o seu e-mail.`
-          );
+        onSuccess: ({ email }) => {
+          setErro(undefined);
+          setCodigoPara(email);
         },
         onError: (falha) =>
           setErro(mensagemDoErro(falha, 'Não foi possível vincular.')),
       }
     );
+
+  const confirmarCodigo = () =>
+    confirmar(codigo, {
+      onSuccess: (conta) => {
+        setJanela(null);
+        toast.success(
+          `Conta Google ${conta.email} vinculada. Enviamos um aviso para o seu e-mail.`
+        );
+      },
+      onError: (falha) => {
+        setCodigo('');
+        setErro(mensagemDoErro(falha, 'Não foi possível confirmar o código.'));
+      },
+    });
 
   const confirmarDesvinculo = () =>
     desvincular(undefined, {
@@ -707,20 +728,51 @@ function ContasVinculadas() {
           Vincular conta Google
         </DialogTitle>
         <DialogContent>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            A conta Google vai entrar no seu cadastro sem CPF e senha. Para
-            vincular, confirme a sua senha atual e escolha a conta.
-          </Typography>
-          <CampoDeSenha
-            autoFocus
-            label="Senha atual"
-            autoComplete="current-password"
-            value={senha}
-            onChange={(valor) => {
-              setSenha(valor);
-              setErro(undefined);
-            }}
-          />
+          {codigoPara ? (
+            <>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                Enviamos um código de 8 dígitos para{' '}
+                <strong>{codigoPara}</strong>, o e-mail do seu cadastro.
+                Digite-o para confirmar o vínculo. Ele vale 15 minutos.
+              </Typography>
+              <Input
+                autoFocus
+                label="Código"
+                value={codigo}
+                onChange={(evento) => {
+                  setCodigo(evento.target.value.replace(/\D/g, '').slice(0, 8));
+                  setErro(undefined);
+                }}
+                onKeyDown={(evento) => {
+                  if (evento.key === 'Enter' && codigo.length === 8)
+                    confirmarCodigo();
+                }}
+                inputProps={{
+                  inputMode: 'numeric',
+                  autoComplete: 'one-time-code',
+                  style: { letterSpacing: '0.3em', fontWeight: 600 },
+                }}
+              />
+            </>
+          ) : (
+            <>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                A conta Google vai entrar no seu cadastro sem CPF e senha. Para
+                vincular, confirme a sua senha atual e escolha a conta. Depois,
+                enviamos um código para o e-mail do cadastro.
+              </Typography>
+              <CampoDeSenha
+                autoFocus
+                label="Senha atual"
+                autoComplete="current-password"
+                value={senha}
+                onChange={(valor) => {
+                  setSenha(valor);
+                  setErro(undefined);
+                }}
+              />
+            </>
+          )}
           {erro && (
             <Alert severity="error" sx={{ mt: 2 }}>
               {erro}
@@ -728,26 +780,40 @@ function ContasVinculadas() {
           )}
           {/* o botão só aparece com a senha digitada: o token do Google vale
               uma tentativa e não deve sair antes da senha */}
-          <Box sx={{ mt: 2.5 }}>
-            {vinculando ? (
-              <Stack
-                alignItems="center"
-                justifyContent="center"
-                sx={{ minHeight: 46 }}
-              >
-                <CircularProgress size={24} />
-              </Stack>
-            ) : (
-              senha && (
-                <BotaoDoGoogle
-                  texto="continue_with"
-                  onCredencial={aoCredencial}
-                />
-              )
-            )}
-          </Box>
+          {!codigoPara && (
+            <Box sx={{ mt: 2.5 }}>
+              {pedindoCodigo ? (
+                <Stack
+                  alignItems="center"
+                  justifyContent="center"
+                  sx={{ minHeight: 46 }}
+                >
+                  <CircularProgress size={24} />
+                </Stack>
+              ) : (
+                senha && (
+                  <BotaoDoGoogle
+                    texto="continue_with"
+                    onCredencial={aoCredencial}
+                  />
+                )
+              )}
+            </Box>
+          )}
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2.5 }}>
+          {codigoPara && (
+            // não chegou ou venceu: recomeça (o servidor espera 1 minuto
+            // entre um código e outro)
+            <Button
+              color="inherit"
+              onClick={() => abrir('vincular')}
+              disabled={vinculando}
+              sx={{ mr: 'auto' }}
+            >
+              Pedir outro código
+            </Button>
+          )}
           <Button
             color="inherit"
             onClick={() => setJanela(null)}
@@ -755,6 +821,19 @@ function ContasVinculadas() {
           >
             Cancelar
           </Button>
+          {codigoPara && (
+            <Button
+              variant="contained"
+              onClick={confirmarCodigo}
+              disabled={codigo.length !== 8 || confirmando}
+            >
+              {confirmando ? (
+                <CircularProgress size={20} color="inherit" />
+              ) : (
+                'Confirmar'
+              )}
+            </Button>
+          )}
         </DialogActions>
       </Dialog>
 

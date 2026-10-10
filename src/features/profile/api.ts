@@ -63,12 +63,27 @@ export const useContasVinculadas = () =>
 
 const atualizarContas = () => queryClient.invalidateQueries(CONTAS_VINCULADAS);
 
-/** Pede a senha atual: o servidor confere antes de olhar o token do Google */
+/**
+ * Vincular, passo 1: senha atual e conta Google. Ainda não vincula: o servidor
+ * manda um código para o e-mail do cadastro e devolve o e-mail mascarado.
+ */
 export const useVincularGoogle = () =>
   useMutation({
     mutationFn: (dados: { credential: string; currentPassword: string }) =>
       apiClient
-        .post<ContaVinculada>('/auth/identities/google', dados)
+        .post<{ message: string; email: string }>(
+          '/auth/identities/google',
+          dados
+        )
+        .then((resposta) => resposta.data),
+  });
+
+/** Vincular, passo 2: o código de 8 dígitos do e-mail */
+export const useConfirmarVinculoGoogle = () =>
+  useMutation({
+    mutationFn: (code: string) =>
+      apiClient
+        .post<ContaVinculada>('/auth/identities/google/confirm', { code })
         .then((resposta) => resposta.data),
     onSuccess: atualizarContas,
   });
