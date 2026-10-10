@@ -62,6 +62,14 @@ O cartão de busca das listagens (Eventos, Usuários, Notícias, Igrejas, Regist
 
 Antes, o campo pedia `width: 100%` de uma caixa que, na barra em linha com quebra, encolhia até o tamanho do conteúdo: no celular a busca, o select de status e o botão de criar ficavam estreitos, cada um de um tamanho. A regra força os filhos (`&&`, especificidade dobrada) porque cada tela dá larguras próprias para a tela grande; da tela média para cima, nada muda. Barra nova de listagem entra com `...barraLarguraCheiaNoCelularSx` no `sx` do `Paper`.
 
+## Barra de seleção (`src/components/barraDeSelecao`)
+
+Barra dos itens marcados numa tabela, usada em Usuários (editar permissão) e Eventos (mudar status). Flutua no pé da tela enquanto há algo marcado: a quantidade, uma ação (`acao`: `rotulo`, `rotuloCurto` para o celular, `icone`, `onClick`) e o X que limpa a seleção. Sem `acao`, para quem não pode agir, ela só conta e limpa.
+
+- **Celular:** ocupa a largura, o botão usa o `rotuloCurto` e o texto "selecionados" corta antes de quebrar.
+- **Não cobre a tabela no fim:** quem usa dá ao card da tabela margem embaixo enquanto há seleção — a altura da barra e a distância dela do fundo, mais 8px de folga, descontado o respiro do `PageStyle` (`{ xs: 5.5, sm: 6.5 }`). A página rola o bastante para tabela e paginação saírem de trás dela.
+- **Leitor de tela:** é uma região com nome (`rotuloDaRegiao`, ex. "Usuários selecionados").
+
 ## Botão de barra (`src/components/botaoDaBarra`)
 
 Botão das barras de busca e ações das abas do evento (Filtros, Exportar, PDF Envelopes, PDF Crachás, Conferir no gateway, PDF quartos, PDF Equipes, Ver Quadrante, Gerar QR Code). Na tela grande, ícone e texto; no celular, **só o ícone**, e os botões ficam numa linha só e dividem a largura toda (`stackButtons`: cada um cresce a partir do próprio tamanho, e o botão dentro de um embrulho, como o contador do Filtros ou a barra de carregamento do PDF, ocupa a largura do embrulho). Antes cada um ocupava uma linha inteira no celular. Sem o texto, o rótulo vira dica (`Tooltip`, só no celular) e `aria-label`, para o leitor de tela. O `endIcon` (a seta do "Exportar") some no celular. Os botões de criação ("Adicionar quarto", "Adicionar Equipe", "Adicionar transporte") continuam com texto: não têm ícone e são a ação principal da aba.

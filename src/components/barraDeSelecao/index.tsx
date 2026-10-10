@@ -10,27 +10,40 @@ import {
   useMediaQuery,
   useTheme,
 } from '@mui/material';
-import { AdminPanelSettingsOutlined, Close } from '@mui/icons-material';
+import { ReactNode } from 'react';
+import { Close } from '@mui/icons-material';
+
+/** O que dá para fazer com os marcados de uma vez */
+export type AcaoDaSelecao = {
+  rotulo: string;
+  /** no celular, onde a barra ocupa a largura e não cabe o rótulo inteiro */
+  rotuloCurto: string;
+  icone: ReactNode;
+  onClick: () => void;
+};
 
 /**
- * Barra dos usuários marcados na tabela: a quantidade e o que dá para fazer
- * com eles de uma vez. Flutua no pé da tela, para seguir visível enquanto a
+ * Barra dos itens marcados numa tabela (usuários, eventos): a quantidade e o
+ * que dá para fazer com eles de uma vez. Flutua no pé da tela, para seguir visível enquanto a
  * pessoa rola e marca mais.
  *
  * Quem usa reserva o espaço dela no fim da página (ver `List`): a página rola
  * o bastante para a tabela e a paginação saírem de trás da barra — no celular,
  * onde ela ocupa a largura, era o que a deixava cobrindo as últimas linhas.
- * No celular o botão diz só "Permissão" e o texto corta antes de quebrar.
+ * No celular o botão usa o `rotuloCurto` e o texto corta antes de quebrar.
  */
 function BarraDeSelecao({
   quantos,
-  onEditarPermissao,
+  acao,
   onLimpar,
+  rotuloDaRegiao = 'Itens selecionados',
 }: {
   quantos: number;
-  /** ausente para quem não altera permissão: a barra só conta e limpa */
-  onEditarPermissao?: () => void;
+  /** ausente para quem não pode agir: a barra só conta e limpa */
+  acao?: AcaoDaSelecao;
   onLimpar: () => void;
+  /** o que o leitor de tela anuncia, ex.: "Usuários selecionados" */
+  rotuloDaRegiao?: string;
 }) {
   const theme = useTheme();
   const celular = useMediaQuery(theme.breakpoints.down('sm'));
@@ -39,7 +52,7 @@ function BarraDeSelecao({
     <Paper
       elevation={8}
       role="region"
-      aria-label="Usuários selecionados"
+      aria-label={rotuloDaRegiao}
       sx={{
         pointerEvents: 'auto',
         width: { xs: '100%', sm: 'auto' },
@@ -74,7 +87,7 @@ function BarraDeSelecao({
         {quantos === 1 ? 'selecionado' : 'selecionados'}
       </Typography>
 
-      {onEditarPermissao && (
+      {acao && (
         <>
           <Divider
             orientation="vertical"
@@ -84,11 +97,11 @@ function BarraDeSelecao({
           <Button
             variant="contained"
             size="small"
-            startIcon={<AdminPanelSettingsOutlined />}
-            onClick={onEditarPermissao}
+            startIcon={acao.icone}
+            onClick={acao.onClick}
             sx={{ flexShrink: 0, whiteSpace: 'nowrap' }}
           >
-            {celular ? 'Permissão' : 'Editar permissão'}
+            {celular ? acao.rotuloCurto : acao.rotulo}
           </Button>
         </>
       )}

@@ -17,6 +17,7 @@ import {
   GridColDef,
   GridGetRowsToExportParams,
   GridRowId,
+  GridRowSelectionModel,
   GridToolbar,
   gridFilteredSortedRowIdsSelector,
   ptBR,
@@ -28,6 +29,7 @@ import { formatDate } from '../../../../utils';
 import {
   DeleteOutline,
   EditNoteOutlined,
+  PublishedWithChangesOutlined,
   MoreVert,
   VisibilityOutlined,
   WebOutlined,
@@ -42,6 +44,8 @@ import {
   dataGridSx,
 } from '../../../../components/listPageStyles';
 import { EventoParaApagar, ModalDeleteEvent } from './modalDeleteEvent';
+import { ModalStatusEmMassa } from './modalStatusEmMassa';
+import { BarraDeSelecao } from '../../../../components/barraDeSelecao';
 
 type AcaoDoEvento = {
   rotulo: string;
@@ -134,7 +138,10 @@ function List({
 }) {
   const navigate = useNavigate();
   const theme = useTheme();
-  const { isDev, isSuperAdmin, perfilNaIgreja } = useRole();
+  const { isDev, isSuperAdmin, isAdmin, perfilNaIgreja } = useRole();
+  /** marcados na tabela: alimentam a barra flutuante e a exportação */
+  const [selecionados, setSelecionados] = useState<GridRowSelectionModel>([]);
+  const [statusAberto, setStatusAberto] = useState(false);
   const [eventoParaApagar, setEventoParaApagar] =
     useState<EventoParaApagar | null>(null);
   const { data: eventData, isLoading } = useGetEvents({ painel: true });
@@ -369,9 +376,49 @@ function List({
   // }
 
   return (
-    <Card sx={cardTabelaSx}>
+    <Card
+      sx={{
+        ...cardTabelaSx,
+        // o lugar da barra flutuante no fim da página — ver a lista de
+        // usuários, que tem a mesma conta
+        mb: selecionados.length ? { xs: 5.5, sm: 6.5 } : 0,
+      }}
+    >
+      <BarraDeSelecao
+        quantos={selecionados.length}
+        rotuloDaRegiao="Eventos selecionados"
+        acao={
+          isAdmin
+            ? {
+                rotulo: 'Mudar status',
+                rotuloCurto: 'Status',
+                icone: <PublishedWithChangesOutlined />,
+                onClick: () => setStatusAberto(true),
+              }
+            : undefined
+        }
+        onLimpar={() => setSelecionados([])}
+      />
+      <ModalStatusEmMassa
+        open={statusAberto}
+        eventIds={selecionados.map(String)}
+        onClose={() => setStatusAberto(false)}
+        onConcluir={(recusados) => {
+          setStatusAberto(false);
+          setSelecionados(recusados);
+        }}
+      />
       <DataGrid
         loading={isLoading}
+        // marcar é pela caixa: o clique na linha não marca ninguém
+        checkboxSelection
+        disableRowSelectionOnClick
+        rowSelectionModel={selecionados}
+        onRowSelectionModelChange={setSelecionados}
+        // busca e filtro escondem linhas, mas não desmarcam quem foi marcado
+        keepNonExistentRowsSelected
+        // a contagem fica na barra flutuante
+        hideFooterSelectedRowCount
         //onRowClick={onRowClick}
         rows={filteredData}
         columns={columns}

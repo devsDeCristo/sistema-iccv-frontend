@@ -36,6 +36,7 @@ import {
 } from '../../../../utils';
 // import { useNavigate } from 'react-router-dom';
 import {
+  AdminPanelSettingsOutlined,
   Key,
   MailOutline,
   MoreVert,
@@ -45,7 +46,7 @@ import {
 import { useState } from 'react';
 import { User } from '../../../../types/user';
 import { ModalEditRole } from './modalEditRole';
-import { BarraDeSelecao } from './barraDeSelecao';
+import { BarraDeSelecao } from '../../../../components/barraDeSelecao';
 import { ModalPermissaoEmMassa } from './modalPermissaoEmMassa';
 import CustomChip from '../../../../components/customChip';
 import { toast } from 'react-toastify';
@@ -422,7 +423,17 @@ function List({
     >
       <BarraDeSelecao
         quantos={selecionados.length}
-        onEditarPermissao={isAdmin ? () => setEmMassaAberto(true) : undefined}
+        rotuloDaRegiao="Usuários selecionados"
+        acao={
+          isAdmin
+            ? {
+                rotulo: 'Editar permissão',
+                rotuloCurto: 'Permissão',
+                icone: <AdminPanelSettingsOutlined />,
+                onClick: () => setEmMassaAberto(true),
+              }
+            : undefined
+        }
         onLimpar={() => setSelecionados([])}
       />
       <DataGrid

@@ -19,6 +19,17 @@ inscrição por grupo também (`docs/inscricao-em-grupos.md`).
   o super admin e para quem administra ou é financeiro em mais de uma igreja.
   Quem tem uma igreja só vê os eventos dela, sem seletor. Se a igreja escolhida
   deixou de existir ou de pertencer à pessoa, volta para "Todas" em silêncio.
+- **Seleção e status em massa:** caixa de seleção por linha, no mesmo padrão
+  da lista de usuários (marcar só pela caixa; busca e filtro não desmarcam;
+  contagem na barra, não no rodapé da tabela).
+  - **Barra flutuante** (`BarraDeSelecao`, a mesma de usuários): quantidade,
+    "Mudar status" (só para admin; no celular, "Status") e o X que limpa.
+  - **Modal "Mudar status"** (`ModalStatusEmMassa`): Ativo, Teste ou Inativo,
+    em cartões com o que cada um muda para quem se inscreve. Chama
+    `PUT /events/status`.
+  - **Resultado:** tudo certo vira toast e a seleção limpa. Evento de igreja
+    que a pessoa não administra volta listado com o motivo; ao fechar, só
+    esses continuam marcados.
 - **Ações por linha**, num menu de três pontos:
   - **Abrir página do evento:** em nova aba.
   - **Detalhes:** vai para o painel de inscritos do evento.
@@ -27,7 +38,7 @@ inscrição por grupo também (`docs/inscricao-em-grupos.md`).
   - **Apagar evento:** só aparece para o perfil de desenvolvimento (`isDev`).
 - **Novo evento:** botão "Novo Evento", visível para admin, leva ao cadastro.
 
-Arquivos: `src/pages/admin/events/index.tsx`, `src/features/admin/events/components/list.tsx`, `src/features/admin/events/components/cardsStatus.tsx`, `src/features/admin/events/utils/eventStatus.ts`.
+Arquivos: `src/pages/admin/events/index.tsx`, `src/features/admin/events/components/list.tsx`, `src/features/admin/events/components/cardsStatus.tsx`, `src/features/admin/events/utils/eventStatus.ts`, `src/features/admin/events/components/modalStatusEmMassa.tsx`, `src/features/admin/events/api/putStatusEmMassa.ts`.
 
 ## Status do evento
 
