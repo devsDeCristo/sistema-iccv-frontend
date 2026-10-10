@@ -72,11 +72,25 @@ Arquivo: `src/pages/admin/events/details/index.tsx`.
   - **Baixar Crachá:** aberto a todo mundo que vê a aba.
   - **Remover do evento** (só quem administra): desvincula a inscrição do
     evento, com confirmação. Não é reversível pela tela.
-- **Liberação de menor** (coluna "Liberação"): selo com o estado
-  (`NOT_REQUIRED`/"Maior de idade", `PENDING`/"Aguardando liberação",
-  `APPROVED`/"Liberado", `REJECTED`/"Recusado"). Clicável só quando há algo a
-  decidir (não é `NOT_REQUIRED`) e só para quem administra — abre o modal de
-  aprovação.
+- **Nascimento:** a data e, embaixo, a idade no **primeiro dia do evento**
+  (hoje, se o evento não tem data) — é essa idade que decide se a pessoa é
+  menor e precisa de liberação. A conta usa só a parte da data, sem fuso: o
+  nascimento vem como meia-noite UTC, e no horário de Brasília cairia no dia
+  anterior, tirando um ano de quem faz aniversário no dia (`idadeNoEvento`).
+- **Data da inscrição:** a data e, embaixo, a hora (horário local). A
+  ordenação segue pela data e hora; a exportação sai com as duas juntas.
+- **Liberação de menor** (coluna "Liberação"): selo colorido que responde
+  "pode participar?":
+  - `NOT_REQUIRED` (maior de idade): "Liberado", verde.
+  - `APPROVED`: "Autorizado" (o responsável autorizou), verde — o mesmo sim,
+    com a diferença dita na palavra.
+  - `PENDING`: "Aguardando", laranja (a cor de atenção).
+  - `REJECTED`: "Recusado", vermelho.
+
+  Uma palavra por estado, para a coluna ficar estreita (120px).
+
+  Clicável só quando há algo a decidir ou rever (não é `NOT_REQUIRED`) e só
+  para quem administra — abre o modal de aprovação.
 
 Arquivos: `src/features/admin/events/components/listUsers.tsx`, `cardsRegistrations.tsx`, `filtersUserModal.tsx`, `modalAddUser.tsx`, `components/exportUsers/*`.
 

@@ -1,7 +1,7 @@
 import {
+  Box,
   Card,
   IconButton,
-  LinearProgress,
   ListItemIcon,
   ListItemText,
   Menu,
@@ -39,6 +39,7 @@ import { Role } from '../../../../constants/roles';
 import CustomChip from '../../../../components/customChip';
 import { EventStatus, EventStatusFilter } from '../types';
 import { EVENT_STATUS_LABELS } from '../constants';
+import { ModuloDoEvento, moduloAtivo } from '../eventModules';
 import {
   cardTabelaSx,
   dataGridSx,
@@ -126,6 +127,14 @@ const STATUS_DO_FILTRO: Record<
   test: 'TEST',
 };
 
+/** Os módulos ligados no evento, com a contagem de cada um */
+const modulosDaLinha = (row: any) =>
+  [
+    { chave: 'bedrooms', quantos: row.bedroom ?? 0, nome: 'quartos' },
+    { chave: 'teams', quantos: row.team ?? 0, nome: 'equipes' },
+    { chave: 'transport', quantos: row.transport ?? 0, nome: 'transportes' },
+  ].filter(({ chave }) => moduloAtivo(row.data, chave as ModuloDoEvento));
+
 function List({
   search,
   status = 'active',
@@ -156,36 +165,7 @@ function List({
     return matchesSearch && matchesStatus && matchesChurch;
   });
   const columns: GridColDef[] = [
-    { field: 'name', headerName: 'Nome', flex: 2, minWidth: 180 },
-    // a coluna só faz sentido para quem enxerga mais de uma igreja
-    ...(isSuperAdmin
-      ? [
-          {
-            field: 'church',
-            headerName: 'Igreja',
-            width: 170,
-            valueGetter: (params: any) => params.row.church?.name || '—',
-          },
-        ]
-      : []),
-    {
-      field: 'startDate',
-      headerName: 'Data inicial',
-      width: 100,
-      valueGetter: (params) => formatDate(params.row.startDate),
-    },
-    {
-      field: 'endDate',
-      headerName: 'Data final',
-      width: 100,
-      valueGetter: (params) => formatDate(params.row.endDate),
-    },
-    {
-      field: 'location',
-      headerName: 'Local',
-      width: 200,
-      valueGetter: () => 'Chácara Monte Moriá',
-    },
+    // o tipo primeiro: é por ele que se bate o olho na lista (cursilho, retiro)
     {
       field: 'type',
       headerName: 'Tipo',
@@ -200,83 +180,119 @@ function List({
         />
       ),
     },
+    { field: 'name', headerName: 'Nome', flex: 2, minWidth: 180 },
+    // a coluna só faz sentido para quem enxerga mais de uma igreja
+    ...(isSuperAdmin
+      ? [
+          {
+            field: 'church',
+            headerName: 'Igreja',
+            width: 170,
+            valueGetter: (params: any) => params.row.church?.name || '—',
+          },
+        ]
+      : []),
     {
+      // início e fim numa coluna só. O valor é a data de início, e não o
+      // texto: ordenar por "dd/mm/aaaa" poria 01/12 antes de 31/01. O texto
+      // é só da tela e da exportação (`valueFormatter`)
+      field: 'startDate',
+      headerName: 'Período',
+      width: 120,
+      type: 'date',
+      valueGetter: (params) => new Date(params.row.startDate),
+      valueFormatter: (params) => {
+        const row = params.api.getRow(params.id!);
+        const [inicio, fim] = [
+          formatDate(row.startDate),
+          formatDate(row.endDate),
+        ];
+        return inicio === fim ? inicio : `${inicio} a ${fim}`;
+      },
+      renderCell: (params) => {
+        const inicio = formatDate(params.row.startDate);
+        const fim = formatDate(params.row.endDate);
+        return (
+          <Stack sx={{ py: 1 }}>
+            <Typography variant="body2" noWrap>
+              {inicio}
+            </Typography>
+            {/* evento de um dia: "até" a mesma data não diz nada */}
+            {fim !== inicio && (
+              <Typography variant="caption" color="text.secondary" noWrap>
+                até {fim}
+              </Typography>
+            )}
+          </Stack>
+        );
+      },
+    },
+    {
+      field: 'location',
+      headerName: 'Local',
+      width: 200,
+      valueGetter: () => 'Chácara Monte Moriá',
+    },
+    {
+      // inscritos e lista de espera numa coluna só: são a mesma pergunta,
+      // "quanto da vaga está tomado"
       field: 'users',
-      headerName: 'Inscritos',
-      width: 100,
-      align: 'center',
-      headerAlign: 'center',
-      renderCell: (params) => {
-        const users = params?.row?.users;
-        const capacity = params?.row?.capacity;
-
-        return (
-          <Stack direction="row" alignItems="center">
-            <Typography>
-              {users}/{capacity}
-              <LinearProgress
-                variant="determinate"
-                value={(users / (capacity || 0)) * 100}
-              />
-            </Typography>
-          </Stack>
-        );
-      },
+      headerName: 'Vagas',
+      width: 130,
+      valueGetter: (params) =>
+        `${params.row.users ?? 0}/${params.row.capacity ?? 0} inscritos, ${
+          params.row.waitlist ?? 0
+        } em espera`,
+      renderCell: (params) => (
+        <Stack gap={0.25} sx={{ py: 1 }}>
+          <Typography variant="body2" noWrap>
+            <Box component="span" sx={{ fontWeight: 700 }}>
+              {params.row.users ?? 0}
+            </Box>
+            /{params.row.capacity ?? 0} inscritos
+          </Typography>
+          <Typography variant="caption" color="text.secondary" noWrap>
+            {params.row.waitlist ?? 0} em espera
+          </Typography>
+        </Stack>
+      ),
     },
     {
-      field: 'waitlist',
-      headerName: 'Em espera',
-      width: 100,
-      align: 'center',
-      headerAlign: 'center',
+      // um módulo por linha, só os ligados no evento: o que está desligado
+      // não tem aba no painel, e um "0 quartos" sugeriria que falta cadastrar
+      field: 'modulos',
+      headerName: 'Módulos',
+      width: 140,
+      sortable: false,
+      valueGetter: (params) =>
+        modulosDaLinha(params.row)
+          .map(({ quantos, nome }) => `${quantos} ${nome}`)
+          .join(', ') || '—',
       renderCell: (params) => {
-        return (
-          <Stack direction="column" alignItems="center">
-            <Typography color={theme.palette.text.primary} variant="body2">
-              {params.value || 0}
-            </Typography>
-            <Typography color={theme.palette.text.secondary} variant="caption">
-              {'Aguardando'}
-            </Typography>
+        const modulos = modulosDaLinha(params.row);
+        return modulos.length ? (
+          // linhas coladas: três módulos não passam da altura da coluna Vagas
+          <Stack sx={{ py: 1 }}>
+            {modulos.map(({ chave, quantos, nome }) => (
+              <Typography
+                key={chave}
+                variant="caption"
+                noWrap
+                sx={{ lineHeight: 1.35 }}
+              >
+                <Box component="span" sx={{ fontWeight: 700 }}>
+                  {quantos}
+                </Box>{' '}
+                <Box component="span" sx={{ color: 'text.secondary' }}>
+                  {nome}
+                </Box>
+              </Typography>
+            ))}
           </Stack>
-        );
-      },
-    },
-    {
-      field: 'bedrooms',
-      headerName: 'Quartos',
-      width: 100,
-      align: 'center',
-      headerAlign: 'center',
-      renderCell: (params) => {
-        return (
-          <Stack direction="column" alignItems="center">
-            <Typography color={theme.palette.text.primary} variant="body2">
-              {params.row.bedroom || 0}
-            </Typography>
-            <Typography color={theme.palette.text.secondary} variant="caption">
-              {'Quartos'}
-            </Typography>
-          </Stack>
-        );
-      },
-    },
-    {
-      field: 'team',
-      headerName: 'Equipes',
-      width: 100,
-      align: 'center',
-      headerAlign: 'center',
-      renderCell: (params) => {
-        return (
-          <Stack direction="column" alignItems="center">
-            <Typography color={theme.palette.text.primary} variant="body2">
-              {params.row.team || 0}
-            </Typography>
-            <Typography color={theme.palette.text.secondary} variant="caption">
-              {'Equipes'}
-            </Typography>
-          </Stack>
+        ) : (
+          <Typography variant="caption" color="text.disabled">
+            Nenhum
+          </Typography>
         );
       },
     },
@@ -432,6 +448,8 @@ function List({
           },
         }}
         columnHeaderHeight={44}
+        // altura pelo conteúdo: a coluna Módulos tem até três linhas
+        getRowHeight={() => 'auto'}
         sx={dataGridSx(theme)}
         localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
       />

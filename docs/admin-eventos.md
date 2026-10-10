@@ -19,6 +19,24 @@ inscrição por grupo também (`docs/inscricao-em-grupos.md`).
   o super admin e para quem administra ou é financeiro em mais de uma igreja.
   Quem tem uma igreja só vê os eventos dela, sem seletor. Se a igreja escolhida
   deixou de existir ou de pertencer à pessoa, volta para "Todas" em silêncio.
+- **Ordem das colunas:** Tipo (chip Cursilho/Retiro) vem antes do Nome, logo
+  depois da caixa de seleção: é por ele que se bate o olho na lista.
+- **Período:** início e fim numa coluna só, em duas linhas ("04/02/2027" e,
+  embaixo, "até 07/02/2027"); evento de um dia mostra só a data. O valor da
+  coluna é a data de início, e não o texto, para a ordenação ir por data (por
+  texto, 01/12 viria antes de 31/01). Na exportação sai "04/02/2027 a
+  07/02/2027".
+- **Colunas de números:**
+  - **Vagas:** inscritos e lista de espera numa coluna só, em duas linhas —
+    "191/200 inscritos" e, embaixo, "24 em espera".
+  - **Módulos:** um por linha, até três, **só os ligados** no evento
+    (`moduloAtivo`): "31 quartos", "8 equipes", "3 transportes". Módulo
+    desligado não tem aba no painel, e um "0 quartos" sugeriria que falta
+    cadastrar. Sem nenhum ligado, "Nenhum". As linhas ficam coladas para três
+    módulos não passarem da altura da coluna Vagas.
+  - A linha da tabela tem altura pelo conteúdo (`getRowHeight: 'auto'`). Na
+    exportação, as duas colunas saem em texto corrido ("191/200 inscritos, 24
+    em espera"; "31 quartos, 8 equipes, 3 transportes").
 - **Seleção e status em massa:** caixa de seleção por linha, no mesmo padrão
   da lista de usuários (marcar só pela caixa; busca e filtro não desmarcam;
   contagem na barra, não no rodapé da tabela).
