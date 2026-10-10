@@ -47,7 +47,7 @@ Abaixo da troca de senha, separado por um divisor. Mostra as contas de fora que 
 - **Google não vinculado:** "Não vinculada" e o botão "Vincular". A janela tem dois passos:
   1. Senha atual e, só depois de digitada, o botão "Continuar com Google". O servidor confere a senha antes do token, e o token vale uma tentativa só. Nada é vinculado ainda: o servidor manda um código de 8 dígitos para o e-mail do cadastro.
   2. A janela mostra para qual e-mail o código foi (mascarado) e pede o código: só dígitos, até 8, com `autoComplete="one-time-code"`; Enter confirma. Código errado limpa o campo e mostra o erro. "Pedir outro código" volta ao passo 1 (o servidor espera 1 minuto entre um código e outro). O código vale 15 minutos.
-- **Google vinculado:** o e-mail da conta Google (pode ser diferente do e-mail do cadastro) e a data do vínculo, com "Desvincular". Desvincular pede confirmação, mas não a senha: só fecha uma porta, e CPF e senha continuam valendo.
+- **Google vinculado:** o e-mail da conta Google (pode ser diferente do e-mail do cadastro) e a data do vínculo, com "Desvincular". Desvincular pede confirmação, mas não a senha: só fecha uma porta, e CPF e senha continuam valendo. Enquanto o pedido roda, o botão "Desvincular" vira um indicador de carregamento e a janela não fecha: a resposta demora um pouco porque o servidor manda o e-mail de aviso antes de responder.
 - **Erros** do vínculo (senha errada, conta Google de outro cadastro, cadastro já com outro Google) aparecem dentro da janela.
 - **Aviso:** o servidor manda e-mail ao vincular e ao desvincular.
 

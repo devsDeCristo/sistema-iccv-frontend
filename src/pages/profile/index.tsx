@@ -866,8 +866,13 @@ function ContasVinculadas() {
             color="error"
             onClick={confirmarDesvinculo}
             disabled={desvinculando}
+            sx={{ minWidth: 130 }}
           >
-            Desvincular
+            {desvinculando ? (
+              <CircularProgress size={20} color="inherit" />
+            ) : (
+              'Desvincular'
+            )}
           </Button>
         </DialogActions>
       </Dialog>
