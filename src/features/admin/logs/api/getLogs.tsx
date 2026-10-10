@@ -137,6 +137,8 @@ export type LoginAttempt = {
   document: string;
   success: boolean;
   reason: 'USER_NOT_FOUND' | 'WRONG_PASSWORD' | null;
+  /** no Google, `document` é o e-mail da conta Google */
+  method: 'PASSWORD' | 'GOOGLE';
   ip: string | null;
   userAgent: string | null;
   /** o `userAgent` já lido pelo servidor — ver `src/logs/dispositivo.ts` */

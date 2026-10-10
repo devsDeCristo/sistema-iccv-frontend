@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Link as RouterLink } from 'react-router-dom';
 import {
+  Alert,
   alpha,
   Box,
   Button,
@@ -12,6 +13,7 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  Divider,
   IconButton,
   InputAdornment,
   Link,
@@ -29,6 +31,7 @@ import {
 } from '@mui/material';
 import {
   BadgeOutlined,
+  Google,
   LockOutlined,
   MailOutline,
   PersonOutline,
@@ -53,10 +56,17 @@ import { NEW_PASSWORD_SCHEMA } from '../../features/login/constants';
 import {
   mensagemDoErro,
   useChangePassword,
+  useContasVinculadas,
+  useDesvincularGoogle,
   useGetMe,
   usePostMyPhoto,
   usePutMe,
+  useVincularGoogle,
 } from '../../features/profile/api';
+import {
+  BotaoDoGoogle,
+  GOOGLE_CLIENT_ID,
+} from '../../components/botaoDoGoogle';
 import { setStoredUser } from '../../auth/session';
 import { useUser } from '../../contexts/userContext';
 import { RegisterUsersFormType, User } from '../../types/user';
@@ -571,6 +581,217 @@ function CabecalhoDoPerfil({
   );
 }
 
+/**
+ * Contas vinculadas: as contas de fora que também entram no sistema — hoje só
+ * o Google. A conta Google pode ter outro e-mail que não o do cadastro: quem
+ * identifica a pessoa é a conta, não o endereço.
+ */
+function ContasVinculadas() {
+  const theme = useTheme();
+  const { data: contas, isLoading } = useContasVinculadas();
+  const { mutate: vincular, isLoading: vinculando } = useVincularGoogle();
+  const { mutate: desvincular, isLoading: desvinculando } =
+    useDesvincularGoogle();
+  const [janela, setJanela] = useState<'vincular' | 'desvincular' | null>(null);
+  const [senha, setSenha] = useState('');
+  const [erro, setErro] = useState<string>();
+
+  const google = contas?.find((conta) => conta.provider === 'GOOGLE');
+
+  const abrir = (qual: 'vincular' | 'desvincular') => {
+    setSenha('');
+    setErro(undefined);
+    setJanela(qual);
+  };
+
+  const aoCredencial = (credential: string) =>
+    vincular(
+      { credential, currentPassword: senha },
+      {
+        onSuccess: (conta) => {
+          setJanela(null);
+          toast.success(
+            `Conta Google ${conta.email} vinculada. Enviamos um aviso para o seu e-mail.`
+          );
+        },
+        onError: (falha) =>
+          setErro(mensagemDoErro(falha, 'Não foi possível vincular.')),
+      }
+    );
+
+  const confirmarDesvinculo = () =>
+    desvincular(undefined, {
+      onSuccess: () => {
+        setJanela(null);
+        toast.success('Conta Google desvinculada.');
+      },
+      onError: (falha) => {
+        toast.error(mensagemDoErro(falha, 'Não foi possível desvincular.'));
+      },
+    });
+
+  return (
+    <Box>
+      <Typography sx={{ fontWeight: 800 }}>Contas vinculadas</Typography>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+        Entre no sistema com estas contas, além do CPF e senha
+      </Typography>
+
+      <Stack
+        direction="row"
+        alignItems="center"
+        gap={2}
+        sx={{
+          p: 2,
+          borderRadius: 2,
+          border: `1px solid ${theme.palette.divider}`,
+        }}
+      >
+        <Box
+          sx={{
+            width: 42,
+            height: 42,
+            flexShrink: 0,
+            borderRadius: 2,
+            display: 'grid',
+            placeItems: 'center',
+            backgroundColor: alpha(theme.palette.text.primary, 0.06),
+          }}
+        >
+          <Google />
+        </Box>
+
+        <Box sx={{ minWidth: 0, flex: 1 }}>
+          <Typography sx={{ fontWeight: 700 }}>Google</Typography>
+          {isLoading ? (
+            <Skeleton width={180} />
+          ) : (
+            <Typography variant="body2" color="text.secondary" noWrap>
+              {google
+                ? `${google.email} · desde ${new Date(
+                    google.createdAt
+                  ).toLocaleDateString('pt-BR')}`
+                : 'Não vinculada'}
+            </Typography>
+          )}
+        </Box>
+
+        {!isLoading &&
+          (google ? (
+            <Button
+              color="inherit"
+              onClick={() => abrir('desvincular')}
+              sx={{ flexShrink: 0 }}
+            >
+              Desvincular
+            </Button>
+          ) : (
+            <Button
+              variant="outlined"
+              onClick={() => abrir('vincular')}
+              sx={{ flexShrink: 0, borderRadius: 2 }}
+            >
+              Vincular
+            </Button>
+          ))}
+      </Stack>
+
+      <Dialog
+        open={janela === 'vincular'}
+        onClose={() => !vinculando && setJanela(null)}
+        maxWidth="xs"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: 3 } }}
+      >
+        <DialogTitle sx={{ fontWeight: 700 }}>
+          Vincular conta Google
+        </DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            A conta Google vai entrar no seu cadastro sem CPF e senha. Para
+            vincular, confirme a sua senha atual e escolha a conta.
+          </Typography>
+          <CampoDeSenha
+            autoFocus
+            label="Senha atual"
+            autoComplete="current-password"
+            value={senha}
+            onChange={(valor) => {
+              setSenha(valor);
+              setErro(undefined);
+            }}
+          />
+          {erro && (
+            <Alert severity="error" sx={{ mt: 2 }}>
+              {erro}
+            </Alert>
+          )}
+          {/* o botão só aparece com a senha digitada: o token do Google vale
+              uma tentativa e não deve sair antes da senha */}
+          <Box sx={{ mt: 2.5 }}>
+            {vinculando ? (
+              <Stack alignItems="center" sx={{ minHeight: 44 }}>
+                <CircularProgress size={24} />
+              </Stack>
+            ) : (
+              senha && (
+                <BotaoDoGoogle
+                  texto="continue_with"
+                  onCredencial={aoCredencial}
+                />
+              )
+            )}
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2.5 }}>
+          <Button
+            color="inherit"
+            onClick={() => setJanela(null)}
+            disabled={vinculando}
+          >
+            Cancelar
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={janela === 'desvincular'}
+        onClose={() => !desvinculando && setJanela(null)}
+        maxWidth="xs"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: 3 } }}
+      >
+        <DialogTitle sx={{ fontWeight: 700 }}>
+          Desvincular conta Google?
+        </DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary">
+            {google?.email} deixa de entrar no sistema. Você continua entrando
+            com CPF e senha.
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2.5 }}>
+          <Button
+            color="inherit"
+            onClick={() => setJanela(null)}
+            disabled={desvinculando}
+          >
+            Cancelar
+          </Button>
+          <Button
+            variant="contained"
+            color="error"
+            onClick={confirmarDesvinculo}
+            disabled={desvinculando}
+          >
+            Desvincular
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
+  );
+}
+
 /** Aba de segurança: o que acontece ao trocar a senha, ao lado do formulário */
 function Seguranca() {
   const theme = useTheme();
@@ -581,54 +802,62 @@ function Seguranca() {
   ];
 
   return (
-    <Box
-      sx={{
-        display: 'grid',
-        gap: { xs: 3, md: 5 },
-        gridTemplateColumns: {
-          xs: '1fr',
-          md: 'minmax(0, 1fr) minmax(0, 1.15fr)',
-        },
-        alignItems: 'start',
-      }}
-    >
-      <Box>
-        <Stack direction="row" gap={1.5} alignItems="center" sx={{ mb: 1.5 }}>
-          <Box
-            sx={{
-              width: 42,
-              height: 42,
-              borderRadius: 2,
-              display: 'grid',
-              placeItems: 'center',
-              color: 'primary.main',
-              backgroundColor: alpha(theme.palette.primary.main, 0.1),
-            }}
-          >
-            <ShieldOutlined />
-          </Box>
-          <Box>
-            <Typography sx={{ fontWeight: 800 }}>Senha de acesso</Typography>
-            <Typography variant="body2" color="text.secondary">
-              Você entra com o seu CPF e esta senha
-            </Typography>
-          </Box>
-        </Stack>
-        <Stack gap={1} component="ul" sx={{ m: 0, pl: 2.5 }}>
-          {itens.map((item) => (
-            <Typography
-              key={item}
-              component="li"
-              variant="body2"
-              color="text.secondary"
+    <Stack gap={4}>
+      <Box
+        sx={{
+          display: 'grid',
+          gap: { xs: 3, md: 5 },
+          gridTemplateColumns: {
+            xs: '1fr',
+            md: 'minmax(0, 1fr) minmax(0, 1.15fr)',
+          },
+          alignItems: 'start',
+        }}
+      >
+        <Box>
+          <Stack direction="row" gap={1.5} alignItems="center" sx={{ mb: 1.5 }}>
+            <Box
+              sx={{
+                width: 42,
+                height: 42,
+                borderRadius: 2,
+                display: 'grid',
+                placeItems: 'center',
+                color: 'primary.main',
+                backgroundColor: alpha(theme.palette.primary.main, 0.1),
+              }}
             >
-              {item}
-            </Typography>
-          ))}
-        </Stack>
+              <ShieldOutlined />
+            </Box>
+            <Box>
+              <Typography sx={{ fontWeight: 800 }}>Senha de acesso</Typography>
+              <Typography variant="body2" color="text.secondary">
+                Você entra com o seu CPF e esta senha
+              </Typography>
+            </Box>
+          </Stack>
+          <Stack gap={1} component="ul" sx={{ m: 0, pl: 2.5 }}>
+            {itens.map((item) => (
+              <Typography
+                key={item}
+                component="li"
+                variant="body2"
+                color="text.secondary"
+              >
+                {item}
+              </Typography>
+            ))}
+          </Stack>
+        </Box>
+        <MinhaSenha />
       </Box>
-      <MinhaSenha />
-    </Box>
+      {GOOGLE_CLIENT_ID && (
+        <>
+          <Divider />
+          <ContasVinculadas />
+        </>
+      )}
+    </Stack>
   );
 }
 

@@ -318,14 +318,23 @@ function ListLoginAttempts() {
             <Typography fontSize={13} noWrap>{row.user.name}</Typography>
           </Stack>
         ) : (
-          <Typography fontSize={13} color="text.secondary">Documento não encontrado</Typography>
+          <Typography fontSize={13} color="text.secondary">
+            {row.method === 'GOOGLE' ? 'Sem cadastro vinculado' : 'Documento não encontrado'}
+          </Typography>
         ),
     },
     {
       field: 'document',
-      headerName: 'Documento digitado',
-      width: 180,
-      renderCell: ({ value }) => <Typography fontSize={13}>{value}</Typography>,
+      headerName: 'Documento ou conta',
+      width: 220,
+      renderCell: ({ row }) => (
+        <Box minWidth={0}>
+          <Typography fontSize={13} noWrap>{row.document}</Typography>
+          {row.method === 'GOOGLE' && (
+            <Typography fontSize={11} color="text.secondary">Pelo Google</Typography>
+          )}
+        </Box>
+      ),
     },
     {
       field: 'success',
@@ -350,7 +359,9 @@ function ListLoginAttempts() {
             ? '—'
             : row.reason === 'WRONG_PASSWORD'
               ? 'Senha incorreta'
-              : 'Documento não encontrado'}
+              : row.method === 'GOOGLE'
+                ? 'Conta Google sem cadastro vinculado'
+                : 'Documento não encontrado'}
         </Typography>
       ),
     },

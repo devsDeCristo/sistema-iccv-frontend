@@ -43,6 +43,45 @@ export const useChangePassword = () =>
         .then((resposta) => resposta.data),
   });
 
+/** Uma conta de fora que entra no lugar de CPF e senha — hoje só o Google */
+export type ContaVinculada = {
+  provider: 'GOOGLE';
+  /** o e-mail da conta no Google, que pode ser diferente do cadastro */
+  email: string;
+  createdAt: string;
+  lastUsedAt: string | null;
+};
+
+const CONTAS_VINCULADAS = 'CONTAS_VINCULADAS';
+
+export const useContasVinculadas = () =>
+  useQuery([CONTAS_VINCULADAS], () =>
+    apiClient
+      .get<ContaVinculada[]>('/auth/identities')
+      .then((resposta) => resposta.data)
+  );
+
+const atualizarContas = () => queryClient.invalidateQueries(CONTAS_VINCULADAS);
+
+/** Pede a senha atual: o servidor confere antes de olhar o token do Google */
+export const useVincularGoogle = () =>
+  useMutation({
+    mutationFn: (dados: { credential: string; currentPassword: string }) =>
+      apiClient
+        .post<ContaVinculada>('/auth/identities/google', dados)
+        .then((resposta) => resposta.data),
+    onSuccess: atualizarContas,
+  });
+
+export const useDesvincularGoogle = () =>
+  useMutation({
+    mutationFn: () =>
+      apiClient
+        .delete<{ message: string }>('/auth/identities/google')
+        .then((resposta) => resposta.data),
+    onSuccess: atualizarContas,
+  });
+
 /** A mensagem que a API mandou, ou a genérica */
 export const mensagemDoErro = (erro: any, generica: string): string =>
   [erro?.response?.data?.message].flat()[0] ?? generica;

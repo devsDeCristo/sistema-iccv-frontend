@@ -52,10 +52,10 @@ Uma linha por tentativa de entrada no sistema, bem-sucedida ou recusada.
 ### O que aparece na lista
 
 - **Quando:** data/hora e tempo relativo.
-- **Usuário:** avatar e nome de quem é dono do documento digitado, quando o documento existe no cadastro; senão, "Documento não encontrado".
-- **Documento digitado:** o CPF/documento informado na tentativa — aparece mesmo quando não bate com nenhum cadastro.
+- **Usuário:** avatar e nome de quem é dono do documento digitado, quando o documento existe no cadastro; senão, "Documento não encontrado" (ou "Sem cadastro vinculado", no Google).
+- **Documento ou conta:** o CPF/documento informado na tentativa — aparece mesmo quando não bate com nenhum cadastro. No login com Google é o e-mail da conta Google, com "Pelo Google" embaixo.
 - **Resultado:** chip "Sucesso" (verde) ou "Falha" (vermelho).
-- **Motivo:** em falhas, "Senha incorreta" ou "Documento não encontrado"; em sucesso, "—".
+- **Motivo:** em falhas, "Senha incorreta", "Documento não encontrado" ou "Conta Google sem cadastro vinculado"; em sucesso, "—".
 - **Dispositivo:** ícone por tipo (celular, tablet, computador, não identificado) e o resumo lido do `User-Agent` (ex. "iPhone · iOS 18.7"). Clicar abre um popover com aparelho, sistema, versão do sistema, navegador, versão do navegador, motor, arquitetura, e o texto bruto do `User-Agent` com botão de copiar — é essa string bruta que serve de prova numa investigação. Campos não informados pelo navegador aparecem como "Não informado".
 - **IP:** o endereço de origem da tentativa, ou "—" quando ausente.
 

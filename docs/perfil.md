@@ -40,6 +40,17 @@ Arquivo: `src/pages/profile/index.tsx` (`MeusDados`).
 
 Arquivo: `src/pages/profile/index.tsx` (`MinhaSenha`, `Seguranca`); `src/features/profile/api.ts` (`useChangePassword`).
 
+## Aba "Segurança" — contas vinculadas
+
+Abaixo da troca de senha, separado por um divisor. Mostra as contas de fora que também entram no sistema; hoje só o Google. Some inteira sem `VITE_GOOGLE_CLIENT_ID`.
+
+- **Google não vinculado:** "Não vinculada" e o botão "Vincular". A janela pede a senha atual e, só depois de digitada, mostra o botão "Continuar com o Google". O servidor confere a senha antes do token, e o token vale uma tentativa só.
+- **Google vinculado:** o e-mail da conta Google (pode ser diferente do e-mail do cadastro) e a data do vínculo, com "Desvincular". Desvincular pede confirmação, mas não a senha: só fecha uma porta, e CPF e senha continuam valendo.
+- **Erros** do vínculo (senha errada, conta Google de outro cadastro, cadastro já com outro Google) aparecem dentro da janela.
+- **Aviso:** o servidor manda e-mail ao vincular e ao desvincular.
+
+Arquivo: `src/pages/profile/index.tsx` (`ContasVinculadas`); `src/features/profile/api.ts` (`useContasVinculadas`, `useVincularGoogle`, `useDesvincularGoogle`).
+
 ## Dados e API
 
 | Ação | Rota |
@@ -48,6 +59,9 @@ Arquivo: `src/pages/profile/index.tsx` (`MinhaSenha`, `Seguranca`); `src/feature
 | Salvar dados pessoais | `PUT /users/me` |
 | Enviar/trocar foto | `POST /users/me/profile-photo` |
 | Trocar senha | `POST /auth/password/change` |
+| Contas vinculadas | `GET /auth/identities` |
+| Vincular Google | `POST /auth/identities/google` (`credential`, `currentPassword`) |
+| Desvincular Google | `DELETE /auth/identities/google` |
 
 Arquivo: `src/features/profile/api.ts`.
 

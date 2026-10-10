@@ -3,6 +3,7 @@ import {
   Box,
   Button,
   CircularProgress,
+  Divider,
   Link,
   Stack,
   Typography,
@@ -24,12 +25,17 @@ import {
   takeSessionExpired,
 } from '../../auth/session';
 import { usePostLogin } from '../../features/login/api/postLogin';
+import { usePostGoogleLogin } from '../../features/login/api/postGoogleLogin';
 import Swal from 'sweetalert2';
 import { toast } from 'react-toastify';
 import { useRole } from '../../hooks/useRole';
 import { ADMIN_AREA_ROLES } from '../../constants/roles';
 import { LoginFormType } from '../../features/login/types';
 import { Captcha, CAPTCHA_SITE_KEY } from '../../components/captcha';
+import {
+  BotaoDoGoogle,
+  GOOGLE_CLIENT_ID,
+} from '../../components/botaoDoGoogle';
 //images
 import CapaLogin from '../../assets/capaLogin2.jpg';
 import Logo from '../../assets/logo-ic.svg?react';
@@ -142,26 +148,34 @@ function Login() {
     navigate(canAccessAdminArea ? '/admin/inicio' : '/eventos');
   }, []);
 
+  /** A sessão que a API devolveu, pelo CPF e senha ou pelo Google */
+  const abrirSessao = (response: { access_token: string; user: any }) => {
+    localStorage.setItem('access_token', response.access_token);
+    localStorage.setItem('user', JSON.stringify(response.user));
+
+    const canAccessAdminArea = ADMIN_AREA_ROLES.includes(response.user.role);
+    const areaInicial = canAccessAdminArea ? '/admin/inicio' : '/home';
+
+    /**
+     * Sessão vencida no meio do caminho: volta para a tela onde a pessoa
+     * estava. A rota guardada só vale se o perfil de agora alcança ela —
+     * senão quem entrasse como usuário comum cairia numa rota de painel e
+     * levaria outro redirect na cara.
+     */
+    const rotaGuardada = takeRememberedRoute();
+    const podeVoltar =
+      rotaGuardada && (canAccessAdminArea || !isAdminPath(rotaGuardada));
+
+    navigate(podeVoltar ? (rotaGuardada as string) : areaInicial);
+  };
+
+  // as recusas do Google (sem cadastro vinculado, token inválido) já saem
+  // em toast com a mensagem da API
+  const { mutate: entrarComGoogle, isLoading: entrandoComGoogle } =
+    usePostGoogleLogin({ onSuccess: abrirSessao });
+
   const { mutate: mutatePostLogin, isLoading } = usePostLogin({
-    onSuccess: (response) => {
-      localStorage.setItem('access_token', response.access_token);
-      localStorage.setItem('user', JSON.stringify(response.user));
-
-      const canAccessAdminArea = ADMIN_AREA_ROLES.includes(response.user.role);
-      const areaInicial = canAccessAdminArea ? '/admin/inicio' : '/home';
-
-      /**
-       * Sessão vencida no meio do caminho: volta para a tela onde a pessoa
-       * estava. A rota guardada só vale se o perfil de agora alcança ela —
-       * senão quem entrasse como usuário comum cairia numa rota de painel e
-       * levaria outro redirect na cara.
-       */
-      const rotaGuardada = takeRememberedRoute();
-      const podeVoltar =
-        rotaGuardada && (canAccessAdminArea || !isAdminPath(rotaGuardada));
-
-      navigate(podeVoltar ? (rotaGuardada as string) : areaInicial);
-    },
+    onSuccess: abrirSessao,
     onError: (error: any) => {
       const resposta = error.response?.data;
 
@@ -348,6 +362,11 @@ function Login() {
       fontWeight: 600,
       letterSpacing: '0.2px',
     },
+    ou: {
+      my: 2,
+      fontSize: '0.8125rem',
+      color: 'text.secondary',
+    },
     // discreto de propósito: é saída de exceção, não caminho principal
     esqueciSenha: {
       mt: 1,
@@ -420,8 +439,9 @@ function Login() {
               Bem-vindo de volta
             </Typography>
             <Typography sx={styles.subtitulo}>
-              Entre com seu CPF e senha para acompanhar seus eventos e
-              inscrições.
+              Entre com seu CPF e senha
+              {GOOGLE_CLIENT_ID ? ', ou com o Google,' : ''} para acompanhar
+              seus eventos e inscrições.
             </Typography>
 
             <Box sx={styles.bloco}>
@@ -460,6 +480,19 @@ function Login() {
                   </Button>
                 </form>
               </FormProvider>
+
+              {GOOGLE_CLIENT_ID && (
+                <>
+                  <Divider sx={styles.ou}>ou</Divider>
+                  {entrandoComGoogle ? (
+                    <Stack alignItems="center" sx={{ minHeight: 44 }}>
+                      <CircularProgress size={24} />
+                    </Stack>
+                  ) : (
+                    <BotaoDoGoogle onCredencial={entrarComGoogle} />
+                  )}
+                </>
+              )}
 
               <Button
                 variant="text"

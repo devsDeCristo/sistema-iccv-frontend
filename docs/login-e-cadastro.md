@@ -15,7 +15,18 @@ depois de entrar.
 - **Já logado ao abrir `/login`:** redireciona sozinho para `/admin/inicio` (quem entra no painel) ou `/eventos` conforme o papel.
 - **Link para os Termos de Uso** (`/termos`) e para o cadastro (`/usuario/cadastrar`).
 
-Arquivos: `src/pages/login/index.tsx`, `src/features/login/components/form.tsx`, `src/features/login/api/postLogin.tsx`, `src/features/login/constants.ts`.
+- **Entrar com Google:** abaixo do "Entrar", depois de um divisor "ou", o botão oficial do Google (`BotaoDoGoogle`). Ele entrega um ID token, que vai para `POST /auth/google`; a resposta é a mesma do login por CPF, e a sessão abre pelo mesmo caminho (`abrirSessao`). Recusa (conta Google sem cadastro vinculado, token inválido) sai em toast com a mensagem da API, sem levar ao cadastro. Sem `VITE_GOOGLE_CLIENT_ID`, nem o botão nem o divisor aparecem, e o subtítulo volta a falar só de CPF e senha.
+
+Arquivos: `src/pages/login/index.tsx`, `src/features/login/components/form.tsx`, `src/features/login/api/postLogin.tsx`, `src/features/login/api/postGoogleLogin.tsx`, `src/features/login/constants.ts`.
+
+### Botão do Google (`src/components/botaoDoGoogle`)
+
+- Carrega o script do Google Identity Services (`accounts.google.com/gsi/client`) uma vez só, na primeira tela que precisar dele, como o captcha da Cloudflare.
+- O `initialize` do Google é global, com um callback só: ele repassa o token para quem estiver montado (o login ou a janela de vínculo do perfil).
+- `ux_mode: 'popup'` e `auto_select: false`: entrar é sempre um clique da pessoa.
+- Tema `outline` no claro e `filled_black` no escuro; largura da caixa, até os 400px que o Google aceita.
+- Se o script não carregar (bloqueador, rede), o botão some e CPF e senha seguem funcionando.
+- Quem confere o token é a API; o front só repassa. Regras no `ic-backend`, `docs/autenticacao.md` ("Login com Google").
 
 ### Para onde vai depois de logar
 
