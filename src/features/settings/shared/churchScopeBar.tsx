@@ -177,6 +177,9 @@ function ChurchScopeBar({ escopo, oQueMuda, todas = false }: Props) {
         color: theme.palette.text.secondary,
         whiteSpace: 'nowrap',
         flexShrink: 0,
+        // no celular o espaço é do nome da igreja: o ícone e a caixa já dizem
+        // o que é, e com o rótulo o seletor não cabia ao lado do título
+        display: { xs: 'none', sm: 'block' },
       }}
     >
       Igreja selecionada

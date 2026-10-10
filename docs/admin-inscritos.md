@@ -22,8 +22,14 @@ equipes e transporte também (`docs/admin-quartos-equipes-transporte.md`).
     ver `docs/admin-eventos.md`, seção Módulos.
   - Link direto para uma aba bloqueada volta para a primeira aba liberada,
     assim que o perfil no evento é resolvido.
-- **Check-in:** botão "Abrir check-in" no cabeçalho, só para quem administra o
-  evento — abre a tela cheia de check-in (`docs/checkin.md`), fora das abas.
+- **Check-in:** botão "Abrir check-in" na linha das abas, à direita e alinhado
+  a elas (no celular, embaixo das abas), só para quem administra o evento —
+  abre a tela cheia de check-in (`docs/checkin.md`), fora das abas. Na aba
+  Financeiro, o "Esconder valores" fica ao lado dele (`docs/admin-pagamentos.md`).
+  Os botões não encolhem: no aperto, quem cede são as abas, que rolam.
+- **Cabeçalho compacto:** nome do evento em 18px e, embaixo, o período com
+  ícone de calendário; menos respiro no topo da página. Ver
+  `docs/layout-e-navegacao.md` (`Header` `compacto`).
 
 Arquivo: `src/pages/admin/events/details/index.tsx`.
 

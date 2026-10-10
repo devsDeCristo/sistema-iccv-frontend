@@ -35,6 +35,7 @@ import { Header } from '../../../components/header';
 import {
   cardTabelaSx,
   dataGridSx,
+  barraLarguraCheiaNoCelularSx,
   superficieSx,
 } from '../../../components/listPageStyles';
 import CustomChip from '../../../components/customChip';
@@ -272,6 +273,8 @@ export function Churches() {
       marginY: 2,
       padding: 2,
       ...superficieSx,
+      // no celular, busca, selects e botões ocupam a linha inteira
+      ...barraLarguraCheiaNoCelularSx,
     },
     campo: {
       width: { xs: '100%', sm: '380px' },

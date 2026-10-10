@@ -12,7 +12,10 @@ import { PageStyle } from '../../../components/pageStyle';
 import { Header } from '../../../components/header';
 import { List } from '../../../features/admin/users/components/list';
 import { useRole } from '../../../hooks/useRole';
-import { superficieSx } from '../../../components/listPageStyles';
+import {
+  barraLarguraCheiaNoCelularSx,
+  superficieSx,
+} from '../../../components/listPageStyles';
 import { useState } from 'react';
 import { Add, Close, Search } from '@mui/icons-material';
 import { CardsStatus } from '../../../features/admin/users/components/cardsStatus';
@@ -41,6 +44,8 @@ function Users() {
       padding: 2,
       // mesmo raio dos cards e da tabela; a sombra vem do tema
       ...superficieSx,
+      // no celular, busca, selects e botões ocupam a linha inteira
+      ...barraLarguraCheiaNoCelularSx,
     },
     button: {
       width: { xs: '100%', sm: 'fit-content' },
@@ -61,7 +66,7 @@ function Users() {
   };
   return (
     <PageStyle>
-      <Header title="Usuários">
+      <Header title="Usuários" acaoAoLado>
         <SeletorDeIgreja value={churchId} onChange={setChurchId} />
       </Header>
       <CardsStatus churchId={churchId} />

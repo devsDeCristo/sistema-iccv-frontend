@@ -18,6 +18,13 @@ tem perfil financeiro na igreja do evento (não administra) — ver
 - **Cards de resumo** (`CardsPayments`): montante total, receita realizada
   (soma de pagamentos `PAID`) e receita pendente (soma do resto), vindos da
   mesma consulta da tabela.
+  - **Esconder valores:** botão com olho na linha das abas, ao lado do "Abrir
+    check-in", só na aba Financeiro (`BotaoEsconderValores`). Troca os três
+    valores por "R$ ••••••", como no app do banco, para a tela aberta em
+    reunião ou projetor. Só os cards: a tabela continua com os valores. O
+    estado fica na página (`useValoresEscondidos`) e desce para os cards; é
+    lembrado entre visitas, por usuário
+    (`useFiltroSalvo('financeiro:esconderValores')`).
 - **Abas:** "Todos", os grupos de inscrição e "Produtos Avulsos".
   - **Todos** vem primeiro e é a aba inicial, com **uma linha por pessoa**: a
     inscrição e as compras avulsas dela juntas (`porPessoa`).

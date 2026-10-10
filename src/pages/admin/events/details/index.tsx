@@ -1,4 +1,5 @@
 import { Header } from '../../../../components/header';
+import { BotaoDaBarra } from '../../../../components/botaoDaBarra';
 import { PageStyle } from '../../../../components/pageStyle';
 import {
   Box,
@@ -52,6 +53,7 @@ import {
   Download,
   EmailOutlined,
   ExpandMore,
+  CalendarMonthOutlined,
   FilterAltOutlined,
   DirectionsBusOutlined,
   GroupsOutlined,
@@ -86,14 +88,21 @@ import PdfTeams from '../../../../components/pdfTeams';
 import ModalQrCode from '../../../../features/admin/events/components/modalQrCode';
 import { QrScannerModal } from '../../../../components/qrScanner';
 import { parseBadgeCode } from '../../../../utils/qrcode';
-import { superficieSx } from '../../../../components/listPageStyles';
+import {
+  barraLarguraCheiaNoCelularSx,
+  superficieSx,
+} from '../../../../components/listPageStyles';
 import { NavTabs } from '../../../../components/navTabs';
 import { User } from '../../../../types/user';
 import { ListUsersWaitList } from '../../../../features/admin/events/components/listUsersWaitList';
 import { ListPayments } from '../../../../features/admin/events/components/listPayments';
 import { ListProductOrders } from '../../../../features/admin/events/components/listProductOrders';
 import { statusPaymentOptions } from '../../../../features/admin/events/constants';
-import { CardsPayments } from '../../../../features/admin/events/components/cardsPayments';
+import {
+  BotaoEsconderValores,
+  CardsPayments,
+  useValoresEscondidos,
+} from '../../../../features/admin/events/components/cardsPayments';
 import { CardsRegistrations } from '../../../../features/admin/events/components/cardsRegistrations';
 import { toast } from 'react-toastify';
 import { useEventRole } from '../../../../hooks/useEventRole';
@@ -164,6 +173,7 @@ function Details() {
   const { mutate: reconciliar, isLoading: reconciliando } =
     usePostReconcilePayments();
   const [pageValue, setPageValue] = useState(subPage || 'usuarios');
+  const [valoresEscondidos, setValoresEscondidos] = useValoresEscondidos();
   const [openModalAddUser, setOpenModalAddUser] = useState(false);
   const [openModalFilter, setOpenModalFilter] = useState(false);
   const [loadingPdfTeams, setLoadingPdfTeams] = useState(false);
@@ -321,15 +331,26 @@ function Details() {
       // espaçamento já vem do `gap` dele — somados, davam vão dobrado
       p: 2,
       ...superficieSx,
+      // no celular, busca, selects e botões ocupam a linha inteira
+      ...barraLarguraCheiaNoCelularSx,
     },
+    // no celular os botões viram só ícone (`BotaoDaBarra`) e ficam numa
+    // linha só, ocupando a largura toda; antes cada um ocupava uma linha
     stackButtons: {
-      direction: 'row',
-      flexDirection: { xs: 'column', sm: 'row' },
-      // flexDirection: 'row',
-      flexWrap: 'wrap',
+      flexDirection: 'row',
+      flexWrap: { xs: 'nowrap', sm: 'wrap' },
+      alignItems: 'center',
       width: { xs: '100%', sm: 'fit-content' },
-      // backgroundColor: 'red',
-      gap: 2,
+      gap: { xs: 1, sm: 2 },
+      // no celular dividem a linha inteira: cada um cresce a partir do
+      // próprio tamanho, então o "Adicionar ..." (com texto) fica mais largo
+      // que os de ícone
+      '& > *': { flexGrow: { xs: 1, sm: 0 } },
+      // botão embrulhado (contador do Filtros, dica do gateway, barra de
+      // carregamento do PDF) ocupa a largura do embrulho, que é quem cresce
+      '& > :not(.MuiButton-root) > .MuiButton-root': {
+        width: { xs: '100%', sm: 'auto' },
+      },
     },
     textField: {
       width: { xs: '100%', sm: '350px' },
@@ -534,48 +555,78 @@ function Details() {
   //   };
 
   return (
-    <PageStyle>
+    // menos respiro no topo: cabeçalho e abas sobem, e a tabela ganha altura
+    <PageStyle sx={{ pt: 2 }}>
       <Header
         title={event?.name}
-        // description={(event?.startDate) + ' - ' + event?.endDate}
+        // compacto: o cabeçalho fica em cima de todas as abas, e cada pixel
+        // dele sai da tabela
+        compacto
         description={
-          event
-            ? new Date(event.startDate).toLocaleDateString('pt-BR', {
-                day: '2-digit',
-                month: '2-digit',
-                year: '2-digit',
-              }) +
-              ' - ' +
-              new Date(event.endDate).toLocaleDateString('pt-BR', {
-                day: '2-digit',
-                month: '2-digit',
-                year: '2-digit',
-              })
-            : ''
+          event ? (
+            <Stack direction="row" alignItems="center" gap={0.5}>
+              <CalendarMonthOutlined sx={{ fontSize: 14 }} />
+              {[event.startDate, event.endDate]
+                .map((data) =>
+                  new Date(data).toLocaleDateString('pt-BR', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: '2-digit',
+                  })
+                )
+                .join(' – ')}
+            </Stack>
+          ) : null
         }
         buttonBack
         pageBack="/admin/eventos"
-      >
-        {/* ação da tela inteira, ao lado do título: o check-in é operado em
-            tela cheia, fora das abas de detalhe */}
-        {isAdminDoEvento && (
-          <Button
-            variant="contained"
-            startIcon={<HowToReg />}
-            sx={{ flexShrink: 0 }}
-            onClick={() => navigate(`/admin/eventos/${id}/checkin`)}
-          >
-            Abrir check-in
-          </Button>
-        )}
-      </Header>
-
-      {/* sem `mb`: o Paper de filtros logo abaixo já traz `mt: 2` */}
-      <NavTabs
-        value={pageValue}
-        onChange={handleChange}
-        options={visibleTabs}
       />
+
+      {/* sem `mb`: o Paper de filtros logo abaixo já traz `mt: 2`. O check-in
+          divide a linha com as abas, alinhado a elas: é a ação da tela
+          inteira, operada em tela cheia, fora das abas de detalhe. No celular
+          desce para baixo das abas. */}
+      <Stack
+        direction={{ xs: 'column', sm: 'row' }}
+        alignItems={{ xs: 'flex-end', sm: 'center' }}
+        gap={1.5}
+      >
+        <NavTabs
+          value={pageValue}
+          onChange={handleChange}
+          options={visibleTabs}
+          sx={{
+            minWidth: 0,
+            alignSelf: { xs: 'stretch', sm: 'auto' },
+            // empurra as ações para a direita
+            mr: { sm: 'auto' },
+          }}
+        />
+        {/* não encolhe: no aperto quem cede são as abas, que rolam */}
+        <Stack
+          direction="row"
+          alignItems="center"
+          gap={1}
+          sx={{ flexShrink: 0 }}
+        >
+          {pageValue === 'pagamentos' && (
+            <BotaoEsconderValores
+              escondidos={valoresEscondidos}
+              onAlternar={() => setValoresEscondidos((atual) => !atual)}
+            />
+          )}
+          {isAdminDoEvento && (
+            <Button
+              variant="contained"
+              startIcon={<HowToReg />}
+              sx={{ flexShrink: 0 }}
+              onClick={() => navigate(`/admin/eventos/${id}/checkin`)}
+            >
+              Abrir check-in
+            </Button>
+          )}
+        </Stack>
+      </Stack>
 
       {pageValue === 'usuarios' && (
         <Stack gap={2} sx={{ mt: 2 }}>
@@ -607,13 +658,13 @@ function Details() {
             {/* <Typography color="#000">Usuários</Typography> */}
             <Stack sx={styles.stackButtons}>
               <Stack sx={{ position: 'relative' }}>
-                <Button
+                <BotaoDaBarra
                   variant="outlined"
                   onClick={() => setOpenModalFilter(true)}
                   startIcon={<FilterAltOutlined />}
                 >
                   Filtros
-                </Button>
+                </BotaoDaBarra>
                 {filtersUsersSelected > 0 && (
                   <Chip
                     label={filtersUsersSelected}
@@ -628,16 +679,15 @@ function Details() {
                   />
                 )}
               </Stack>
-              <Button
+              <BotaoDaBarra
                 variant="outlined"
                 onClick={(e) => setAnchorElExport(e.currentTarget)}
                 startIcon={<Download />}
                 endIcon={<ExpandMore />}
               >
                 Exportar
-              </Button>
-              <Button
-                sx={{ width: { xs: '100%', sm: 'fit-content' } }}
+              </BotaoDaBarra>
+              <BotaoDaBarra
                 variant="outlined"
                 onClick={(e) => {
                   e.preventDefault();
@@ -648,9 +698,8 @@ function Details() {
                 disabled={loadingEventDetails || loadingUsers}
               >
                 PDF Envelopes
-              </Button>
-              <Button
-                sx={{ width: { xs: '100%', sm: 'fit-content' } }}
+              </BotaoDaBarra>
+              <BotaoDaBarra
                 variant="outlined"
                 onClick={(e) => {
                   e.preventDefault();
@@ -661,7 +710,7 @@ function Details() {
                 startIcon={<BadgeOutlined />}
               >
                 PDF Crachás
-              </Button>
+              </BotaoDaBarra>
               {/* <Button
                 variant="contained"
                 onClick={() => setOpenModalAddUser(true)}
@@ -714,7 +763,7 @@ function Details() {
       )}
       {pageValue === 'pagamentos' && (
         <Stack gap={2} sx={{ mt: 2 }}>
-          <CardsPayments eventId={eventId} />
+          <CardsPayments eventId={eventId} escondidos={valoresEscondidos} />
 
           <Paper component="div" sx={styles.boxFilterAndPdf}>
             <TextField
@@ -749,7 +798,7 @@ function Details() {
               {isDev && (
                 <Tooltip title="Pergunta ao gateway o que aconteceu com as cobranças pendentes deste evento">
                   <span>
-                    <Button
+                    <BotaoDaBarra
                       variant="outlined"
                       onClick={() => reconciliar({ eventId })}
                       disabled={reconciliando}
@@ -762,18 +811,18 @@ function Details() {
                       }
                     >
                       Conferir no gateway
-                    </Button>
+                    </BotaoDaBarra>
                   </span>
                 </Tooltip>
               )}
 
-              <Button
+              <BotaoDaBarra
                 variant="outlined"
                 onClick={handleExportPayments}
                 startIcon={<Download />}
               >
                 Exportar
-              </Button>
+              </BotaoDaBarra>
             </Stack>
           </Paper>
 
@@ -875,8 +924,7 @@ function Details() {
             {/* <Typography color="#000">Quartos</Typography> */}
             <Stack sx={styles.stackButtons}>
               <Box>
-                <Button
-                  sx={{ width: { xs: '100%', sm: 'fit-content' } }}
+                <BotaoDaBarra
                   variant="outlined"
                   onClick={() => generatePdfRooms()}
                   startIcon={<BedOutlined />}
@@ -885,7 +933,7 @@ function Details() {
                   }
                 >
                   PDF quartos
-                </Button>
+                </BotaoDaBarra>
 
                 {loadingPdfRooms && <LinearProgress />}
               </Box>
@@ -920,8 +968,7 @@ function Details() {
             {/* <Typography color="#000">Times</Typography> */}
             <Stack sx={styles.stackButtons}>
               <Box>
-                <Button
-                  sx={{ width: { xs: '100%', sm: 'fit-content' } }}
+                <BotaoDaBarra
                   variant="outlined"
                   onClick={() => generatePDFTeams()}
                   startIcon={<People />}
@@ -930,31 +977,30 @@ function Details() {
                   }
                 >
                   PDF Equipes
-                </Button>
+                </BotaoDaBarra>
                 {loadingPdfTeams && <LinearProgress />}{' '}
               </Box>
               {/* o quadrante tem tela própria: é lá que se imprime e se baixa
                   o PDF, que agora é gerado no servidor. Desligado nas
                   configurações do evento, o botão nem aparece */}
               {quadranteAtivo(event?.data) && (
-                <Button
-                  sx={{ width: { xs: '100%', sm: 'fit-content' } }}
+                <BotaoDaBarra
                   variant="outlined"
                   onClick={() => navigate(`/admin/eventos/${id}/quadrante`)}
                   startIcon={<ViewModuleOutlined />}
                   disabled={loadingEventDetails || loadingTeams}
                 >
                   Ver Quadrante
-                </Button>
+                </BotaoDaBarra>
               )}
-              <Button
+              <BotaoDaBarra
                 variant="outlined"
                 onClick={() => setOpenModalQrCode(true)}
                 startIcon={<QrCode2Outlined />}
                 // disabled={loadingPdf}
               >
                 Gerar QR Code
-              </Button>
+              </BotaoDaBarra>
               <Button
                 variant="contained"
                 onClick={() => setOpenModalTeam(true)}

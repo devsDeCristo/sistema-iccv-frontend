@@ -37,6 +37,35 @@ Arquivos: `src/routes/index.tsx`, `src/pages/layout/index.tsx`, `src/components/
 
 Arquivo: `src/components/appBar/index.tsx`.
 
+## Cabeçalho das páginas (`src/components/header`)
+
+- **Linha do título:** seta de voltar (`buttonBack`), título e, à direita, a ação da página (`children`). No celular a ação desce para baixo do título.
+- **`description`:** texto embaixo do título (aceita elemento, não só texto).
+- **`acaoAoLado`:** a ação fica ao lado do título também no celular, em vez de descer. Para ação pequena que encolhe, como o seletor de igreja (Eventos, Usuários, Notícias).
+- **`compacto`:** cabeçalho baixo, para página com abas e tabela embaixo, onde cada pixel do topo sai da tabela. Título em 18px (600), descrição em 13px colada nele, seta centralizada na altura do bloco, 20px de margem embaixo. Título e descrição formam um bloco só, e a ação vai ao lado dele inteiro; no celular o bloco ocupa a linha e a ação desce. Usado na página do evento (`/admin/eventos/:id/detalhes/...`): nome do evento e, embaixo, o período com ícone de calendário ("31/10/26 – 01/11/26").
+
+### Respiro da página (`src/components/pageStyle`)
+
+`PageStyle` tem 32px de respiro em volta e aceita `sx` por cima. A página do evento usa `pt: 2` (16px no topo), para cabeçalho e abas subirem.
+
+## Cards de resumo (`src/components/statusCards`)
+
+A régua de cards no topo das listagens (Início, Usuários, Eventos, as abas do evento, Logs) é um componente só, `StatusCards`.
+
+- **Colunas:** uma por card, até cinco lado a lado na tela grande; com cinco, três na média.
+- **Celular:** dois por linha, e não um, que empilhava quatro cards e empurrava a lista para três telas abaixo. Com número ímpar, o último ocupa a linha toda. No celular o card também é mais baixo: número em 22px (16px nos de dinheiro, `compact`), ícone em 24px e menos respiro.
+- **Colunas que encolhem:** a grade usa `minmax(0, 1fr)`, e não `1fr`. O `1fr` não encolhe abaixo do texto mais longo do card, e no celular uma legenda comprida ("Menores aguardando autorização") empurrava a segunda coluna para fora da tela. Agora título e legenda cortam com reticências.
+
+## Barra de busca e filtros no celular (`barraLarguraCheiaNoCelularSx`)
+
+O cartão de busca das listagens (Eventos, Usuários, Notícias, Igrejas, Registro de Atividades, Registro de Login e as abas do evento) usa `barraLarguraCheiaNoCelularSx`, de `src/components/listPageStyles.ts`. Abaixo de 600px, cada item da barra e cada campo, select, autocomplete ou grupo de botões de filtro ocupa a linha inteira; no grupo de botões (24 horas / 7 dias / 30 dias) os botões dividem a largura.
+
+Antes, o campo pedia `width: 100%` de uma caixa que, na barra em linha com quebra, encolhia até o tamanho do conteúdo: no celular a busca, o select de status e o botão de criar ficavam estreitos, cada um de um tamanho. A regra força os filhos (`&&`, especificidade dobrada) porque cada tela dá larguras próprias para a tela grande; da tela média para cima, nada muda. Barra nova de listagem entra com `...barraLarguraCheiaNoCelularSx` no `sx` do `Paper`.
+
+## Botão de barra (`src/components/botaoDaBarra`)
+
+Botão das barras de busca e ações das abas do evento (Filtros, Exportar, PDF Envelopes, PDF Crachás, Conferir no gateway, PDF quartos, PDF Equipes, Ver Quadrante, Gerar QR Code). Na tela grande, ícone e texto; no celular, **só o ícone**, e os botões ficam numa linha só e dividem a largura toda (`stackButtons`: cada um cresce a partir do próprio tamanho, e o botão dentro de um embrulho, como o contador do Filtros ou a barra de carregamento do PDF, ocupa a largura do embrulho). Antes cada um ocupava uma linha inteira no celular. Sem o texto, o rótulo vira dica (`Tooltip`, só no celular) e `aria-label`, para o leitor de tela. O `endIcon` (a seta do "Exportar") some no celular. Os botões de criação ("Adicionar quarto", "Adicionar Equipe", "Adicionar transporte") continuam com texto: não têm ícone e são a ação principal da aba.
+
 ## Campos de formulário (tema)
 
 Todo campo com contorno (TextField, Select, Autocomplete, datas) tem o mesmo
@@ -147,6 +176,11 @@ superior direito**, como `children` do `Header` ("Igreja selecionada" + o
 alternador). É o mesmo lugar e o mesmo desenho em todas as telas, para
 ninguém procurar a igreja de um jeito em cada uma. Nunca se deduz "a primeira
 igreja" para super admin ou dev.
+
+- **No celular:** o seletor fica na mesma linha do título (`Header` com
+  `acaoAoLado`), e o rótulo "Igreja selecionada" some; o ícone de igreja e a
+  caixa já dizem o que é. Nome longo de igreja corta com reticências. Vale
+  também para o seletor das Configurações, que é o mesmo `ChurchScopeBar`.
 
 - **Componente `SeletorDeIgreja`** (`src/components/seletorDeIgreja`): o
   padrão das listagens (notícias, usuários, eventos, início). Por dentro usa o

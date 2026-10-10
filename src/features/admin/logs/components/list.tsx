@@ -29,6 +29,7 @@ import CustomChip from '../../../../components/customChip';
 import {
   cardTabelaSx,
   dataGridSx,
+  barraLarguraCheiaNoCelularSx,
   superficieSx,
 } from '../../../../components/listPageStyles';
 import { StatusCard, StatusCards } from '../../../../components/statusCards';
@@ -361,7 +362,9 @@ function ListLogs() {
     <>
       <StatusCards cards={cards} isLoading={isFetching && !data} />
 
-      <Paper sx={{ ...superficieSx, p: 2, mb: 2 }}>
+      <Paper
+        sx={{ ...superficieSx, ...barraLarguraCheiaNoCelularSx, p: 2, mb: 2 }}
+      >
         <Stack
           direction="row"
           spacing={2}

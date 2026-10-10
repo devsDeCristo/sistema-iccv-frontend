@@ -73,12 +73,18 @@ export function StatusCards({ cards, isLoading, sx }: StatusCardsProps) {
       sx={[
         {
           display: 'grid',
-          gap: 1.5,
+          gap: { xs: 1, sm: 1.5 },
+          // `minmax(0, 1fr)` e não `1fr`: o `1fr` não encolhe abaixo do texto
+          // mais longo do card, e no celular uma legenda comprida ("Menores
+          // aguardando autorização") empurrava a coluna para fora da tela.
+          // Com o mínimo em 0 a coluna cabe e o texto corta com reticências.
           gridTemplateColumns: {
-            xs: '1fr',
-            sm: `repeat(${Math.min(colunas, 2)}, 1fr)`,
-            md: `repeat(${colunasMd}, 1fr)`,
-            lg: `repeat(${colunas}, 1fr)`,
+            // dois por linha já no celular: um por linha empilhava quatro
+            // cards e empurrava a lista para três telas abaixo
+            xs: colunas > 1 ? 'repeat(2, minmax(0, 1fr))' : 'minmax(0, 1fr)',
+            sm: `repeat(${Math.min(colunas, 2)}, minmax(0, 1fr))`,
+            md: `repeat(${colunasMd}, minmax(0, 1fr))`,
+            lg: `repeat(${colunas}, minmax(0, 1fr))`,
           },
           mb: 2,
         },
@@ -86,7 +92,16 @@ export function StatusCards({ cards, isLoading, sx }: StatusCardsProps) {
       ]}
     >
       {cards.map((card) => (
-        <Box key={card.title}>
+        <Box
+          key={card.title}
+          sx={{
+            // número ímpar de cards em duas colunas: o último ocupa a linha
+            // toda, em vez de sobrar meio card solto
+            '&:last-of-type:nth-of-type(odd)': {
+              gridColumn: { xs: 'span 2', md: 'auto' },
+            },
+          }}
+        >
           <Card
             elevation={0}
             sx={{
@@ -133,7 +148,10 @@ export function StatusCards({ cards, isLoading, sx }: StatusCardsProps) {
                * listagem do sistema — cada pixel aqui é pixel que a tabela
                * perde.
                */
-              sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}
+              sx={{
+                p: { xs: 1.25, sm: 1.5 },
+                '&:last-child': { pb: { xs: 1.25, sm: 1.5 } },
+              }}
             >
               <Stack direction="row" alignItems="center" gap={1}>
                 <Box
@@ -191,8 +209,8 @@ export function StatusCards({ cards, isLoading, sx }: StatusCardsProps) {
                     noWrap
                     sx={{
                       fontSize: card.compact
-                        ? { xs: '20px', sm: '22px' }
-                        : { xs: '28px', sm: '30px' },
+                        ? { xs: '16px', sm: '22px' }
+                        : { xs: '22px', sm: '30px' },
                       fontWeight: 800,
                       lineHeight: 1,
                       letterSpacing: '-0.03em',
@@ -210,9 +228,10 @@ export function StatusCards({ cards, isLoading, sx }: StatusCardsProps) {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    width: 30,
-                    height: 30,
-                    borderRadius: '9px',
+                    width: { xs: 24, sm: 30 },
+                    height: { xs: 24, sm: 30 },
+                    borderRadius: { xs: '7px', sm: '9px' },
+                    '& svg': { fontSize: { xs: 16, sm: 20 } },
                     bgcolor: card.color,
                     color: theme.palette.common.white,
                   }}
