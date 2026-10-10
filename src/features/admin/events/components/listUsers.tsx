@@ -13,7 +13,12 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
-import { formatCPF, formatDate, formatDateTime } from '../../../../utils';
+import {
+  calculateAge,
+  formatCPF,
+  formatDate,
+  formatDateTime,
+} from '../../../../utils';
 import {
   DataGrid,
   GridApi,
@@ -91,6 +96,32 @@ const renderCellWithCopy = (value: string | number) => {
     </Tooltip>
   );
 };
+/**
+ * Só a parte da data ("2009-03-14"), sem hora nem fuso: o nascimento vem como
+ * meia-noite UTC, e lido no horário de Brasília cairia no dia anterior — a
+ * idade sairia um ano a menos justo no dia do aniversário.
+ */
+const diaLocal = (valor?: string | Date | null) => {
+  if (!valor) return null;
+  const [ano, mes, dia] = String(
+    valor instanceof Date ? valor.toISOString() : valor
+  )
+    .slice(0, 10)
+    .split('-')
+    .map(Number);
+  return ano && mes && dia ? new Date(ano, mes - 1, dia) : null;
+};
+
+/** Idade no primeiro dia do evento (ou hoje, se o evento não chegou) */
+const idadeNoEvento = (
+  nascimento?: string | Date | null,
+  inicioDoEvento?: string | Date | null
+) => {
+  const nasceu = diaLocal(nascimento);
+  if (!nasceu) return null;
+  return calculateAge(nasceu, diaLocal(inicioDoEvento) ?? new Date());
+};
+
 function ListUsers({
   search,
   apiRef,
@@ -252,18 +283,40 @@ function ListUsers({
       headerName: 'Nascimento',
       width: 130,
       valueGetter: (params) => formatDate(params.row.birthday),
+      // a idade embaixo é a do primeiro dia do evento, e não a de hoje: é ela
+      // que decide se a pessoa é menor e precisa de liberação
+      renderCell: (params) => {
+        const idade = idadeNoEvento(params.row.birthday, event?.startDate);
+        return (
+          <Stack sx={{ py: 1 }}>
+            <Typography variant="body2" noWrap>
+              {params.value}
+            </Typography>
+            {idade !== null && (
+              <Typography variant="caption" color="text.secondary" noWrap>
+                {idade} {idade === 1 ? 'ano' : 'anos'}
+              </Typography>
+            )}
+          </Stack>
+        );
+      },
     },
     {
       field: 'minorApprovalStatus',
       headerName: 'Liberação',
-      width: 190,
+      width: 120,
       sortable: false,
       renderCell: (params) => {
         const status = params.row.minorApprovalStatus || 'NOT_REQUIRED';
+        // a pergunta da coluna é "pode participar?": maior de idade já está
+        // liberado, e é verde como o menor que o responsável autorizou — o
+        // chip neutro de antes não dizia nada. Aguardando em laranja, a cor
+        // de atenção do sistema. Uma palavra por estado, para a coluna ser
+        // estreita.
         const config: Record<string, { label: string; color: string }> = {
-          NOT_REQUIRED: { label: 'Maior de idade', color: theme.palette.chips.default },
-          PENDING: { label: 'Aguardando liberação', color: theme.palette.chips.pending },
-          APPROVED: { label: 'Liberado', color: theme.palette.chips.success },
+          NOT_REQUIRED: { label: 'Liberado', color: theme.palette.chips.success },
+          PENDING: { label: 'Aguardando', color: theme.palette.chips.alert },
+          APPROVED: { label: 'Autorizado', color: theme.palette.chips.success },
           REJECTED: { label: 'Recusado', color: theme.palette.chips.canceled },
         };
         const { label, color } = config[status];
@@ -355,10 +408,29 @@ function ListUsers({
       field: 'registeredAt',
       headerName: 'Data da inscrição',
       type: 'dateTime',
-      width: 160,
+      width: 140,
       valueGetter: (params) =>
         params.row.registeredAt ? new Date(params.row.registeredAt) : null,
+      // a exportação segue com data e hora juntas
       valueFormatter: (params) => formatDateTime(params.value),
+      // na tela, a hora embaixo da data, como o nascimento e a idade
+      renderCell: (params) => {
+        if (!params.value) return null;
+        const quando = params.value as Date;
+        return (
+          <Stack sx={{ py: 1 }}>
+            <Typography variant="body2" noWrap>
+              {quando.toLocaleDateString('pt-BR')}
+            </Typography>
+            <Typography variant="caption" color="text.secondary" noWrap>
+              {quando.toLocaleTimeString('pt-BR', {
+                hour: '2-digit',
+                minute: '2-digit',
+              })}
+            </Typography>
+          </Stack>
+        );
+      },
     },
     {
       field: 'bedrooms',

@@ -22,8 +22,14 @@ equipes e transporte também (`docs/admin-quartos-equipes-transporte.md`).
     ver `docs/admin-eventos.md`, seção Módulos.
   - Link direto para uma aba bloqueada volta para a primeira aba liberada,
     assim que o perfil no evento é resolvido.
-- **Check-in:** botão "Abrir check-in" no cabeçalho, só para quem administra o
-  evento — abre a tela cheia de check-in (`docs/checkin.md`), fora das abas.
+- **Check-in:** botão "Abrir check-in" na linha das abas, à direita e alinhado
+  a elas (no celular, embaixo das abas), só para quem administra o evento —
+  abre a tela cheia de check-in (`docs/checkin.md`), fora das abas. Na aba
+  Financeiro, o "Esconder valores" fica ao lado dele (`docs/admin-pagamentos.md`).
+  Os botões não encolhem: no aperto, quem cede são as abas, que rolam.
+- **Cabeçalho compacto:** nome do evento em 18px e, embaixo, o período com
+  ícone de calendário; menos respiro no topo da página. Ver
+  `docs/layout-e-navegacao.md` (`Header` `compacto`).
 
 Arquivo: `src/pages/admin/events/details/index.tsx`.
 
@@ -66,11 +72,25 @@ Arquivo: `src/pages/admin/events/details/index.tsx`.
   - **Baixar Crachá:** aberto a todo mundo que vê a aba.
   - **Remover do evento** (só quem administra): desvincula a inscrição do
     evento, com confirmação. Não é reversível pela tela.
-- **Liberação de menor** (coluna "Liberação"): selo com o estado
-  (`NOT_REQUIRED`/"Maior de idade", `PENDING`/"Aguardando liberação",
-  `APPROVED`/"Liberado", `REJECTED`/"Recusado"). Clicável só quando há algo a
-  decidir (não é `NOT_REQUIRED`) e só para quem administra — abre o modal de
-  aprovação.
+- **Nascimento:** a data e, embaixo, a idade no **primeiro dia do evento**
+  (hoje, se o evento não tem data) — é essa idade que decide se a pessoa é
+  menor e precisa de liberação. A conta usa só a parte da data, sem fuso: o
+  nascimento vem como meia-noite UTC, e no horário de Brasília cairia no dia
+  anterior, tirando um ano de quem faz aniversário no dia (`idadeNoEvento`).
+- **Data da inscrição:** a data e, embaixo, a hora (horário local). A
+  ordenação segue pela data e hora; a exportação sai com as duas juntas.
+- **Liberação de menor** (coluna "Liberação"): selo colorido que responde
+  "pode participar?":
+  - `NOT_REQUIRED` (maior de idade): "Liberado", verde.
+  - `APPROVED`: "Autorizado" (o responsável autorizou), verde — o mesmo sim,
+    com a diferença dita na palavra.
+  - `PENDING`: "Aguardando", laranja (a cor de atenção).
+  - `REJECTED`: "Recusado", vermelho.
+
+  Uma palavra por estado, para a coluna ficar estreita (120px).
+
+  Clicável só quando há algo a decidir ou rever (não é `NOT_REQUIRED`) e só
+  para quem administra — abre o modal de aprovação.
 
 Arquivos: `src/features/admin/events/components/listUsers.tsx`, `cardsRegistrations.tsx`, `filtersUserModal.tsx`, `modalAddUser.tsx`, `components/exportUsers/*`.
 

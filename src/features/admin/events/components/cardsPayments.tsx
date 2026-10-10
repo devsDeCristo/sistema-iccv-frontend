@@ -2,8 +2,11 @@ import {
   AccountBalanceWallet,
   Paid,
   PendingActions,
+  Visibility,
+  VisibilityOff,
 } from '@mui/icons-material';
-import { useTheme } from '@mui/material';
+import { Button, useTheme } from '@mui/material';
+import { useFiltroSalvo } from '../../../../hooks/useFiltroSalvo';
 import { StatusCard, StatusCards } from '../../../../components/statusCards';
 import { formatCurrency } from '../../../../utils';
 import { PaymentResponse } from '../../../../types/user';
@@ -19,13 +22,22 @@ import { useGetPayments } from '../api/getPayments';
  * Os números vêm da mesma query da tabela — mesma chave no react-query, então
  * a tela não faz uma chamada a mais para montar os cards.
  */
-export function CardsPayments({ eventId }: { eventId: string }) {
+export function CardsPayments({
+  eventId,
+  escondidos,
+}: {
+  eventId: string;
+  /** valores trocados por "R$ ••••••" — ver `useValoresEscondidos` */
+  escondidos: boolean;
+}) {
   const theme = useTheme();
   const { data, isLoading } = useGetPayments(
     { eventId },
     { enabled: !!eventId }
   );
   const payments = (data as PaymentResponse[]) ?? [];
+  const dinheiro = (valor: number) =>
+    escondidos ? 'R$ ••••••' : formatCurrency(valor);
 
   const soma = (filtro?: (payment: PaymentResponse) => boolean) =>
     payments
@@ -39,7 +51,7 @@ export function CardsPayments({ eventId }: { eventId: string }) {
   const cards: StatusCard[] = [
     {
       title: 'Montante total',
-      value: formatCurrency(soma()),
+      value: dinheiro(soma()),
       subtitle: 'Inscrições e produtos',
       icon: <AccountBalanceWallet sx={{ fontSize: 20 }} />,
       color: theme.palette.primary.main,
@@ -47,7 +59,7 @@ export function CardsPayments({ eventId }: { eventId: string }) {
     },
     {
       title: 'Receita realizada',
-      value: formatCurrency(soma((payment) => payment.status === 'PAID')),
+      value: dinheiro(soma((payment) => payment.status === 'PAID')),
       subtitle: 'Pagamentos confirmados',
       icon: <Paid sx={{ fontSize: 20 }} />,
       color: theme.palette.chips.success,
@@ -55,7 +67,7 @@ export function CardsPayments({ eventId }: { eventId: string }) {
     },
     {
       title: 'Receita pendente',
-      value: formatCurrency(soma((payment) => payment.status !== 'PAID')),
+      value: dinheiro(soma((payment) => payment.status !== 'PAID')),
       subtitle: 'Ainda não confirmados',
       icon: <PendingActions sx={{ fontSize: 20 }} />,
       color: theme.palette.chips.alert,
@@ -65,4 +77,42 @@ export function CardsPayments({ eventId }: { eventId: string }) {
 
   // sem margem própria: quem espaça é o `gap` da aba
   return <StatusCards cards={cards} isLoading={isLoading} sx={{ mb: 0 }} />;
+}
+
+/**
+ * Esconder os valores dos cards, como no app do banco: a tela do financeiro
+ * fica aberta em reunião e em projetor. Lembrado entre visitas, por usuário.
+ */
+export function useValoresEscondidos() {
+  return useFiltroSalvo(
+    'financeiro:esconderValores',
+    false,
+    (valor): valor is boolean => typeof valor === 'boolean'
+  );
+}
+
+/** O botão mora na linha das abas, ao lado do check-in */
+export function BotaoEsconderValores({
+  escondidos,
+  onAlternar,
+}: {
+  escondidos: boolean;
+  onAlternar: () => void;
+}) {
+  return (
+    <Button
+      color="inherit"
+      onClick={onAlternar}
+      startIcon={escondidos ? <Visibility /> : <VisibilityOff />}
+      aria-pressed={escondidos}
+      sx={{
+        flexShrink: 0,
+        color: 'text.secondary',
+        textTransform: 'none',
+        fontWeight: 600,
+      }}
+    >
+      {escondidos ? 'Mostrar valores' : 'Esconder valores'}
+    </Button>
+  );
 }

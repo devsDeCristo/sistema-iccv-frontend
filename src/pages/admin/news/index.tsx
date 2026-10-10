@@ -3,7 +3,10 @@ import { Add, Close, Search } from '@mui/icons-material';
 import { useState } from 'react';
 import { PageStyle } from '../../../components/pageStyle';
 import { Header } from '../../../components/header';
-import { superficieSx } from '../../../components/listPageStyles';
+import {
+  barraLarguraCheiaNoCelularSx,
+  superficieSx,
+} from '../../../components/listPageStyles';
 import { CalendarioDeDisparos } from '../../../features/news/components/calendarioDeDisparos';
 import { NewsAdminList } from '../../../features/news/components/newsAdminList';
 import { NewsFormModal } from '../../../features/news/components/newsFormModal';
@@ -44,6 +47,8 @@ function NewsAdmin() {
       marginY: 2,
       padding: 2,
       ...superficieSx,
+      // no celular, busca, selects e botões ocupam a linha inteira
+      ...barraLarguraCheiaNoCelularSx,
     },
     campo: {
       width: { xs: '100%', sm: '380px' },
@@ -59,6 +64,7 @@ function NewsAdmin() {
       <Header
         title="Notícias"
         description="Avisos que aparecem no mural dos inscritos"
+        acaoAoLado
       >
         <SeletorDeIgreja value={churchId} onChange={setChurchId} />
       </Header>

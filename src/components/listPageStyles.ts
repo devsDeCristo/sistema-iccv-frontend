@@ -105,3 +105,24 @@ export const cardTabelaSx = {
 export const superficieSx = {
   borderRadius: 3,
 };
+
+/**
+ * Barra de busca e filtros das listagens, no celular: cada item da barra e
+ * cada campo, select ou grupo de botões de filtro ocupa a linha inteira.
+ *
+ * Sem isto, o campo pedia `width: 100%` de uma caixa que, numa barra em linha
+ * com quebra, encolhia até o tamanho do conteúdo — e no celular a busca, o
+ * select de status e o botão de criar ficavam estreitos, cada um de um
+ * tamanho. Os filhos são forçados (`&&`, especificidade dobrada) porque cada
+ * tela dá larguras próprias para a tela grande.
+ *
+ * Só abaixo do `sm`: da tela média para cima a barra segue como cada tela
+ * desenhou.
+ */
+export const barraLarguraCheiaNoCelularSx = {
+  '@media (max-width: 599.95px)': {
+    '&& > *, && .MuiFormControl-root, && .MuiToggleButtonGroup-root, && .MuiAutocomplete-root':
+      { width: '100%' },
+    '&& .MuiToggleButtonGroup-root > .MuiToggleButton-root': { flex: 1 },
+  },
+};

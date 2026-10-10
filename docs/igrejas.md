@@ -22,19 +22,32 @@ Arquivos: `src/pages/admin/churches/routes/index.tsx`, `src/components/requireRo
 
 ## Lista de igrejas
 
-Tabela (`DataGrid`) com busca por nome (contém, sem acento/caixa não
-verificados no front — é `includes` simples em minúsculas) e estas colunas:
+Grade de **cartões**, um por igreja, com busca por nome (contém, sem acento/caixa não
+verificados no front — é `includes` simples em minúsculas). Era uma tabela de
+cinco colunas para no máximo uma dúzia de igrejas, que no celular virava
+rolagem lateral.
 
-| Coluna | Conteúdo |
-| --- | --- |
-| Igreja | nome |
-| Situação | chip com a situação (ver abaixo) |
-| Eventos | `_count.events` da igreja |
-| Administradores | `_count.users` — conta só quem entra no painel dela (admin e financeiro); inscrito não pertence a igreja nenhuma |
+- **Colunas da grade:** uma no celular, duas no tablet, três na tela média e
+  quatro na grande.
+- **Acabamento:** o mesmo dos cards de resumo (`StatusCards`): aro e tinta
+  suave na cor da situação (verde ativa, laranja em teste, vermelho inativa),
+  e o cartão sobe um pouco no hover. Igreja inativa aparece esmaecida.
+- **Topo do cartão:** ícone de igreja na cor da situação e, à direita, o chip
+  da situação (ver abaixo). Embaixo, o nome (até duas linhas, depois
+  reticências; o nome inteiro na dica) e o líder espiritual, com ícone de
+  pessoa ("Sem líder definido" quando não há).
+- **Números:** um embaixo do outro, rótulo à esquerda e valor à direita —
+  quatro por linha deixa o cartão estreito demais para lado a lado. Eventos
+  (`_count.events`) e Administradores (`_count.users` — conta só quem entra no
+  painel dela, admin e financeiro; inscrito não pertence a igreja nenhuma).
+  Ficam no pé do cartão: os da mesma linha da grade têm a mesma altura, então
+  os números alinham com nome curto ou longo.
+- **Carregando:** quatro cartões em esqueleto. **Vazio:** "Nenhuma igreja
+  cadastrada", ou "Nenhuma igreja com esse nome" com busca.
 
-Ações por linha:
+Ações no rodapé do cartão ("Abrir painel" com texto, por ser o uso do dia a dia; editar e remover como ícones):
 
-- **Abrir a home desta igreja:** leva para `/admin/igrejas/:churchId`, que
+- **Abrir painel:** leva para `/admin/igrejas/:churchId`, que
   renderiza a mesma `Home` que o admin daquela igreja vê ao entrar — não é uma
   tela separada, é a home real "de fora".
 - **Editar:** abre o formulário preenchido.

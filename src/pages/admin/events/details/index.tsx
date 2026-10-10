@@ -1,4 +1,16 @@
 import { Header } from '../../../../components/header';
+import { BotaoDaBarra } from '../../../../components/botaoDaBarra';
+import { useGetPayments } from '../../../../features/admin/events/api/getPayments';
+import {
+  filtrarPedidos,
+  pedidosDeProdutos,
+  relatorioComComprador,
+  relatorioParaPedido,
+} from '../../../../features/admin/events/products';
+import { buildFileName } from '../../../../features/admin/events/components/exportUsers/exportFile';
+import { PdfDoEvento } from '../../../../features/admin/events/pdfDoEvento';
+import { getStoredUser } from '../../../../auth/session';
+import { formatDate, formatDateTime } from '../../../../utils';
 import { PageStyle } from '../../../../components/pageStyle';
 import {
   Box,
@@ -10,6 +22,7 @@ import {
   InputAdornment,
   Chip,
   LinearProgress,
+  ListItemText,
   Menu,
   MenuItem,
   IconButton,
@@ -52,6 +65,7 @@ import {
   Download,
   EmailOutlined,
   ExpandMore,
+  CalendarMonthOutlined,
   FilterAltOutlined,
   DirectionsBusOutlined,
   GroupsOutlined,
@@ -86,14 +100,24 @@ import PdfTeams from '../../../../components/pdfTeams';
 import ModalQrCode from '../../../../features/admin/events/components/modalQrCode';
 import { QrScannerModal } from '../../../../components/qrScanner';
 import { parseBadgeCode } from '../../../../utils/qrcode';
-import { superficieSx } from '../../../../components/listPageStyles';
+import {
+  barraLarguraCheiaNoCelularSx,
+  superficieSx,
+} from '../../../../components/listPageStyles';
 import { NavTabs } from '../../../../components/navTabs';
-import { User } from '../../../../types/user';
+import { PaymentResponse, User } from '../../../../types/user';
 import { ListUsersWaitList } from '../../../../features/admin/events/components/listUsersWaitList';
 import { ListPayments } from '../../../../features/admin/events/components/listPayments';
 import { ListProductOrders } from '../../../../features/admin/events/components/listProductOrders';
-import { statusPaymentOptions } from '../../../../features/admin/events/constants';
-import { CardsPayments } from '../../../../features/admin/events/components/cardsPayments';
+import {
+  PAYMENT_STATUS,
+  statusPaymentOptions,
+} from '../../../../features/admin/events/constants';
+import {
+  BotaoEsconderValores,
+  CardsPayments,
+  useValoresEscondidos,
+} from '../../../../features/admin/events/components/cardsPayments';
 import { CardsRegistrations } from '../../../../features/admin/events/components/cardsRegistrations';
 import { toast } from 'react-toastify';
 import { useEventRole } from '../../../../hooks/useEventRole';
@@ -164,6 +188,7 @@ function Details() {
   const { mutate: reconciliar, isLoading: reconciliando } =
     usePostReconcilePayments();
   const [pageValue, setPageValue] = useState(subPage || 'usuarios');
+  const [valoresEscondidos, setValoresEscondidos] = useValoresEscondidos();
   const [openModalAddUser, setOpenModalAddUser] = useState(false);
   const [openModalFilter, setOpenModalFilter] = useState(false);
   const [loadingPdfTeams, setLoadingPdfTeams] = useState(false);
@@ -207,6 +232,14 @@ function Details() {
    * de admin num evento onde a API só a reconhece como financeiro.
    */
   const { isAdminDoEvento, resolvido } = useEventRole(event?.churchId);
+
+  /**
+   * "Conferir no gateway" só faz sentido com cobrança online de pé: módulo de
+   * cobrança ligado na igreja e gateway ativo. É o `chargesOnline` que o
+   * servidor já manda junto do evento (`igrejaCobraOnline`) — sem consulta a
+   * mais. Sem isso não há cobrança para conferir, e o botão só confundiria.
+   */
+  const temGatewayAtivo = !!event?.church?.chargesOnline;
 
   // quartos e equipes são carregados aqui só para os PDFs dessas abas.
   // Quem não administra esta igreja não tem acesso a esses endpoints: sem o
@@ -321,15 +354,26 @@ function Details() {
       // espaçamento já vem do `gap` dele — somados, davam vão dobrado
       p: 2,
       ...superficieSx,
+      // no celular, busca, selects e botões ocupam a linha inteira
+      ...barraLarguraCheiaNoCelularSx,
     },
+    // no celular os botões viram só ícone (`BotaoDaBarra`) e ficam numa
+    // linha só, ocupando a largura toda; antes cada um ocupava uma linha
     stackButtons: {
-      direction: 'row',
-      flexDirection: { xs: 'column', sm: 'row' },
-      // flexDirection: 'row',
-      flexWrap: 'wrap',
+      flexDirection: 'row',
+      flexWrap: { xs: 'nowrap', sm: 'wrap' },
+      alignItems: 'center',
       width: { xs: '100%', sm: 'fit-content' },
-      // backgroundColor: 'red',
-      gap: 2,
+      gap: { xs: 1, sm: 2 },
+      // no celular dividem a linha inteira: cada um cresce a partir do
+      // próprio tamanho, então o "Adicionar ..." (com texto) fica mais largo
+      // que os de ícone
+      '& > *': { flexGrow: { xs: 1, sm: 0 } },
+      // botão embrulhado (contador do Filtros, dica do gateway, barra de
+      // carregamento do PDF) ocupa a largura do embrulho, que é quem cresce
+      '& > :not(.MuiButton-root) > .MuiButton-root': {
+        width: { xs: '100%', sm: 'auto' },
+      },
     },
     textField: {
       width: { xs: '100%', sm: '350px' },
@@ -456,6 +500,110 @@ function Details() {
     apiRefUsers.current?.exportDataAsCsv();
   };
 
+  /**
+   * Aba Produtos: dois PDFs a partir das compras que os filtros deixam
+   * na tela — com comprador (uma linha por item) ou para pedido (produto,
+   * variação e quantidade somada, para o fornecedor). Os pagamentos já estão
+   * no cache da tabela: a mesma consulta, sem chamada nova.
+   */
+  const [anchorElExportProdutos, setAnchorElExportProdutos] =
+    useState<null | HTMLElement>(null);
+  const { data: pagamentosDoEvento } = useGetPayments(
+    { eventId },
+    { enabled: !!eventId && pageValue === 'produtos' }
+  );
+
+  const exportarPedidos = async (tipo: 'comprador' | 'pedido') => {
+    setAnchorElExportProdutos(null);
+    const pedidos = filtrarPedidos(
+      pedidosDeProdutos(pagamentosDoEvento as PaymentResponse[]),
+      {
+        search: searchUser,
+        produtoId: produtoFiltro,
+        status: statusProdutoFiltro,
+      }
+    );
+
+    if (!pedidos.length) {
+      toast.info('Nenhuma compra com os filtros atuais para exportar.');
+      return;
+    }
+
+    const produto = produtoFiltro || undefined;
+    const { colunas, linhas } =
+      tipo === 'comprador'
+        ? relatorioComComprador(pedidos, produto, PAYMENT_STATUS)
+        : relatorioParaPedido(pedidos, produto);
+
+    // o que valeu na hora de exportar: quem abre o arquivo depois precisa
+    // saber que ele não é "tudo", e sim o recorte da tela
+    const filtros = [
+      produto &&
+        `Produto: ${
+          event?.products?.find((item) => item.id === produto)?.name ?? '—'
+        }`,
+      statusProdutoFiltro &&
+        `Pagamento: ${PAYMENT_STATUS(statusProdutoFiltro as any)}`,
+      searchUser.trim() && `Busca: "${searchUser.trim()}"`,
+    ].filter(Boolean);
+    const quem = getStoredUser()?.fullName;
+
+    const comprador = tipo === 'comprador';
+    // a logo do evento vem só na consulta com imagens, a mesma dos crachás
+    const eventoComImagens = await carregarEventoParaPdf();
+
+    try {
+      const blob = await pdf(
+        <PdfDoEvento
+          titulo={
+            comprador
+              ? 'Pedidos de produtos · com comprador'
+              : 'Pedido de produtos · para o fornecedor'
+          }
+          evento={{
+            nome: event?.name ?? 'Evento',
+            igreja: event?.church?.name,
+            periodo: event
+              ? [event.startDate, event.endDate]
+                  .map((data) => formatDate(data))
+                  .filter((data, i, datas) => i === 0 || data !== datas[0])
+                  .join(' a ')
+              : undefined,
+          }}
+          capa={eventoComImagens?.data?.coverBase64}
+          logo={eventoComImagens?.data?.logoBase64}
+          cores={event?.data?.colors}
+          detalhes={[
+            `Filtros: ${filtros.length ? filtros.join('  ·  ') : 'nenhum'}`,
+            `Exportado em ${formatDateTime(new Date())}${
+              quem ? ` por ${quem}` : ''
+            }`,
+          ]}
+          colunas={colunas}
+          linhas={linhas}
+          // nove colunas não cabem em pé
+          orientacao={comprador ? 'landscape' : 'portrait'}
+          rodape={
+            comprador
+              ? `${pedidos.length} ${pedidos.length === 1 ? 'compra' : 'compras'}`
+              : 'Quantidades somadas de todas as compras listadas'
+          }
+        />
+      ).toBlob();
+
+      FileSaver.saveAs(
+        blob,
+        buildFileName(
+          event?.name ?? '',
+          'pdf',
+          comprador ? 'pedidos-com-comprador' : 'pedido-de-produtos'
+        )
+      );
+    } catch {
+      toast.error('Não foi possível gerar o PDF.');
+    }
+  };
+
   const handleOpenExport = (format: ExportFormat) => {
     const { filtered, selected } = readGridSelection();
     setGridFilteredUsers(filtered);
@@ -534,48 +682,78 @@ function Details() {
   //   };
 
   return (
-    <PageStyle>
+    // menos respiro no topo: cabeçalho e abas sobem, e a tabela ganha altura
+    <PageStyle sx={{ pt: 2 }}>
       <Header
         title={event?.name}
-        // description={(event?.startDate) + ' - ' + event?.endDate}
+        // compacto: o cabeçalho fica em cima de todas as abas, e cada pixel
+        // dele sai da tabela
+        compacto
         description={
-          event
-            ? new Date(event.startDate).toLocaleDateString('pt-BR', {
-                day: '2-digit',
-                month: '2-digit',
-                year: '2-digit',
-              }) +
-              ' - ' +
-              new Date(event.endDate).toLocaleDateString('pt-BR', {
-                day: '2-digit',
-                month: '2-digit',
-                year: '2-digit',
-              })
-            : ''
+          event ? (
+            <Stack direction="row" alignItems="center" gap={0.5}>
+              <CalendarMonthOutlined sx={{ fontSize: 14 }} />
+              {[event.startDate, event.endDate]
+                .map((data) =>
+                  new Date(data).toLocaleDateString('pt-BR', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: '2-digit',
+                  })
+                )
+                .join(' – ')}
+            </Stack>
+          ) : null
         }
         buttonBack
         pageBack="/admin/eventos"
-      >
-        {/* ação da tela inteira, ao lado do título: o check-in é operado em
-            tela cheia, fora das abas de detalhe */}
-        {isAdminDoEvento && (
-          <Button
-            variant="contained"
-            startIcon={<HowToReg />}
-            sx={{ flexShrink: 0 }}
-            onClick={() => navigate(`/admin/eventos/${id}/checkin`)}
-          >
-            Abrir check-in
-          </Button>
-        )}
-      </Header>
-
-      {/* sem `mb`: o Paper de filtros logo abaixo já traz `mt: 2` */}
-      <NavTabs
-        value={pageValue}
-        onChange={handleChange}
-        options={visibleTabs}
       />
+
+      {/* sem `mb`: o Paper de filtros logo abaixo já traz `mt: 2`. O check-in
+          divide a linha com as abas, alinhado a elas: é a ação da tela
+          inteira, operada em tela cheia, fora das abas de detalhe. No celular
+          desce para baixo das abas. */}
+      <Stack
+        direction={{ xs: 'column', sm: 'row' }}
+        alignItems={{ xs: 'flex-end', sm: 'center' }}
+        gap={1.5}
+      >
+        <NavTabs
+          value={pageValue}
+          onChange={handleChange}
+          options={visibleTabs}
+          sx={{
+            minWidth: 0,
+            alignSelf: { xs: 'stretch', sm: 'auto' },
+            // empurra as ações para a direita
+            mr: { sm: 'auto' },
+          }}
+        />
+        {/* não encolhe: no aperto quem cede são as abas, que rolam */}
+        <Stack
+          direction="row"
+          alignItems="center"
+          gap={1}
+          sx={{ flexShrink: 0 }}
+        >
+          {pageValue === 'pagamentos' && (
+            <BotaoEsconderValores
+              escondidos={valoresEscondidos}
+              onAlternar={() => setValoresEscondidos((atual) => !atual)}
+            />
+          )}
+          {isAdminDoEvento && (
+            <Button
+              variant="contained"
+              startIcon={<HowToReg />}
+              sx={{ flexShrink: 0 }}
+              onClick={() => navigate(`/admin/eventos/${id}/checkin`)}
+            >
+              Abrir check-in
+            </Button>
+          )}
+        </Stack>
+      </Stack>
 
       {pageValue === 'usuarios' && (
         <Stack gap={2} sx={{ mt: 2 }}>
@@ -607,13 +785,13 @@ function Details() {
             {/* <Typography color="#000">Usuários</Typography> */}
             <Stack sx={styles.stackButtons}>
               <Stack sx={{ position: 'relative' }}>
-                <Button
+                <BotaoDaBarra
                   variant="outlined"
                   onClick={() => setOpenModalFilter(true)}
                   startIcon={<FilterAltOutlined />}
                 >
                   Filtros
-                </Button>
+                </BotaoDaBarra>
                 {filtersUsersSelected > 0 && (
                   <Chip
                     label={filtersUsersSelected}
@@ -628,16 +806,15 @@ function Details() {
                   />
                 )}
               </Stack>
-              <Button
+              <BotaoDaBarra
                 variant="outlined"
                 onClick={(e) => setAnchorElExport(e.currentTarget)}
                 startIcon={<Download />}
                 endIcon={<ExpandMore />}
               >
                 Exportar
-              </Button>
-              <Button
-                sx={{ width: { xs: '100%', sm: 'fit-content' } }}
+              </BotaoDaBarra>
+              <BotaoDaBarra
                 variant="outlined"
                 onClick={(e) => {
                   e.preventDefault();
@@ -648,9 +825,8 @@ function Details() {
                 disabled={loadingEventDetails || loadingUsers}
               >
                 PDF Envelopes
-              </Button>
-              <Button
-                sx={{ width: { xs: '100%', sm: 'fit-content' } }}
+              </BotaoDaBarra>
+              <BotaoDaBarra
                 variant="outlined"
                 onClick={(e) => {
                   e.preventDefault();
@@ -661,7 +837,7 @@ function Details() {
                 startIcon={<BadgeOutlined />}
               >
                 PDF Crachás
-              </Button>
+              </BotaoDaBarra>
               {/* <Button
                 variant="contained"
                 onClick={() => setOpenModalAddUser(true)}
@@ -714,7 +890,7 @@ function Details() {
       )}
       {pageValue === 'pagamentos' && (
         <Stack gap={2} sx={{ mt: 2 }}>
-          <CardsPayments eventId={eventId} />
+          <CardsPayments eventId={eventId} escondidos={valoresEscondidos} />
 
           <Paper component="div" sx={styles.boxFilterAndPdf}>
             <TextField
@@ -746,10 +922,10 @@ function Details() {
                 vira uma rajada de chamadas na conta da igreja. Quem administra
                 espera o relógio ou lança a baixa manual.
               */}
-              {isDev && (
+              {isDev && temGatewayAtivo && (
                 <Tooltip title="Pergunta ao gateway o que aconteceu com as cobranças pendentes deste evento">
                   <span>
-                    <Button
+                    <BotaoDaBarra
                       variant="outlined"
                       onClick={() => reconciliar({ eventId })}
                       disabled={reconciliando}
@@ -762,18 +938,18 @@ function Details() {
                       }
                     >
                       Conferir no gateway
-                    </Button>
+                    </BotaoDaBarra>
                   </span>
                 </Tooltip>
               )}
 
-              <Button
+              <BotaoDaBarra
                 variant="outlined"
                 onClick={handleExportPayments}
                 startIcon={<Download />}
               >
                 Exportar
-              </Button>
+              </BotaoDaBarra>
             </Stack>
           </Paper>
 
@@ -843,6 +1019,15 @@ function Details() {
                   </MenuItem>
                 ))}
               </TextField>
+
+              <BotaoDaBarra
+                variant="outlined"
+                onClick={(e) => setAnchorElExportProdutos(e.currentTarget)}
+                startIcon={<Download />}
+                endIcon={<ExpandMore />}
+              >
+                Exportar
+              </BotaoDaBarra>
             </Stack>
           </Paper>
 
@@ -875,8 +1060,7 @@ function Details() {
             {/* <Typography color="#000">Quartos</Typography> */}
             <Stack sx={styles.stackButtons}>
               <Box>
-                <Button
-                  sx={{ width: { xs: '100%', sm: 'fit-content' } }}
+                <BotaoDaBarra
                   variant="outlined"
                   onClick={() => generatePdfRooms()}
                   startIcon={<BedOutlined />}
@@ -885,7 +1069,7 @@ function Details() {
                   }
                 >
                   PDF quartos
-                </Button>
+                </BotaoDaBarra>
 
                 {loadingPdfRooms && <LinearProgress />}
               </Box>
@@ -920,8 +1104,7 @@ function Details() {
             {/* <Typography color="#000">Times</Typography> */}
             <Stack sx={styles.stackButtons}>
               <Box>
-                <Button
-                  sx={{ width: { xs: '100%', sm: 'fit-content' } }}
+                <BotaoDaBarra
                   variant="outlined"
                   onClick={() => generatePDFTeams()}
                   startIcon={<People />}
@@ -930,31 +1113,30 @@ function Details() {
                   }
                 >
                   PDF Equipes
-                </Button>
+                </BotaoDaBarra>
                 {loadingPdfTeams && <LinearProgress />}{' '}
               </Box>
               {/* o quadrante tem tela própria: é lá que se imprime e se baixa
                   o PDF, que agora é gerado no servidor. Desligado nas
                   configurações do evento, o botão nem aparece */}
               {quadranteAtivo(event?.data) && (
-                <Button
-                  sx={{ width: { xs: '100%', sm: 'fit-content' } }}
+                <BotaoDaBarra
                   variant="outlined"
                   onClick={() => navigate(`/admin/eventos/${id}/quadrante`)}
                   startIcon={<ViewModuleOutlined />}
                   disabled={loadingEventDetails || loadingTeams}
                 >
                   Ver Quadrante
-                </Button>
+                </BotaoDaBarra>
               )}
-              <Button
+              <BotaoDaBarra
                 variant="outlined"
                 onClick={() => setOpenModalQrCode(true)}
                 startIcon={<QrCode2Outlined />}
                 // disabled={loadingPdf}
               >
                 Gerar QR Code
-              </Button>
+              </BotaoDaBarra>
               <Button
                 variant="contained"
                 onClick={() => setOpenModalTeam(true)}
@@ -1056,6 +1238,25 @@ function Details() {
           .xlsx (planilha Excel)
         </MenuItem>
         <MenuItem onClick={() => handleOpenExport('pdf')}>.pdf</MenuItem>
+      </Menu>
+
+      <Menu
+        anchorEl={anchorElExportProdutos}
+        open={Boolean(anchorElExportProdutos)}
+        onClose={() => setAnchorElExportProdutos(null)}
+      >
+        <MenuItem onClick={() => exportarPedidos('comprador')}>
+          <ListItemText
+            primary="Com comprador"
+            secondary="Uma linha por item, com quem comprou"
+          />
+        </MenuItem>
+        <MenuItem onClick={() => exportarPedidos('pedido')}>
+          <ListItemText
+            primary="Para pedido"
+            secondary="Produto, variação e quantidade somada"
+          />
+        </MenuItem>
       </Menu>
 
       <ModalExportUsers

@@ -1,5 +1,7 @@
 import { PaymentResponse } from '../../../types/user';
 import { EventProduct, PaymentProductItem } from './types';
+import { formatCPF, formatDateTime } from '../../../utils';
+import { ColunaDoRelatorio, LinhaDoRelatorio } from './pdfDoEvento';
 
 /**
  * Mesmo teto do servidor, em caracteres da data URL. A foto reduzida fica bem
@@ -177,6 +179,209 @@ export function pedidosDeProdutos(
     .sort((a, b) =>
       (a.fullName ?? '').localeCompare(b.fullName ?? '', 'pt-BR')
     );
+}
+
+/** Os filtros da aba Produtos: busca, produto e status do pagamento */
+export interface FiltrosDosPedidos {
+  search: string;
+  /** vazio é "todos os produtos" */
+  produtoId?: string;
+  /** vazio é "todos os status" */
+  status?: string;
+}
+
+/**
+ * As compras que os filtros da aba deixam na tela. Uma regra só para a tabela
+ * e para a exportação: o arquivo sai com exatamente o que a pessoa está vendo.
+ */
+export function filtrarPedidos(
+  pedidos: PedidoDeProduto[],
+  { search, produtoId, status }: FiltrosDosPedidos
+): PedidoDeProduto[] {
+  const busca = search.trim().toLowerCase();
+
+  return pedidos.filter((pedido) => {
+    const combinaBusca =
+      !busca ||
+      pedido.fullName?.toLowerCase().includes(busca) ||
+      pedido.cpf?.includes(search.trim()) ||
+      pedido.email?.toLowerCase().includes(busca) ||
+      pedido.itens.some(
+        (item) =>
+          item.produto.toLowerCase().includes(busca) ||
+          item.opcao.toLowerCase().includes(busca)
+      );
+
+    // a compra entra inteira quando tem o produto filtrado: o pagamento é um
+    // só, e esconder os outros itens dele contaria meia verdade na entrega
+    const combinaProduto =
+      !produtoId || pedido.itens.some((item) => item.produtoId === produtoId);
+
+    return (
+      combinaBusca && combinaProduto && (!status || pedido.status === status)
+    );
+  });
+}
+
+/**
+ * Os itens que entram no arquivo. Na tela a compra aparece inteira (ver
+ * `filtrarPedidos`); no arquivo, com um produto filtrado, saem só os itens
+ * dele — quem filtra "Camisa" quer a lista de camisas.
+ */
+const itensDoArquivo = (pedido: PedidoDeProduto, produtoId?: string) =>
+  pedido.itens.filter((item) => !produtoId || item.produtoId === produtoId);
+
+/**
+ * Exportar com comprador (PDF): uma linha por item, com quem comprou — para
+ * conferir e entregar. A pessoa se repete quando levou mais de um item.
+ * Termina com o total de peças.
+ */
+export function relatorioComComprador(
+  pedidos: PedidoDeProduto[],
+  produtoId: string | undefined,
+  rotuloDoStatus: (status: PedidoDeProduto['status']) => string
+): { colunas: ColunaDoRelatorio[]; linhas: LinhaDoRelatorio[] } {
+  const colunas: ColunaDoRelatorio[] = [
+    { titulo: 'Comprador', peso: 2.2 },
+    { titulo: 'CPF', peso: 1.4 },
+    { titulo: 'E-mail', peso: 2.2 },
+    { titulo: 'Produto', peso: 1.6 },
+    { titulo: 'Variação', peso: 1 },
+    { titulo: 'Qtd.', peso: 0.6, numero: true },
+    { titulo: 'Compra', peso: 1.3 },
+    { titulo: 'Pagamento', peso: 1.1 },
+    { titulo: 'Entregue em', peso: 1.4 },
+  ];
+
+  const linhas: LinhaDoRelatorio[] = pedidos.flatMap((pedido) =>
+    itensDoArquivo(pedido, produtoId).map((item) => ({
+      valores: [
+        pedido.fullName ?? '',
+        formatCPF(pedido.cpf ?? ''),
+        pedido.email ?? '',
+        item.produto,
+        item.opcao,
+        item.quantidade,
+        pedido.avulsa ? 'Avulsa' : 'Com a inscrição',
+        rotuloDoStatus(pedido.status) ?? '',
+        pedido.entregueEm ? formatDateTime(pedido.entregueEm) : '—',
+      ],
+    }))
+  );
+
+  const pecas = linhas.reduce(
+    (soma, linha) => soma + Number(linha.valores[5]),
+    0
+  );
+
+  return {
+    colunas,
+    linhas: [
+      ...linhas,
+      {
+        tipo: 'total',
+        valores: ['Total de peças', '', '', '', '', pecas, '', '', ''],
+      },
+    ],
+  };
+}
+
+/** Tamanhos de roupa na ordem de quem separa a caixa, do menor ao maior */
+const TAMANHOS = [
+  'PP',
+  'P',
+  'M',
+  'G',
+  'GG',
+  'XG',
+  'XGG',
+  'EG',
+  'EGG',
+  'G1',
+  'G2',
+  'G3',
+  'G4',
+];
+
+/**
+ * Variações em ordem de prateleira: tamanho de roupa do menor ao maior (PP,
+ * P, M, G, GG...) — em ordem alfabética, G vinha antes de M e P. O resto
+ * (cores, "Única", números) segue o alfabeto, com número em ordem numérica.
+ */
+export function compararVariacoes(a: string, b: string) {
+  const posicao = (opcao: string) =>
+    TAMANHOS.indexOf(opcao.trim().toUpperCase());
+  const [pa, pb] = [posicao(a), posicao(b)];
+
+  if (pa !== -1 && pb !== -1) return pa - pb;
+  if (pa !== -1) return -1;
+  if (pb !== -1) return 1;
+  return a.localeCompare(b, 'pt-BR', { numeric: true });
+}
+
+/**
+ * Exportar para pedido (PDF): produto, variação e quantidade somada de todas as
+ * compras — a lista para encomendar do fornecedor, sem ninguém nela. Produto
+ * com mais de uma variação ganha subtotal; no fim, o total geral.
+ */
+export function relatorioParaPedido(
+  pedidos: PedidoDeProduto[],
+  produtoId?: string
+): { colunas: ColunaDoRelatorio[]; linhas: LinhaDoRelatorio[] } {
+  const somas = new Map<
+    string,
+    { produto: string; opcao: string; n: number }
+  >();
+
+  for (const pedido of pedidos) {
+    for (const item of itensDoArquivo(pedido, produtoId)) {
+      const chave = `${item.produtoId}\u0000${item.opcao}`;
+      const atual = somas.get(chave) ?? {
+        produto: item.produto,
+        opcao: item.opcao,
+        n: 0,
+      };
+      atual.n += item.quantidade;
+      somas.set(chave, atual);
+    }
+  }
+
+  const ordenadas = [...somas.values()].sort(
+    (a, b) =>
+      a.produto.localeCompare(b.produto, 'pt-BR') ||
+      compararVariacoes(a.opcao, b.opcao)
+  );
+
+  const linhas: LinhaDoRelatorio[] = [];
+  let total = 0;
+  // com um produto só, o subtotal dele repetiria o total logo embaixo
+  const variosProdutos = new Set(ordenadas.map((v) => v.produto)).size > 1;
+  ordenadas.forEach((variacao, indice) => {
+    linhas.push({ valores: [variacao.produto, variacao.opcao, variacao.n] });
+    total += variacao.n;
+
+    const ultimaDoProduto = ordenadas[indice + 1]?.produto !== variacao.produto;
+    const doProduto = ordenadas.filter((v) => v.produto === variacao.produto);
+    if (variosProdutos && ultimaDoProduto && doProduto.length > 1) {
+      linhas.push({
+        tipo: 'subtotal',
+        valores: [
+          `Subtotal ${variacao.produto}`,
+          '',
+          doProduto.reduce((soma, v) => soma + v.n, 0),
+        ],
+      });
+    }
+  });
+
+  return {
+    colunas: [
+      { titulo: 'Produto', peso: 2.5 },
+      { titulo: 'Variação', peso: 1.5 },
+      { titulo: 'Quantidade', peso: 1, numero: true },
+    ],
+    linhas: [...linhas, { tipo: 'total', valores: ['Total', '', total] }],
+  };
 }
 
 /** Uma variante e quantas peças dela foram vendidas */

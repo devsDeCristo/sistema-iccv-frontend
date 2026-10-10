@@ -37,6 +37,8 @@ export interface EventDetails {
    * que recusa o checkout com 503 de qualquer jeito.
    */
   church?: {
+    /** o nome entra no cabeçalho das planilhas exportadas da página */
+    name?: string;
     modulePayment: boolean;
     /**
      * A igreja recebe pagamento pelo site: módulo ligado **e** gateway ativo.

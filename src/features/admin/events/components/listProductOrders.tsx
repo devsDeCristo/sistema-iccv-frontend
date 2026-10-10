@@ -25,6 +25,7 @@ import { usePatchProductsDelivery } from '../api/patchProductsDelivery';
 import {
   capaDoProduto,
   descreverItemDoPedido,
+  filtrarPedidos,
   PedidoDeProduto,
   pedidosDeProdutos,
 } from '../products';
@@ -92,28 +93,7 @@ function ListProductOrders({
 
   const pedidos = pedidosDeProdutos(paymentsData as PaymentResponse[]);
 
-  const busca = search.trim().toLowerCase();
-  const filtrados = pedidos.filter((pedido) => {
-    const combinaBusca =
-      !busca ||
-      pedido.fullName?.toLowerCase().includes(busca) ||
-      pedido.cpf?.includes(search.trim()) ||
-      pedido.email?.toLowerCase().includes(busca) ||
-      pedido.itens.some(
-        (item) =>
-          item.produto.toLowerCase().includes(busca) ||
-          item.opcao.toLowerCase().includes(busca)
-      );
-
-    // a compra entra inteira quando tem o produto filtrado: o pagamento é um
-    // só, e esconder os outros itens dele contaria meia verdade na entrega
-    const combinaProduto =
-      !produtoId || pedido.itens.some((item) => item.produtoId === produtoId);
-
-    return (
-      combinaBusca && combinaProduto && (!status || pedido.status === status)
-    );
-  });
+  const filtrados = filtrarPedidos(pedidos, { search, produtoId, status });
 
   const columns: GridColDef[] = [
     {

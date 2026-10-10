@@ -16,7 +16,10 @@ import { EventStatusFilter } from '../../../features/admin/events/types';
 import { useRole } from '../../../hooks/useRole';
 import { SeletorDeIgreja } from '../../../components/seletorDeIgreja';
 import { useIgrejaEscolhida } from '../../../hooks/useIgrejaEscolhida';
-import { superficieSx } from '../../../components/listPageStyles';
+import {
+  barraLarguraCheiaNoCelularSx,
+  superficieSx,
+} from '../../../components/listPageStyles';
 
 const STATUS_OPTIONS: { value: EventStatusFilter; label: string }[] = [
   { value: 'active', label: 'Ativos' },
@@ -58,6 +61,8 @@ function Events() {
       gap: 2,
       p: 2,
       ...superficieSx,
+      // no celular, busca, selects e botões ocupam a linha inteira
+      ...barraLarguraCheiaNoCelularSx,
     },
     textField: {
       width: { xs: '100%', sm: '300px' },
@@ -75,7 +80,7 @@ function Events() {
   };
   return (
     <PageStyle>
-      <Header title="Eventos">
+      <Header title="Eventos" acaoAoLado>
         <SeletorDeIgreja
           value={churchId}
           onChange={setChurchId}
