@@ -151,7 +151,12 @@ export interface User {
   minorApprovalRejectionReason?: string | null;
   /** Inscrições do usuário — o `/users` devolve o evento de cada uma */
   events?: {
-    event: { id: string; name: string; status: 'ACTIVE' | 'INACTIVE' | 'TEST' };
+    event: {
+      id: string;
+      name: string;
+      status: 'ACTIVE' | 'INACTIVE' | 'TEST';
+      endDate?: string;
+    };
   }[];
 
 }

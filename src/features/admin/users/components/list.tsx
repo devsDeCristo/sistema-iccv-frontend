@@ -67,6 +67,23 @@ const getSelectedRowsToExport = ({
 
   return gridFilteredSortedRowIdsSelector(apiRef);
 };
+/**
+ * O evento ainda vai acontecer ou está acontecendo: termina hoje ou depois.
+ * Conta o dia, e não a hora — o que termina hoje à tarde ainda aparece de
+ * manhã. Compara só a data ("2026-10-12"): o fim vem como meia-noite UTC, e
+ * lido no horário de Brasília cairia no dia anterior, sumindo no último dia.
+ */
+const naoTerminou = (endDate?: string) => {
+  if (!endDate) return true;
+  const agora = new Date();
+  const hoje = [
+    agora.getFullYear(),
+    String(agora.getMonth() + 1).padStart(2, '0'),
+    String(agora.getDate()).padStart(2, '0'),
+  ].join('-');
+  return endDate.slice(0, 10) >= hoje;
+};
+
 const renderCellWithCopy = (value: string | number) => {
   const handleCopy = () => {
     navigator.clipboard.writeText(String(value));
@@ -172,11 +189,23 @@ function List({
     {
       field: 'fullName',
       cellClassName: 'celula-destaque',
-      headerName: 'Nome',
+      headerName: 'Nome/Crachá',
       flex: 2,
       minWidth: 200,
       // maxWidth: 300,
-      renderCell: (params) => renderCellWithCopy(params.row.fullName),
+      // o nome do crachá embaixo, como na lista de inscritos do evento
+      renderCell: (params) => (
+        <Box>
+          {renderCellWithCopy(params.row.fullName)}
+          {params.row.badgeName && (
+            <Typography
+              sx={{ fontWeight: 300, fontSize: '0.85rem', lineHeight: 1.3 }}
+            >
+              {params.row.badgeName}
+            </Typography>
+          )}
+        </Box>
+      ),
     },
     {
       field: 'cpf',
@@ -246,13 +275,17 @@ function List({
     {
       field: 'events',
       headerName: 'Eventos',
-      minWidth: 300,
-      flex: 4,
+      minWidth: 240,
+      flex: 3,
       renderCell: (params) => {
         return (
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
             {(params.row.events || [])
-              .filter((event: any) => event?.event?.status === 'ACTIVE')
+              .filter(
+                (event: any) =>
+                  event?.event?.status === 'ACTIVE' &&
+                  naoTerminou(event.event.endDate)
+              )
               .map((event: any) => (
                 <Button
                   key={event.event.id}
@@ -406,6 +439,7 @@ function List({
     usersData.filter(
       (user) =>
         user.fullName?.toLowerCase().includes(search.toLowerCase()) ||
+        user.badgeName?.toLowerCase().includes(search.toLowerCase()) ||
         user.cpf?.includes(search)
     );
 
@@ -442,7 +476,9 @@ function List({
         // onRowDoubleClick={(params) => {
         //   navigate(`/user/${params.row.id}/editar`);
         // }}
-        rowHeight={65}
+        // a linha cresce com os chips de eventos, que quebram em várias linhas;
+        // com altura fixa eles vazavam por cima da linha de baixo
+        getRowHeight={() => 'auto'}
         autoHeight={true}
         // marcar é pela caixa, e não pelo clique na linha: as células copiam
         // o valor no clique, e cada cópia marcaria a pessoa sem querer
@@ -486,7 +522,14 @@ function List({
             },
           },
         }}
-        sx={dataGridSx(theme)}
+        sx={{
+          ...dataGridSx(theme),
+          // os 65px de antes viram piso: linha sem chips não encolhe
+          '& .MuiDataGrid-row--dynamicHeight > .MuiDataGrid-cell': {
+            minHeight: 65,
+            py: 1,
+          },
+        }}
         localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
       />
       <ModalPermissaoEmMassa
