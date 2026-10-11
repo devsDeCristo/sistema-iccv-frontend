@@ -90,16 +90,13 @@ function ModalLancamento({
     if (novo === 'EXPENSE') setDizimistaId(null);
   };
 
-  const opcoes = dizimistas.map((d) => ({
-    id: d.user.id,
-    nome: d.user.fullName,
-    ativo: d.active,
-  }));
-  // o dizimista já ligado continua na lista mesmo se saiu de lá
+  // os dizimistas são os membros da igreja
+  const opcoes = dizimistas.map((d) => ({ id: d.id, nome: d.fullName }));
+  // quem já estava ligado continua na lista mesmo se deixou de ser membro
   const escolhido =
     opcoes.find((o) => o.id === dizimistaId) ??
     (dizimistaId && lancamento?.user
-      ? { id: lancamento.user.id, nome: lancamento.user.fullName, ativo: false }
+      ? { id: lancamento.user.id, nome: lancamento.user.fullName }
       : null);
 
   const dataValida = !!data && !Number.isNaN(data.getTime());
@@ -270,7 +267,7 @@ function ModalLancamento({
             onChange={(_, valor) => setDizimistaId(valor?.id ?? null)}
             getOptionLabel={(o) => o.nome}
             isOptionEqualToValue={(o, v) => o.id === v.id}
-            noOptionsText="Nenhum dizimista cadastrado nesta igreja"
+            noOptionsText="Nenhum membro nesta igreja"
             renderInput={(params) => (
               <TextField
                 {...params}

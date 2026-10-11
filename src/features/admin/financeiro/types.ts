@@ -20,24 +20,22 @@ export type Categoria =
   | 'BANK_FEES'
   | 'OTHER_EXPENSE';
 
-export interface UsuarioDoDizimista {
+/**
+ * Um dizimista é um membro da igreja — todo membro é um dizimista em
+ * potencial —, com os números de dízimo do ano.
+ */
+export interface Dizimista {
+  /** o id do usuário */
   id: string;
   fullName: string;
   cpf: string;
   cellphone: string;
   email: string;
   profilePhotoUrl: string | null;
-}
-
-export interface Dizimista {
-  id: string;
-  active: boolean;
-  /** "2024-03-01" */
-  since: string | null;
-  notes: string | null;
-  /** o dízimo combinado; separa dízimo de oferta na importação do banco */
-  expectedAmount: number | null;
-  user: UsuarioDoDizimista;
+  memberSince: string | null;
+  family: { id: string; name: string } | null;
+  /** o valor do dízimo; separa dízimo de oferta na importação do banco */
+  titheAmount: number | null;
   totalNoAno: number;
   /** meses do ano com dízimo, 1 a 12 */
   mesesNoAno: number[];
@@ -47,21 +45,13 @@ export interface Dizimista {
 export interface ListaDeDizimistas {
   ano: number;
   resumo: {
-    ativos: number;
+    membros: number;
     dizimaramNoMes: number;
+    dizimaramNoAno: number;
     totalNoMes: number;
     totalNoAno: number;
   };
   dizimistas: Dizimista[];
-}
-
-/** Resultado da busca de quem adicionar: CPF vem pela metade */
-export interface UsuarioEncontrado {
-  id: string;
-  fullName: string;
-  cpf: string;
-  profilePhotoUrl: string | null;
-  jaDizimista: boolean;
 }
 
 export interface Lancamento {

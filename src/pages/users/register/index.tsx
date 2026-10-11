@@ -7,6 +7,8 @@ import {
 } from 'react-hook-form';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
+import { useQuery } from 'react-query';
+import { apiClient } from '../../../config/lib/axios/api-client';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'react-toastify';
 import {
@@ -21,7 +23,9 @@ import {
   Link,
   Divider,
   IconButton,
+  MenuItem,
   Stack,
+  TextField,
   Typography,
   useTheme,
 } from '@mui/material';
@@ -50,6 +54,84 @@ import Logo from '../../../assets/logo-ic.svg?react';
  */
 const CADASTRO_COM_SENHA = REGISTER_USERS_SCHEMA.and(NEW_PASSWORD_SCHEMA);
 type CadastroComSenha = RegisterUsersFormType & NewPasswordFormType;
+
+/** "Outra" no select: a igreja não está no sistema */
+const OUTRA = 'OUTRA';
+
+/** A escolha da igreja na inscrição: uma do sistema, ou "Outra" com o nome */
+interface EscolhaDaIgreja {
+  igreja: string;
+  outra: string;
+}
+
+/**
+ * A igreja na inscrição: uma das igrejas do sistema, ou "Outra" com o nome. Entra
+ * no lugar do campo "Igreja" do formulário (`campoDaIgreja`), que nas outras
+ * telas é texto livre. A escolha vira um pedido para a igreja aceitar (em
+ * Membros); "Outra" guarda só o nome, e quem administra uma igreja coloca a
+ * pessoa nela depois. Depois da inscrição, a pessoa não troca a igreja sozinha.
+ */
+function CampoDaIgreja({
+  valor,
+  onChange,
+  erro,
+  igrejas,
+  carregando,
+}: {
+  valor: EscolhaDaIgreja;
+  onChange: (valor: EscolhaDaIgreja) => void;
+  erro: boolean;
+  igrejas: { id: string; name: string }[];
+  carregando: boolean;
+}) {
+  const outra = valor.igreja === OUTRA;
+
+  return (
+    <Stack direction={{ xs: 'column', md: 'row' }} gap={2}>
+      <TextField
+        select
+        fullWidth
+        required
+        label="Igreja"
+        value={valor.igreja}
+        onChange={(evento) =>
+          onChange({ ...valor, igreja: evento.target.value })
+        }
+        error={erro && !valor.igreja}
+        helperText={
+          erro && !valor.igreja
+            ? 'Escolha a sua igreja'
+            : 'A igreja confirma o seu vínculo depois'
+        }
+        disabled={carregando}
+      >
+        {igrejas.map((igreja) => (
+          <MenuItem key={igreja.id} value={igreja.id}>
+            {igreja.name}
+          </MenuItem>
+        ))}
+        <MenuItem value={OUTRA}>Outra</MenuItem>
+      </TextField>
+      {outra && (
+        <TextField
+          fullWidth
+          required
+          autoFocus
+          label="Nome da sua igreja"
+          value={valor.outra}
+          onChange={(evento) =>
+            onChange({ ...valor, outra: evento.target.value })
+          }
+          inputProps={{ maxLength: 120 }}
+          error={erro && !valor.outra.trim()}
+          helperText={
+            erro && !valor.outra.trim() ? 'Escreva o nome da igreja' : ' '
+          }
+        />
+      )}
+    </Stack>
+  );
+}
 
 /**
  * A senha tem seção própria, fora do formulário de dados: ele é o mesmo da
@@ -171,6 +253,20 @@ function RegisterUser() {
    */
   const [aceitouTermos, setAceitouTermos] = useState(false);
   const [faltaAceite, setFaltaAceite] = useState(false);
+  const [igreja, setIgreja] = useState<EscolhaDaIgreja>({
+    igreja: '',
+    outra: '',
+  });
+  const [faltaIgreja, setFaltaIgreja] = useState(false);
+  // lista pública: a inscrição é antes de haver conta
+  const { data: igrejas = [], isLoading: carregandoIgrejas } = useQuery(
+    ['IGREJAS_PUBLICAS'],
+    () =>
+      apiClient
+        .get<{ id: string; name: string }[]>('/public/churches')
+        .then((resposta) => resposta.data),
+    { staleTime: 5 * 60_000 }
+  );
   const escuro = theme.palette.mode === 'dark';
 
   const methods = useForm<CadastroComSenha>({
@@ -206,6 +302,11 @@ function RegisterUser() {
   });
 
   function onSubmitForm(data: CadastroComSenha) {
+    if (!igreja.igreja || (igreja.igreja === OUTRA && !igreja.outra.trim())) {
+      setFaltaIgreja(true);
+      toast.error('Escolha a sua igreja, ou "Outra" com o nome dela.');
+      return;
+    }
     if (!aceitouTermos) {
       setFaltaAceite(true);
       toast.error('Para criar o cadastro, aceite os Termos de Uso.');
@@ -237,7 +338,6 @@ function RegisterUser() {
       number: data.number === '' ? undefined : data.number,
       indicatedBy: data.indicatedBy === '' ? undefined : data.indicatedBy,
       religion: data.religion === '' ? undefined : data.religion,
-      congregation: data.congregation === '' ? undefined : data.congregation,
       pastorName: data.pastorName === '' ? undefined : data.pastorName,
       notes: data.notes === '' ? undefined : data.notes,
       leadershipPosition:
@@ -249,6 +349,17 @@ function RegisterUser() {
       role: 5,
       // a senha escolhida; o servidor guarda só o hash
       password: data.password,
+      // a igreja é um pedido, que ela aceita em Membros; "Outra" vai só o
+      // nome. O campo de texto de antes (`congregation`) segue com o nome.
+      ...(igreja.igreja === OUTRA
+        ? {
+            otherChurchName: igreja.outra.trim(),
+            congregation: igreja.outra.trim(),
+          }
+        : {
+            requestedChurchId: igreja.igreja,
+            congregation: igrejas.find((i) => i.id === igreja.igreja)?.name,
+          }),
     };
 
     mutatePostCreateUser(formatData);
@@ -417,7 +528,17 @@ function RegisterUser() {
         <Box sx={styles.cartao}>
           <FormProvider {...methods}>
             <form onSubmit={methods.handleSubmit(onSubmitForm, onInvalidForm)}>
-              <Form />
+              <Form
+                campoDaIgreja={
+                  <CampoDaIgreja
+                    valor={igreja}
+                    onChange={setIgreja}
+                    erro={faltaIgreja}
+                    igrejas={igrejas}
+                    carregando={carregandoIgrejas}
+                  />
+                }
+              />
               <SecaoDaSenha />
 
               <Box sx={{ mt: 3 }}>

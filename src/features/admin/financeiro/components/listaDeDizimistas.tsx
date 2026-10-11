@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import {
   Box,
   Card,
@@ -9,13 +10,12 @@ import {
   useTheme,
 } from '@mui/material';
 import {
-  DeleteOutline,
   EditOutlined,
+  FamilyRestroom,
   VolunteerActivism,
 } from '@mui/icons-material';
 import { DataGrid, GridColDef, ptBR } from '@mui/x-data-grid';
 
-import CustomChip from '../../../../components/customChip';
 import { UserAvatar } from '../../../../components/userAvatar';
 import {
   cardTabelaSx,
@@ -28,6 +28,14 @@ import {
 } from '../../../../utils';
 import { MESES_CURTOS } from '../constants';
 import { Dizimista } from '../types';
+import { FaixaDaFamilia } from '../../membros/components/faixaDaFamilia';
+import {
+  EmFamilia,
+  abreAFamilia,
+  classeDaFamilia,
+  emBlocos,
+  estiloDasFamilias,
+} from '../../membros/familias';
 
 /** "2026-10-03" → "03/10/2026", sem passar por fuso */
 const dataCurta = (dia: string | null) =>
@@ -86,25 +94,59 @@ interface Props {
   ano: number;
   carregando: boolean;
   onEditar: (dizimista: Dizimista) => void;
-  onRemover: (dizimista: Dizimista) => void;
 }
 
-function ListaDeDizimistas({
-  dizimistas,
-  ano,
-  carregando,
-  onEditar,
-  onRemover,
-}: Props) {
+/**
+ * Os dizimistas — os membros da igreja — com as famílias juntas, no mesmo
+ * desenho da tela de Membros: as linhas de uma família em sequência, a faixa
+ * da cor dela e o nome na primeira linha. A ordem é o que junta a família, por
+ * isso as colunas não se reordenam por clique.
+ */
+function ListaDeDizimistas({ dizimistas, ano, carregando, onEditar }: Props) {
   const theme = useTheme();
+  const linhas = useMemo(() => emBlocos(dizimistas), [dizimistas]);
 
-  const columns: GridColDef<Dizimista>[] = [
+  const columns: GridColDef<EmFamilia<Dizimista>>[] = [
+    {
+      field: 'familia',
+      headerName: 'Família',
+      width: 170,
+      valueGetter: ({ row }) => row.family?.name ?? '',
+      renderCell: ({ row }) =>
+        row.family && row.posicao && row.cor ? (
+          <>
+            <FaixaDaFamilia posicao={row.posicao} cor={row.cor} />
+            {abreAFamilia(row.posicao) && (
+              <Stack
+                direction="row"
+                spacing={0.75}
+                alignItems="center"
+                sx={{ ml: 2, color: row.cor, minWidth: 0 }}
+              >
+                <FamilyRestroom sx={{ fontSize: 16 }} />
+                <Typography
+                  fontSize={13}
+                  fontWeight={700}
+                  color="inherit"
+                  noWrap
+                >
+                  {row.family.name}
+                </Typography>
+              </Stack>
+            )}
+          </>
+        ) : (
+          <Typography fontSize={13} color="text.disabled">
+            —
+          </Typography>
+        ),
+    },
     {
       field: 'nome',
-      headerName: 'Dizimista',
+      headerName: 'Membro',
       flex: 2,
-      minWidth: 230,
-      valueGetter: ({ row }) => row.user.fullName,
+      minWidth: 200,
+      valueGetter: ({ row }) => row.fullName,
       renderCell: ({ row }) => (
         <Stack
           direction="row"
@@ -113,21 +155,16 @@ function ListaDeDizimistas({
           sx={{ py: 1 }}
         >
           <UserAvatar
-            name={row.user.fullName}
-            photoUrl={row.user.profilePhotoUrl}
-            sx={{
-              width: 32,
-              height: 32,
-              fontSize: 13,
-              opacity: row.active ? 1 : 0.5,
-            }}
+            name={row.fullName}
+            photoUrl={row.profilePhotoUrl}
+            sx={{ width: 32, height: 32, fontSize: 13 }}
           />
           <Box sx={{ minWidth: 0 }}>
             <Typography fontSize={14} fontWeight={600} noWrap>
-              {row.user.fullName}
+              {row.fullName}
             </Typography>
-            <Typography variant="caption" color="text.secondary">
-              {formatCPF(row.user.cpf)}
+            <Typography variant="caption" color="text.secondary" noWrap>
+              {formatCPF(row.cpf)}
             </Typography>
           </Box>
         </Stack>
@@ -137,37 +174,31 @@ function ListaDeDizimistas({
       field: 'contato',
       headerName: 'Contato',
       flex: 1.3,
-      minWidth: 180,
+      minWidth: 160,
       valueGetter: ({ row }) =>
-        `${formatPhoneNumber(row.user.cellphone)} ${row.user.email}`,
+        `${formatPhoneNumber(row.cellphone)} ${row.email}`,
       renderCell: ({ row }) => (
         <Box sx={{ minWidth: 0 }}>
           <Typography fontSize={13}>
-            {formatPhoneNumber(row.user.cellphone)}
+            {formatPhoneNumber(row.cellphone)}
           </Typography>
           <Typography variant="caption" color="text.secondary" noWrap>
-            {row.user.email}
+            {row.email}
           </Typography>
         </Box>
       ),
     },
     {
-      field: 'expectedAmount',
+      field: 'titheAmount',
       headerName: 'Dízimo',
       // o cabeçalho curto cabe; a dica explica o que é
       description:
-        'Valor combinado. Na importação do banco separa dízimo (este valor) de oferta (outro valor)',
+        'Valor do dízimo. Na importação do banco separa dízimo (este valor) de oferta (outro valor)',
       width: 110,
       align: 'right',
       headerAlign: 'right',
       valueFormatter: ({ value }) =>
         value ? formatCurrency(value as number) : '—',
-    },
-    {
-      field: 'since',
-      headerName: 'Desde',
-      width: 100,
-      valueFormatter: ({ value }) => dataCurta(value as string | null) || '—',
     },
     {
       field: 'mesesNoAno',
@@ -196,47 +227,19 @@ function ListaDeDizimistas({
       ),
     },
     {
-      field: 'active',
-      headerName: 'Situação',
-      width: 100,
-      valueGetter: ({ row }) => (row.active ? 'Ativo' : 'Inativo'),
-      renderCell: ({ row }) => (
-        <CustomChip
-          size="small"
-          label={row.active ? 'Ativo' : 'Inativo'}
-          customColor={
-            row.active
-              ? theme.palette.chips.success
-              : theme.palette.chips.default
-          }
-        />
-      ),
-    },
-    {
       field: 'acoes',
       headerName: '',
-      width: 96,
+      width: 56,
       sortable: false,
       filterable: false,
       disableExport: true,
       align: 'right',
       renderCell: ({ row }) => (
-        <Stack direction="row">
-          <Tooltip title="Editar">
-            <IconButton size="small" onClick={() => onEditar(row)}>
-              <EditOutlined fontSize="small" />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Tirar da lista">
-            <IconButton
-              size="small"
-              onClick={() => onRemover(row)}
-              sx={{ '&:hover': { color: theme.palette.chips.canceled } }}
-            >
-              <DeleteOutline fontSize="small" />
-            </IconButton>
-          </Tooltip>
-        </Stack>
+        <Tooltip title="Valor do dízimo">
+          <IconButton size="small" onClick={() => onEditar(row)}>
+            <EditOutlined fontSize="small" />
+          </IconButton>
+        </Tooltip>
       ),
     },
   ];
@@ -244,8 +247,8 @@ function ListaDeDizimistas({
   return (
     <Card elevation={0} sx={cardTabelaSx}>
       <DataGrid
-        rows={dizimistas}
-        columns={columns}
+        rows={linhas}
+        columns={columns.map((coluna) => ({ ...coluna, sortable: false }))}
         loading={carregando}
         getRowHeight={() => 'auto'}
         autoHeight
@@ -253,12 +256,8 @@ function ListaDeDizimistas({
         pageSizeOptions={[25, 50, 100]}
         initialState={{ pagination: { paginationModel: { pageSize: 25 } } }}
         columnHeaderHeight={44}
-        sx={{
-          ...dataGridSx(theme),
-          '& .MuiDataGrid-row--dynamicHeight > .MuiDataGrid-cell': {
-            minHeight: 60,
-          },
-        }}
+        getRowClassName={({ row }) => classeDaFamilia(row.cor)}
+        sx={{ ...dataGridSx(theme), ...estiloDasFamilias(60) }}
         localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
         slots={{
           noRowsOverlay: () => (
@@ -273,7 +272,7 @@ function ListaDeDizimistas({
                 sx={{ fontSize: 34, color: 'text.disabled' }}
               />
               <Typography color="text.secondary">
-                Nenhum dizimista cadastrado
+                Nenhum membro nesta igreja ainda
               </Typography>
             </Stack>
           ),

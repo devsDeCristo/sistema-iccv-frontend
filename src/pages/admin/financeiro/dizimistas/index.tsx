@@ -1,8 +1,6 @@
 import { useMemo, useState } from 'react';
 import {
   Alert,
-  Box,
-  Button,
   InputAdornment,
   MenuItem,
   Paper,
@@ -11,7 +9,6 @@ import {
   useTheme,
 } from '@mui/material';
 import {
-  Add,
   CalendarMonth,
   People,
   Savings,
@@ -21,7 +18,6 @@ import {
 
 import { PageStyle } from '../../../../components/pageStyle';
 import { Header } from '../../../../components/header';
-import { ConfirmModal } from '../../../../components/ConfirmModal';
 import { StatusCards } from '../../../../components/statusCards';
 import {
   barraLarguraCheiaNoCelularSx,
@@ -30,10 +26,7 @@ import {
 import { formatCurrency } from '../../../../utils';
 import { ChurchScopeBar } from '../../../../features/settings/shared/churchScopeBar';
 import { useIgrejaSelecionada } from '../../../../features/settings/shared/useIgrejaSelecionada';
-import {
-  useGetDizimistas,
-  useRemoverDizimista,
-} from '../../../../features/admin/financeiro/api';
+import { useGetDizimistas } from '../../../../features/admin/financeiro/api';
 import { ListaDeDizimistas } from '../../../../features/admin/financeiro/components/listaDeDizimistas';
 import { ModalDizimista } from '../../../../features/admin/financeiro/components/modalDizimista';
 import { Dizimista } from '../../../../features/admin/financeiro/types';
@@ -43,10 +36,12 @@ const ANO_ATUAL = new Date().getFullYear();
 const ANOS = Array.from({ length: 5 }, (_, i) => ANO_ATUAL - i);
 
 /**
- * Quem dizima na igreja e como está o ano de cada um: em quais meses houve
- * dízimo, o total e o último. Os números saem dos lançamentos de dízimo
- * ligados à pessoa — os manuais e os que a importação do banco reconheceu
- * pelo CPF.
+ * Os dizimistas são **os membros da igreja** — todo membro é um dizimista em
+ * potencial, e não há cadastro à parte (quem entra e sai é o admin, em
+ * Membros). Aqui se vê como está o ano de cada um: em quais meses houve
+ * dízimo, o total e o último — dos lançamentos de dízimo ligados à pessoa, os
+ * manuais e os que a importação do banco reconheceu pelo CPF — e se ajusta o
+ * valor do dízimo, que separa dízimo de oferta na importação.
  */
 function Dizimistas() {
   const theme = useTheme();
@@ -54,16 +49,11 @@ function Dizimistas() {
   const churchId = escopo.churchId;
 
   const [ano, setAno] = useState(ANO_ATUAL);
-  const [situacao, setSituacao] = useState<'ativos' | 'inativos' | 'todos'>(
-    'ativos'
-  );
+  const [noAno, setNoAno] = useState<'todos' | 'com' | 'sem'>('todos');
   const [busca, setBusca] = useState('');
   const [editando, setEditando] = useState<Dizimista | null>(null);
-  const [adicionando, setAdicionando] = useState(false);
-  const [removendo, setRemovendo] = useState<Dizimista | null>(null);
 
   const { data, isFetching } = useGetDizimistas(churchId, ano);
-  const remover = useRemoverDizimista();
 
   // a lista de uma igreja é curta: filtrar aqui poupa ida ao servidor
   const visiveis = useMemo(() => {
@@ -71,21 +61,24 @@ function Dizimistas() {
     const digitos = termo.replace(/\D/g, '');
     return (data?.dizimistas ?? []).filter(
       (d) =>
-        (situacao === 'todos' || d.active === (situacao === 'ativos')) &&
+        (noAno === 'todos' || (noAno === 'com') === d.totalNoAno > 0) &&
         (!termo ||
-          d.user.fullName.toLowerCase().includes(termo) ||
-          (digitos.length >= 3 && d.user.cpf.includes(digitos)))
+          d.fullName.toLowerCase().includes(termo) ||
+          (digitos.length >= 3 && d.cpf.includes(digitos)))
     );
-  }, [data, situacao, busca]);
+  }, [data, noAno, busca]);
 
   const resumo = data?.resumo;
-  const media = resumo && resumo.ativos ? resumo.totalNoAno / resumo.ativos : 0;
+  const media =
+    resumo && resumo.dizimaramNoAno
+      ? resumo.totalNoAno / resumo.dizimaramNoAno
+      : 0;
 
   return (
     <PageStyle>
       <Header
         title="Dizimistas"
-        description="Quem dizima na igreja e como está o ano"
+        description="Os membros da igreja e o dízimo de cada um"
         acaoAoLado
       >
         <ChurchScopeBar escopo={escopo} oQueMuda="os dizimistas" />
@@ -107,9 +100,9 @@ function Dizimistas() {
             isLoading={!data}
             cards={[
               {
-                title: 'Dizimistas ativos',
-                value: resumo?.ativos ?? 0,
-                subtitle: 'Na lista da igreja',
+                title: 'Membros',
+                value: resumo?.membros ?? 0,
+                subtitle: 'Dizimistas em potencial',
                 icon: <People sx={{ fontSize: 20 }} />,
                 color: theme.palette.chips.info,
               },
@@ -123,7 +116,7 @@ function Dizimistas() {
               {
                 title: `Total em ${ano}`,
                 value: formatCurrency(resumo?.totalNoAno),
-                subtitle: 'Dízimos ligados a dizimistas',
+                subtitle: `${resumo?.dizimaramNoAno ?? 0} membros dizimaram`,
                 icon: <VolunteerActivism sx={{ fontSize: 20 }} />,
                 color: theme.palette.chips.alert,
                 compact: true,
@@ -131,7 +124,7 @@ function Dizimistas() {
               {
                 title: 'Média por dizimista',
                 value: formatCurrency(media),
-                subtitle: `No ano, entre os ativos`,
+                subtitle: 'Entre quem dizimou no ano',
                 icon: <Savings sx={{ fontSize: 20 }} />,
                 color: theme.palette.chips.pending,
                 compact: true,
@@ -171,14 +164,14 @@ function Dizimistas() {
               <TextField
                 select
                 size="small"
-                label="Situação"
-                value={situacao}
-                onChange={(e) => setSituacao(e.target.value as typeof situacao)}
-                sx={{ width: 140 }}
+                label={`Dízimo em ${ano}`}
+                value={noAno}
+                onChange={(e) => setNoAno(e.target.value as typeof noAno)}
+                sx={{ width: 170 }}
               >
-                <MenuItem value="ativos">Ativos</MenuItem>
-                <MenuItem value="inativos">Inativos</MenuItem>
                 <MenuItem value="todos">Todos</MenuItem>
+                <MenuItem value="com">Dizimaram</MenuItem>
+                <MenuItem value="sem">Não dizimaram</MenuItem>
               </TextField>
               <TextField
                 select
@@ -194,56 +187,31 @@ function Dizimistas() {
                   </MenuItem>
                 ))}
               </TextField>
-
-              <Box sx={{ flex: 1 }} />
-
-              <Button
-                variant="contained"
-                startIcon={<Add />}
-                onClick={() => setAdicionando(true)}
-                sx={{
-                  textTransform: 'none',
-                  width: { xs: '100%', sm: 'auto' },
-                }}
-              >
-                Adicionar dizimista
-              </Button>
             </Stack>
           </Paper>
+
+          {/* sem membro, a lista fica vazia: diz de onde eles vêm */}
+          {resumo && !resumo.membros && (
+            <Alert severity="info" sx={{ mb: 2 }}>
+              Os dizimistas são os membros da igreja. Quem administra a igreja
+              coloca as pessoas como membros no módulo Membros.
+            </Alert>
+          )}
 
           <ListaDeDizimistas
             dizimistas={visiveis}
             ano={ano}
             carregando={isFetching}
             onEditar={setEditando}
-            onRemover={setRemovendo}
           />
 
           {churchId && (
             <ModalDizimista
-              open={adicionando || !!editando}
               churchId={churchId}
               dizimista={editando}
-              onClose={() => {
-                setAdicionando(false);
-                setEditando(null);
-              }}
+              onClose={() => setEditando(null)}
             />
           )}
-
-          <ConfirmModal
-            open={!!removendo}
-            onClose={() => setRemovendo(null)}
-            title="Tirar da lista de dizimistas?"
-            message={`${removendo?.user.fullName} sai da lista. Os dízimos já lançados continuam no livro-caixa. Para só parar de contar, prefira desativar.`}
-            confirmLabel="Tirar da lista"
-            onConfirm={() => {
-              if (churchId && removendo) {
-                remover.mutate({ churchId, id: removendo.id });
-              }
-              setRemovendo(null);
-            }}
-          />
         </>
       )}
     </PageStyle>

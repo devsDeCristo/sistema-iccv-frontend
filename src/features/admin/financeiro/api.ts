@@ -6,30 +6,28 @@ import {
   handleResponseThrowError,
 } from '../../../utils/service';
 import { GET_PLUGGY } from '../../settings/integrations/api';
-import {
-  BUSCAR_USUARIOS_DIZIMISTA,
-  GET_DIZIMISTAS,
-  GET_LANCAMENTOS,
-} from './constants';
+import { GET_MEMBROS } from '../membros/api';
+import { GET_DIZIMISTAS, GET_LANCAMENTOS } from './constants';
 import {
   FiltrosDeLancamento,
   LancamentoPayload,
   ListaDeDizimistas,
   ListaDeLancamentos,
   ResultadoDaImportacao,
-  UsuarioEncontrado,
 } from './types';
 
 const rota = (churchId: string) => `/churches/${churchId}/financeiro`;
 
 /**
  * Lançamento e dizimista se cruzam: o total do ano do dizimista sai dos
- * lançamentos de dízimo. Mexeu num, as duas telas recarregam.
+ * lançamentos de dízimo. Mexeu num, as duas telas recarregam — e Membros,
+ * que lista as mesmas pessoas.
  */
 const invalidar = () =>
   Promise.all([
     queryClient.invalidateQueries(GET_DIZIMISTAS),
     queryClient.invalidateQueries(GET_LANCAMENTOS),
+    queryClient.invalidateQueries(GET_MEMBROS),
   ]);
 
 // ---- dizimistas ------------------------------------------------------------
@@ -46,73 +44,22 @@ export const useGetDizimistas = (churchId: string | null, ano: number) =>
     { enabled: !!churchId, keepPreviousData: true }
   );
 
-/** Nome com 3+ letras ou CPF completo; antes disso nem pergunta */
-export const useBuscarUsuarios = (churchId: string | null, busca: string) => {
-  const texto = busca.trim();
-  const valida = texto.replace(/\D/g, '').length === 11 || texto.length >= 3;
-  return useQuery(
-    [BUSCAR_USUARIOS_DIZIMISTA, churchId ?? '', texto],
-    () =>
-      apiClient
-        .get<UsuarioEncontrado[]>(`${rota(churchId as string)}/usuarios`, {
-          params: { busca: texto },
-        })
-        .then((response) => response.data),
-    { enabled: !!churchId && valida, keepPreviousData: true }
-  );
-};
-
-export const useCriarDizimista = () =>
+/** O valor do dízimo do membro; `null` tira (todo Pix dele vira dízimo) */
+export const useDefinirValorDoDizimo = () =>
   useMutation({
     mutationFn: ({
       churchId,
-      ...dados
+      userId,
+      titheAmount,
     }: {
       churchId: string;
       userId: string;
-      since?: string;
-      notes?: string;
-      expectedAmount?: number;
+      titheAmount: number | null;
     }) =>
       apiClient
-        .post(`${rota(churchId)}/dizimistas`, dados)
+        .patch(`${rota(churchId)}/dizimistas/${userId}`, { titheAmount })
         .then((response) =>
-          handleResponseSuccess(response.data, 'Dizimista adicionado')()
-        )
-        .catch(handleResponseThrowError()),
-    onSuccess: invalidar,
-  });
-
-export const useAtualizarDizimista = () =>
-  useMutation({
-    mutationFn: ({
-      churchId,
-      id,
-      ...dados
-    }: {
-      churchId: string;
-      id: string;
-      active?: boolean;
-      since?: string | null;
-      notes?: string | null;
-      expectedAmount?: number | null;
-    }) =>
-      apiClient
-        .patch(`${rota(churchId)}/dizimistas/${id}`, dados)
-        .then((response) =>
-          handleResponseSuccess(response.data, 'Dizimista atualizado')()
-        )
-        .catch(handleResponseThrowError()),
-    onSuccess: invalidar,
-  });
-
-export const useRemoverDizimista = () =>
-  useMutation({
-    mutationFn: ({ churchId, id }: { churchId: string; id: string }) =>
-      apiClient
-        .delete(`${rota(churchId)}/dizimistas/${id}`)
-        .then((response) =>
-          handleResponseSuccess(response.data, 'Dizimista removido')()
+          handleResponseSuccess(response.data, 'Valor do dízimo salvo')()
         )
         .catch(handleResponseThrowError()),
     onSuccess: invalidar,

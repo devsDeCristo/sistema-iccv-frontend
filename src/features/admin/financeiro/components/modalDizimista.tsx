@@ -1,276 +1,111 @@
 import { useEffect, useState } from 'react';
-import {
-  Alert,
-  Autocomplete,
-  Box,
-  Button,
-  FormControlLabel,
-  Stack,
-  Switch,
-  TextField,
-  Typography,
-} from '@mui/material';
-import { format } from 'date-fns';
+import { Box, Button, Stack, TextField, Typography } from '@mui/material';
 
 import { ResponsiveModal } from '../../../../components/responsiveModal';
-import { InputDatePicker } from '../../../../components/inputDatePicker';
 import { UserAvatar } from '../../../../components/userAvatar';
 import { formatCPF, formatCurrency } from '../../../../utils';
-import {
-  useAtualizarDizimista,
-  useBuscarUsuarios,
-  useCriarDizimista,
-} from '../api';
-import { Dizimista, UsuarioEncontrado } from '../types';
-
-/** "2024-03-01" → Date à meia-noite local */
-const paraData = (dia: string) => {
-  const [a, m, d] = dia.split('-').map(Number);
-  return new Date(a, m - 1, d);
-};
+import { useDefinirValorDoDizimo } from '../api';
+import { Dizimista } from '../types';
 
 interface Props {
-  open: boolean;
   churchId: string;
-  /** null: adicionar um dizimista */
+  /** o membro cujo valor se edita; null fecha a janela */
   dizimista: Dizimista | null;
   onClose: () => void;
 }
 
 /**
- * Adicionar um dizimista é escolher um usuário que já tem cadastro — pelo
- * nome ou pelo CPF — e, se quiser, desde quando ele dizima. Na edição a pessoa
- * não muda: muda a data, a observação e se está ativo.
+ * O valor do dízimo de um membro. Não há cadastro de dizimista — todo membro é
+ * um dizimista em potencial —, e este valor é o que se ajusta: na importação
+ * do banco, um Pix dele com exatamente este valor é dízimo; com outro valor,
+ * oferta. Sem valor, todo Pix dele entra como dízimo.
  */
-function ModalDizimista({ open, churchId, dizimista, onClose }: Props) {
-  const criar = useCriarDizimista();
-  const atualizar = useAtualizarDizimista();
-  const salvando = criar.isLoading || atualizar.isLoading;
-
-  const [busca, setBusca] = useState('');
-  const [buscaEnviada, setBuscaEnviada] = useState('');
-  const [usuario, setUsuario] = useState<UsuarioEncontrado | null>(null);
-  const [desde, setDesde] = useState<Date | null>(null);
-  const [observacao, setObservacao] = useState('');
-  const [ativo, setAtivo] = useState(true);
-  // o dízimo combinado, em centavos (0 = sem valor): mesma máscara do lançamento
+function ModalDizimista({ churchId, dizimista, onClose }: Props) {
+  const salvar = useDefinirValorDoDizimo();
+  // em centavos (0 = sem valor): a mesma máscara do lançamento
   const [centavos, setCentavos] = useState(0);
 
   useEffect(() => {
-    if (!open) return;
-    setBusca('');
-    setBuscaEnviada('');
-    setUsuario(null);
-    setDesde(dizimista?.since ? paraData(dizimista.since) : null);
-    setObservacao(dizimista?.notes ?? '');
+    if (!dizimista) return;
     setCentavos(
-      dizimista?.expectedAmount ? Math.round(dizimista.expectedAmount * 100) : 0
+      dizimista.titheAmount ? Math.round(dizimista.titheAmount * 100) : 0
     );
-    setAtivo(dizimista?.active ?? true);
-  }, [open, dizimista]);
+  }, [dizimista]);
 
-  // a busca vai para o servidor: espera a pessoa parar de digitar
-  useEffect(() => {
-    const id = setTimeout(() => setBuscaEnviada(busca), 300);
-    return () => clearTimeout(id);
-  }, [busca]);
-
-  const { data: encontrados = [], isFetching: buscando } = useBuscarUsuarios(
-    open && !dizimista ? churchId : null,
-    buscaEnviada
-  );
-
-  const dataValida = !desde || !Number.isNaN(desde.getTime());
-  const pronto = (dizimista || usuario) && dataValida;
-
-  const enviar = () => {
-    const since = desde ? format(desde, 'yyyy-MM-dd') : null;
-    if (dizimista) {
-      atualizar.mutate(
-        {
-          churchId,
-          id: dizimista.id,
-          active: ativo,
-          since,
-          notes: observacao.trim() || null,
-          expectedAmount: centavos ? centavos / 100 : null,
-        },
-        { onSuccess: onClose }
-      );
-      return;
-    }
-    criar.mutate(
+  const enviar = () =>
+    dizimista &&
+    salvar.mutate(
       {
         churchId,
-        userId: (usuario as UsuarioEncontrado).id,
-        ...(since ? { since } : {}),
-        ...(observacao.trim() ? { notes: observacao.trim() } : {}),
-        ...(centavos ? { expectedAmount: centavos / 100 } : {}),
+        userId: dizimista.id,
+        titheAmount: centavos ? centavos / 100 : null,
       },
       { onSuccess: onClose }
     );
-  };
 
   return (
     <ResponsiveModal
-      open={open}
+      open={!!dizimista}
       onClose={onClose}
-      disableClose={salvando}
-      maxWidth="sm"
+      disableClose={salvar.isLoading}
+      maxWidth="xs"
       fullWidth
-      title={dizimista ? 'Editar dizimista' : 'Adicionar dizimista'}
+      title="Valor do dízimo"
       actions={
         <>
-          <Button onClick={onClose} disabled={salvando} color="inherit">
+          <Button onClick={onClose} disabled={salvar.isLoading} color="inherit">
             Cancelar
           </Button>
           <Button
             variant="contained"
             onClick={enviar}
-            disabled={salvando || !pronto}
+            disabled={salvar.isLoading}
           >
-            {salvando ? 'Salvando…' : dizimista ? 'Salvar' : 'Adicionar'}
+            {salvar.isLoading ? 'Salvando…' : 'Salvar'}
           </Button>
         </>
       }
     >
-      <Stack spacing={2}>
-        {dizimista ? (
+      {dizimista && (
+        <Stack spacing={2}>
           <Stack direction="row" spacing={1.5} alignItems="center">
             <UserAvatar
-              name={dizimista.user.fullName}
-              photoUrl={dizimista.user.profilePhotoUrl}
+              name={dizimista.fullName}
+              photoUrl={dizimista.profilePhotoUrl}
               disablePreview
               sx={{ width: 40, height: 40 }}
             />
             <Box>
-              <Typography fontWeight={600}>
-                {dizimista.user.fullName}
-              </Typography>
+              <Typography fontWeight={600}>{dizimista.fullName}</Typography>
               <Typography variant="caption" color="text.secondary">
-                CPF {formatCPF(dizimista.user.cpf)}
+                CPF {formatCPF(dizimista.cpf)}
               </Typography>
             </Box>
           </Stack>
-        ) : (
-          <>
-            <Typography variant="body2" color="text.secondary">
-              O dizimista é sempre um usuário do sistema. Quem ainda não tem
-              cadastro precisa se cadastrar antes.
-            </Typography>
-            <Autocomplete
-              size="small"
-              options={encontrados}
-              value={usuario}
-              onChange={(_, valor) => setUsuario(valor)}
-              inputValue={busca}
-              onInputChange={(_, valor) => setBusca(valor)}
-              // a lista já vem filtrada do servidor
-              filterOptions={(x) => x}
-              loading={buscando}
-              getOptionLabel={(o) => o.fullName}
-              getOptionDisabled={(o) => o.jaDizimista}
-              isOptionEqualToValue={(o, v) => o.id === v.id}
-              noOptionsText={
-                busca.trim().length < 3
-                  ? 'Digite 3 letras do nome ou o CPF completo'
-                  : 'Ninguém encontrado com esse nome ou CPF'
-              }
-              loadingText="Buscando…"
-              renderOption={(props, o) => (
-                <Box component="li" {...props} key={o.id}>
-                  <Stack direction="row" spacing={1.25} alignItems="center">
-                    <UserAvatar
-                      name={o.fullName}
-                      photoUrl={o.profilePhotoUrl}
-                      disablePreview
-                      sx={{ width: 28, height: 28, fontSize: 12 }}
-                    />
-                    <Box>
-                      <Typography fontSize={14}>{o.fullName}</Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {o.cpf}
-                        {o.jaDizimista ? ' · já é dizimista' : ''}
-                      </Typography>
-                    </Box>
-                  </Stack>
-                </Box>
-              )}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Usuário"
-                  placeholder="Nome ou CPF"
-                  required
-                  autoFocus
-                />
-              )}
-            />
-          </>
-        )}
 
-        <TextField
-          label="Valor do dízimo"
-          size="small"
-          fullWidth
-          value={centavos ? formatCurrency(centavos / 100) : ''}
-          placeholder="R$ 0,00"
-          onChange={(evento) =>
-            setCentavos(
-              Number(evento.target.value.replace(/\D/g, '').slice(0, 13)) || 0
-            )
-          }
-          inputProps={{ inputMode: 'numeric' }}
-          helperText={
-            centavos
-              ? `Na importação do banco, um Pix dele de ${formatCurrency(
-                  centavos / 100
-                )} é dízimo; outro valor é oferta`
-              : 'Opcional. Sem valor, todo Pix dele entra como dízimo'
-          }
-        />
-
-        <InputDatePicker
-          label="Dizimista desde"
-          value={desde}
-          onChange={(valor) => setDesde(valor as Date | null)}
-          disableFuture
-          slotProps={{
-            textField: { size: 'small', helperText: 'Opcional' },
-            field: { clearable: true },
-          }}
-        />
-
-        <TextField
-          label="Observação"
-          size="small"
-          multiline
-          minRows={2}
-          value={observacao}
-          onChange={(evento) => setObservacao(evento.target.value)}
-          inputProps={{ maxLength: 500 }}
-        />
-
-        {dizimista && (
-          <>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={ativo}
-                  onChange={(evento) => setAtivo(evento.target.checked)}
-                />
-              }
-              label={<Typography variant="body2">Dizimista ativo</Typography>}
-            />
-            {!ativo && (
-              <Alert severity="info" sx={{ py: 0 }}>
-                Inativo, sai da contagem de ativos e o Pix dele deixa de virar
-                dízimo na importação do banco. O histórico de dízimos fica.
-              </Alert>
-            )}
-          </>
-        )}
-      </Stack>
+          <TextField
+            label="Valor do dízimo"
+            size="small"
+            fullWidth
+            autoFocus
+            value={centavos ? formatCurrency(centavos / 100) : ''}
+            placeholder="R$ 0,00"
+            onChange={(evento) =>
+              setCentavos(
+                Number(evento.target.value.replace(/\D/g, '').slice(0, 13)) || 0
+              )
+            }
+            inputProps={{ inputMode: 'numeric' }}
+            helperText={
+              centavos
+                ? `Na importação do banco, um Pix dele de ${formatCurrency(
+                    centavos / 100
+                  )} é dízimo; outro valor é oferta`
+                : 'Sem valor, todo Pix dele entra como dízimo'
+            }
+          />
+        </Stack>
+      )}
     </ResponsiveModal>
   );
 }

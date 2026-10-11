@@ -15,18 +15,17 @@ Regras de servidor: `docs/financeiro.md` no `ic-backend`.
 - **Filtros:** período (`SeletorDeIntervalo` só com datas; abre no mês corrente até hoje), tipo, categoria (as do tipo escolhido), origem (manual ou banco) e busca por descrição, pagador ou dizimista (vai ao servidor depois de uma pausa na digitação).
 - **Botões:** "Importar do banco" (só com a Pluggy configurada e ligada na igreja) e "Novo lançamento". No celular, os dois ocupam a linha inteira, como os campos.
 - **Tabela:** data, descrição (o importado mostra a conta e o pagador embaixo, com o ícone de banco), categoria (chip verde na entrada, vermelho na saída), dizimista, forma e valor (`+` verde / `−` vermelho — o sinal não depende só da cor). Na exportação, saída sai negativa. Editar em todos; apagar só no manual (no importado o botão fica desligado, com a explicação).
-- **Novo / editar** (`modalLancamento.tsx`): entrada ou saída, valor (máscara de centavos: digita só números e o campo mostra `R$ 12,50`), data, categoria, forma, descrição e dizimista (só em entrada; a lista é a dos dizimistas da igreja; no dízimo, a ajuda lembra que ligado ao dizimista ele conta no total do ano dele). No importado, tipo, valor, data e forma ficam travados, com um aviso dizendo de que conta e pagador veio.
+- **Novo / editar** (`modalLancamento.tsx`): entrada ou saída, valor (máscara de centavos: digita só números e o campo mostra `R$ 12,50`), data, categoria, forma, descrição e dizimista (só em entrada; a lista é a dos membros da igreja; no dízimo, a ajuda lembra que ligado ao dizimista ele conta no total do ano dele). No importado, tipo, valor, data e forma ficam travados, com um aviso dizendo de que conta e pagador veio.
 - **Importar:** o toast diz quantos lançamentos entraram, ou que não havia nada novo. A importação pode rodar quantas vezes quiser sem duplicar.
 - Mais de 5.000 lançamentos no período: aviso para encurtar o período.
 
 ## Dizimistas (`/admin/financeiro/dizimistas`)
 
-- **Cards:** dizimistas ativos, quantos dizimaram no mês (com o valor), total do ano e média por dizimista ativo.
-- **Filtros:** busca por nome ou CPF (na lista já carregada), situação (ativos, inativos, todos; abre em ativos) e ano dos números (o atual e os quatro anteriores).
-- **Tabela:** dizimista (foto, nome, CPF), contato, dízimo (o valor combinado; a dica do cabeçalho explica), desde, meses do ano (doze pontos: verde com dízimo, cinza sem, mais apagado o mês que ainda não chegou, e a contagem "8/10"), último dízimo, total no ano e situação. Editar e tirar da lista.
-- **Adicionar** (`modalDizimista.tsx`): o dizimista é sempre um usuário do sistema. Busca pelo nome (3+ letras) ou CPF completo, com foto e CPF pela metade; quem já é dizimista aparece desligado ("já é dizimista"). Opcionais: **valor do dízimo** (mesma máscara de centavos do lançamento), dizimista desde e observação. Com valor, a ajuda do campo diz a regra: na importação do banco, um Pix dele com esse valor é dízimo, e com outro valor é oferta (ligada a ele). Sem valor, todo Pix dele entra como dízimo.
-- **Editar:** valor do dízimo (apagar o campo tira o valor), desde, observação e ativo. Desativado, sai da contagem de ativos e o Pix dele deixa de virar dízimo na importação; o histórico fica.
-- **Tirar da lista:** com confirmação; os dízimos lançados continuam no livro-caixa (a confirmação sugere desativar para só parar de contar).
+- **Os dizimistas são os membros:** a tela lista todos os membros da igreja — todo membro é um dizimista em potencial. Não há cadastro de dizimista: quem entra e sai da lista é o admin, no módulo Membros. Sem nenhum membro, um aviso diz isso.
+- **Cards:** membros (dizimistas em potencial), quantos dizimaram no mês (com o valor), total do ano (quantos dizimaram) e média por quem dizimou no ano.
+- **Filtros:** busca por nome ou CPF (na lista já carregada), "Dízimo em {ano}" (todos, dizimaram, não dizimaram) e ano dos números (o atual e os quatro anteriores).
+- **Tabela, com as famílias juntas:** o mesmo desenho da tela de Membros — as famílias em sequência (pelo nome), cada uma com a faixa da cor dela, o fundo leve e o nome (com o ícone) na primeira linha; depois quem não tem família. Como a ordem é o que junta a família, as colunas não se reordenam por clique. Colunas: família, membro (foto, nome, CPF), contato, dízimo (o valor; a dica do cabeçalho explica), meses do ano (doze pontos: verde com dízimo, cinza sem, mais apagado o mês que ainda não chegou, e a contagem "8/10"), último dízimo e total no ano.
+- **Valor do dízimo** (o lápis da linha, `modalDizimista.tsx`): a única coisa que se edita aqui, com a mesma máscara de centavos do lançamento. Com valor, a ajuda do campo diz a regra: na importação do banco, um Pix dele com esse valor é dízimo, e com outro valor é oferta (ligada a ele). Apagar o campo tira o valor: todo Pix dele entra como dízimo.
 
 ## Código
 

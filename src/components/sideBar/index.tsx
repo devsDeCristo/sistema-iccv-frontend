@@ -21,6 +21,7 @@ import {
   Hub,
   ReceiptLong,
   VolunteerActivism,
+  Diversity3,
 } from '@mui/icons-material';
 import { Link, useLocation } from 'react-router-dom';
 import {
@@ -598,6 +599,18 @@ const SideBar: React.FC<SideBarProps> = ({
    */
   const itensModulos: ItemMenu[] = isAdmin
     ? [
+        // primeiro da seção: os membros e as famílias são do admin da igreja
+        // (o financeiro os vê como dizimistas, no Financeiro)
+        ...(isAdminRole
+          ? [
+              {
+                link: '/admin/membros',
+                icon: <Diversity3 />,
+                title: 'Membros',
+                novo: true,
+              },
+            ]
+          : []),
         {
           link: '/admin/eventos',
           icon: <Event />,

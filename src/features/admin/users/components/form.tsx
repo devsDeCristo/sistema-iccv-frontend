@@ -116,10 +116,17 @@ function booleanLabel(value: unknown) {
 function Form({
   readOnly = false,
   cpfTravado = false,
+  campoDaIgreja,
 }: {
   readOnly?: boolean;
   /** No perfil o CPF não muda: é a identidade de acesso — ver `PUT /users/me` */
   cpfTravado?: boolean;
+  /**
+   * Na inscrição, a escolha da igreja (lista do sistema ou "Outra") entra no
+   * lugar do texto livre — ver `pages/users/register`. Nas outras telas a
+   * igreja de membro não se troca pelo cadastro, e fica o texto de sempre.
+   */
+  campoDaIgreja?: ReactNode;
 }) {
   const {
     control,
@@ -813,6 +820,8 @@ function Form({
           <Grid item {...(readOnly ? VIEW_SIZE : { xs: 12, sm: 6, md: 8 })}>
             {readOnly ? (
               <ViewField label="Igreja" value={values.congregation} />
+            ) : campoDaIgreja ? (
+              campoDaIgreja
             ) : (
               <Controller
                 name="congregation"
