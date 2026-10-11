@@ -31,13 +31,15 @@ Ao clicar na linha, abre um painel lateral com: nome da operação, quantas escr
 
 | Filtro | O que faz |
 | --- | --- |
-| **Período** | 24 horas (padrão ao abrir a tela), 7 dias ou 30 dias |
+| **Período** | um campo só, que abre um seletor no jeito do DateTimePicker (Início/Fim, calendário, colunas de hora e minuto, Cancelar/OK) (`SeletorDeIntervalo`, ver `docs/layout-e-navegacao.md`). Abre nas últimas 24 horas, até agora ("09/10/2026 22:40 – agora"). Vai para a API como `from` e `to` (sem `to` quando é até agora; o fim inclui o minuto inteiro) |
 | **Usuário** | traz ações feitas *pela* pessoa e ações feitas *sobre* ela |
 | **Operação** | pelo catálogo de rotas vindo da API (`/logs/operations`), não uma lista fixa no front — evita a lista do front ficar desatualizada quando uma rota muda |
 | **Tabela** | uma das ~19 tabelas monitoradas (Cadastro, Pagamento, Evento, Inscrição no evento, Quarto, Check-in, Notícia etc.) |
 | **Ação** | Criou, Criou em lote, Alterou, Alterou em lote, Removeu, Removeu em lote, Criou ou alterou (`upsert`) |
 
-Quando a tela volta vazia com o filtro padrão de 24 horas, aparece um atalho "Ampliar para 7 dias".
+Quando a tela volta vazia num intervalo "até agora" mais curto que 7 dias, aparece um atalho "Ampliar para 7 dias".
+
+Os filtros têm largura fixa e enxuta (selects de 130 a 220px), para caberem numa linha só na tela grande; no celular cada um ocupa a largura toda.
 
 ### Cartões de resumo
 

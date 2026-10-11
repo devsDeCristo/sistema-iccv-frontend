@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import {
   Autocomplete,
   Box,
@@ -11,8 +11,6 @@ import {
   Paper,
   Stack,
   TextField,
-  ToggleButton,
-  ToggleButtonGroup,
   Typography,
   useTheme,
 } from '@mui/material';
@@ -38,6 +36,10 @@ import { formatDateTime, tempoRelativo } from '../../../../utils';
 import { useGetUsers } from '../../users/api/getUsers';
 import { User } from '../../../../types/user';
 import {
+  Intervalo,
+  SeletorDeIntervalo,
+} from '../../../../components/seletorDeIntervalo';
+import {
   LogAction,
   LogChange,
   LogOperation,
@@ -50,7 +52,6 @@ import {
   ACTION_OPTIONS,
   DEFAULT_PERIOD_HOURS,
   MODEL_OPTIONS,
-  PERIOD_OPTIONS,
 } from '../constants';
 
 const PAGE_SIZE = 25;
@@ -145,11 +146,18 @@ function Atingidos({ targets }: { targets: LogPerson[] }) {
   );
 }
 
+/** As últimas `horas`, até agora */
+const ultimasHoras = (horas: number): Intervalo => ({
+  de: new Date(Date.now() - horas * 60 * 60 * 1000),
+  ate: null,
+});
+
 function ListLogs() {
   const theme = useTheme();
 
-  const [periodoHoras, setPeriodoHoras] =
-    useState<number>(DEFAULT_PERIOD_HOURS);
+  const [intervalo, setIntervalo] = useState<Intervalo>(() =>
+    ultimasHoras(DEFAULT_PERIOD_HOURS)
+  );
   const [usuario, setUsuario] = useState<User | null>(null);
   const [model, setModel] = useState('');
   const [action, setAction] = useState('');
@@ -157,13 +165,12 @@ function ListLogs() {
   const [page, setPage] = useState(0);
   const [detalhe, setDetalhe] = useState<LogAction | null>(null);
 
-  const from = useMemo(
-    () => new Date(Date.now() - periodoHoras * 60 * 60 * 1000).toISOString(),
-    [periodoHoras]
-  );
+  const from = intervalo.de.toISOString();
+  const to = intervalo.ate?.toISOString();
 
   const { data, isFetching } = useGetLogs({
     from,
+    to,
     userId: usuario?.id,
     model: model || undefined,
     action: action || undefined,
@@ -353,8 +360,8 @@ function ListLogs() {
     },
   ];
 
-  const trocarPeriodo = (horas: number) => {
-    setPeriodoHoras(horas);
+  const trocarIntervalo = (valor: Intervalo) => {
+    setIntervalo(valor);
     setPage(0);
   };
 
@@ -372,28 +379,11 @@ function ListLogs() {
           flexWrap="wrap"
           useFlexGap
         >
-          {/* três opções fixas: um seletor de lista esconderia atrás de um
-              clique o filtro que a tela inteira usa */}
-          <ToggleButtonGroup
-            exclusive
-            size="small"
-            value={periodoHoras}
-            onChange={(_, valor) => valor && trocarPeriodo(valor)}
-          >
-            {PERIOD_OPTIONS.map((option) => (
-              <ToggleButton
-                key={option.value}
-                value={option.value}
-                sx={{ textTransform: 'none', px: 1.75 }}
-              >
-                {option.short}
-              </ToggleButton>
-            ))}
-          </ToggleButtonGroup>
+          <SeletorDeIntervalo value={intervalo} onChange={trocarIntervalo} />
 
           <Autocomplete
             size="small"
-            sx={{ minWidth: 260, flex: 1 }}
+            sx={{ width: 220 }}
             options={usuarios}
             value={usuario}
             onChange={(_, value) => {
@@ -428,7 +418,7 @@ function ListLogs() {
               quase quarenta linhas para achar "Inscrição no evento" */}
           <Autocomplete
             size="small"
-            sx={{ minWidth: 240, flex: 1 }}
+            sx={{ width: 200 }}
             options={operacoes}
             value={operacao}
             onChange={(_, value) => {
@@ -457,7 +447,7 @@ function ListLogs() {
               setModel(e.target.value);
               setPage(0);
             }}
-            sx={{ minWidth: 190 }}
+            sx={{ width: 150 }}
           >
             <MenuItem value="">Todas</MenuItem>
             {MODEL_OPTIONS.map((option) => (
@@ -476,7 +466,7 @@ function ListLogs() {
               setAction(e.target.value);
               setPage(0);
             }}
-            sx={{ minWidth: 165 }}
+            sx={{ width: 130 }}
           >
             <MenuItem value="">Todas</MenuItem>
             {ACTION_OPTIONS.map((option) => (
@@ -522,10 +512,13 @@ function ListLogs() {
                 <Typography color="text.secondary">
                   Nenhuma atividade no período
                 </Typography>
-                {periodoHoras === DEFAULT_PERIOD_HOURS && (
-                  // dia parado é comum, e o padrão de 24 h devolve vazio: o
+                {!intervalo.ate && intervalo.de > ultimasHoras(24 * 7).de && (
+                  // dia parado é comum, e o padrão de 24 h volta vazio: o
                   // caminho de saída fica a um clique
-                  <Button size="small" onClick={() => trocarPeriodo(24 * 7)}>
+                  <Button
+                    size="small"
+                    onClick={() => trocarIntervalo(ultimasHoras(24 * 7))}
+                  >
                     Ampliar para 7 dias
                   </Button>
                 )}
