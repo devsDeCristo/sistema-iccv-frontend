@@ -117,6 +117,25 @@ function ListaDeLancamentos({
       valueGetter: ({ row }) => (row.method ? ROTULO_DA_FORMA[row.method] : ''),
     },
     {
+      field: 'conciliado',
+      headerName: 'Conciliação',
+      description:
+        'Conciliado: o lançamento manual e a transação do banco foram ligados na tela de Conciliação',
+      width: 130,
+      valueGetter: ({ row }) => (row.conciliado ? 'Conciliado' : 'Pendente'),
+      renderCell: ({ row }) => (
+        <CustomChip
+          size="small"
+          label={row.conciliado ? 'Conciliado' : 'Pendente'}
+          customColor={
+            row.conciliado
+              ? theme.palette.chips.success
+              : theme.palette.chips.alert
+          }
+        />
+      ),
+    },
+    {
       field: 'amount',
       headerName: 'Valor',
       width: 140,

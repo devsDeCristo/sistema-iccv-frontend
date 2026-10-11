@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import {
   AccountBalanceWallet,
+  CompareArrows,
   ArrowBack,
   Campaign,
   ConfirmationNumber,
@@ -627,13 +628,18 @@ const SideBar: React.FC<SideBarProps> = ({
               },
             ]
           : []),
-        // grupo: o livro-caixa e os dizimistas da igreja. Admin e financeiro
+        // grupo: a conciliação, o livro-caixa e os dizimistas da igreja. Admin e financeiro
         {
           link: '/admin/financeiro',
           icon: <AccountBalanceWallet />,
           title: 'Financeiro',
           novo: true,
           filhos: [
+            {
+              link: '/admin/financeiro/conciliacao',
+              icon: <CompareArrows />,
+              title: 'Conciliação',
+            },
             {
               link: '/admin/financeiro/lancamentos',
               icon: <ReceiptLong />,

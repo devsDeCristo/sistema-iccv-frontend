@@ -79,6 +79,9 @@ function Lancamentos() {
   const [tipo, setTipo] = useState<TipoDeLancamento | ''>('');
   const [categoria, setCategoria] = useState<Categoria | ''>('');
   const [origem, setOrigem] = useState<OrigemDoLancamento | ''>('');
+  const [conciliacao, setConciliacao] = useState<
+    'conciliado' | 'pendente' | ''
+  >('');
   const [busca, setBusca] = useState('');
   // a busca vai para o servidor: espera a pessoa parar de digitar
   const [buscaEnviada, setBuscaEnviada] = useState('');
@@ -98,9 +101,10 @@ function Lancamentos() {
       ...(tipo ? { type: tipo } : {}),
       ...(categoria ? { category: categoria } : {}),
       ...(origem ? { source: origem } : {}),
+      ...(conciliacao ? { conciliacao } : {}),
       ...(buscaEnviada ? { busca: buscaEnviada } : {}),
     }),
-    [intervalo, tipo, categoria, origem, buscaEnviada]
+    [intervalo, tipo, categoria, origem, conciliacao, buscaEnviada]
   );
 
   const { data, isFetching } = useGetLancamentos(churchId, filtros);
@@ -279,6 +283,22 @@ function Lancamentos() {
                 )}
               </TextField>
               <TextField
+                select
+                size="small"
+                label="Conciliação"
+                value={conciliacao}
+                onChange={(e) =>
+                  setConciliacao(
+                    e.target.value as 'conciliado' | 'pendente' | ''
+                  )
+                }
+                sx={{ width: 140 }}
+              >
+                <MenuItem value="">Todos</MenuItem>
+                <MenuItem value="conciliado">Conciliados</MenuItem>
+                <MenuItem value="pendente">Pendentes</MenuItem>
+              </TextField>
+              <TextField
                 size="small"
                 placeholder="Descrição, pagador ou dizimista"
                 value={busca}
@@ -294,31 +314,38 @@ function Lancamentos() {
                 }}
               />
 
-              {temBanco && (
+              {/* os dois botões quebram juntos, à direita, quando a barra não cabe */}
+              <Stack
+                direction={{ xs: 'column', sm: 'row' }}
+                spacing={2}
+                sx={{ ml: 'auto', width: { xs: '100%', sm: 'auto' } }}
+              >
+                {temBanco && (
+                  <Button
+                    variant="outlined"
+                    startIcon={<Sync />}
+                    disabled={importar.isLoading}
+                    onClick={trazerDoBanco}
+                    sx={{
+                      textTransform: 'none',
+                      width: { xs: '100%', sm: 'auto' },
+                    }}
+                  >
+                    {importar.isLoading ? 'Importando…' : 'Importar do banco'}
+                  </Button>
+                )}
                 <Button
-                  variant="outlined"
-                  startIcon={<Sync />}
-                  disabled={importar.isLoading}
-                  onClick={trazerDoBanco}
+                  variant="contained"
+                  startIcon={<Add />}
+                  onClick={() => setCriando(true)}
                   sx={{
                     textTransform: 'none',
                     width: { xs: '100%', sm: 'auto' },
                   }}
                 >
-                  {importar.isLoading ? 'Importando…' : 'Importar do banco'}
+                  Novo lançamento
                 </Button>
-              )}
-              <Button
-                variant="contained"
-                startIcon={<Add />}
-                onClick={() => setCriando(true)}
-                sx={{
-                  textTransform: 'none',
-                  width: { xs: '100%', sm: 'auto' },
-                }}
-              >
-                Novo lançamento
-              </Button>
+              </Stack>
             </Stack>
           </Paper>
 

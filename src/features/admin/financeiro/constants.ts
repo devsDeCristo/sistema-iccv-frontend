@@ -74,3 +74,4 @@ export const MESES_CURTOS = [
 
 export const GET_DIZIMISTAS = 'GET_DIZIMISTAS';
 export const GET_LANCAMENTOS = 'GET_LANCAMENTOS';
+export const GET_CONCILIACAO = 'GET_CONCILIACAO';

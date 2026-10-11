@@ -7,8 +7,9 @@ import {
 } from '../../../utils/service';
 import { GET_PLUGGY } from '../../settings/integrations/api';
 import { GET_MEMBROS } from '../membros/api';
-import { GET_DIZIMISTAS, GET_LANCAMENTOS } from './constants';
+import { GET_CONCILIACAO, GET_DIZIMISTAS, GET_LANCAMENTOS } from './constants';
 import {
+  Conciliacao,
   FiltrosDeLancamento,
   LancamentoPayload,
   ListaDeDizimistas,
@@ -28,6 +29,7 @@ const invalidar = () =>
     queryClient.invalidateQueries(GET_DIZIMISTAS),
     queryClient.invalidateQueries(GET_LANCAMENTOS),
     queryClient.invalidateQueries(GET_MEMBROS),
+    queryClient.invalidateQueries(GET_CONCILIACAO),
   ]);
 
 // ---- dizimistas ------------------------------------------------------------
@@ -130,4 +132,81 @@ export const useImportarDoBanco = () =>
         .catch(handleResponseThrowError()),
     onSuccess: () =>
       Promise.all([invalidar(), queryClient.invalidateQueries(GET_PLUGGY)]),
+  });
+
+// ---- conciliação -----------------------------------------------------------
+
+export const useGetConciliacao = (
+  churchId: string | null,
+  periodo: { de: string; ate: string }
+) =>
+  useQuery(
+    [GET_CONCILIACAO, churchId ?? '', periodo],
+    () =>
+      apiClient
+        .get<Conciliacao>(`${rota(churchId as string)}/conciliacao`, {
+          params: periodo,
+        })
+        .then((response) => response.data),
+    { enabled: !!churchId, keepPreviousData: true }
+  );
+
+export const useConciliar = () =>
+  useMutation({
+    mutationFn: ({
+      churchId,
+      bancoId,
+      manualId,
+    }: {
+      churchId: string;
+      bancoId: string;
+      manualId: string;
+    }) =>
+      apiClient
+        .post(`${rota(churchId)}/conciliacao`, { bancoId, manualId })
+        .then((response) =>
+          handleResponseSuccess(response.data, 'Conciliado')()
+        )
+        .catch(handleResponseThrowError()),
+    onSuccess: invalidar,
+  });
+
+/** O toast sai da tela, que sabe quantos foram */
+export const useConciliarSugeridos = () =>
+  useMutation({
+    mutationFn: ({
+      churchId,
+      ...periodo
+    }: {
+      churchId: string;
+      de: string;
+      ate: string;
+    }) =>
+      apiClient
+        .post<{ conciliados: number }>(
+          `${rota(churchId)}/conciliacao/sugeridos`,
+          null,
+          { params: periodo }
+        )
+        .then((response) => response.data)
+        .catch(handleResponseThrowError()),
+    onSuccess: invalidar,
+  });
+
+export const useDesfazerConciliacao = () =>
+  useMutation({
+    mutationFn: ({
+      churchId,
+      manualId,
+    }: {
+      churchId: string;
+      manualId: string;
+    }) =>
+      apiClient
+        .delete(`${rota(churchId)}/conciliacao/${manualId}`)
+        .then((response) =>
+          handleResponseSuccess(response.data, 'Conciliação desfeita')()
+        )
+        .catch(handleResponseThrowError()),
+    onSuccess: invalidar,
   });

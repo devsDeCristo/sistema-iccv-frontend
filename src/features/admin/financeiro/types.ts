@@ -71,6 +71,10 @@ export interface Lancamento {
   bankAccount: string | null;
   payerName: string | null;
   user: { id: string; fullName: string } | null;
+  /** já conciliado com o seu par (banco ↔ manual) */
+  conciliado: boolean;
+  /** o id do par, do lado de lá */
+  conciliadoCom: string | null;
   createdAt: string;
 }
 
@@ -89,6 +93,7 @@ export interface FiltrosDeLancamento {
   category?: Categoria;
   source?: OrigemDoLancamento;
   busca?: string;
+  conciliacao?: 'conciliado' | 'pendente';
 }
 
 export interface LancamentoPayload {
@@ -107,4 +112,29 @@ export interface ResultadoDaImportacao {
   lidas: number;
   importadas: number;
   jaExistiam: number;
+}
+
+/** Como uma linha do diff da conciliação está */
+export type EstadoDaLinha =
+  'conciliado' | 'sugerido' | 'so_banco' | 'so_manual';
+
+export interface LinhaDaConciliacao {
+  estado: EstadoDaLinha;
+  banco: Lancamento | null;
+  manual: Lancamento | null;
+}
+
+export interface Conciliacao {
+  de: string;
+  ate: string;
+  resumo: {
+    conciliados: number;
+    sugeridos: number;
+    soBanco: number;
+    soManual: number;
+    /** saldo (entradas − saídas) do que só está de um lado */
+    valorSoBanco: number;
+    valorSoManual: number;
+  };
+  linhas: LinhaDaConciliacao[];
 }

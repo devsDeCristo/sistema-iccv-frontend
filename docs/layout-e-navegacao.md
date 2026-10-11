@@ -157,7 +157,7 @@ alguma linha para o perfil (`ConteudoNav` recebe uma lista de `secoes`).
 | Módulos | Eventos | todos os quatro perfis do painel |
 | Módulos | Notícias | `isAdminRole` — financeiro não publica |
 | Módulos | Membros | `isAdminRole` (dev, super admin, admin) — o financeiro não entra; primeiro item da seção, acima de Eventos; ver `docs/membros.md` |
-| Módulos | Financeiro | todos os perfis do painel; grupo com dois filhos, Lançamentos e Dizimistas (o grupo abre em Lançamentos) — ver `docs/financeiro.md` |
+| Módulos | Financeiro | todos os perfis do painel; grupo com três filhos, Conciliação, Lançamentos e Dizimistas (o grupo abre em Lançamentos) — ver `docs/financeiro.md` |
 | Módulos | Patrimônio, Loja | todos os perfis do painel — **em breve**: etiqueta "EM BREVE" em laranja, linha apagada e sem navegação (ainda não há tela) |
 | Manutenção | Registro de Atividades | `isSuperAdmin` (dev, super admin) |
 | Manutenção | Registro de Login | `isDev` apenas |
