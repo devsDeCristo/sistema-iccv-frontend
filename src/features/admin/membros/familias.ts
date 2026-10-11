@@ -80,12 +80,13 @@ export const classeDaFamilia = (cor: string | null) =>
 
 /**
  * O `sx` do DataGrid que pinta o fundo das famílias e deixa a célula
- * posicionar a faixa. `alturaMinima`: a da linha da tabela.
+ * posicionar a faixa. `alturaMinima`: a da linha, quando a altura é automática.
  */
 export const estiloDasFamilias = (alturaMinima: number) => ({
+  // a faixa se posiciona pela célula, com altura de linha fixa ou automática
+  '& .MuiDataGrid-row > .MuiDataGrid-cell': { position: 'relative' },
   '& .MuiDataGrid-row--dynamicHeight > .MuiDataGrid-cell': {
     minHeight: alturaMinima,
-    position: 'relative',
   },
   ...Object.fromEntries(
     CORES_DAS_FAMILIAS.map((cor) => [

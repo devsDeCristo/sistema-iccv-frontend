@@ -39,6 +39,8 @@ export interface Dizimista {
   totalNoAno: number;
   /** meses do ano com dízimo, 1 a 12 */
   mesesNoAno: number[];
+  /** o dízimo de cada mês do ano, janeiro a dezembro (visão por mês) */
+  porMes: number[];
   ultimoDizimo: string | null;
 }
 
@@ -50,6 +52,8 @@ export interface ListaDeDizimistas {
     dizimaramNoAno: number;
     totalNoMes: number;
     totalNoAno: number;
+    /** o total da igreja em cada mês do ano, janeiro a dezembro */
+    porMes: number[];
   };
   dizimistas: Dizimista[];
 }

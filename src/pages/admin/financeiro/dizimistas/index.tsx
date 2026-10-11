@@ -27,7 +27,7 @@ import { formatCurrency } from '../../../../utils';
 import { ChurchScopeBar } from '../../../../features/settings/shared/churchScopeBar';
 import { useIgrejaSelecionada } from '../../../../features/settings/shared/useIgrejaSelecionada';
 import { useGetDizimistas } from '../../../../features/admin/financeiro/api';
-import { ListaDeDizimistas } from '../../../../features/admin/financeiro/components/listaDeDizimistas';
+import { ListaDizimosPorMes } from '../../../../features/admin/financeiro/components/listaDizimosPorMes';
 import { ModalDizimista } from '../../../../features/admin/financeiro/components/modalDizimista';
 import { Dizimista } from '../../../../features/admin/financeiro/types';
 
@@ -198,9 +198,11 @@ function Dizimistas() {
             </Alert>
           )}
 
-          <ListaDeDizimistas
+          <ListaDizimosPorMes
             dizimistas={visiveis}
             ano={ano}
+            porMesDaIgreja={resumo?.porMes ?? Array(12).fill(0)}
+            totalDaIgreja={resumo?.totalNoAno ?? 0}
             carregando={isFetching}
             onEditar={setEditando}
           />
