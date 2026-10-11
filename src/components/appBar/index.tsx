@@ -42,7 +42,7 @@ export default function MenuAppBar({
 }) {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const { user, logout } = useUser();
-  const { canAccessAdminArea, isAdmin: isAdminRole } = useRole();
+  const { canAccessAdminArea } = useRole();
   const { colorMode, toggleColorMode } = useThemeContext();
   const navigate = useNavigate();
   const [isAdminRoute, setIsAdminRoute] = React.useState(false);
@@ -280,8 +280,11 @@ export default function MenuAppBar({
                 para uma das telas mandava o dev para a de disparadores, que
                 exigia super admin puro, e ele voltava para o painel sem
                 explicação.
+
+                O financeiro também entra: só em Integrações, que é para onde
+                o redirecionamento o leva.
               */}
-              {isAdminRole && (
+              {canAccessAdminArea && (
                 <MenuItem
                   onClick={() => {
                     navigate('/configuracoes');

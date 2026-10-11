@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { useIgrejaEscolhida } from '../../../hooks/useIgrejaEscolhida';
 import { useRole } from '../../../hooks/useRole';
+import { Role } from '../../../constants/roles';
 import { useGetChurches } from '../../admin/churches/api/getChurches';
 
 export interface IgrejaDoPainel {
@@ -36,8 +37,15 @@ export interface EscopoDeIgreja {
  * vínculos — e é a mesma lista que a API aceita, então a tela não oferece uma
  * igreja que o `ChurchTenantGuard` vai recusar depois.
  */
-export function useIgrejaSelecionada(): EscopoDeIgreja {
-  const { isSuperAdmin, igrejasQueAdministra } = useRole();
+/**
+ * `incluirFinanceiro`: a tela também é do financeiro (Integrações). As outras
+ * ficam só com as igrejas em que a pessoa é admin, porque é o que a API delas
+ * aceita.
+ */
+export function useIgrejaSelecionada(
+  incluirFinanceiro = false
+): EscopoDeIgreja {
+  const { isSuperAdmin, churchRoles } = useRole();
 
   const { data: todasAsIgrejas, isLoading } = useGetChurches({
     enabled: isSuperAdmin,
@@ -47,8 +55,14 @@ export function useIgrejaSelecionada(): EscopoDeIgreja {
     () =>
       isSuperAdmin
         ? (todasAsIgrejas ?? []).map(({ id, name }) => ({ id, name }))
-        : igrejasQueAdministra,
-    [isSuperAdmin, todasAsIgrejas, igrejasQueAdministra]
+        : churchRoles
+            .filter(
+              (vinculo) =>
+                vinculo.role === Role.ADMIN ||
+                (incluirFinanceiro && vinculo.role === Role.FINANCE)
+            )
+            .map((vinculo) => vinculo.church),
+    [isSuperAdmin, todasAsIgrejas, churchRoles, incluirFinanceiro]
   );
 
   // A mesma escolha de todos os módulos (`useIgrejaEscolhida`, no

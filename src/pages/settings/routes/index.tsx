@@ -2,8 +2,26 @@ import { Navigate, Route } from 'react-router-dom';
 import { DispatcherWhatsapp } from '../dispatchers';
 import { PaymentsSettings } from '../payments';
 import { RequireRole } from '../../../components/requireRole';
-import { ADMIN_ROLES, SUPER_ADMIN_ROLES } from '../../../constants/roles';
+import {
+  ADMIN_AREA_ROLES,
+  ADMIN_ROLES,
+  SUPER_ADMIN_ROLES,
+} from '../../../constants/roles';
+import { useRole } from '../../../hooks/useRole';
 import { TermsSettings } from '../terms';
+import { IntegrationsSettings } from '../integrations';
+
+/** A primeira tela que a pessoa alcança: o financeiro não entra em Pagamentos */
+function InicioDasConfiguracoes() {
+  const { isAdmin } = useRole();
+
+  return (
+    <Navigate
+      replace
+      to={isAdmin ? '/configuracoes/pagamentos' : '/configuracoes/integracoes'}
+    />
+  );
+}
 
 /**
  * Configurações do sistema.
@@ -28,15 +46,13 @@ import { TermsSettings } from '../terms';
  * era jogado de volta para o painel ao tentar abrir Configurações.
  *
  * O financeiro fica de fora das duas: ele dá baixa em pagamento, mas não
- * decide para qual conta o dinheiro vai nem por qual número o aviso sai.
+ * decide para qual conta o dinheiro vai nem por qual número o aviso sai. Ele
+ * entra só em Integrações, que alimenta o módulo financeiro.
  */
 function RoutesSettings() {
   return (
     <>
-      <Route
-        path="/configuracoes"
-        element={<Navigate replace to="/configuracoes/pagamentos" />}
-      />
+      <Route path="/configuracoes" element={<InicioDasConfiguracoes />} />
       {/*
         "Disparadores" é grupo, não tela: quem clica nele na régua cai no
         primeiro canal. Redirecionar em vez de montar uma página de índice com
@@ -71,6 +87,15 @@ function RoutesSettings() {
         element={
           <RequireRole allowedRoles={ADMIN_ROLES}>
             <PaymentsSettings />
+          </RequireRole>
+        }
+      />
+      {/* por igreja, como Pagamentos; e o financeiro também entra */}
+      <Route
+        path="/configuracoes/integracoes"
+        element={
+          <RequireRole allowedRoles={ADMIN_AREA_ROLES}>
+            <IntegrationsSettings />
           </RequireRole>
         }
       />

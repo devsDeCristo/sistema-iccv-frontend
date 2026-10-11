@@ -18,6 +18,7 @@ import {
   WhatsApp,
   SpaceDashboard,
   Gavel,
+  Hub,
 } from '@mui/icons-material';
 import { Link, useLocation } from 'react-router-dom';
 import {
@@ -468,7 +469,7 @@ const SideBar: React.FC<SideBarProps> = ({
   setOpenDrawer,
 }) => {
   const theme = useTheme();
-  const { isAdmin: isAdminRole, isDev, isSuperAdmin } = useRole();
+  const { isAdmin: isAdminRole, isDev, isSuperAdmin, isFinance } = useRole();
   // recolher vale para a régua da tela grande, e é lembrado entre visitas
   const [recolhida, setRecolhida] = useFiltroSalvo(
     'sidebar:recolhida',
@@ -505,6 +506,17 @@ const SideBar: React.FC<SideBarProps> = ({
                 title: 'WhatsApp',
               },
             ],
+          },
+        ]
+      : []),
+    // também por igreja: a credencial da Pluggy é da igreja que a cadastrou.
+    // O financeiro entra aqui, e só aqui: ela alimenta o módulo dele
+    ...(isAdminRole || isFinance
+      ? [
+          {
+            link: '/configuracoes/integracoes',
+            icon: <Hub />,
+            title: 'Integrações',
           },
         ]
       : []),
