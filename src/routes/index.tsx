@@ -14,6 +14,7 @@ import { RoutesUsersAdmin } from '../pages/admin/users/routes';
 import { RoutesUsers } from '../pages/users/routes';
 import { RoutesEventsAdmin } from '../pages/admin/events/routes';
 import { RoutesNewsAdmin } from '../pages/admin/news/routes';
+import { RoutesFinanceiroAdmin } from '../pages/admin/financeiro/routes';
 import { RoutesLogsAdmin } from '../pages/admin/logs/routes';
 import { RoutesLoginAttemptsAdmin } from '../pages/admin/logins/routes';
 import { RoutesChurchesAdmin } from '../pages/admin/churches/routes';
@@ -51,6 +52,7 @@ const routers = (): ReturnType<typeof createBrowserRouter> => {
           {RoutesChurchesAdmin()}
           {RoutesEventsAdmin()}
           {RoutesNewsAdmin()}
+          {RoutesFinanceiroAdmin()}
           {RoutesLogsAdmin()}
           {RoutesLoginAttemptsAdmin()}
         </Route>

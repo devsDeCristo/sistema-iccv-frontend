@@ -19,6 +19,8 @@ import {
   SpaceDashboard,
   Gavel,
   Hub,
+  ReceiptLong,
+  VolunteerActivism,
 } from '@mui/icons-material';
 import { Link, useLocation } from 'react-router-dom';
 import {
@@ -612,12 +614,24 @@ const SideBar: React.FC<SideBarProps> = ({
               },
             ]
           : []),
-        // anunciado, ainda sem tela
+        // grupo: o livro-caixa e os dizimistas da igreja. Admin e financeiro
         {
-          link: '#financeiro',
+          link: '/admin/financeiro',
           icon: <AccountBalanceWallet />,
           title: 'Financeiro',
-          emBreve: true,
+          novo: true,
+          filhos: [
+            {
+              link: '/admin/financeiro/lancamentos',
+              icon: <ReceiptLong />,
+              title: 'Lançamentos',
+            },
+            {
+              link: '/admin/financeiro/dizimistas',
+              icon: <VolunteerActivism />,
+              title: 'Dizimistas',
+            },
+          ],
         },
         {
           link: '#patrimonio',

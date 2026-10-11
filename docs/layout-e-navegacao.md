@@ -10,7 +10,7 @@ enxerga no menu e nas rotas. A garantia de verdade é sempre do servidor
 | Área | Quem entra | Layout | Régua |
 | --- | --- | --- | --- |
 | `usuario` | qualquer pessoa logada | `<Layout isAdmin={false} />`, protegido por `authLoader` | Página Inicial, Minhas Inscrições, Eventos |
-| `admin` | perfis do painel (`ADMIN_AREA_ROLES`: dev, super admin, admin, financeiro) | `<Layout isAdmin={true} />`, protegido por `authLoaderAdmin` | Início, Usuários, Igrejas, Eventos, Notícias, Registro de Atividades/Login, conforme o papel |
+| `admin` | perfis do painel (`ADMIN_AREA_ROLES`: dev, super admin, admin, financeiro) | `<Layout isAdmin={true} />`, protegido por `authLoaderAdmin` | Início, Usuários, Igrejas, Eventos, Notícias, Financeiro, Registro de Atividades/Login, conforme o papel |
 | `configuracoes` | quem administra alguma igreja (admin/super admin/dev) | `<Layout isAdmin area="configuracoes" />`, também com `authLoaderAdmin` | Pagamentos, Disparadores, Termos de Uso, conforme o papel |
 
 `/perfil` fica fora das três réguas específicas: entra pela área `usuario` (mesma rota para admin e usuário comum, acessada pelo menu da conta).
@@ -156,7 +156,8 @@ alguma linha para o perfil (`ConteudoNav` recebe uma lista de `secoes`).
 | Administrador | Igrejas | `isSuperAdmin` (dev, super admin) |
 | Módulos | Eventos | todos os quatro perfis do painel |
 | Módulos | Notícias | `isAdminRole` — financeiro não publica |
-| Módulos | Financeiro, Patrimônio, Loja | todos os perfis do painel — **em breve**: etiqueta "EM BREVE" em laranja, linha apagada e sem navegação (ainda não há tela) |
+| Módulos | Financeiro | todos os perfis do painel; grupo com dois filhos, Lançamentos e Dizimistas (o grupo abre em Lançamentos) — ver `docs/financeiro.md` |
+| Módulos | Patrimônio, Loja | todos os perfis do painel — **em breve**: etiqueta "EM BREVE" em laranja, linha apagada e sem navegação (ainda não há tela) |
 | Manutenção | Registro de Atividades | `isSuperAdmin` (dev, super admin) |
 | Manutenção | Registro de Login | `isDev` apenas |
 

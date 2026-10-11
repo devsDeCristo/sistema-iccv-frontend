@@ -35,6 +35,7 @@ contexto para quem (pessoa ou IA) for mexer nessas telas.
 | Igrejas | painel | [igrejas.md](igrejas.md) |
 | Usuários | painel | [usuarios.md](usuarios.md) |
 | Logs e registro de login | painel | [logs-e-logins.md](logs-e-logins.md) |
+| Financeiro (lançamentos e dizimistas) | `/admin/financeiro` | [financeiro.md](financeiro.md) |
 | Configurações | gateways, WhatsApp, disparos, termos | [configuracoes.md](configuracoes.md) |
 
 As regras de servidor estão no repositório `ic-backend`, em `docs/` (índice em

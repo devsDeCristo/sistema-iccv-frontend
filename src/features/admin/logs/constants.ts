@@ -37,6 +37,8 @@ export const MODEL_OPTIONS = [
   { value: 'Waitlist', label: 'Lista de espera' },
   { value: 'Discounts', label: 'Desconto' },
   { value: 'UserToken', label: 'Código de redefinição' },
+  { value: 'Tither', label: 'Dizimista' },
+  { value: 'FinancialEntry', label: 'Lançamento financeiro' },
 ];
 
 /** Cor do chip por família de ação: criar, alterar e remover */
