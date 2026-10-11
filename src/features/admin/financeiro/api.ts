@@ -13,7 +13,9 @@ import {
   FiltrosDeLancamento,
   LancamentoPayload,
   ListaDeDizimistas,
+  LinhaDaPrevia,
   ListaDeLancamentos,
+  ResultadoDaPlanilha,
   ResultadoDaImportacao,
 } from './types';
 
@@ -132,6 +134,40 @@ export const useImportarDoBanco = () =>
         .catch(handleResponseThrowError()),
     onSuccess: () =>
       Promise.all([invalidar(), queryClient.invalidateQueries(GET_PLUGGY)]),
+  });
+
+// ---- planilha de dízimos ---------------------------------------------------
+
+export const usePreviaDaPlanilha = () =>
+  useMutation({
+    mutationFn: ({ churchId, nomes }: { churchId: string; nomes: string[] }) =>
+      apiClient
+        .post<LinhaDaPrevia[]>(`${rota(churchId)}/dizimistas/planilha/previa`, {
+          nomes,
+        })
+        .then((response) => response.data)
+        .catch(handleResponseThrowError()),
+  });
+
+/** O toast sai da janela, que sabe o que entrou e o que ficou de fora */
+export const useImportarPlanilha = () =>
+  useMutation({
+    mutationFn: ({
+      churchId,
+      ...corpo
+    }: {
+      churchId: string;
+      ano: number;
+      linhas: { nome: string; userId?: string; valores: number[] }[];
+    }) =>
+      apiClient
+        .post<ResultadoDaPlanilha>(
+          `${rota(churchId)}/dizimistas/planilha`,
+          corpo
+        )
+        .then((response) => response.data)
+        .catch(handleResponseThrowError()),
+    onSuccess: invalidar,
   });
 
 // ---- conciliação -----------------------------------------------------------

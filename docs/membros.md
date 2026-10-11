@@ -13,6 +13,7 @@ Regras de servidor: `docs/membros.md` no `ic-backend`.
 
 - **Pedido da inscrição:** quem escolhe a igreja ao se cadastrar aparece na aba **Pedidos** (abas do sistema, `NavTabs`; o número de pedidos vai no rótulo, "Pedidos (3)"), com Aceitar e Recusar. Aceito, vira membro; recusado, o pedido some.
 - **Adicionar membro:** busca qualquer pessoa do sistema pelo **CPF completo** ou por **pelo menos dois nomes** (ex.: Maria Souza). Cada resultado mostra o CPF pela metade e a situação: "Membro de ICCV Filial" (desligado: lá precisam tirar antes), "Já é membro desta igreja", "Pediu para entrar nesta igreja", "Disse ser de: Batista Central" (o "Outra" da inscrição) ou "Sem igreja".
+- **Planilha de dízimos** (em Financeiro › Dizimistas, só o admin): quem a planilha liga e ainda não é membro de nenhuma igreja vira membro desta. Ver `docs/financeiro.md`.
 - Uma pessoa é membro de **uma igreja só**.
 
 ## Aba Membros

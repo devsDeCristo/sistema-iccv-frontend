@@ -138,3 +138,40 @@ export interface Conciliacao {
   };
   linhas: LinhaDaConciliacao[];
 }
+
+// ---- planilha de dízimos ----------------------------------------------------
+
+/** Uma linha lida da planilha: o nome e o total de cada mês (jan a dez) */
+export interface LinhaDaPlanilha {
+  nome: string;
+  valores: number[];
+  total: number;
+  /** a linha "Anônimo": já vem como sem vínculo */
+  anonimo: boolean;
+}
+
+/** Quem pode ser o dizimista da linha, como na busca de Membros */
+export interface CandidatoDaPlanilha {
+  id: string;
+  fullName: string;
+  /** pela metade */
+  cpf: string;
+  profilePhotoUrl: string | null;
+  membroDe: { id: string; name: string } | null;
+}
+
+export interface LinhaDaPrevia {
+  nome: string;
+  /** quem o sistema escolheria; null: a pessoa escolhe */
+  escolhido: string | null;
+  /** o nome bateu igual; sem isso, a escolha é para conferir */
+  exato: boolean;
+  candidatos: CandidatoDaPlanilha[];
+}
+
+export interface ResultadoDaPlanilha {
+  lancamentos: number;
+  jaExistiam: number;
+  novosMembros: number;
+  ignorados: { nome: string; motivo: string }[];
+}

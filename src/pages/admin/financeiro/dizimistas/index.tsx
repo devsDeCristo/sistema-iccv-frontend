@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import {
   Alert,
+  Button,
   InputAdornment,
   MenuItem,
   Paper,
@@ -13,6 +14,7 @@ import {
   People,
   Savings,
   Search,
+  UploadFile,
   VolunteerActivism,
 } from '@mui/icons-material';
 
@@ -29,7 +31,10 @@ import { useIgrejaSelecionada } from '../../../../features/settings/shared/useIg
 import { useGetDizimistas } from '../../../../features/admin/financeiro/api';
 import { ListaDizimosPorMes } from '../../../../features/admin/financeiro/components/listaDizimosPorMes';
 import { ModalDizimista } from '../../../../features/admin/financeiro/components/modalDizimista';
+import { ModalPlanilhaDeDizimos } from '../../../../features/admin/financeiro/components/modalPlanilhaDeDizimos';
 import { Dizimista } from '../../../../features/admin/financeiro/types';
+import { Role } from '../../../../constants/roles';
+import { useRole } from '../../../../hooks/useRole';
 
 const ANO_ATUAL = new Date().getFullYear();
 /** O ano corrente e os quatro anteriores */
@@ -52,6 +57,13 @@ function Dizimistas() {
   const [noAno, setNoAno] = useState<'todos' | 'com' | 'sem'>('todos');
   const [busca, setBusca] = useState('');
   const [editando, setEditando] = useState<Dizimista | null>(null);
+  const [importando, setImportando] = useState(false);
+
+  // a planilha coloca gente como membro: só o admin desta igreja (a API cobra)
+  const { isDev, isSuperAdmin, perfilNaIgreja } = useRole();
+  const podeImportar =
+    !!churchId &&
+    (isDev || isSuperAdmin || perfilNaIgreja(churchId) === Role.ADMIN);
 
   const { data, isFetching } = useGetDizimistas(churchId, ano);
 
@@ -187,6 +199,20 @@ function Dizimistas() {
                   </MenuItem>
                 ))}
               </TextField>
+              {podeImportar && (
+                <Button
+                  variant="outlined"
+                  startIcon={<UploadFile />}
+                  onClick={() => setImportando(true)}
+                  sx={{
+                    textTransform: 'none',
+                    ml: { sm: 'auto' },
+                    width: { xs: '100%', sm: 'auto' },
+                  }}
+                >
+                  Importar planilha
+                </Button>
+              )}
             </Stack>
           </Paper>
 
@@ -206,6 +232,15 @@ function Dizimistas() {
             carregando={isFetching}
             onEditar={setEditando}
           />
+
+          {churchId && podeImportar && (
+            <ModalPlanilhaDeDizimos
+              open={importando}
+              churchId={churchId}
+              anoInicial={ano}
+              onClose={() => setImportando(false)}
+            />
+          )}
 
           {churchId && (
             <ModalDizimista
