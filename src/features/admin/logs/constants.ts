@@ -2,13 +2,7 @@ export const GET_LOGS = 'GET_LOGS';
 export const GET_LOG_OPERATIONS = 'GET_LOG_OPERATIONS';
 export const GET_LOGIN_ATTEMPTS = 'GET_LOGIN_ATTEMPTS';
 
-/** Janelas do filtro de tempo. A tela abre em 24 horas. */
-export const PERIOD_OPTIONS = [
-  { value: 24, label: 'Últimas 24 horas', short: '24 horas' },
-  { value: 24 * 7, label: 'Últimos 7 dias', short: '7 dias' },
-  { value: 24 * 30, label: 'Últimos 30 dias', short: '30 dias' },
-];
-
+/** As telas de log abrem nas últimas 24 horas, até agora */
 export const DEFAULT_PERIOD_HOURS = 24;
 
 /** Ação executada, para o filtro. Os rótulos batem com os que a API devolve. */

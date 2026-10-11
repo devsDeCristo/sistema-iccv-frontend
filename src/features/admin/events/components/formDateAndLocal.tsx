@@ -8,7 +8,7 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
-import { InputDatePicker } from '../../../../components/inputDatePicker';
+import { SeletorDeIntervalo } from '../../../../components/seletorDeIntervalo';
 import { Input } from '../../../../components/input';
 import { Controller, useFormContext, useWatch } from 'react-hook-form';
 import { DateAndLocalFormType } from '../types';
@@ -32,6 +32,7 @@ function FormDateAndLocal({ status }: FormDateAndLocalProps) {
   } = useFormContext<DateAndLocalFormType>();
   const linkMaps = useWatch({ control, name: 'linkMaps' });
   const startDate = useWatch({ control, name: 'startDate' });
+  const endDate = useWatch({ control, name: 'endDate' });
   const fetchAddressByCep = async (cep: string) => {
     if (!cep) {
       clearErrors('zipCode');
@@ -92,62 +93,49 @@ function FormDateAndLocal({ status }: FormDateAndLocalProps) {
     <Grid container spacing={1}>
       <Grid item xs={12} md={12}>
         <Typography variant="h6" fontSize={18}>
-          Data
+          Data e local
         </Typography>
       </Grid>
-      <Grid item xs={12} md={6}>
-        <Controller
-          name="startDate"
-          control={control}
-          render={({ field: { onChange, value } }) => (
-            <InputDatePicker
-              label="Data Inicial"
-              disablePast={bloquearDatasPassadas}
-              value={value as unknown as Date}
-              onChange={onChange}
-              errorMessage={errors.startDate?.message}
-              slotProps={{ textField: { size: 'small', required: true } }}
-            />
-          )}
-        />
-      </Grid>
-      <Grid item xs={12} md={6}>
-        <Controller
-          name="endDate"
-          control={control}
-          render={({ field: { onChange, value } }) => (
-            <InputDatePicker
-              label="Data Final"
-              disablePast={bloquearDatasPassadas}
-              minDate={startDate as unknown as Date}
-              value={value as unknown as Date}
-              onChange={onChange}
-              errorMessage={errors.endDate?.message}
-              slotProps={{ textField: { size: 'small', required: true } }}
-            />
-          )}
-        />
-      </Grid>
+      {/* período e nome do local dividem a linha (com as duas datas num campo
+          só, o período sozinho deixava meia linha vazia), na mesma grade do
+          endereço: o período alinha com o CEP e o local com o Endereço */}
       <Grid item xs={12} md={12}>
-        <Typography variant="h6" fontSize={18}>
-          Local
-        </Typography>
-      </Grid>
-      <Grid item xs={12} md={12}>
-        <Controller
-          name="localName"
-          control={control}
-          render={({ field: { onChange, value } }) => (
-            <Input
-              size="small"
-              label="Nome do Local"
-              value={value}
-              onChange={onChange}
-              error={!!errors.localName}
-              errorMessage={errors.localName?.message}
+        <Grid container spacing={2}>
+          <Grid item xs={12} md={4}>
+            {/* as duas datas num campo só: só dias, as duas obrigatórias */}
+            <SeletorDeIntervalo
+              label="Período do evento"
+              semHora
+              required
+              disablePast={bloquearDatasPassadas}
+              value={{ de: startDate ?? null, ate: endDate ?? null }}
+              onChange={({ de, ate }) => {
+                const opcoes = { shouldValidate: true, shouldDirty: true };
+                if (de) setValue('startDate', de, opcoes);
+                if (ate) setValue('endDate', ate, opcoes);
+              }}
+              error={!!(errors.startDate || errors.endDate)}
+              helperText={errors.startDate?.message ?? errors.endDate?.message}
+              sx={{ width: '100%' }}
             />
-          )}
-        />
+          </Grid>
+          <Grid item xs={12} md={8}>
+            <Controller
+              name="localName"
+              control={control}
+              render={({ field: { onChange, value } }) => (
+                <Input
+                  size="small"
+                  label="Nome do Local"
+                  value={value}
+                  onChange={onChange}
+                  error={!!errors.localName}
+                  errorMessage={errors.localName?.message}
+                />
+              )}
+            />
+          </Grid>
+        </Grid>
       </Grid>{' '}
       <Grid item xs={12} md={12}>
         <Typography

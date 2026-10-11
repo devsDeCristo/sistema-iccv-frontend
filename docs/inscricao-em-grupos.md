@@ -55,10 +55,10 @@ Arquivo: `src/features/admin/events/components/formSelectGroupRole.tsx`.
 ## Painel do admin (configurações de inscrição)
 
 - **Interruptor no cabeçalho do grupo:** liga ou desliga o grupo.
-- **Relógio no cabeçalho:** abre o popover "Abertura automática", com "Abrir inscrições em" e "Encerrar inscrições em" e o botão "Limpar datas". O ícone fica:
+- **Relógio no cabeçalho:** abre o popover "Abertura automática", com o campo "Inscrições abertas" (o `SeletorDeIntervalo`, abertura e encerramento num campo só, com hora) e o botão "Limpar datas". O ícone fica:
   - azul, com data configurada;
   - vermelho, com data inválida (encerramento antes da abertura).
 - **Selo do grupo:** Inativo, "Abre …", "Aberto até …" ou Encerrado. O selo considera **só a configuração do grupo**, não o fim do evento.
-- **Datas:** o campo `datetime-local` fica na hora local e é gravado em ISO (`isoParaCampo` / `campoParaIso`). Vazio grava `null`.
+- **Datas:** as duas pontas são opcionais: início vazio vale "desde já", fim vazio "sem data". Escolhidas na hora local e gravadas em ISO; vazio grava `null`. O encerramento vai no fim do minuto escolhido (18:00:59.999), então "até 18:00" aceita quem se inscreve às 18:00:40.
 
 Arquivo: `src/features/admin/events/components/formRegistrationSettings.tsx`.

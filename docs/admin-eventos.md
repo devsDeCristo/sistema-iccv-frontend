@@ -90,7 +90,12 @@ Configurações de inscrição, Produtos.
   - **Nome** (obrigatório, até 200 caracteres), **status**, **ocultar vagas**
     (esconde a contagem de vagas restantes na página do evento), **descrição
     curta** (até 100) e **descrição detalhada** (editor rico).
-- **Data e Local (passo 3):** data de início e fim; data passada só é bloqueada
+- **Data e Local (passo 3):** uma seção só, "Data e local". Na primeira linha,
+  o "Período do evento" (início e fim num campo só: `SeletorDeIntervalo` com
+  `semHora`, só dias, as duas datas obrigatórias, gravadas no começo do dia
+  como no DatePicker de antes) ao lado do nome do local, na mesma grade do
+  endereço (período na coluna do CEP, local na do Endereço); no celular um
+  embaixo do outro. Data passada só é bloqueada
   quando o status é `ACTIVE` — evento inativo ou de teste é rascunho e pode
   levar uma data que já passou. Endereço é opcional, com busca automática por
   CEP (ViaCEP) preenchendo logradouro, bairro, cidade e UF. O link do Google

@@ -72,17 +72,3 @@ export function useAgoraDosGrupos(
 
   return agora;
 }
-
-/**
- * O valor do campo `datetime-local` ("2026-10-12T08:00", hora local) a partir
- * do ISO gravado, e o caminho de volta. Vazio vira `null`: a data sai.
- */
-export const isoParaCampo = (iso?: string | null) => {
-  if (!iso) return '';
-  const data = new Date(iso);
-  const local = new Date(data.getTime() - data.getTimezoneOffset() * 60_000);
-  return local.toISOString().slice(0, 16);
-};
-
-export const campoParaIso = (valor: string) =>
-  valor ? new Date(valor).toISOString() : null;

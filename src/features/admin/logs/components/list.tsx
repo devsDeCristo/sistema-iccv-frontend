@@ -147,10 +147,11 @@ function Atingidos({ targets }: { targets: LogPerson[] }) {
 }
 
 /** As últimas `horas`, até agora */
-const ultimasHoras = (horas: number): Intervalo => ({
-  de: new Date(Date.now() - horas * 60 * 60 * 1000),
-  ate: null,
-});
+const ultimasHoras = (horas: number) =>
+  ({
+    de: new Date(Date.now() - horas * 60 * 60 * 1000),
+    ate: null,
+  }) satisfies Intervalo;
 
 function ListLogs() {
   const theme = useTheme();
@@ -165,7 +166,7 @@ function ListLogs() {
   const [page, setPage] = useState(0);
   const [detalhe, setDetalhe] = useState<LogAction | null>(null);
 
-  const from = intervalo.de.toISOString();
+  const from = intervalo.de?.toISOString();
   const to = intervalo.ate?.toISOString();
 
   const { data, isFetching } = useGetLogs({
@@ -379,7 +380,12 @@ function ListLogs() {
           flexWrap="wrap"
           useFlexGap
         >
-          <SeletorDeIntervalo value={intervalo} onChange={trocarIntervalo} />
+          <SeletorDeIntervalo
+            value={intervalo}
+            onChange={trocarIntervalo}
+            semFim="agora"
+            disableFuture
+          />
 
           <Autocomplete
             size="small"
@@ -512,16 +518,18 @@ function ListLogs() {
                 <Typography color="text.secondary">
                   Nenhuma atividade no período
                 </Typography>
-                {!intervalo.ate && intervalo.de > ultimasHoras(24 * 7).de && (
-                  // dia parado é comum, e o padrão de 24 h volta vazio: o
-                  // caminho de saída fica a um clique
-                  <Button
-                    size="small"
-                    onClick={() => trocarIntervalo(ultimasHoras(24 * 7))}
-                  >
-                    Ampliar para 7 dias
-                  </Button>
-                )}
+                {!intervalo.ate &&
+                  !!intervalo.de &&
+                  intervalo.de > ultimasHoras(24 * 7).de && (
+                    // dia parado é comum, e o padrão de 24 h volta vazio: o
+                    // caminho de saída fica a um clique
+                    <Button
+                      size="small"
+                      onClick={() => trocarIntervalo(ultimasHoras(24 * 7))}
+                    >
+                      Ampliar para 7 dias
+                    </Button>
+                  )}
               </Stack>
             ),
           }}

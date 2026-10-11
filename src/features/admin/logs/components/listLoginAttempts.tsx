@@ -1,4 +1,4 @@
-import { MouseEvent, useMemo, useState } from 'react';
+import { MouseEvent, useState } from 'react';
 import {
   Autocomplete,
   Box,
@@ -11,8 +11,6 @@ import {
   Popover,
   Stack,
   TextField,
-  ToggleButton,
-  ToggleButtonGroup,
   Tooltip,
   Typography,
   alpha,
@@ -41,9 +39,9 @@ import { StatusCard, StatusCards } from '../../../../components/statusCards';
 import { UserAvatar } from '../../../../components/userAvatar';
 import { formatDateTime, tempoRelativo } from '../../../../utils';
 import { useGetUsers } from '../../users/api/getUsers';
+import { Intervalo, SeletorDeIntervalo } from '../../../../components/seletorDeIntervalo';
 import { User } from '../../../../types/user';
 import {
-  PERIOD_OPTIONS,
   DEFAULT_PERIOD_HOURS,
 } from '../constants';
 import { LoginAttempt, useGetLoginAttempts } from '../api/getLogs';
@@ -244,17 +242,18 @@ function CelulaDoDispositivo({ row }: { row: LoginAttempt }) {
 
 function ListLoginAttempts() {
   const theme = useTheme();
-  const [periodoHoras, setPeriodoHoras] = useState(DEFAULT_PERIOD_HOURS);
+  // abre nas últimas 24 horas, até agora — como o Registro de Atividades
+  const [intervalo, setIntervalo] = useState<Intervalo>(() => ({
+    de: new Date(Date.now() - DEFAULT_PERIOD_HOURS * 60 * 60 * 1000),
+    ate: null,
+  }));
   const [usuario, setUsuario] = useState<User | null>(null);
   const [documento, setDocumento] = useState('');
   const [success, setSuccess] = useState('');
   const [page, setPage] = useState(0);
-  const from = useMemo(
-    () => new Date(Date.now() - periodoHoras * 60 * 60 * 1000).toISOString(),
-    [periodoHoras]
-  );
   const { data, isFetching } = useGetLoginAttempts({
-    from,
+    from: intervalo.de?.toISOString(),
+    to: intervalo.ate?.toISOString(),
     userId: usuario?.id,
     document: documento || undefined,
     success: success === '' ? undefined : success === 'true',
@@ -381,8 +380,8 @@ function ListLoginAttempts() {
     },
   ];
 
-  const trocarPeriodo = (horas: number) => {
-    setPeriodoHoras(horas);
+  const trocarIntervalo = (valor: Intervalo) => {
+    setIntervalo(valor);
     setPage(0);
   };
 
@@ -391,18 +390,7 @@ function ListLoginAttempts() {
       <StatusCards cards={cards} isLoading={isFetching && !data} />
       <Paper sx={{ ...superficieSx, ...barraLarguraCheiaNoCelularSx, p: 2, mb: 2 }}>
         <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap" useFlexGap>
-          <ToggleButtonGroup
-            exclusive
-            size="small"
-            value={periodoHoras}
-            onChange={(_, value) => value && trocarPeriodo(value)}
-          >
-            {PERIOD_OPTIONS.map((option) => (
-              <ToggleButton key={option.value} value={option.value} sx={{ textTransform: 'none', px: 1.75 }}>
-                {option.short}
-              </ToggleButton>
-            ))}
-          </ToggleButtonGroup>
+          <SeletorDeIntervalo value={intervalo} onChange={trocarIntervalo} semFim="agora" disableFuture />
           <Autocomplete
             size="small"
             sx={{ minWidth: 250, flex: 1 }}

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { ReactNode, useState } from 'react';
 import {
   alpha,
   Box,
@@ -33,11 +33,13 @@ import {
 import { ptBR } from 'date-fns/locale';
 
 /**
- * Do instante `de` ao `ate`, em data e hora. `ate` já vem no fim do minuto
- * (18:00:59.999), então "até 18:00" inclui o que aconteceu às 18:00:40.
- * Sem `ate`, vai até agora.
+ * Do instante `de` ao `ate`. Com hora, `ate` vem no fim do minuto
+ * (18:00:59.999), então "até 18:00" inclui o que aconteceu às 18:00:40. Com
+ * `semHora`, as duas pontas são dias, no começo do dia (como o DatePicker).
+ * Uma ponta vazia (`null`) só acontece quando ela é opcional — ver
+ * `semInicio`/`semFim`.
  */
-export type Intervalo = { de: Date; ate: Date | null };
+export type Intervalo = { de: Date | null; ate: Date | null };
 
 /** Largura do calendário do MUI; o resto do painel se mede por ela */
 const LARGURA_DO_CALENDARIO = 320;
@@ -100,24 +102,38 @@ const comHora = (dia: Date, hora: Date) => {
 const fimDoMinuto = (data: Date) =>
   new Date(new Date(data).setSeconds(59, 999));
 
-/** No campo, o ano só aparece quando não é o atual: "05/10 22:44" */
-const quando = (data: Date) =>
+/**
+ * No campo, o ano só aparece quando não é o atual: "05/10 22:44". Sem hora, a
+ * data vai inteira: "05/10/2026".
+ */
+const quando = (data: Date, semHora: boolean) =>
   format(
     data,
-    data.getFullYear() === new Date().getFullYear()
-      ? 'dd/MM HH:mm'
-      : 'dd/MM/yyyy HH:mm'
+    semHora
+      ? 'dd/MM/yyyy'
+      : data.getFullYear() === new Date().getFullYear()
+        ? 'dd/MM HH:mm'
+        : 'dd/MM/yyyy HH:mm'
   );
+
+/** A primeira letra maiúscula: "agora" no campo, "Agora" no cartão */
+const maiuscula = (texto: string) =>
+  texto.charAt(0).toUpperCase() + texto.slice(1);
 
 /** Uma ponta no topo do painel: diz qual delas o calendário está ajustando */
 function Ponta({
   rotulo,
   data,
+  vazia,
+  semHora,
   ativa,
   onClick,
 }: {
   rotulo: string;
   data: Date | null;
+  /** o que aparece sem data: "Agora", "Sem data" */
+  vazia: string;
+  semHora: boolean;
   ativa: boolean;
   onClick: () => void;
 }) {
@@ -170,8 +186,15 @@ function Ponta({
           textAlign: 'left',
         }}
       >
-        <span>{data ? format(data, 'dd/MM/yyyy') : 'Agora'}</span>
-        {data && (
+        {data ? (
+          <span>{format(data, 'dd/MM/yyyy')}</span>
+        ) : (
+          // sem data, o texto é apagado: diz o que vale, não é um valor
+          <Box component="span" sx={{ color: 'text.secondary' }}>
+            {vazia}
+          </Box>
+        )}
+        {data && !semHora && (
           <Box component="span" sx={{ color: 'text.secondary' }}>
             {format(data, 'HH:mm')}
           </Box>
@@ -182,19 +205,23 @@ function Ponta({
 }
 
 /**
- * Um campo só para o intervalo, com data, hora e minuto, no jeito do
- * DateTimePicker do MUI.
+ * Um campo só para o intervalo, no jeito do DateTimePicker do MUI.
  *
  * Em cima, as duas pontas (Início e Fim): a marcada é a que o calendário e o
  * relógio ajustam. Escolher o dia do início passa sozinho para o fim; o fim
- * novo entra às 23:59. Sem fim, o intervalo vai até agora, e "Até agora" volta
- * a isso. Um dia de fim antes do início recomeça por ele. Tudo fica num
- * rascunho até o OK; Cancelar ou clicar fora descarta.
+ * novo entra às 23:59 (ou só o dia, com `semHora`). Um dia de fim antes do
+ * início recomeça por ele. Tudo fica num rascunho até o OK; Cancelar ou
+ * clicar fora descarta.
+ *
+ * Ponta opcional: com `semFim="agora"` o fim pode ficar vazio (e o cartão diz
+ * "Agora"); idem `semInicio`. Sem a prop, a ponta é obrigatória e o OK espera
+ * por ela.
  *
  * ```tsx
- * const [intervalo, setIntervalo] = useState<Intervalo>({ de: ontem, ate: null });
- * <SeletorDeIntervalo value={intervalo} onChange={setIntervalo} />
- * // na consulta: from = intervalo.de, to = intervalo.ate ?? (nada: agora)
+ * // filtro de log: com hora, até agora, sem futuro
+ * <SeletorDeIntervalo value={v} onChange={setV} semFim="agora" disableFuture />
+ * // datas do evento: só dias, as duas obrigatórias
+ * <SeletorDeIntervalo value={v} onChange={setV} semHora disablePast />
  * ```
  *
  * ponytail: feito à mão com o `DateCalendar` e o `MultiSectionDigitalClock`,
@@ -204,11 +231,30 @@ function SeletorDeIntervalo({
   value,
   onChange,
   label = 'Período',
+  semHora = false,
+  semInicio,
+  semFim,
+  disableFuture,
+  disablePast,
+  required,
+  error,
+  helperText,
   sx,
 }: {
   value: Intervalo;
   onChange: (intervalo: Intervalo) => void;
   label?: string;
+  /** só dias, sem relógio */
+  semHora?: boolean;
+  /** o início pode ficar vazio; é o que aparece no lugar: "desde já" */
+  semInicio?: string;
+  /** o fim pode ficar vazio; é o que aparece no lugar: "agora", "sem data" */
+  semFim?: string;
+  disableFuture?: boolean;
+  disablePast?: boolean;
+  required?: boolean;
+  error?: boolean;
+  helperText?: ReactNode;
   /** do campo; a largura padrão é 260px */
   sx?: SxProps<Theme>;
 }) {
@@ -222,42 +268,63 @@ function SeletorDeIntervalo({
   const celular = useMediaQuery(useTheme().breakpoints.down('sm'));
   const [vista, setVista] = useState<'day' | 'hours'>('day');
 
-  const texto = value.ate
-    ? `${quando(value.de)} – ${
-        isSameDay(value.de, value.ate)
-          ? format(value.ate, 'HH:mm')
-          : quando(value.ate)
-      }`
-    : `${quando(value.de)} – agora`;
+  const { de: vDe, ate: vAte } = value;
+  // as duas vazias: o campo fica vazio, e o rótulo diz o que é
+  const texto =
+    !vDe && !vAte
+      ? ''
+      : `${vDe ? quando(vDe, semHora) : semInicio} – ${
+          !vAte
+            ? semFim
+            : vDe && !semHora && isSameDay(vDe, vAte)
+              ? format(vAte, 'HH:mm')
+              : quando(vAte, semHora)
+        }`;
 
   const escolherDia = (dia: Date | null) => {
     if (!dia) return;
     const { de, ate } = rascunho;
     if (ponta === 'de') {
-      const novo = comHora(dia, de);
+      const novo = semHora || !de ? startOfDay(dia) : comHora(dia, de);
       // o fim que ficou antes do início novo não vale mais
       setRascunho({ de: novo, ate: ate && isBefore(ate, novo) ? null : ate });
       setPonta('ate');
       return;
     }
-    if (isBefore(dia, startOfDay(de))) {
-      setRascunho({ de: comHora(dia, de), ate: null });
+    if (de && isBefore(dia, startOfDay(de))) {
+      setRascunho({
+        de: semHora ? startOfDay(dia) : comHora(dia, de),
+        ate: null,
+      });
       return;
     }
-    setRascunho({ de, ate: fimDoMinuto(comHora(dia, ate ?? endOfDay(dia))) });
+    setRascunho({
+      de,
+      ate: semHora
+        ? startOfDay(dia)
+        : fimDoMinuto(comHora(dia, ate ?? endOfDay(dia))),
+    });
   };
 
   const escolherHora = (hora: Date | null) => {
     if (!hora) return;
     const { de, ate } = rascunho;
-    if (ponta === 'de') setRascunho({ de: comHora(de, hora), ate });
-    else if (ate) setRascunho({ de, ate: fimDoMinuto(comHora(ate, hora)) });
+    if (ponta === 'de') {
+      if (de) setRascunho({ de: comHora(de, hora), ate });
+    } else if (ate) setRascunho({ de, ate: fimDoMinuto(comHora(ate, hora)) });
   };
 
   const fechar = () => setAncora(null);
 
-  const invertido = !!rascunho.ate && isBefore(rascunho.ate, rascunho.de);
+  const invertido =
+    !!rascunho.de && !!rascunho.ate && isBefore(rascunho.ate, rascunho.de);
+  // a ponta obrigatória que ainda falta segura o OK
+  const faltaPonta =
+    (!rascunho.de && semInicio === undefined) ||
+    (!rascunho.ate && semFim === undefined);
   const daPonta = ponta === 'de' ? rascunho.de : rascunho.ate;
+  // o que a ponta marcada vira quando fica vazia; `undefined` se obrigatória
+  const semVazio = ponta === 'de' ? semInicio : semFim;
 
   return (
     <>
@@ -265,6 +332,9 @@ function SeletorDeIntervalo({
         size="small"
         label={label}
         value={texto}
+        required={required}
+        error={error}
+        helperText={helperText}
         onClick={(evento) => {
           setRascunho(value);
           setPonta('de');
@@ -314,6 +384,8 @@ function SeletorDeIntervalo({
             <Ponta
               rotulo="Início"
               data={rascunho.de}
+              vazia={maiuscula(semInicio ?? 'Escolha')}
+              semHora={semHora}
               ativa={ponta === 'de'}
               onClick={() => setPonta('de')}
             />
@@ -328,11 +400,13 @@ function SeletorDeIntervalo({
             <Ponta
               rotulo="Fim"
               data={rascunho.ate}
+              vazia={maiuscula(semFim ?? 'Escolha')}
+              semHora={semHora}
               ativa={ponta === 'ate'}
               onClick={() => setPonta('ate')}
             />
           </Stack>
-          {celular ? (
+          {celular && !semHora ? (
             <DateTimePickerTabs
               view={vista}
               onViewChange={(nova) =>
@@ -345,12 +419,13 @@ function SeletorDeIntervalo({
           )}
 
           <Stack direction="row" sx={{ overflowY: 'auto', minHeight: 0 }}>
-            {(!celular || vista === 'day') && (
+            {(!celular || semHora || vista === 'day') && (
               <DateCalendar
                 value={daPonta}
-                referenceDate={rascunho.ate ?? rascunho.de}
+                referenceDate={rascunho.ate ?? rascunho.de ?? undefined}
                 onChange={escolherDia}
-                disableFuture
+                disableFuture={disableFuture}
+                disablePast={disablePast}
                 showDaysOutsideCurrentMonth={false}
                 slots={{ day: DiaDoIntervalo }}
                 slotProps={{
@@ -383,9 +458,11 @@ function SeletorDeIntervalo({
               />
             )}
 
-            {!celular && <Divider orientation="vertical" flexItem />}
+            {!celular && !semHora && (
+              <Divider orientation="vertical" flexItem />
+            )}
 
-            {(!celular || vista === 'hours') && (
+            {!semHora && (!celular || vista === 'hours') && (
               // no celular, a aba ocupa o lugar do calendário, do mesmo tamanho:
               // o painel não muda de tamanho ao trocar de aba
               <Box
@@ -452,14 +529,16 @@ function SeletorDeIntervalo({
                     }}
                   />
                 ) : (
-                  // fim em "agora": não há hora para marcar até escolher o dia
+                  // ponta vazia: não há hora para marcar até escolher o dia
                   <Typography
                     variant="body2"
                     color="text.secondary"
                     sx={{ px: 2, pt: 2, maxWidth: celular ? 260 : 150 }}
                   >
-                    O fim é agora. Escolha um dia no calendário para definir
-                    outro fim.
+                    {ponta === 'de'
+                      ? `Sem início (${semInicio ?? '—'}).`
+                      : `Sem fim (${semFim ?? '—'}).`}{' '}
+                    Escolha um dia no calendário para definir.
                   </Typography>
                 )}
               </Box>
@@ -473,14 +552,18 @@ function SeletorDeIntervalo({
             gap={1}
             sx={{ px: 1.5, py: 1.25 }}
           >
-            <Button
-              size="small"
-              onClick={() => setRascunho({ ...rascunho, ate: null })}
-              disabled={!rascunho.ate}
-              sx={{ textTransform: 'none' }}
-            >
-              Fim em agora
-            </Button>
+            {/* a ponta marcada, se for opcional, pode voltar a vazio: um botão
+                só, curto, para caber no celular */}
+            {semVazio !== undefined && (
+              <Button
+                size="small"
+                onClick={() => setRascunho({ ...rascunho, [ponta]: null })}
+                disabled={!daPonta}
+                sx={{ textTransform: 'none', whiteSpace: 'nowrap' }}
+              >
+                {maiuscula(semVazio)}
+              </Button>
+            )}
             <Box sx={{ flex: 1 }} />
             {invertido && (
               <Typography variant="caption" color="error">
@@ -498,7 +581,7 @@ function SeletorDeIntervalo({
             <Button
               size="small"
               variant="contained"
-              disabled={invertido}
+              disabled={invertido || faltaPonta}
               onClick={() => {
                 onChange(rascunho);
                 fechar();

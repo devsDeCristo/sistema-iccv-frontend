@@ -65,7 +65,7 @@ Uma linha por tentativa de entrada no sistema, bem-sucedida ou recusada.
 
 | Filtro | O que faz |
 | --- | --- |
-| **Período** | 24 horas (padrão), 7 dias ou 30 dias |
+| **Período** | o mesmo campo do Registro de Atividades (`SeletorDeIntervalo`, com hora, fim "agora", sem futuro). Abre nas últimas 24 horas, até agora; vai para a API como `from`/`to` |
 | **Usuário** | filtra por quem é dono do documento |
 | **Documento** | busca por texto no documento digitado |
 | **Resultado** | Todos, Sucesso ou Falha |

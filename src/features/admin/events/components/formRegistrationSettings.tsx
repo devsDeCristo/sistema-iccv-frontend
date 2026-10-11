@@ -30,12 +30,8 @@ import { GroupRole, RegistrationSettingsFormType } from '../types';
 import { Controller, useFormContext, useWatch } from 'react-hook-form';
 import Swal from 'sweetalert2';
 import { sanitizePrice, sanitizeInteger } from '../../../../utils';
-import {
-  campoParaIso,
-  estadoDoGrupo,
-  isoParaCampo,
-  quandoDoGrupo,
-} from '../groups';
+import { estadoDoGrupo, quandoDoGrupo } from '../groups';
+import { SeletorDeIntervalo } from '../../../../components/seletorDeIntervalo';
 
 /**
  * Grupo e regra nascem vazios para o admin preencher, mas o schema pede número
@@ -580,44 +576,23 @@ function CartaoGrupo({
         )}
 
         <Stack gap={2} sx={{ mt: 2 }}>
-          <Controller
-            control={control}
-            name={`groupRoles.${index}.opensAt`}
-            render={({ field: { onChange, value } }) => (
-              <Input
-                size="small"
-                type="datetime-local"
-                // o calendário nativo segue o tema: sem isto, no escuro o
-                // ícone sai preto sobre o fundo escuro
-                inputProps={{ style: { colorScheme: theme.palette.mode } }}
-                label="Abrir inscrições em"
-                value={isoParaCampo(value)}
-                onChange={(e) => onChange(campoParaIso(e.target.value))}
-                helperText="Vazio: aberto desde já"
-                InputLabelProps={{ shrink: true }}
-              />
-            )}
-          />
-          <Controller
-            control={control}
-            name={`groupRoles.${index}.closesAt`}
-            render={({ field: { onChange, value } }) => (
-              <Input
-                size="small"
-                type="datetime-local"
-                // o calendário nativo segue o tema: sem isto, no escuro o
-                // ícone sai preto sobre o fundo escuro
-                inputProps={{ style: { colorScheme: theme.palette.mode } }}
-                label="Encerrar inscrições em"
-                value={isoParaCampo(value)}
-                onChange={(e) => onChange(campoParaIso(e.target.value))}
-                error={erroNaJanela}
-                helperText={
-                  errosDoGrupo?.closesAt?.message ?? 'Vazio: sem data'
-                }
-                InputLabelProps={{ shrink: true }}
-              />
-            )}
+          {/* abrir e encerrar num campo só: com hora, as duas opcionais */}
+          <SeletorDeIntervalo
+            label="Inscrições abertas"
+            semInicio="desde já"
+            semFim="sem data"
+            value={{
+              de: grupo.opensAt ? new Date(grupo.opensAt) : null,
+              ate: grupo.closesAt ? new Date(grupo.closesAt) : null,
+            }}
+            onChange={({ de, ate }) => {
+              const opcoes = { shouldDirty: true, shouldValidate: true };
+              setValue(`groupRoles.${index}.opensAt`, de?.toISOString() ?? null, opcoes);
+              setValue(`groupRoles.${index}.closesAt`, ate?.toISOString() ?? null, opcoes);
+            }}
+            error={erroNaJanela}
+            helperText={errosDoGrupo?.closesAt?.message}
+            sx={{ width: '100%' }}
           />
         </Stack>
 

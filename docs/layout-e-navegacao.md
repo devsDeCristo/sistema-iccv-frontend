@@ -78,10 +78,17 @@ Um campo só para escolher um intervalo com data, hora e minuto, para filtros de
 - **Calendário à esquerda:** o intervalo aparece como uma faixa contínua entre as pontas, que ficam em círculo cheio. Escolher o dia do início mantém a hora que ele tinha e passa sozinho para o fim; o fim novo entra às 23:59. Um fim que ficou antes do início novo volta para "agora", e um dia de fim antes do início recomeça por ele. Dias futuros ficam desligados.
 - **Horário à direita:** colunas de hora e minuto (`MultiSectionDigitalClock`, 24 h, de minuto em minuto), da altura do calendário, já roladas até a hora marcada da ponta ativa. Com o fim em "agora", no lugar do relógio aparece a orientação para escolher um dia. A barra de rolagem das colunas é fininha e só aparece com o mouse em cima; a rolagem fica sempre ligada (o MUI a ligava só no hover, e o espaço da barra que surgia empurrava os números de lado).
 - **Celular:** calendário e horário não cabem lado a lado, então viram abas, como no DateTimePicker do MUI (`DateTimePickerTabs`, ícones de calendário e relógio). O calendário ocupa a largura do painel (os 7 dias somam 280px; com os 320px fixos da tela grande, estourava um celular de 320px). A largura do painel é fixa no celular (a tela menos 16px de cada lado): solta, ela seguia o conteúdo (280px com o fim em "agora", 357px com data) e o painel pulava de lado ao escolher o fim. As duas abas têm o mesmo tamanho, para o painel não pular ao trocar, e só o meio rola: as pontas e o OK ficam sempre à vista.
-- **Rodapé:** "Fim em agora" tira o fim escolhido; Cancelar (ou clicar fora) descarta; OK aplica e fecha. Tudo fica num rascunho até o OK; ao reabrir, volta ao valor aplicado. Com o fim antes do início, o OK desliga e aparece o aviso.
-- **Valor (`Intervalo`):** `{ de: Date; ate: Date | null }`, já pronto para a consulta: `ate` vem no fim do minuto (18:00:59.999), então "até 18:00" inclui o que aconteceu às 18:00:40. Sem `ate`, até agora.
-- **Props:** `value`, `onChange` (chamado só no OK), `label` (padrão "Período") e `sx` do campo (padrão 260px; no celular, dentro de uma barra com `barraLarguraCheiaNoCelularSx`, ocupa a largura toda).
-- Feito com o `DateCalendar` e o `MultiSectionDigitalClock`, porque o `DateRangePicker` do MUI X é da versão paga. Conferido em print no tema escuro e no claro, na tela grande e com 390px. Usado no Registro de Atividades.
+- **Rodapé:** o botão da ponta opcional ("Agora", "Desde já", "Sem data") esvazia a ponta marcada; Cancelar (ou clicar fora) descarta; OK aplica e fecha. Tudo fica num rascunho até o OK; ao reabrir, volta ao valor aplicado. Com o fim antes do início, o OK desliga e aparece o aviso.
+- **Valor (`Intervalo`):** `{ de: Date | null; ate: Date | null }`, já pronto para a consulta: com hora, `ate` vem no fim do minuto (18:00:59.999), então "até 18:00" inclui o que aconteceu às 18:00:40. Vazio só quando a ponta é opcional.
+- **Opções (props):**
+  - `value` / `onChange` (chamado só no OK) e `label` (padrão "Período").
+  - `semHora`: só dias, sem relógio nem abas; as duas pontas vêm no começo do dia, como no DatePicker. Usado nas datas do evento.
+  - `semInicio` / `semFim`: a ponta pode ficar vazia (`null`), e o texto passado é o que aparece no lugar — "agora" nos logs, "desde já" e "sem data" nos grupos. Um botão no rodapé (com esse texto) esvazia a ponta marcada. Sem a prop, a ponta é obrigatória: o cartão diz "Escolha" e o OK espera por ela.
+  - `disableFuture` / `disablePast`: dias desligados no calendário (logs não têm futuro; evento ativo não aceita data passada).
+  - `required`, `error`, `helperText`: para formulário, como num TextField.
+  - `sx` do campo (padrão 260px; no celular, dentro de uma barra com `barraLarguraCheiaNoCelularSx`, ocupa a largura toda).
+- **Onde está:** Registro de Atividades e Registro de Login (filtro de tempo), datas do evento (cadastro e edição) e abertura automática dos grupos de inscrição. O filtro de aniversário dos inscritos (dia e mês, sem ano) e o agendamento de notícia (uma data só) não são intervalos de datas e ficaram como estavam.
+- Feito com o `DateCalendar` e o `MultiSectionDigitalClock`, porque o `DateRangePicker` do MUI X é da versão paga. Conferido em print no tema escuro e no claro, na tela grande e no celular (320 a 430px).
 
 ## Botão de barra (`src/components/botaoDaBarra`)
 
