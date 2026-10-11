@@ -89,7 +89,7 @@ Arquivos: `src/features/admin/churches/index.tsx`, `src/features/admin/churches/
 | Situação | Selo | O que muda no sistema |
 | --- | --- | --- |
 | `ACTIVE` (Ativa) | verde (`chips.success`) | No ar: aparece no filtro de igrejas da home |
-| `TEST` (Em teste) | laranja (`chips.alert`) | Em implantação: o painel funciona, mas ela não aparece no filtro da home |
+| `TEST` (Em teste) | laranja (`chips.alert`) | Em implantação: o painel funciona, mas para o público ela não existe — não aparece na escolha de igreja da inscrição nem no filtro da home, e os eventos dela ficam fora do catálogo (só quem a administra os vê) |
 | `INACTIVE` (Inativa) | cinza (`chips.canceled`) | Fora do ar: some do filtro da home; os dados continuam guardados (nada é apagado). Admin e financeiro dela viram usuários comuns: perdem a área de admin, ou ficam só com as outras igrejas ativas que administram. Reativar devolve o acesso |
 
 O vocabulário e as cores acompanham de propósito o status do evento (Ativo /
