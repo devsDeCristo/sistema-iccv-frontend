@@ -12,6 +12,7 @@ import {
 } from '@mui/material';
 import { Lock, OpenInNew } from '@mui/icons-material';
 
+import { semAutopreencher } from '../../shared/semAutopreencher';
 import { ResponsiveModal } from '../../../../components/responsiveModal';
 import { ProviderLogo } from './providerLogo';
 import { WebhookUrls } from './webhookUrls';
@@ -226,7 +227,8 @@ function ProviderForm({ churchId, integracao, onClose }: Props) {
             // durante um compartilhamento de tela — que é como isso vaza na
             // prática, não por invasão.
             type={campo.secret ? 'password' : 'text'}
-            autoComplete="off"
+            // sem isto o navegador punha o login salvo (CPF e senha) aqui
+            {...semAutopreencher(campo.secret)}
             size="small"
             placeholder={
               campo.secret && integracao.credentialsHint?.[campo.key]

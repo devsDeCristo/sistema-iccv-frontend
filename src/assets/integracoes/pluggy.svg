@@ -1,0 +1,5 @@
+<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Pluggy">
+  <rect width="48" height="48" rx="11" fill="#EF294B"/>
+  <path d="M18 35V13h8.6c4.6 0 7.6 2.8 7.6 7.1 0 4.4-3.1 7.2-7.8 7.2h-3.7V35H18zm4.7-11.6h3.5c2.2 0 3.4-1.2 3.4-3.3 0-2-1.2-3.2-3.4-3.2h-3.5v6.5z" fill="#fff"/>
+  <circle cx="34.5" cy="33.5" r="2.6" fill="#fff"/>
+</svg>

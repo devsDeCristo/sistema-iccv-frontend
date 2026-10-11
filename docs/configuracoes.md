@@ -65,6 +65,7 @@ Arquivos: `src/features/settings/payments/components/paymentProviders.tsx`, `...
 
 ### Formulário de credenciais (modo teste vs produção)
 
+- **Sem preenchimento automático:** os campos de credencial usam `semAutopreencher` (`src/features/settings/shared/semAutopreencher.ts`): o segredo é `autocomplete="new-password"` (o Chrome ignora `off` em campo de senha) e todos levam os `data-*` que 1Password, LastPass e Bitwarden respeitam. Sem isso, o navegador tratava o formulário como login e preenchia o primeiro campo com o CPF e o segredo com a senha salva da pessoa.
 - **Campos dinâmicos:** o formulário não tem layout fixo por gateway — os campos vêm do backend (`integracao.fields`, com rótulo, obrigatoriedade, se é segredo e texto de ajuda). Uma integração nova aparece pronta, sem precisar de deploy do front.
 - **Ambiente (Sandbox × Produção):** só o **dev** vê e altera o seletor de ambiente. Admin e super admin não veem esse campo — o formulário simplesmente não envia o modo, e o servidor mantém o que já estava gravado. Se a integração já estiver em sandbox, quem não é dev vê um aviso fixo dizendo isso.
 - **Campos secretos:** voltam mascarados do servidor (ex.: `••••4F2A`) e o campo de edição começa em branco; deixar em branco ao salvar significa "manter o que já está lá". O tipo do input é `password`, para não deixar o token legível numa tela compartilhada.
@@ -92,6 +93,24 @@ Arquivo: `src/features/settings/payments/components/webhookUrls.tsx`.
 - Vale só para checkout/link de pagamento — não para maquininha, que tem outra tabela.
 
 Arquivo: `src/features/settings/payments/constants.ts` (`PROVIDER_PRICING`), `src/features/settings/payments/components/providerFees.tsx`.
+
+## Integrações (`/configuracoes/integracoes`)
+
+Serviços externos ligados a cada igreja, escolhida no alternador do topo (admin e financeiro: a Pluggy alimenta o módulo do financeiro). A tela é uma grade de cards, no molde dos gateways em Pagamentos (um por linha no celular, dois no tablet, três na tela grande); hoje só a Pluggy, e a próxima integração entra como mais um card.
+
+- **Card da Pluggy** (`src/features/settings/integrations/pluggyIntegration.tsx`): marca, nome e a situação numa linha só, com o pontinho colorido:
+  - **Não configurada** (cinza);
+  - **Desligada** (cinza, marca acinzentada);
+  - **Conectada · N bancos** (verde; o card ganha borda e fundo levemente verdes, como o gateway que recebe);
+  - **Reconectar no MeuPluggy** (âmbar), quando a Pluggy avisa que um banco pede reconexão;
+  - **Indisponível no servidor** (vermelho), sem a chave de cifragem (`PAYMENT_CREDENTIALS_KEY`).
+  
+  Embaixo, o que ela faz em duas linhas fixas e a hora da última leitura ("Última leitura há 2 horas"). No rodapé, Configurar (ou Editar) e o teste de conexão; no menu ⋮, Remover integração (com confirmação; os bancos continuam conectados no MeuPluggy).
+- **Altura fixa:** nada que acontece muda a altura do card. O resultado do teste (banco a banco: nome, situação e contas, ou o erro) flutua ancorado no botão, e a configuração abre numa janela — para a grade não pular quando houver outros cards ao lado.
+- **Configuração** (`pluggyForm.tsx`, `ResponsiveModal`): Client ID e Client Secret do dashboard da Pluggy (em branco mantém o gravado; o secret é campo de senha), os bancos conectados e "Integração ativa".
+- **Bancos conectados (Item IDs):** um campo por banco ("Banco 1 · Item ID", "Banco 2 · Item ID"…), cada um com a lixeira ao lado, e "Adicionar banco" embaixo (o campo novo já vem com o cursor). Colar vários IDs de uma vez num campo (por linha, vírgula ou espaço) abre um campo para cada. Vazios saem e repetidos contam uma vez ao salvar; com um só campo, a lixeira só limpa ele. Salvar fecha a janela; Cancelar descarta o que foi digitado. Sem a chave de cifragem, a janela mostra o alerta e não salva.
+- **Sem preenchimento automático:** os campos de credencial usam `semAutopreencher` (`src/features/settings/shared/semAutopreencher.ts`), o mesmo dos gateways. Sem ele, o navegador via Client ID + Client Secret como um login e colocava ali o CPF e a senha salvos da pessoa.
+- **Marca:** `src/assets/integracoes/pluggy.svg`, uma reconstrução pela cor e pela inicial (como as marcas de gateway), não o arquivo oficial — trocar é substituir o `.svg`.
 
 ## WhatsApp
 

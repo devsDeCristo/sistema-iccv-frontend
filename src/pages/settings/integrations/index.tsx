@@ -1,4 +1,4 @@
-import { Alert, Stack } from '@mui/material';
+import { Alert, Box, Stack } from '@mui/material';
 
 import { PageStyle } from '../../../components/pageStyle';
 import { Header } from '../../../components/header';
@@ -36,10 +36,25 @@ function IntegrationsSettings() {
           </Alert>
         ) : (
           escopo.churchId && (
-            <PluggyIntegrationCard
-              key={escopo.churchId}
-              churchId={escopo.churchId}
-            />
+            // grade de cards, como os gateways em Pagamentos: a próxima
+            // integração entra como mais um card ao lado
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: {
+                  xs: '1fr',
+                  sm: '1fr 1fr',
+                  lg: 'repeat(3, 1fr)',
+                },
+                gap: 2,
+                alignItems: 'stretch',
+              }}
+            >
+              <PluggyIntegrationCard
+                key={escopo.churchId}
+                churchId={escopo.churchId}
+              />
+            </Box>
           )
         )}
       </Stack>
