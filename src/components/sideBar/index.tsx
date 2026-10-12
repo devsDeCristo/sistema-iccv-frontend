@@ -1,7 +1,6 @@
 import { ReactNode } from 'react';
 import {
   AccountBalanceWallet,
-  CompareArrows,
   ArrowBack,
   Campaign,
   ConfirmationNumber,
@@ -20,8 +19,7 @@ import {
   SpaceDashboard,
   Gavel,
   Hub,
-  ReceiptLong,
-  VolunteerActivism,
+  HolidayVillage,
   Diversity3,
 } from '@mui/icons-material';
 import { Link, useLocation } from 'react-router-dom';
@@ -207,11 +205,17 @@ function Etiqueta({
   texto,
   de,
   ate,
+  pequena = false,
 }: {
   texto: string;
   /** começo e fim do degradê da letra */
   de: string;
   ate: string;
+  /**
+   * Na linha de filho, que é recuada: no tamanho cheio, "Em breve" cortava
+   * o nome de "Congregações" no meio
+   */
+  pequena?: boolean;
 }) {
   const theme = useTheme();
   const escuro = theme.palette.mode === 'dark';
@@ -223,9 +227,9 @@ function Etiqueta({
       component="span"
       sx={{
         flexShrink: 0,
-        fontSize: 12,
+        fontSize: pequena ? 10.5 : 12,
         fontWeight: 800,
-        letterSpacing: '0.08em',
+        letterSpacing: pequena ? '0.03em' : '0.08em',
         textTransform: 'uppercase',
         lineHeight: 1,
         backgroundImage: `linear-gradient(90deg, ${inicio}, ${fim})`,
@@ -278,10 +282,10 @@ function ItemNav({
       aria-label={recolhida ? item.title : undefined}
       direction="row"
       alignItems="center"
-      gap={2}
+      gap={filho ? 1.25 : 2}
       sx={{
         minHeight: filho ? 36 : 44,
-        px: 2,
+        px: filho ? 1.5 : 2,
         // recolhida, o ícone fica no meio da coluna
         justifyContent: recolhida ? 'center' : 'flex-start',
         mb: 0.5,
@@ -331,10 +335,20 @@ function ItemNav({
           </Typography>
 
           {item.emBreve ? (
-            <Etiqueta texto="Em breve" de={LARANJA_VIVO} ate={AMBAR_VIVO} />
+            <Etiqueta
+              texto="Em breve"
+              de={LARANJA_VIVO}
+              ate={AMBAR_VIVO}
+              pequena={filho}
+            />
           ) : (
             item.novo && (
-              <Etiqueta texto="Novo!" de={AZUL_VIVO} ate={VIOLETA_VIVO} />
+              <Etiqueta
+                texto="Novo!"
+                de={AZUL_VIVO}
+                ate={VIOLETA_VIVO}
+                pequena={filho}
+              />
             )
           )}
         </Stack>
@@ -436,8 +450,8 @@ function ConteudoNav({
                         recolhida
                           ? { mb: 0.5 }
                           : {
-                              ml: 3,
-                              pl: 1.5,
+                              ml: 2.5,
+                              pl: 1.25,
                               mb: 0.5,
                               borderLeft: 1,
                               borderColor: 'divider',
@@ -628,27 +642,31 @@ const SideBar: React.FC<SideBarProps> = ({
               },
             ]
           : []),
-        // grupo: a conciliação, o livro-caixa e os dizimistas da igreja. Admin e financeiro
+        // grupo: a tesouraria da igreja (o módulo financeiro). Admin e financeiro.
+        // A administrativa e cada congregação têm Conciliação, Dízimos e
+        // Lançamentos em abas; cada evento, Conciliação e Lançamentos
         {
-          link: '/admin/financeiro',
+          link: '/admin/tesouraria',
           icon: <AccountBalanceWallet />,
-          title: 'Financeiro',
+          title: 'Tesouraria',
           novo: true,
           filhos: [
             {
-              link: '/admin/financeiro/conciliacao',
-              icon: <CompareArrows />,
-              title: 'Conciliação',
+              link: '/admin/tesouraria/administrativa',
+              icon: <Church />,
+              title: 'Administrativa',
             },
             {
-              link: '/admin/financeiro/lancamentos',
-              icon: <ReceiptLong />,
-              title: 'Lançamentos',
+              link: '/admin/tesouraria/eventos',
+              icon: <Event />,
+              title: 'Eventos',
+              novo: true,
             },
             {
-              link: '/admin/financeiro/dizimistas',
-              icon: <VolunteerActivism />,
-              title: 'Dizimistas',
+              link: '/admin/tesouraria/congregacoes',
+              icon: <HolidayVillage />,
+              title: 'Congregações',
+              novo: true,
             },
           ],
         },

@@ -36,7 +36,8 @@ contexto para quem (pessoa ou IA) for mexer nessas telas.
 | Usuários | painel | [usuarios.md](usuarios.md) |
 | Membros e famílias | `/admin/membros` | [membros.md](membros.md) |
 | Logs e registro de login | painel | [logs-e-logins.md](logs-e-logins.md) |
-| Financeiro (lançamentos e dizimistas) | `/admin/financeiro` | [financeiro.md](financeiro.md) |
+| Tesouraria (administrativa e eventos) | `/admin/tesouraria` | [financeiro.md](financeiro.md) |
+| Tesouraria das congregações (MVP) | `/admin/tesouraria/congregacoes` | [tesouraria-congregacoes.md](tesouraria-congregacoes.md) |
 | Configurações | gateways, WhatsApp, disparos, termos | [configuracoes.md](configuracoes.md) |
 
 As regras de servidor estão no repositório `ic-backend`, em `docs/` (índice em

@@ -1,12 +1,17 @@
 import { useEffect, useState } from 'react';
 import {
   Alert,
+  Box,
   Button,
   FormControlLabel,
   IconButton,
   Link,
+  MenuItem,
+  Radio,
+  RadioGroup,
   Stack,
   Switch,
+  TextField,
   Typography,
 } from '@mui/material';
 import { Add, DeleteOutline, Lock, OpenInNew } from '@mui/icons-material';
@@ -23,6 +28,15 @@ const lerItemIds = (texto: string) =>
     .split(/[\s,;]+/)
     .map((id) => id.trim())
     .filter(Boolean);
+
+/** A tesouraria a que um banco serve, quando os bancos são divididos */
+type TesourariaDoBanco = 'ADMINISTRATIVA' | 'EVENTOS' | 'CONGREGACOES';
+
+const TESOURARIAS_DO_BANCO: { valor: TesourariaDoBanco; rotulo: string }[] = [
+  { valor: 'ADMINISTRATIVA', rotulo: 'Administrativa' },
+  { valor: 'EVENTOS', rotulo: 'Eventos' },
+  { valor: 'CONGREGACOES', rotulo: 'Congregações' },
+];
 
 interface Props {
   open: boolean;
@@ -53,6 +67,18 @@ function PluggyForm({
   // o campo recém-adicionado ganha o foco
   const [novo, setNovo] = useState<number | null>(null);
   const [ativa, setAtiva] = useState(true);
+  /**
+   * ponytail: prévia — a divisão dos bancos por tesouraria ainda não vai para
+   * o servidor (a rota recusaria o campo). Fica só enquanto a tela está
+   * aberta; quando entrar no backend, vai junto no `salvar` como os Item IDs.
+   */
+  const [divisao, setDivisao] = useState<'LIVRE' | 'POR_TESOURARIA'>('LIVRE');
+  // pelo Item ID, e não pela posição: remover um campo não troca a
+  // tesouraria dos outros
+  const [tesourariaDoBanco, setTesourariaDoBanco] = useState<
+    Record<string, TesourariaDoBanco>
+  >({});
+  const porTesouraria = divisao === 'POR_TESOURARIA';
 
   // Segredos voltam mascarados e começam vazios: vazio é "mantém o gravado".
   // Reabrir a janela descarta o que ficou digitado sem salvar.
@@ -201,9 +227,61 @@ function PluggyForm({
             </Typography>
           </div>
 
+          <RadioGroup
+            value={divisao}
+            onChange={(evento) =>
+              setDivisao(evento.target.value as typeof divisao)
+            }
+            sx={{ gap: 0.5 }}
+          >
+            {[
+              {
+                valor: 'LIVRE',
+                titulo: 'Sem restrição de tesouraria',
+                ajuda:
+                  'O extrato de qualquer banco pode ser conciliado em qualquer tesouraria.',
+              },
+              {
+                valor: 'POR_TESOURARIA',
+                titulo: 'Bancos divididos por tesouraria',
+                ajuda:
+                  'Cada banco é de uma tesouraria: administrativa, eventos ou congregações.',
+              },
+            ].map((opcao) => (
+              <FormControlLabel
+                key={opcao.valor}
+                value={opcao.valor}
+                control={<Radio size="small" />}
+                sx={{ alignItems: 'flex-start', mr: 0 }}
+                label={
+                  <Box sx={{ pt: 0.75 }}>
+                    <Typography variant="body2">{opcao.titulo}</Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {opcao.ajuda}
+                    </Typography>
+                  </Box>
+                }
+              />
+            ))}
+          </RadioGroup>
+
+          {porTesouraria && (
+            <Alert severity="info" sx={{ py: 0.25 }}>
+              Prévia: a divisão dos bancos por tesouraria ainda não é salva.
+            </Alert>
+          )}
+
           {itemIds.map((id, indice) => (
-            <Stack key={indice} direction="row" spacing={1} alignItems="center">
+            <Stack
+              key={indice}
+              direction="row"
+              spacing={1}
+              alignItems="center"
+              flexWrap="wrap"
+              useFlexGap
+            >
               <Input
+                sx={{ flex: '1 1 220px' }}
                 label={`Banco ${indice + 1} · Item ID`}
                 value={id}
                 onChange={(evento) => trocar(indice, evento.target.value)}
@@ -216,6 +294,27 @@ function PluggyForm({
                 {...semAutopreencher(false)}
                 placeholder="b2c1f8e0-…"
               />
+              {porTesouraria && (
+                <TextField
+                  select
+                  size="small"
+                  label="Tesouraria"
+                  value={tesourariaDoBanco[id.trim()] ?? 'ADMINISTRATIVA'}
+                  onChange={(evento) =>
+                    setTesourariaDoBanco((atual) => ({
+                      ...atual,
+                      [id.trim()]: evento.target.value as TesourariaDoBanco,
+                    }))
+                  }
+                  sx={{ flex: '0 0 160px' }}
+                >
+                  {TESOURARIAS_DO_BANCO.map((t) => (
+                    <MenuItem key={t.valor} value={t.valor}>
+                      {t.rotulo}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              )}
               <IconButton
                 aria-label={`Remover banco ${indice + 1}`}
                 onClick={() => removerCampo(indice)}

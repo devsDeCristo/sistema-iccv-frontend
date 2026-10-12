@@ -31,6 +31,8 @@ import {
   superficieSx,
 } from '../../../../components/listPageStyles';
 import { formatCurrency } from '../../../../utils';
+import { ABAS_DA_ADMINISTRATIVA } from '../../../../features/admin/financeiro/constants';
+import { AbasDaTesouraria } from '../../../../features/admin/financeiro/components/abasDaTesouraria';
 import { ChurchScopeBar } from '../../../../features/settings/shared/churchScopeBar';
 import { useIgrejaSelecionada } from '../../../../features/settings/shared/useIgrejaSelecionada';
 import { useGetPluggy } from '../../../../features/settings/integrations/api';
@@ -123,12 +125,13 @@ function Conciliacao() {
   return (
     <PageStyle>
       <Header
-        title="Conciliação"
-        description="O extrato do banco contra os lançamentos manuais"
+        title="Tesouraria administrativa"
+        description="Dízimos, ofertas e as contas do dia a dia da igreja"
         acaoAoLado
       >
         <ChurchScopeBar escopo={escopo} oQueMuda="a conciliação" />
       </Header>
+      <AbasDaTesouraria abas={ABAS_DA_ADMINISTRATIVA} atual="conciliacao" />
 
       {escopo.precisaEscolher ? (
         <Alert severity="info">

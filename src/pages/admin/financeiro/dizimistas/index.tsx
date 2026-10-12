@@ -26,6 +26,8 @@ import {
   superficieSx,
 } from '../../../../components/listPageStyles';
 import { formatCurrency } from '../../../../utils';
+import { ABAS_DA_ADMINISTRATIVA } from '../../../../features/admin/financeiro/constants';
+import { AbasDaTesouraria } from '../../../../features/admin/financeiro/components/abasDaTesouraria';
 import { ChurchScopeBar } from '../../../../features/settings/shared/churchScopeBar';
 import { useIgrejaSelecionada } from '../../../../features/settings/shared/useIgrejaSelecionada';
 import { useGetDizimistas } from '../../../../features/admin/financeiro/api';
@@ -89,12 +91,13 @@ function Dizimistas() {
   return (
     <PageStyle>
       <Header
-        title="Dizimistas"
-        description="Os membros da igreja e o dízimo de cada um"
+        title="Tesouraria administrativa"
+        description="Dízimos, ofertas e as contas do dia a dia da igreja"
         acaoAoLado
       >
         <ChurchScopeBar escopo={escopo} oQueMuda="os dizimistas" />
       </Header>
+      <AbasDaTesouraria abas={ABAS_DA_ADMINISTRATIVA} atual="dizimos" />
 
       {escopo.precisaEscolher ? (
         <Alert severity="info">

@@ -72,6 +72,38 @@ export const MESES_CURTOS = [
   'Dez',
 ];
 
+/**
+ * As cores das barras de entrada e saída da tesouraria. Não são as do tema
+ * (`chips`): o par verde/vermelho de lá fica a ΔE 8 sob deuteranopia no claro,
+ * e o verde passa do limite de luminosidade no escuro. Este par passou no
+ * validador de paleta nos dois modos (ΔE 11,9); o contraste com o fundo fica
+ * abaixo de 3:1, e por isso o valor de cada barra está sempre escrito ao lado.
+ */
+export const COR_ENTRADA = '#3cb043';
+export const COR_SAIDA = '#c81e28';
+
+/**
+ * As abas da tesouraria administrativa. Cada uma tem endereço próprio, e não
+ * só estado da tela: dá para favoritar e mandar o link de "Dízimos" direto.
+ */
+export const ABAS_DA_ADMINISTRATIVA = [
+  {
+    valor: 'conciliacao',
+    rotulo: 'Conciliação',
+    link: '/admin/tesouraria/administrativa/conciliacao',
+  },
+  {
+    valor: 'dizimos',
+    rotulo: 'Dízimos',
+    link: '/admin/tesouraria/administrativa/dizimos',
+  },
+  {
+    valor: 'lancamentos',
+    rotulo: 'Lançamentos',
+    link: '/admin/tesouraria/administrativa/lancamentos',
+  },
+];
+
 export const GET_DIZIMISTAS = 'GET_DIZIMISTAS';
 export const GET_LANCAMENTOS = 'GET_LANCAMENTOS';
 export const GET_CONCILIACAO = 'GET_CONCILIACAO';

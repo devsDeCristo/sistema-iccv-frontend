@@ -34,6 +34,7 @@ import {
   superficieSx,
 } from '../../../../components/listPageStyles';
 import { formatCurrency } from '../../../../utils';
+import { AbasDaTesouraria } from '../../../../features/admin/financeiro/components/abasDaTesouraria';
 import { ChurchScopeBar } from '../../../../features/settings/shared/churchScopeBar';
 import { useIgrejaSelecionada } from '../../../../features/settings/shared/useIgrejaSelecionada';
 import { useGetPluggy } from '../../../../features/settings/integrations/api';
@@ -47,6 +48,7 @@ import {
   CATEGORIAS_POR_TIPO,
   ROTULO_DA_CATEGORIA,
   ROTULO_DA_ORIGEM,
+  ABAS_DA_ADMINISTRATIVA,
 } from '../../../../features/admin/financeiro/constants';
 import { ListaDeLancamentos } from '../../../../features/admin/financeiro/components/listaDeLancamentos';
 import { ModalLancamento } from '../../../../features/admin/financeiro/components/modalLancamento';
@@ -146,12 +148,13 @@ function Lancamentos() {
   return (
     <PageStyle>
       <Header
-        title="Lançamentos"
-        description="Entradas e saídas da igreja"
+        title="Tesouraria administrativa"
+        description="Dízimos, ofertas e as contas do dia a dia da igreja"
         acaoAoLado
       >
         <ChurchScopeBar escopo={escopo} oQueMuda="o livro-caixa" />
       </Header>
+      <AbasDaTesouraria abas={ABAS_DA_ADMINISTRATIVA} atual="lancamentos" />
 
       {escopo.precisaEscolher ? (
         <Alert severity="info">

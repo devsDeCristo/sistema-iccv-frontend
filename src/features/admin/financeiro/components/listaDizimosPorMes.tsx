@@ -44,6 +44,8 @@ interface Props {
   carregando: boolean;
   /** o lápis da linha: o valor do dízimo do membro */
   onEditar: (dizimista: Dizimista) => void;
+  /** a última linha; numa congregação, "Total da congregação" */
+  rotuloDoTotal?: string;
 }
 
 /**
@@ -62,6 +64,7 @@ function ListaDizimosPorMes({
   totalDaIgreja,
   carregando,
   onEditar,
+  rotuloDoTotal = 'Total da igreja',
 }: Props) {
   const theme = useTheme();
 
@@ -82,7 +85,7 @@ function ListaDizimosPorMes({
       {
         ...blocos[0],
         id: TOTAL,
-        fullName: 'Total da igreja',
+        fullName: rotuloDoTotal,
         family: null,
         posicao: null,
         cor: null,
@@ -91,7 +94,7 @@ function ListaDizimosPorMes({
         total: true,
       },
     ];
-  }, [dizimistas, porMesDaIgreja, totalDaIgreja]);
+  }, [dizimistas, porMesDaIgreja, totalDaIgreja, rotuloDoTotal]);
 
   const valorDoMes = (valor: number, mes: number, total?: boolean) => {
     if (mes > ultimoMes) return null;

@@ -54,7 +54,8 @@ const diaEMes = (dia: string) => `${dia.slice(8, 10)}/${dia.slice(5, 7)}`;
  *
  * - conciliado: verde, com o desfazer na linha;
  * - sugerido: azul, com o conciliar na linha;
- * - só de um lado: laranja, com a caixinha para montar o par à mão.
+ * - só de um lado: laranja, com a caixinha para montar o par à mão (o
+ *   clique na linha também marca).
  *
  * No celular não cabem duas tabelas: vira o diff unificado, o banco em cima
  * do manual em cada linha.
@@ -89,19 +90,23 @@ function DiffDaConciliacao({
   };
 
   // só marca o lado que ainda não tem par, e do mesmo tipo do outro marcado
-  const caixinha = (lado: 'banco' | 'manual', l: Lancamento) => {
+  const podeMarcar = (lado: 'banco' | 'manual', l: Lancamento) => {
     const outro = lado === 'banco' ? marcado.manual : marcado.banco;
-    return (
-      <Checkbox
-        size="small"
-        checked={marcado[lado]?.id === l.id}
-        disabled={ocupado || (!!outro && outro.type !== l.type)}
-        onChange={() => onMarcar(lado, l)}
-        inputProps={{ 'aria-label': `Marcar ${l.description}` }}
-        sx={{ p: 0.5 }}
-      />
-    );
+    return !ocupado && (!outro || outro.type === l.type);
   };
+
+  const caixinha = (lado: 'banco' | 'manual', l: Lancamento) => (
+    <Checkbox
+      size="small"
+      checked={marcado[lado]?.id === l.id}
+      disabled={!podeMarcar(lado, l)}
+      onChange={() => onMarcar(lado, l)}
+      // quem marca no clique é a linha: aqui o clique pararia nela de novo
+      onClick={(e) => e.stopPropagation()}
+      inputProps={{ 'aria-label': `Marcar ${l.description}` }}
+      sx={{ p: 0.5 }}
+    />
+  );
 
   const marcador = (linha: LinhaDaConciliacao, lado: 'banco' | 'manual') => {
     const l = linha[lado];
@@ -157,13 +162,20 @@ function DiffDaConciliacao({
   ) => {
     const l = linha[lado];
     const vazio = !l;
+    // a linha sem par marca no clique em qualquer ponto, não só na caixinha
+    const marcavel =
+      !!l &&
+      (linha.estado === 'so_banco' || linha.estado === 'so_manual') &&
+      podeMarcar(lado, l);
     return (
       <Stack
         direction="row"
         alignItems="center"
         spacing={1}
         onMouseEnter={() => setEmFoco(indice)}
+        onClick={marcavel && l ? () => onMarcar(lado, l) : undefined}
         sx={{
+          cursor: marcavel ? 'pointer' : undefined,
           height: ALTURA,
           px: 1,
           borderBottom: `1px solid ${theme.palette.divider}`,
