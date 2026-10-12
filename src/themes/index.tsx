@@ -131,6 +131,41 @@ export const myTheme = (colorMode: boolean) =>
       },
     },
     components: {
+      /**
+       * Barra de rolagem do sistema inteiro, minimalista: fina, sem trilho e
+       * com o polegar na cor do texto bem apagada (acende um pouco com o mouse
+       * em cima, no Safari e no Chrome antigo).
+       *
+       * As duas formas: `scrollbar-width`/`scrollbar-color` (Firefox e Chrome
+       * 121+, que com elas ignoram o `::-webkit-scrollbar`) e o
+       * `::-webkit-scrollbar` (Safari). Tela que esconde a barra de propósito
+       * (o carrossel) segue escondendo: a regra dela é mais específica.
+       */
+      MuiCssBaseline: {
+        styleOverrides: {
+          '*': {
+            scrollbarWidth: 'thin',
+            scrollbarColor: `${alpha(
+              colorMode ? '#EBEBEB' : '#111B21',
+              0.18
+            )} transparent`,
+          },
+          '*::-webkit-scrollbar': { width: 8, height: 8 },
+          '*::-webkit-scrollbar-track, *::-webkit-scrollbar-corner': {
+            background: 'transparent',
+          },
+          '*::-webkit-scrollbar-thumb': {
+            backgroundColor: alpha(colorMode ? '#EBEBEB' : '#111B21', 0.18),
+            borderRadius: 8,
+            // a borda transparente afina o polegar dentro dos 8px
+            border: '2px solid transparent',
+            backgroundClip: 'content-box',
+          },
+          '*::-webkit-scrollbar-thumb:hover': {
+            backgroundColor: alpha(colorMode ? '#EBEBEB' : '#111B21', 0.35),
+          },
+        },
+      },
       MuiButton: {
         styleOverrides: {
           root: {

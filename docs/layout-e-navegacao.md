@@ -23,6 +23,10 @@ Arquivos: `src/routes/index.tsx`, `src/pages/layout/index.tsx`, `src/components/
 - A área de conteúdo tem altura fixa (`100dvh` menos a altura da barra do topo) e rola por conta própria — é ela, e não a página inteira, que tem barra de rolagem.
 - O usuário devolvido pelo `authLoader`/`authLoaderAdmin` alimenta o `UserProvider` (contexto usado pela barra do topo e pela régua).
 
+## Barra de rolagem
+
+Uma só para o sistema inteiro, no tema (`MuiCssBaseline` em `src/themes/index.tsx`): fina (8px), sem trilho, com o polegar na cor do texto bem apagada (18%; 35% com o mouse em cima, onde o navegador permite). Vale para a página e para tudo que rola dentro dela (tabelas, modais, as duas colunas da Conciliação). Escreve as duas formas: `scrollbar-width`/`scrollbar-color` (Firefox e Chrome 121+) e `::-webkit-scrollbar` (Safari). Quem esconde a barra de propósito (o carrossel de imagens) ou tem a própria (as colunas de hora e minuto do seletor de intervalo, que só aparecem com o mouse em cima) segue com a sua.
+
 ## Barra do topo (`src/components/appBar`)
 
 - **Marca** (logo + "ICCV Eventos"): clicável, leva para `/admin/inicio` (em rota de admin) ou `/home`.
@@ -155,6 +159,7 @@ alguma linha para o perfil (`ConteudoNav` recebe uma lista de `secoes`).
 | Administrador | Usuários | `isSuperAdmin` (dev, super admin) — as igrejas chegam numa pessoa pelos inscritos do evento e por Membros |
 | Administrador | Igrejas | `isSuperAdmin` (dev, super admin) |
 | Administrador | Planos | `isSuperAdmin` (dev, super admin) — logo abaixo de Igrejas; ver `docs/planos.md` |
+| Administrador | Meus planos | quem não é super admin (admin e financeiro de igreja) — logo abaixo de Início: o plano da igreja e os outros para comparar; ver `docs/planos.md` |
 | Módulos | Eventos | todos os quatro perfis do painel |
 | Módulos | Notícias | `isAdminRole` — financeiro não publica |
 | Módulos | Membros | `isAdminRole` (dev, super admin, admin) — o financeiro não entra; primeiro item da seção, acima de Eventos; ver `docs/membros.md` |

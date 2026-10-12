@@ -12,6 +12,7 @@ import {
 import { ResponsiveModal } from '../../../../components/responsiveModal';
 import { MODULOS, ModuloDaIgreja } from '../../../../constants/modulos';
 import { Plano, useSalvarPlano } from '../api';
+import { formatCurrency } from '../../../../utils';
 
 interface Props {
   open: boolean;
@@ -31,6 +32,8 @@ function ModalPlano({ open, plano, onClose }: Props) {
   const salvar = useSalvarPlano();
   const [nome, setNome] = useState('');
   const [descricao, setDescricao] = useState('');
+  // em centavos, como o valor do dízimo: digita só números
+  const [centavos, setCentavos] = useState(0);
   const [modulos, setModulos] = useState<ModuloDaIgreja[]>([]);
   const [erroDoNome, setErroDoNome] = useState('');
 
@@ -38,6 +41,7 @@ function ModalPlano({ open, plano, onClose }: Props) {
     if (!open) return;
     setNome(plano?.name ?? '');
     setDescricao(plano?.description ?? '');
+    setCentavos(Math.round((plano?.price ?? 0) * 100));
     setModulos(plano?.modules ?? []);
     setErroDoNome('');
   }, [open, plano]);
@@ -59,6 +63,7 @@ function ModalPlano({ open, plano, onClose }: Props) {
         id: plano?.id,
         name: nome.trim(),
         description: descricao.trim() || null,
+        price: centavos / 100,
         // na ordem do menu, e não na ordem em que foram marcados
         modules: MODULOS.map((m) => m.value).filter((m) => modulos.includes(m)),
       },
@@ -105,6 +110,22 @@ function ModalPlano({ open, plano, onClose }: Props) {
           error={!!erroDoNome}
           helperText={erroDoNome}
           inputProps={{ maxLength: 60 }}
+        />
+        <TextField
+          size="small"
+          label="Valor mensal"
+          value={formatCurrency(centavos / 100)}
+          onChange={(e) =>
+            setCentavos(
+              Number(e.target.value.replace(/\D/g, '').slice(0, 10)) || 0
+            )
+          }
+          inputProps={{ inputMode: 'numeric' }}
+          helperText={
+            centavos
+              ? 'Quanto a igreja paga por mês neste plano'
+              : 'Zero: o plano aparece como gratuito'
+          }
         />
         <TextField
           size="small"

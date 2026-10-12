@@ -599,6 +599,18 @@ const SideBar: React.FC<SideBarProps> = ({
           title: 'Início',
           novo: true,
         },
+        // o plano da igreja e os outros, para comparar: de quem trabalha numa
+        // igreja (o super admin cuida de todos, em Planos)
+        ...(!isSuperAdmin
+          ? [
+              {
+                link: '/admin/meus-planos',
+                icon: <WorkspacePremium />,
+                title: 'Meus planos',
+                novo: true,
+              },
+            ]
+          : []),
         // a lista de usuários é só de dev e super admin: a igreja chega numa
         // pessoa pelos inscritos do evento e pela tela de Membros
         ...(isSuperAdmin

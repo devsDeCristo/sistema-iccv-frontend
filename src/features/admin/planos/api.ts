@@ -14,17 +14,28 @@ export interface Plano {
   id: string;
   name: string;
   description: string | null;
+  /** valor mensal, em reais; zero é gratuito */
+  price: number;
   modules: ModuloDaIgreja[];
   _count: { churches: number };
 }
 
-export type PlanoPayload = Pick<Plano, 'name' | 'description' | 'modules'>;
+export type PlanoPayload = Pick<
+  Plano,
+  'name' | 'description' | 'price' | 'modules'
+>;
+
+/** Um plano como o admin da igreja vê: sem quantas igrejas usam */
+export type PlanoVisivel = Omit<Plano, '_count'>;
+
+export const GET_PLANO_DA_IGREJA = 'GET_PLANO_DA_IGREJA';
 
 /** Os planos mudam o que as igrejas mostram: a lista de igrejas recarrega junto */
 const invalidar = () =>
   Promise.all([
     queryClient.invalidateQueries(GET_PLANOS),
     queryClient.invalidateQueries(GET_CHURCHES),
+    queryClient.invalidateQueries(GET_PLANO_DA_IGREJA),
   ]);
 
 export const useGetPlanos = (enabled = true) =>
@@ -62,3 +73,16 @@ export const useRemoverPlano = () =>
         .catch(handleResponseThrowError()),
     onSuccess: invalidar,
   });
+
+/** "Meus planos": o plano da igreja e os outros, do mais barato ao mais caro */
+export const useGetPlanoDaIgreja = (churchId: string | null) =>
+  useQuery(
+    [GET_PLANO_DA_IGREJA, churchId ?? ''],
+    () =>
+      apiClient
+        .get<{ atual: PlanoVisivel | null; planos: PlanoVisivel[] }>(
+          `/churches/${churchId}/plano`
+        )
+        .then((response) => response.data),
+    { enabled: !!churchId }
+  );

@@ -2,8 +2,12 @@ import { Route } from 'react-router-dom';
 import { Churches } from '../../../../features/admin/churches';
 import { ChurchHome } from '../../../../features/admin/churchHome';
 import { Planos } from '../../../../features/admin/planos';
+import { MeusPlanos } from '../../../../features/admin/planos/meusPlanos';
 import { RequireRole } from '../../../../components/requireRole';
-import { SUPER_ADMIN_ROLES } from '../../../../constants/roles';
+import {
+  ADMIN_AREA_ROLES,
+  SUPER_ADMIN_ROLES,
+} from '../../../../constants/roles';
 
 /**
  * A igreja é o tenant: criar, renomear ou apagar uma delas mexe no recorte de
@@ -41,6 +45,15 @@ function RoutesChurchesAdmin() {
           }
         />
       </Route>
+      {/* o plano da igreja e os outros, para comparar: de quem trabalha nela */}
+      <Route
+        path="/admin/meus-planos"
+        element={
+          <RequireRole allowedRoles={ADMIN_AREA_ROLES}>
+            <MeusPlanos />
+          </RequireRole>
+        }
+      />
       {/* os planos (o que cada igreja pode usar): também só do super admin */}
       <Route
         path="/admin/planos"

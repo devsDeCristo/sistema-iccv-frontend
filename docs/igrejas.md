@@ -73,7 +73,7 @@ Formulário em modal (`Dialog`), mesmo componente para criar e editar.
 | **Nome** | obrigatório, mínimo 3 caracteres (validado no front antes de enviar) |
 | **Situação** | `ACTIVE`, `TEST` ou `INACTIVE` (ver tabela abaixo); igreja nova nasce sempre `ACTIVE` |
 | **Líder espiritual** | opcional; busca por nome entre todos os usuários (`useGetUsers`, carregado só com o formulário aberto); pode ficar vazio (`null` desfaz o vínculo) |
-| **Plano** | select com os planos (`useGetPlanos`) e "Sem plano"; a ajuda lista os módulos do plano escolhido, ou avisa que sem plano a igreja só tem o painel básico. Ver `docs/planos.md` |
+| **Plano** | select com os planos (`useGetPlanos`), cada um com o valor ("Completo · R$ 249,90/mês"), e "Sem plano"; a ajuda lista os módulos do plano escolhido, ou avisa que sem plano a igreja só tem o painel básico. Ver `docs/planos.md` |
 
 - Enviar com Enter no campo nome também dispara o salvamento.
 - Ao editar, o texto de ajuda do modal lembra que "o nome aparece na escolha

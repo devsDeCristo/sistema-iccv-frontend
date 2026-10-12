@@ -51,6 +51,7 @@ import { useGetUsers } from '../users/api/getUsers';
 import { User } from '../../../types/user';
 import { ROTULO_DO_MODULO } from '../../../constants/modulos';
 import { useGetPlanos } from '../planos/api';
+import { valorDoPlano } from '../planos/valor';
 import {
   CHURCH_STATUS_LABELS,
   CHURCH_STATUS_OPTIONS,
@@ -622,7 +623,7 @@ export function Churches() {
             </MenuItem>
             {(planos ?? []).map((plano) => (
               <MenuItem key={plano.id} value={plano.id}>
-                {plano.name}
+                {plano.name} · {valorDoPlano(plano.price)}
               </MenuItem>
             ))}
           </TextField>

@@ -30,6 +30,7 @@ import { ConfirmModal } from '../../../components/ConfirmModal';
 import { MODULOS } from '../../../constants/modulos';
 import { Plano, useGetPlanos, useRemoverPlano } from './api';
 import { ModalPlano } from './components/modalPlano';
+import { valorDoPlano } from './valor';
 
 /**
  * Os planos das igrejas: o que cada uma pode usar no sistema. Só dev e super
@@ -93,8 +94,14 @@ function Planos() {
           </Box>
         </Stack>
 
+        <Typography
+          sx={{ mt: 1.5, fontSize: 22, fontWeight: 800, lineHeight: 1.2 }}
+        >
+          {valorDoPlano(plano.price)}
+        </Typography>
+
         {plano.description && (
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 1.5 }}>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
             {plano.description}
           </Typography>
         )}
