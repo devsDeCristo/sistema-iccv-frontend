@@ -1,10 +1,8 @@
 import { useState } from 'react';
 import { Alert, Box, Skeleton, Stack, Typography } from '@mui/material';
 
-import { useRole } from '../../../../hooks/useRole';
 import { EscopoDeIgreja } from '../../shared/useIgrejaSelecionada';
 import { useGetPaymentProviders } from '../api/getPaymentProviders';
-import { ModuloDePagamento } from './moduloDePagamento';
 import { ProviderCard } from './providerCard';
 import { ProviderForm } from './providerForm';
 import { RecebendoAgora } from './recebendoAgora';
@@ -26,7 +24,6 @@ interface Props {
  * mesma pergunta, e trocar a igreja num não mudaria o outro.
  */
 function PaymentProviders({ escopo }: Props) {
-  const { isSuperAdmin } = useRole();
   const [editando, setEditando] = useState<PaymentProviderIntegration | null>(
     null
   );
@@ -71,17 +68,17 @@ function PaymentProviders({ escopo }: Props) {
         </Stack>
       ) : (
         <>
-          <ModuloDePagamento
-            churchId={escopo.churchId as string}
-            ligado={!!data?.modulePayment}
-            podeAlternar={isSuperAdmin}
-          />
-
           {/*
-            Com o módulo desligado não há o que mostrar: a igreja não cobra, e
-            a grade de casas só ofereceria configurar algo que não vai rodar.
-            Quem pode religar tem o interruptor logo acima.
+            A cobrança online é um módulo do plano da igreja: sem ele não há o
+            que mostrar (a igreja não cobra). O admin só vê as igrejas com o
+            módulo; dev e super admin veem todas, e aqui leem o porquê.
           */}
+          {data && !data.modulePayment && (
+            <Alert severity="info">
+              O plano desta igreja não inclui Cobrança online: ela não recebe
+              pelo site. Para ligar, escolha em Igrejas um plano com o módulo.
+            </Alert>
+          )}
           {data?.modulePayment && (
             <>
               <RecebendoAgora integracao={padrao} />

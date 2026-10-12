@@ -14,7 +14,7 @@ import { useIgrejaSelecionada } from '../../../features/settings/shared/useIgrej
  * painel é do financeiro, que dá baixa mas não escolhe a conta que recebe.
  */
 function PaymentsSettings() {
-  const escopo = useIgrejaSelecionada();
+  const escopo = useIgrejaSelecionada(false, 'ONLINE_PAYMENTS');
 
   return (
     <PageStyle>

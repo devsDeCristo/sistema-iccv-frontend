@@ -7,7 +7,8 @@ quem lista as sub-seções; a URL não tem página de índice própria.
 
 ## Quem acessa e como as sub-seções se organizam
 
-- **`/configuracoes`:** redireciona direto para `/configuracoes/pagamentos`. Não existe uma tela de boas-vindas da área.
+- **`/configuracoes`:** redireciona para a primeira tela que a pessoa tem, pelo perfil e pelo plano das igrejas dela: Pagamentos (admin, com Cobrança online; dev e super admin sempre), WhatsApp (admin, com WhatsApp) ou Integrações. Não existe uma tela de boas-vindas da área.
+- **Plano da igreja:** Pagamentos, WhatsApp e Integrações são módulos do plano (`ONLINE_PAYMENTS`, `WHATSAPP`, `INTEGRATIONS`): fora do plano de todas as igrejas da pessoa, somem do menu e a rota mostra que está fora do plano; o seletor de igreja de cada tela só oferece as igrejas com o módulo. Dev e super admin veem todos. Ver `docs/planos.md`.
 - **`Gateways de pagamento` (`/configuracoes/pagamentos`):** liberado para `ADMIN_ROLES` (dev, super admin e admin).
 - **`Disparadores` (`/configuracoes/disparadores`):** redireciona para `/configuracoes/disparadores/whatsapp` — "Disparadores" é um grupo de canais, hoje só o WhatsApp, sem página de índice própria (o segundo canal, quando existir, decide para onde esse redirecionamento aponta).
 - **`WhatsApp` (`/configuracoes/disparadores/whatsapp`):** liberado para `ADMIN_ROLES`. Já foi restrito a super admin porque o número era um só para o sistema inteiro; hoje é por igreja (`churches/:churchId/whatsapp`, com `ChurchTenantGuard` no servidor), então quem administra uma igreja só mexe na dela.
@@ -42,14 +43,11 @@ regras de como o servidor valida, cifra e roteia essas credenciais e cobranças
 estão em `ic-backend docs/pagamentos.md`; aqui documenta-se só o que a tela
 mostra e permite configurar.
 
-### Módulo de pagamento (a igreja recebe pelo site?)
+### Cobrança online (a igreja recebe pelo site?)
 
-- **O que é:** um interruptor por igreja, acima de tudo, que decide se ela cobra online. Substituiu variáveis de ambiente globais (`PAGBANK_PAYMENT_ENABLED` no servidor, `VITE_MODULE_PAYMENT` na tela), que eram por sistema inteiro.
-- **Quem alterna:** só dev ou super admin — continua sendo decisão de plataforma, não do admin da igreja. O admin não vê o interruptor; se o módulo estiver desligado, vê apenas um aviso e é orientado a falar com o suporte.
-- **Desligado:** os inscritos não veem nada de pagamento no site, cobranças já em aberto não recebem baixa automática, e a grade de gateways nem aparece (não há o que configurar enquanto não roda). As credenciais cadastradas continuam guardadas — religar devolve tudo como estava.
-- **Ligado:** mostra a grade de gateways normalmente.
-
-Arquivo: `src/features/settings/payments/components/moduloDePagamento.tsx`.
+- **É um módulo do plano da igreja** (`ONLINE_PAYMENTS`, ver `docs/planos.md`). Antes era um interruptor nesta tela (`moduloDePagamento.tsx`, só para dev e super admin), que saiu: quem muda é o plano, em Igrejas.
+- A tela **Pagamentos** só aparece no menu, e só oferece no seletor, as igrejas com Cobrança online no plano. Sem nenhuma, a rota mostra que está fora do plano.
+- Sem o módulo, os inscritos não veem nada de pagamento no site e cobranças em aberto não recebem baixa automática. As credenciais cadastradas continuam guardadas.
 
 ### "Recebendo agora" e a grade de gateways
 

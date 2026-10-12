@@ -8,19 +8,28 @@ import {
   SUPER_ADMIN_ROLES,
 } from '../../../constants/roles';
 import { useRole } from '../../../hooks/useRole';
+import { useModulos } from '../../../hooks/useModulos';
 import { TermsSettings } from '../terms';
 import { IntegrationsSettings } from '../integrations';
 
-/** A primeira tela que a pessoa alcança: o financeiro não entra em Pagamentos */
+/**
+ * A primeira tela que a pessoa alcança: o financeiro não entra em Pagamentos,
+ * e tela de módulo fora do plano das igrejas dela fica de fora. Sem nenhuma,
+ * cai em Integrações, que diz que está fora do plano. Dev e super admin veem
+ * todos os módulos: abrem em Pagamentos.
+ */
 function InicioDasConfiguracoes() {
   const { isAdmin } = useRole();
+  const { temModulo } = useModulos();
 
-  return (
-    <Navigate
-      replace
-      to={isAdmin ? '/configuracoes/pagamentos' : '/configuracoes/integracoes'}
-    />
-  );
+  const destino =
+    isAdmin && temModulo('ONLINE_PAYMENTS')
+      ? '/configuracoes/pagamentos'
+      : isAdmin && temModulo('WHATSAPP')
+        ? '/configuracoes/disparadores/whatsapp'
+        : '/configuracoes/integracoes';
+
+  return <Navigate replace to={destino} />;
 }
 
 /**
@@ -77,7 +86,7 @@ function RoutesSettings() {
       <Route
         path="/configuracoes/disparadores/whatsapp"
         element={
-          <RequireRole allowedRoles={ADMIN_ROLES}>
+          <RequireRole allowedRoles={ADMIN_ROLES} modulo="WHATSAPP">
             <DispatcherWhatsapp />
           </RequireRole>
         }
@@ -85,7 +94,7 @@ function RoutesSettings() {
       <Route
         path="/configuracoes/pagamentos"
         element={
-          <RequireRole allowedRoles={ADMIN_ROLES}>
+          <RequireRole allowedRoles={ADMIN_ROLES} modulo="ONLINE_PAYMENTS">
             <PaymentsSettings />
           </RequireRole>
         }
@@ -94,7 +103,7 @@ function RoutesSettings() {
       <Route
         path="/configuracoes/integracoes"
         element={
-          <RequireRole allowedRoles={ADMIN_AREA_ROLES}>
+          <RequireRole allowedRoles={ADMIN_AREA_ROLES} modulo="INTEGRATIONS">
             <IntegrationsSettings />
           </RequireRole>
         }

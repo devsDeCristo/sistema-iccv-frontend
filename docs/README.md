@@ -33,6 +33,7 @@ contexto para quem (pessoa ou IA) for mexer nessas telas.
 | Crachás e envelopes (PDF) | detalhes do evento | [admin-pdfs.md](admin-pdfs.md) |
 | Check-in | `/admin/eventos/:id/checkin` | [checkin.md](checkin.md) |
 | Igrejas | painel | [igrejas.md](igrejas.md) |
+| Planos | painel | [planos.md](planos.md) |
 | Usuários | painel | [usuarios.md](usuarios.md) |
 | Membros e famílias | `/admin/membros` | [membros.md](membros.md) |
 | Logs e registro de login | painel | [logs-e-logins.md](logs-e-logins.md) |

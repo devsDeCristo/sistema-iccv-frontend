@@ -16,7 +16,9 @@ import { TesourariaDaCongregacao } from '../congregacoes/tesouraria';
  */
 function RoutesFinanceiroAdmin() {
   const comPerfil = (tela: JSX.Element) => (
-    <RequireRole allowedRoles={ADMIN_AREA_ROLES}>{tela}</RequireRole>
+    <RequireRole allowedRoles={ADMIN_AREA_ROLES} modulo="TREASURY">
+      {tela}
+    </RequireRole>
   );
 
   return (

@@ -43,7 +43,7 @@ import { ModalNovaTesouraria } from '../../../../features/admin/financeiro/tesou
 function TesourariaDeEventos() {
   const navigate = useNavigate();
   const theme = useTheme();
-  const escopo = useIgrejaSelecionada(true);
+  const escopo = useIgrejaSelecionada(true, 'TREASURY');
   const [criando, setCriando] = useState(false);
   // os dados de exemplo mudam fora do React: isto só pede um novo desenho
   const [, redesenhar] = useReducer((n: number) => n + 1, 0);

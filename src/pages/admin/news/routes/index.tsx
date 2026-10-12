@@ -10,7 +10,7 @@ function RoutesNewsAdmin() {
       <Route
         path="/admin/noticias"
         element={
-          <RequireRole allowedRoles={ADMIN_ROLES}>
+          <RequireRole allowedRoles={ADMIN_ROLES} modulo="NEWS">
             <NewsAdmin />
           </RequireRole>
         }

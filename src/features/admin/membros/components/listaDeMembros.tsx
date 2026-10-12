@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   ButtonBase,
@@ -13,6 +14,7 @@ import {
   useTheme,
 } from '@mui/material';
 import {
+  AccountCircleOutlined,
   DeleteOutline,
   DriveFileRenameOutline,
   FamilyRestroom,
@@ -74,6 +76,7 @@ function ListaDeMembros({
   onTirarDaFamilia,
   onRemover,
 }: Props) {
+  const navigate = useNavigate();
   const theme = useTheme();
   const linhas = useMemo(() => emBlocos(membros), [membros]);
   const [selecionados, setSelecionados] = useState<GridRowSelectionModel>([]);
@@ -307,6 +310,20 @@ function ListaDeMembros({
           </MenuItem>,
         ]}
         {menu?.membro && [
+          // a tela de Usuários é só do super admin: a igreja chega no cadastro
+          // da pessoa por aqui (e pelos inscritos do evento)
+          <MenuItem
+            key="cadastro"
+            onClick={() => {
+              navigate(`/admin/usuario/${(menu.membro as Membro).id}/editar`);
+              setMenu(null);
+            }}
+          >
+            <ListItemIcon>
+              <AccountCircleOutlined fontSize="small" />
+            </ListItemIcon>
+            Ver cadastro
+          </MenuItem>,
           menu.membro.family && (
             <MenuItem
               key="tirar"

@@ -22,7 +22,7 @@ const LISTA = '/admin/tesouraria/eventos';
  */
 function TesourariaDoEvento() {
   const { id, aba } = useParams();
-  const escopo = useIgrejaSelecionada(true);
+  const escopo = useIgrejaSelecionada(true, 'TREASURY');
   const tesouraria = buscarTesouraria(id);
 
   const voltar = (

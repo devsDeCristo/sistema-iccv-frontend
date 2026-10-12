@@ -21,6 +21,7 @@ import {
   Hub,
   HolidayVillage,
   Diversity3,
+  WorkspacePremium,
 } from '@mui/icons-material';
 import { Link, useLocation } from 'react-router-dom';
 import {
@@ -37,11 +38,23 @@ import {
 } from '@mui/material';
 import Logo from '../../assets/logo-ic.svg?react';
 import { useRole } from '../../hooks/useRole';
+import { useModulos } from '../../hooks/useModulos';
+import { ModuloDaIgreja } from '../../constants/modulos';
 import { useFiltroSalvo } from '../../hooks/useFiltroSalvo';
 import { AZUL_VIVO, VIOLETA_VIVO } from '../../themes';
 
 /** Largura da régua lateral, a mesma nos dois modos (fixa e gaveta) */
 const LARGURA = 260;
+
+/** O módulo do plano por trás de cada item da régua (ver `useModulos`) */
+const MODULO_DO_LINK: Record<string, ModuloDaIgreja> = {
+  '/admin/eventos': 'EVENTS',
+  '/admin/noticias': 'NEWS',
+  '/admin/tesouraria': 'TREASURY',
+  '/configuracoes/pagamentos': 'ONLINE_PAYMENTS',
+  '/configuracoes/disparadores': 'WHATSAPP',
+  '/configuracoes/integracoes': 'INTEGRATIONS',
+};
 /** Recolhida: só a coluna dos ícones */
 const LARGURA_RECOLHIDA = 65;
 
@@ -488,6 +501,7 @@ const SideBar: React.FC<SideBarProps> = ({
 }) => {
   const theme = useTheme();
   const { isAdmin: isAdminRole, isDev, isSuperAdmin, isFinance } = useRole();
+  const { temModulo } = useModulos();
   // recolher vale para a régua da tela grande, e é lembrado entre visitas
   const [recolhida, setRecolhida] = useFiltroSalvo(
     'sidebar:recolhida',
@@ -567,8 +581,9 @@ const SideBar: React.FC<SideBarProps> = ({
           title: 'Início',
           novo: true,
         },
-        // o financeiro não gerencia usuários
-        ...(isAdminRole
+        // a lista de usuários é só de dev e super admin: a igreja chega numa
+        // pessoa pelos inscritos do evento e pela tela de Membros
+        ...(isSuperAdmin
           ? [
               {
                 link: '/admin/usuarios',
@@ -584,6 +599,13 @@ const SideBar: React.FC<SideBarProps> = ({
                 link: '/admin/igrejas',
                 icon: <Church />,
                 title: 'Igrejas',
+                novo: true,
+              },
+              // o que cada igreja pode usar: decisão de plataforma também
+              {
+                link: '/admin/planos',
+                icon: <WorkspacePremium />,
+                title: 'Planos',
                 novo: true,
               },
             ]
@@ -718,13 +740,20 @@ const SideBar: React.FC<SideBarProps> = ({
       ]
     : [];
 
+  // módulo fora do plano de todas as igrejas da pessoa sai da régua
+  const doPlano = (itens: ItemMenu[]) =>
+    itens.filter(
+      (item) =>
+        !MODULO_DO_LINK[item.link] || temModulo(MODULO_DO_LINK[item.link])
+    );
+
   const secoes: SecaoMenu[] =
     areaAtual === 'configuracoes'
-      ? [{ titulo: 'Configurações', itens: itensConfiguracoes }]
+      ? [{ titulo: 'Configurações', itens: doPlano(itensConfiguracoes) }]
       : areaAtual === 'admin'
         ? [
             { titulo: 'Administrador', itens: itensPainel },
-            { titulo: 'Módulos', itens: itensModulos },
+            { titulo: 'Módulos', itens: doPlano(itensModulos) },
             { titulo: 'Manutenção', itens: itensManutencao },
           ]
         : [{ titulo: 'Inscrições', itens: itensPainel }];

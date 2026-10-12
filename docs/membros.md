@@ -21,7 +21,7 @@ Regras de servidor: `docs/membros.md` no `ic-backend`.
 - **Cards:** membros, famílias (com quantos membros estão em família), sem família e pedidos.
 - **Filtros:** busca na lista (nome, CPF ou nome da família) e família (todos, em família, sem família).
 - **Tabela, com as famílias juntas:** primeiro as famílias, uma depois da outra (pelo nome), com os membros de cada uma em linhas seguidas; depois quem não tem família. Cada família tem uma cor (pela ordem na tabela, então vizinhas nunca repetem): uma faixa dessa cor à esquerda liga as linhas dela, com o fundo levemente tingido, e o nome da família (clicável) aparece na primeira linha. Como a ordem é o que junta a família, as colunas não se reordenam por clique.
-- **Colunas:** família, membro (foto, nome, CPF), contato, membro desde e o menu ⋮ (tirar da família; deixar de ser membro, com confirmação — perde também o valor do dízimo).
+- **Colunas:** família, membro (foto, nome, CPF), contato, membro desde e o menu ⋮ (ver cadastro — abre a edição do usuário, já que a tela de Usuários é só do super admin; tirar da família; deixar de ser membro, com confirmação — perde também o valor do dízimo).
 - **Juntar em família:** marcar membros na caixa de seleção abre a barra flutuante (`BarraDeSelecao`) com "Juntar em família". A janela (`modalFamilia.tsx`) cria uma **nova família** (o nome já vem sugerido pelo sobrenome do primeiro: "Família Mendes") ou junta a uma **família que já existe**. Quem estava em outra família sai dela; família que fica vazia some sozinha.
 - **Família (clique no nome):** renomear ou desfazer (com confirmação; as pessoas continuam membros).
 

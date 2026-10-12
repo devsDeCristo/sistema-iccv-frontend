@@ -1,6 +1,7 @@
 import { UseQueryOptions, useQuery } from 'react-query';
 import { apiClient } from '../../../../config/lib/axios/api-client';
 import { ChurchStatus, GET_CHURCHES } from '../constants';
+import { ModuloDaIgreja } from '../../../../constants/modulos';
 
 export interface Church {
   id: string;
@@ -9,6 +10,8 @@ export interface Church {
   status: ChurchStatus;
   /** Quem responde pela igreja e assina o e-mail dos eventos dela */
   spiritualLeader?: { id: string; fullName: string } | null;
+  /** O plano: quais módulos ela usa. Sem plano, nenhum */
+  plan?: { id: string; name: string; modules: ModuloDaIgreja[] } | null;
   /**
    * Vínculos da igreja. `users` conta só quem entra no painel (admin e
    * financeiro) — inscrito não pertence a igreja nenhuma. É o que impede a

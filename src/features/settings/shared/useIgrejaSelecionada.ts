@@ -3,6 +3,7 @@ import { useIgrejaEscolhida } from '../../../hooks/useIgrejaEscolhida';
 import { useRole } from '../../../hooks/useRole';
 import { Role } from '../../../constants/roles';
 import { useGetChurches } from '../../admin/churches/api/getChurches';
+import { ModuloDaIgreja } from '../../../constants/modulos';
 
 export interface IgrejaDoPainel {
   id: string;
@@ -41,9 +42,15 @@ export interface EscopoDeIgreja {
  * `incluirFinanceiro`: a tela também é do financeiro (Integrações). As outras
  * ficam só com as igrejas em que a pessoa é admin, porque é o que a API delas
  * aceita.
+ *
+ * `modulo`: a tela é de um módulo do plano, e só as igrejas com ele no plano
+ * entram na lista — as outras a API recusa. Sem nenhuma, quem avisa é a rota
+ * (`RequireRole` com `modulo`). Dev e super admin veem todos os módulos de
+ * todas as igrejas: para eles a lista não é recortada.
  */
 export function useIgrejaSelecionada(
-  incluirFinanceiro = false
+  incluirFinanceiro = false,
+  modulo?: ModuloDaIgreja
 ): EscopoDeIgreja {
   const { isSuperAdmin, churchRoles } = useRole();
 
@@ -58,11 +65,12 @@ export function useIgrejaSelecionada(
         : churchRoles
             .filter(
               (vinculo) =>
-                vinculo.role === Role.ADMIN ||
-                (incluirFinanceiro && vinculo.role === Role.FINANCE)
+                (vinculo.role === Role.ADMIN ||
+                  (incluirFinanceiro && vinculo.role === Role.FINANCE)) &&
+                (!modulo || vinculo.church.modulos?.includes(modulo))
             )
-            .map((vinculo) => vinculo.church),
-    [isSuperAdmin, todasAsIgrejas, churchRoles, incluirFinanceiro]
+            .map(({ church: { id, name } }) => ({ id, name })),
+    [isSuperAdmin, todasAsIgrejas, churchRoles, incluirFinanceiro, modulo]
   );
 
   // A mesma escolha de todos os módulos (`useIgrejaEscolhida`, no

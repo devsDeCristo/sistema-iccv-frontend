@@ -59,7 +59,7 @@ const NENHUM: ParMarcado = { banco: null, manual: null };
  */
 function Conciliacao() {
   const theme = useTheme();
-  const escopo = useIgrejaSelecionada(true);
+  const escopo = useIgrejaSelecionada(true, 'TREASURY');
   const churchId = escopo.churchId;
 
   const [intervalo, setIntervalo] = useState<Intervalo>(() => ({

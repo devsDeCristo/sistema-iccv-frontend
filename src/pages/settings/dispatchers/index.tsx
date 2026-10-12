@@ -21,7 +21,7 @@ import { useIgrejaSelecionada } from '../../../features/settings/shared/useIgrej
  * O segundo canal entra como outro arquivo ao lado deste, sem remexer aqui.
  */
 function DispatcherWhatsapp() {
-  const escopo = useIgrejaSelecionada();
+  const escopo = useIgrejaSelecionada(false, 'WHATSAPP');
 
   return (
     <PageStyle>

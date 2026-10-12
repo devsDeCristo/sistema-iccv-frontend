@@ -8,7 +8,7 @@ para essas outras telas; aqui o foco é o que muda no uso pelo admin.
 
 ## Listagem (`/admin/usuarios`)
 
-- **Acesso:** só `ADMIN_ROLES` (dev, super admin, admin) — o financeiro não entra nesta tela.
+- **Acesso:** só **dev e super admin** (`SUPER_ADMIN_ROLES`). As igrejas (admin, financeiro) não veem a tela nem o item no menu: chegam numa pessoa pelos inscritos do evento e pela tela de Membros (menu ⋮ → "Ver cadastro"), que abrem a edição abaixo.
 - **Cards de resumo:** total de usuários, quantos têm acesso ao painel (`ADMIN_AREA_ROLES`), quantos estão em algum evento `ACTIVE` agora (sem recorte de período) e quantos estão sem nome de crachá (`badgeName`) — esse último importa porque o PDF de crachás descarta em silêncio quem não tem o campo preenchido. Os cards seguem a igreja do seletor (canto superior direito), com a mesma consulta da lista; numa igreja escolhida, o total diz "Nesta igreja".
 - **Busca:** por nome ou CPF, no cliente.
 - **Igreja:** no seletor padrão, no canto superior direito (`SeletorDeIgreja`), com a mesma escolha dos outros módulos. Só aparece para o super admin (escolhe entre todas) ou para quem administra mais de uma; com uma igreja só não há o que escolher. Selecionar uma igreja passa `churchId` para `GET /users`, que devolve quem está nos eventos dela mais os administradores dela.
@@ -41,7 +41,9 @@ Arquivos: `src/pages/admin/users/index.tsx`, `src/features/admin/users/component
 
 Arquivo: `src/features/admin/users/components/modalEditRole.tsx`.
 
-## Cadastro pelo admin (`/admin/usuario/cadastrar`)
+## Cadastro pelo super admin (`/admin/usuario/cadastrar`)
+
+- Só dev e super admin: o botão de cadastrar mora na listagem.
 
 - Mesmo `Form` de dados pessoais do cadastro público, sem a seção de senha (a conta criada pelo admin ainda não tem senha própria).
 - Envia `role: 5` (usuário comum) — o cadastro pelo admin não atribui permissão; isso é feito depois, pelo modal de permissões.
@@ -50,6 +52,8 @@ Arquivo: `src/features/admin/users/components/modalEditRole.tsx`.
 Arquivo: `src/pages/admin/users/register/index.tsx`.
 
 ## Edição pelo admin (`/admin/usuario/:id/editar`)
+
+- **Quem abre:** dev, super admin e o admin da igreja da pessoa (`ADMIN_ROLES`; a API confere a igreja). O admin chega aqui pelos inscritos do evento ou por Membros. Aberta direto pela URL, o voltar leva o super admin à lista de usuários e o admin a Membros.
 
 - **Abre em modo leitura:** os dados aparecem como texto (`ViewField`), não como campos editáveis. O botão "Corrigir dados"/"Editar" libera a edição; "Cancelar" descarta e volta a exibir os dados salvos.
 - **Foto de perfil:** upload de arquivo ou captura por webcam (`WebcamModal`); a foto escolhida fica pendente até o "Salvar" — só então é enviada (`POST` separado do PUT de dados).

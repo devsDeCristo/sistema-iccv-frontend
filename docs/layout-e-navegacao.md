@@ -152,8 +152,9 @@ alguma linha para o perfil (`ConteudoNav` recebe uma lista de `secoes`).
 | Seção | Item | Papéis que veem |
 | --- | --- | --- |
 | Administrador | Início | todos os quatro perfis do painel |
-| Administrador | Usuários | `isAdminRole` (dev, super admin, admin) — financeiro não gerencia usuários |
+| Administrador | Usuários | `isSuperAdmin` (dev, super admin) — as igrejas chegam numa pessoa pelos inscritos do evento e por Membros |
 | Administrador | Igrejas | `isSuperAdmin` (dev, super admin) |
+| Administrador | Planos | `isSuperAdmin` (dev, super admin) — logo abaixo de Igrejas; ver `docs/planos.md` |
 | Módulos | Eventos | todos os quatro perfis do painel |
 | Módulos | Notícias | `isAdminRole` — financeiro não publica |
 | Módulos | Membros | `isAdminRole` (dev, super admin, admin) — o financeiro não entra; primeiro item da seção, acima de Eventos; ver `docs/membros.md` |
@@ -163,6 +164,8 @@ alguma linha para o perfil (`ConteudoNav` recebe uma lista de `secoes`).
 | Manutenção | Registro de Login | `isDev` apenas |
 
 Módulo novo do sistema entra em `itensModulos`, e não no grupo Administrador.
+
+**Plano da igreja:** os itens de módulo (Eventos, Notícias, Tesouraria — Membros não é módulo, toda igreja tem; e em Configurações, Pagamentos, Disparadores e Integrações) só aparecem se alguma igreja da pessoa tem o módulo no plano (`MODULO_DO_LINK` + `useModulos`); dev e super admin veem todos. Módulo novo que entra no plano ganha uma linha em `MODULO_DO_LINK` — ver `docs/planos.md`.
 
 **Etiquetas da linha:** "NOVO!" (`novo`), com degradê azul e violeta, estreia
 uma tela. "EM BREVE" (`emBreve`), com degradê laranja e âmbar, anuncia um

@@ -70,7 +70,7 @@ const dia = (data: Date) => format(data, 'yyyy-MM-dd');
 function Lancamentos() {
   const theme = useTheme();
   // o financeiro também usa: é a tela dele
-  const escopo = useIgrejaSelecionada(true);
+  const escopo = useIgrejaSelecionada(true, 'TREASURY');
   const churchId = escopo.churchId;
 
   // abre no mês corrente, até hoje

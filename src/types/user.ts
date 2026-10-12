@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { ModuloDaIgreja } from '../constants/modulos';
 import { REGISTER_USERS_SCHEMA } from '../features/admin/users/constants';
 
 export type PaymentStatus =
@@ -79,7 +80,12 @@ export interface PaymentResponse {
 /** O perfil que uma pessoa tem em uma igreja. */
 export interface ChurchRole {
   role: number;
-  church: { id: string; name: string };
+  church: {
+    id: string;
+    name: string;
+    /** Os módulos do plano da igreja (vêm na sessão); sem plano, nenhum */
+    modulos?: ModuloDaIgreja[];
+  };
 }
 
 export interface User {

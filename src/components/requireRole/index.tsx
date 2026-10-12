@@ -5,6 +5,15 @@ import { useRole } from '../../hooks/useRole';
 import { useEventRole } from '../../hooks/useEventRole';
 import { useGetEvents } from '../../features/admin/events/api/getEvents';
 import { EventDetails } from '../../features/admin/events/types';
+import { useModulos } from '../../hooks/useModulos';
+import { ModuloDaIgreja } from '../../constants/modulos';
+import { ForaDoPlano } from '../foraDoPlano';
+
+const Carregando = () => (
+  <Box sx={{ display: 'flex', justifyContent: 'center', p: 6 }}>
+    <CircularProgress />
+  </Box>
+);
 
 type RequireRoleProps = {
   /** Perfis com acesso à rota */
@@ -12,6 +21,11 @@ type RequireRoleProps = {
   children: ReactNode;
   /** Para onde mandar quem não tem permissão */
   redirectTo?: string;
+  /**
+   * O módulo do plano que a tela é: sem nenhuma igreja da pessoa com ele no
+   * plano, a tela diz que está fora do plano
+   */
+  modulo?: ModuloDaIgreja;
 };
 
 /**
@@ -22,12 +36,16 @@ function RequireRole({
   allowedRoles,
   children,
   redirectTo = '/admin/inicio',
+  modulo,
 }: RequireRoleProps) {
   const { role } = useRole();
+  const { temModulo } = useModulos();
 
   if (role === null || !allowedRoles.includes(role)) {
     return <Navigate to={redirectTo} replace />;
   }
+
+  if (modulo && !temModulo(modulo)) return <ForaDoPlano modulo={modulo} />;
 
   return <>{children}</>;
 }
@@ -53,21 +71,21 @@ function RequireEventRole({
   );
   const event = data as EventDetails;
   const { isAdminDoEvento, resolvido } = useEventRole(event?.churchId);
+  const modulos = useModulos();
 
   // evento de outra igreja nem chega a existir para o painel: a resposta é 404
   if (isError) return <Navigate to={redirectTo} replace />;
 
   // sem a igreja não dá para decidir, e chutar aqui é redirecionar quem tem
   // permissão ou piscar a tela para quem não tem
-  if (!resolvido) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', p: 6 }}>
-        <CircularProgress />
-      </Box>
-    );
-  }
+  if (!resolvido) return <Carregando />;
 
   if (!isAdminDoEvento) return <Navigate to={redirectTo} replace />;
+
+  // a igreja deste evento precisa ter Eventos no plano (a API recusa sem)
+  if (!modulos.igrejaTem(event.churchId, 'EVENTS')) {
+    return <ForaDoPlano modulo="EVENTS" />;
+  }
 
   return <>{children}</>;
 }

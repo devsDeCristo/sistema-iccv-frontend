@@ -7,20 +7,28 @@ import {
   RequireEventRole,
   RequireRole,
 } from '../../../../components/requireRole';
-import { ADMIN_ROLES } from '../../../../constants/roles';
+import { ADMIN_AREA_ROLES, ADMIN_ROLES } from '../../../../constants/roles';
 import { Checkin } from '../../checkin';
 import { Quadrante } from '../quadrante';
 
 function RoutesEventsAdmin() {
   return (
     <>
-      <Route path="/admin/eventos" element={<Events />} />
+      {/* Eventos é módulo do plano: fora dele, a tela diz isso */}
+      <Route
+        path="/admin/eventos"
+        element={
+          <RequireRole allowedRoles={ADMIN_AREA_ROLES} modulo="EVENTS">
+            <Events />
+          </RequireRole>
+        }
+      />
       {/* criar é de quem administra alguma igreja; editar depende da igreja
           do evento, então tem guarda própria */}
       <Route
         path="/admin/eventos/cadastro"
         element={
-          <RequireRole allowedRoles={ADMIN_ROLES}>
+          <RequireRole allowedRoles={ADMIN_ROLES} modulo="EVENTS">
             <Register />
           </RequireRole>
         }
@@ -35,7 +43,11 @@ function RoutesEventsAdmin() {
       />
       <Route
         path="/admin/eventos/:id/detalhes/:subPage"
-        element={<Details />}
+        element={
+          <RequireRole allowedRoles={ADMIN_AREA_ROLES} modulo="EVENTS">
+            <Details />
+          </RequireRole>
+        }
       />
       {/* o check-in é de quem administra a igreja do evento: o financeiro não
           opera, e admin de outra igreja também não */}

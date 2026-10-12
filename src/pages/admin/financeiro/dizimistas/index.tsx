@@ -52,7 +52,7 @@ const ANOS = Array.from({ length: 5 }, (_, i) => ANO_ATUAL - i);
  */
 function Dizimistas() {
   const theme = useTheme();
-  const escopo = useIgrejaSelecionada(true);
+  const escopo = useIgrejaSelecionada(true, 'TREASURY');
   const churchId = escopo.churchId;
 
   const [ano, setAno] = useState(ANO_ATUAL);

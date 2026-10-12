@@ -5,6 +5,7 @@ import { Form } from '../../../../features/admin/users/components/form';
 import { Box, Button, LinearProgress, Paper, Stack } from '@mui/material';
 import { Edit } from '@mui/icons-material';
 import { usePermission } from '../../../../hooks/usePermission';
+import { useRole } from '../../../../hooks/useRole';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { REGISTER_USERS_SCHEMA } from '../../../../features/admin/users/constants';
 import {
@@ -23,6 +24,7 @@ import { WebcamModal } from '../../../../features/admin/users/components/webcamM
 
 function EditUser() {
   const { id = '' } = useParams();
+  const { isSuperAdmin } = useRole();
   const [isOpenWebcamModal, setIsOpenWebcamModal] = useState(false);
   // a tela abre em leitura; "Editar" libera os inputs
   const [isEditing, setIsEditing] = useState(false);
@@ -110,9 +112,16 @@ function EditUser() {
       <Header
         title="Detalhes"
         buttonBack={permission}
-        // sem pageBack o Header volta pelo histórico (evento ou lista de
-        // usuários); só cai na listagem quando a tela foi aberta direto pela URL
-        pageBack={hasHistoryToGoBack ? undefined : '/admin/usuarios'}
+        // sem pageBack o Header volta pelo histórico (evento, membros ou lista
+        // de usuários); aberta direto pela URL, cai na lista de usuários — que é
+        // só do super admin; o admin da igreja volta para Membros
+        pageBack={
+          hasHistoryToGoBack
+            ? undefined
+            : isSuperAdmin
+              ? '/admin/usuarios'
+              : '/admin/membros'
+        }
       >
         {!isEditing && !isLoadingUser && (
           <Button

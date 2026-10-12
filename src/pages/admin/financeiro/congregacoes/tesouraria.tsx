@@ -25,7 +25,7 @@ const ABAS = ['conciliacao', 'dizimos', 'lancamentos'];
  */
 function TesourariaDaCongregacao() {
   const { id, aba } = useParams();
-  const escopo = useIgrejaSelecionada(true);
+  const escopo = useIgrejaSelecionada(true, 'TREASURY');
   const tesouraria = buscarTesourariaDeCongregacao(id);
 
   const voltar = (

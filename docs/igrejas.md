@@ -34,8 +34,10 @@ rolagem lateral.
   e o cartão sobe um pouco no hover. Igreja inativa aparece esmaecida.
 - **Topo do cartão:** ícone de igreja na cor da situação e, à direita, o chip
   da situação (ver abaixo). Embaixo, o nome (até duas linhas, depois
-  reticências; o nome inteiro na dica) e o líder espiritual, com ícone de
-  pessoa ("Sem líder definido" quando não há).
+  reticências; o nome inteiro na dica), o líder espiritual, com ícone de
+  pessoa ("Sem líder definido" quando não há), e o plano ("Plano Completo",
+  com os módulos na dica; "Sem plano" em laranja e negrito — sem plano a
+  igreja não tem módulo nenhum).
 - **Números:** um embaixo do outro, rótulo à esquerda e valor à direita —
   quatro por linha deixa o cartão estreito demais para lado a lado. Eventos
   (`_count.events`) e Administradores (`_count.users` — conta só quem entra no
@@ -71,6 +73,7 @@ Formulário em modal (`Dialog`), mesmo componente para criar e editar.
 | **Nome** | obrigatório, mínimo 3 caracteres (validado no front antes de enviar) |
 | **Situação** | `ACTIVE`, `TEST` ou `INACTIVE` (ver tabela abaixo); igreja nova nasce sempre `ACTIVE` |
 | **Líder espiritual** | opcional; busca por nome entre todos os usuários (`useGetUsers`, carregado só com o formulário aberto); pode ficar vazio (`null` desfaz o vínculo) |
+| **Plano** | select com os planos (`useGetPlanos`) e "Sem plano"; a ajuda lista os módulos do plano escolhido, ou avisa que sem plano a igreja só tem o painel básico. Ver `docs/planos.md` |
 
 - Enviar com Enter no campo nome também dispara o salvamento.
 - Ao editar, o texto de ajuda do modal lembra que "o nome aparece na escolha

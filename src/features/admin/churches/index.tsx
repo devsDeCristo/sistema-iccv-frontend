@@ -31,6 +31,7 @@ import {
   PersonOutline,
   EventOutlined,
   AdminPanelSettingsOutlined,
+  WorkspacePremiumOutlined,
 } from '@mui/icons-material';
 import { ReactNode, useState } from 'react';
 import { sombraSuperficie } from '../../../themes';
@@ -48,6 +49,8 @@ import { useSaveChurch } from './api/saveChurch';
 import { useDeleteChurch } from './api/deleteChurch';
 import { useGetUsers } from '../users/api/getUsers';
 import { User } from '../../../types/user';
+import { ROTULO_DO_MODULO } from '../../../constants/modulos';
+import { useGetPlanos } from '../planos/api';
 import {
   CHURCH_STATUS_LABELS,
   CHURCH_STATUS_OPTIONS,
@@ -79,6 +82,7 @@ export function Churches() {
   const [nome, setNome] = useState('');
   const [situacao, setSituacao] = useState<ChurchStatus>('ACTIVE');
   const [liderId, setLiderId] = useState<string | null>(null);
+  const [planoId, setPlanoId] = useState<string | null>(null);
   const [erroDoNome, setErroDoNome] = useState<string | null>(null);
 
   // a lista de pessoas só é buscada com o formulário aberto: a tela de igrejas
@@ -102,6 +106,8 @@ export function Churches() {
     onSuccess: fecharForm,
   });
   const { mutate: excluir } = useDeleteChurch();
+  const { data: planos } = useGetPlanos();
+  const planoEscolhido = planos?.find((plano) => plano.id === planoId);
 
   const abrirForm = (church?: Church) => {
     setEmEdicao(church ?? null);
@@ -109,6 +115,7 @@ export function Churches() {
     // igreja nova nasce ativa: é para isso que alguém cria uma
     setSituacao(church?.status ?? 'ACTIVE');
     setLiderId(church?.spiritualLeader?.id ?? null);
+    setPlanoId(church?.plan?.id ?? null);
     setErroDoNome(null);
     setFormAberto(true);
   };
@@ -126,6 +133,7 @@ export function Churches() {
       name: nomeLimpo,
       status: situacao,
       spiritualLeaderId: liderId,
+      planId: planoId,
     });
   };
 
@@ -290,6 +298,36 @@ export function Churches() {
             <PersonOutline sx={{ fontSize: 16, flexShrink: 0 }} />
             <Typography sx={{ fontSize: '0.8125rem' }} noWrap>
               {church.spiritualLeader?.fullName ?? 'Sem líder definido'}
+            </Typography>
+          </Stack>
+
+          {/* sem plano a igreja não tem módulo nenhum: o aviso vem em destaque */}
+          <Stack
+            direction="row"
+            alignItems="center"
+            gap={0.5}
+            sx={{
+              mt: 0.25,
+              minWidth: 0,
+              color: church.plan ? 'text.secondary' : theme.palette.chips.alert,
+            }}
+            title={
+              church.plan
+                ? church.plan.modules
+                    .map((modulo) => ROTULO_DO_MODULO[modulo])
+                    .join(', ') || 'Nenhum módulo'
+                : 'Sem plano, a igreja não tem módulo nenhum'
+            }
+          >
+            <WorkspacePremiumOutlined sx={{ fontSize: 16, flexShrink: 0 }} />
+            <Typography
+              sx={{
+                fontSize: '0.8125rem',
+                fontWeight: church.plan ? 400 : 600,
+              }}
+              noWrap
+            >
+              {church.plan ? `Plano ${church.plan.name}` : 'Sem plano'}
             </Typography>
           </Stack>
 
@@ -560,6 +598,34 @@ export function Churches() {
               />
             )}
           />
+
+          <TextField
+            select
+            fullWidth
+            size="small"
+            label="Plano"
+            sx={{ mt: 2.5 }}
+            value={planoId ?? ''}
+            onChange={(evento) => setPlanoId(evento.target.value || null)}
+            helperText={
+              planoEscolhido
+                ? planoEscolhido.modules.length
+                  ? `Módulos: ${planoEscolhido.modules
+                      .map((modulo) => ROTULO_DO_MODULO[modulo])
+                      .join(', ')}`
+                  : 'Este plano não libera nenhum módulo'
+                : 'Sem plano, a igreja só tem o painel básico (Início, Usuários e Membros)'
+            }
+          >
+            <MenuItem value="">
+              <em>Sem plano</em>
+            </MenuItem>
+            {(planos ?? []).map((plano) => (
+              <MenuItem key={plano.id} value={plano.id}>
+                {plano.name}
+              </MenuItem>
+            ))}
+          </TextField>
         </DialogContent>
 
         <DialogActions sx={{ px: 3, pb: 2.5 }}>

@@ -14,6 +14,8 @@ interface SaveChurchParams {
   status: ChurchStatus;
   /** `null` desfaz o vínculo; quem é vinculado vira admin da igreja */
   spiritualLeaderId: string | null;
+  /** `null` tira o plano: a igreja fica sem módulo nenhum */
+  planId: string | null;
 }
 
 const saveChurch = ({ id, ...corpo }: SaveChurchParams) => {

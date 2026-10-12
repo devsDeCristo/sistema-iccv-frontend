@@ -1,6 +1,7 @@
 import { Route } from 'react-router-dom';
 import { Churches } from '../../../../features/admin/churches';
 import { ChurchHome } from '../../../../features/admin/churchHome';
+import { Planos } from '../../../../features/admin/planos';
 import { RequireRole } from '../../../../components/requireRole';
 import { SUPER_ADMIN_ROLES } from '../../../../constants/roles';
 
@@ -21,24 +22,35 @@ import { SUPER_ADMIN_ROLES } from '../../../../constants/roles';
  */
 function RoutesChurchesAdmin() {
   return (
-    <Route path="/admin/igrejas">
+    <>
+      <Route path="/admin/igrejas">
+        <Route
+          index
+          element={
+            <RequireRole allowedRoles={SUPER_ADMIN_ROLES}>
+              <Churches />
+            </RequireRole>
+          }
+        />
+        <Route
+          path=":churchId"
+          element={
+            <RequireRole allowedRoles={SUPER_ADMIN_ROLES}>
+              <ChurchHome />
+            </RequireRole>
+          }
+        />
+      </Route>
+      {/* os planos (o que cada igreja pode usar): também só do super admin */}
       <Route
-        index
+        path="/admin/planos"
         element={
           <RequireRole allowedRoles={SUPER_ADMIN_ROLES}>
-            <Churches />
+            <Planos />
           </RequireRole>
         }
       />
-      <Route
-        path=":churchId"
-        element={
-          <RequireRole allowedRoles={SUPER_ADMIN_ROLES}>
-            <ChurchHome />
-          </RequireRole>
-        }
-      />
-    </Route>
+    </>
   );
 }
 
