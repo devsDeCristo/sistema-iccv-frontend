@@ -5,9 +5,10 @@
  *
  * Membros não é módulo: toda igreja tem, com ou sem plano. As configurações
  * seguem o módulo a que servem: Pagamentos é de Eventos, Disparadores
- * (WhatsApp) de Notícias, Integrações (Pluggy) de Tesouraria.
+ * (WhatsApp) de Notícias, Integrações (Pluggy) de Tesouraria. A cobrança
+ * online é parte de Eventos.
  */
-export type ModuloDaIgreja = 'EVENTS' | 'NEWS' | 'TREASURY' | 'ONLINE_PAYMENTS';
+export type ModuloDaIgreja = 'EVENTS' | 'NEWS' | 'TREASURY';
 
 /** Na ordem do menu, com o que cada um abre */
 export const MODULOS: {
@@ -19,7 +20,7 @@ export const MODULOS: {
     value: 'EVENTS',
     label: 'Eventos',
     ajuda:
-      'Criar e gerir eventos no painel, e os gateways de pagamento. O evento já publicado segue aberto ao público',
+      'Criar e gerir eventos no painel, com os gateways e a cobrança online nas inscrições. O evento já publicado segue aberto ao público',
   },
   {
     value: 'NEWS',
@@ -30,11 +31,6 @@ export const MODULOS: {
     value: 'TREASURY',
     label: 'Tesouraria',
     ajuda: 'Dízimos, lançamentos, conciliação e os bancos (Pluggy)',
-  },
-  {
-    value: 'ONLINE_PAYMENTS',
-    label: 'Cobrança online',
-    ajuda: 'Pagamento pelo site nas inscrições dos eventos',
   },
 ];
 

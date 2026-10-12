@@ -26,7 +26,7 @@ Para quem trabalha numa igreja (admin e financeiro; `ADMIN_AREA_ROLES` na rota).
 
 ## Módulos
 
-`src/constants/modulos.ts` (`MODULOS`, `ROTULO_DO_MODULO`): Eventos, Notícias, Tesouraria e Cobrança online — na ordem do menu. As configurações seguem o módulo a que servem: Pagamentos é de Eventos, Disparadores (WhatsApp) de Notícias, Integrações (Pluggy) de Tesouraria. **Membros não é módulo:** toda igreja tem, com ou sem plano.
+`src/constants/modulos.ts` (`MODULOS`, `ROTULO_DO_MODULO`): Eventos, Notícias e Tesouraria — na ordem do menu. **A cobrança online é parte de Eventos** (já foi um módulo próprio). As configurações seguem o módulo a que servem: Pagamentos é de Eventos, Disparadores (WhatsApp) de Notícias, Integrações (Pluggy) de Tesouraria. **Membros não é módulo:** toda igreja tem, com ou sem plano.
 
 ## Como o painel respeita o plano
 
@@ -37,6 +37,6 @@ Para quem trabalha numa igreja (admin e financeiro; `ADMIN_AREA_ROLES` na rota).
 - **Menu:** item de módulo que nenhuma igreja da pessoa tem no plano sai da régua (`MODULO_DO_LINK` na `sideBar`): Eventos, Notícias, Tesouraria, e em Configurações Pagamentos (Eventos), Disparadores (Notícias) e Integrações (Tesouraria).
 - **Rotas:** `RequireRole` aceita `modulo`; sem nenhuma igreja com ele, a tela mostra `ForaDoPlano` ("O plano da sua igreja não inclui o módulo X. Para usá-lo, fale com quem administra o sistema"). Nas telas de um evento (`RequireEventRole`), a igreja daquele evento precisa ter Eventos.
 - **Seletor de igreja:** `useIgrejaSelecionada(incluirFinanceiro, modulo)` só oferece as igrejas com o módulo no plano (Tesouraria, Integrações → Tesouraria, Disparadores → Notícias, Pagamentos → Eventos) — para admin e financeiro.
-- **Pagamentos sem Cobrança online:** a tela é de Eventos; numa igreja sem Cobrança online no plano, ela avisa que a igreja não recebe pelo site (a grade de gateways não aparece).
+- **Pagamentos para o super admin:** numa igreja sem Eventos no plano, a tela avisa que ela não recebe pelo site (a grade de gateways não aparece).
 - **`/configuracoes`** abre na primeira tela que a pessoa tem: Pagamentos (Eventos), WhatsApp (Notícias) ou Integrações (dev e super admin: Pagamentos).
 - **Limite:** Eventos e Notícias listam "Todas as igrejas"; uma igreja fora do plano ainda aparece nessas listas quando a pessoa tem outra com o módulo — a ação sobre o item volta 403.
