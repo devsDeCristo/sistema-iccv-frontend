@@ -1,4 +1,4 @@
-import { ReactNode, useRef, useState } from 'react';
+import { ReactNode } from 'react';
 import {
   Box,
   Card,
@@ -28,6 +28,18 @@ import { EstadoDaLinha, Lancamento, LinhaDaConciliacao } from '../types';
 
 /** As duas tabelas só se alinham linha a linha com a mesma altura */
 const ALTURA = 60;
+
+/** Uma cor chapada como imagem de fundo, para ir por cima do papel */
+const tinta = (cor: string) => `linear-gradient(${cor}, ${cor})`;
+
+/**
+ * A linha fora da tela não é desenhada até chegar perto (`content-visibility`):
+ * com centenas de lançamentos, rolar continua leve
+ */
+const linhaLeve = {
+  contentVisibility: 'auto',
+  containIntrinsicSize: `auto ${ALTURA}px`,
+} as const;
 
 /** O par que a pessoa está montando à mão: um de cada lado */
 export interface ParMarcado {
@@ -76,10 +88,6 @@ function DiffDaConciliacao({
 }: Props) {
   const theme = useTheme();
   const lado2lado = useMediaQuery(theme.breakpoints.up('md'));
-  const esquerda = useRef<HTMLDivElement>(null);
-  const direita = useRef<HTMLDivElement>(null);
-  // a mesma linha acesa dos dois lados, para o olho atravessar
-  const [emFoco, setEmFoco] = useState<number | null>(null);
 
   const cor: Record<EstadoDaLinha, string> = {
     conciliado: theme.palette.chips.success,
@@ -87,13 +95,6 @@ function DiffDaConciliacao({
     so_banco: theme.palette.chips.alert,
     so_manual: theme.palette.chips.alert,
     nao_consta: theme.palette.chips.pending,
-  };
-
-  // as duas têm a mesma altura: igualar o scrollTop não volta a disparar
-  const sincronizar = (de: typeof esquerda, para: typeof esquerda) => () => {
-    if (de.current && para.current) {
-      para.current.scrollTop = de.current.scrollTop;
-    }
   };
 
   // só marca o lado que ainda não tem par, e do mesmo tipo do outro marcado
@@ -198,11 +199,7 @@ function DiffDaConciliacao({
     return null;
   };
 
-  const celula = (
-    linha: LinhaDaConciliacao,
-    lado: 'banco' | 'manual',
-    indice: number
-  ) => {
+  const celula = (linha: LinhaDaConciliacao, lado: 'banco' | 'manual') => {
     const l = linha[lado];
     const vazio = !l;
     // a linha sem par marca no clique em qualquer ponto, não só na caixinha
@@ -215,7 +212,6 @@ function DiffDaConciliacao({
         direction="row"
         alignItems="center"
         spacing={1}
-        onMouseEnter={() => setEmFoco(indice)}
         onClick={marcavel && l ? () => onMarcar(lado, l) : undefined}
         sx={{
           cursor: marcavel ? 'pointer' : undefined,
@@ -223,13 +219,23 @@ function DiffDaConciliacao({
           px: 1,
           borderBottom: `1px solid ${theme.palette.divider}`,
           borderLeft: `3px solid ${vazio ? 'transparent' : cor[linha.estado]}`,
-          // a linha que não existe deste lado, como no diff
-          background: vazio
-            ? `repeating-linear-gradient(135deg, ${alpha(
+          // a tinta vai por cima do papel: as duas colunas dividem uma
+          // rolagem só, sem o card atrás de cada uma
+          backgroundColor: 'background.paper',
+          backgroundImage: vazio
+            ? // a linha que não existe deste lado, como no diff
+              `repeating-linear-gradient(135deg, ${alpha(
                 theme.palette.text.primary,
                 0.05
               )} 0 6px, transparent 6px 12px)`
-            : alpha(cor[linha.estado], emFoco === indice ? 0.16 : 0.07),
+            : tinta(alpha(cor[linha.estado], 0.07)),
+          // a mesma linha acende dos dois lados, só com CSS: o hover não
+          // redesenha a tabela
+          ...(!vazio && {
+            '.linha:hover &': {
+              backgroundImage: tinta(alpha(cor[linha.estado], 0.16)),
+            },
+          }),
         }}
       >
         <Box sx={{ width: 28, display: 'grid', placeItems: 'center' }}>
@@ -336,27 +342,26 @@ function DiffDaConciliacao({
 
   if (!lado2lado) {
     return (
-      <Card
-        elevation={0}
-        sx={cardTabelaSx}
-        onMouseLeave={() => setEmFoco(null)}
-      >
+      <Card elevation={0} sx={cardTabelaSx}>
         {cabecalho(
           <CompareArrows sx={{ fontSize: 18, color: 'text.secondary' }} />,
           'Banco e manuais',
           linhas.length
         )}
         <Box sx={rolagem}>
-          {linhas.map((linha, i) => (
+          {linhas.map((linha) => (
             // um vão entre os pares: as duas linhas de cada um ficam juntas
             <Box
               key={`${linha.banco?.id}-${linha.manual?.id}`}
+              className="linha"
               sx={{
+                ...linhaLeve,
+                containIntrinsicSize: `auto ${ALTURA * 2 + 6}px`,
                 borderBottom: `6px solid ${theme.palette.background.default}`,
               }}
             >
-              {celula(linha, 'banco', i)}
-              {celula(linha, 'manual', i)}
+              {celula(linha, 'banco')}
+              {celula(linha, 'manual')}
             </Box>
           ))}
         </Box>
@@ -365,36 +370,54 @@ function DiffDaConciliacao({
   }
 
   return (
-    <Stack direction="row" spacing={1.5} onMouseLeave={() => setEmFoco(null)}>
-      <Card elevation={0} sx={{ ...cardTabelaSx, flex: 1, minWidth: 0 }}>
-        {cabecalho(iconeBanco, 'Extrato do banco', quantosBanco)}
-        <Box
-          ref={esquerda}
-          onScroll={sincronizar(esquerda, direita)}
-          sx={rolagem}
-        >
-          {linhas.map((linha, i) => (
-            <Box key={`${linha.banco?.id}-${linha.manual?.id}`}>
-              {celula(linha, 'banco', i)}
-            </Box>
-          ))}
+    // as duas colunas numa rolagem só: banco e manual da mesma linha nunca
+    // desalinham, e rolar não depende de JavaScript
+    <Box>
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          columnGap: 1.5,
+          // o mesmo vão da barra de rolagem do corpo: as colunas alinham
+          overflowY: 'hidden',
+          scrollbarGutter: 'stable',
+          '& > *': {
+            borderTopLeftRadius: 12,
+            borderTopRightRadius: 12,
+            overflow: 'hidden',
+          },
+        }}
+      >
+        <Box>{cabecalho(iconeBanco, 'Extrato do banco', quantosBanco)}</Box>
+        <Box>
+          {cabecalho(iconeManual, 'Lançamentos manuais', quantosManual)}
         </Box>
-      </Card>
-      <Card elevation={0} sx={{ ...cardTabelaSx, flex: 1, minWidth: 0 }}>
-        {cabecalho(iconeManual, 'Lançamentos manuais', quantosManual)}
-        <Box
-          ref={direita}
-          onScroll={sincronizar(direita, esquerda)}
-          sx={rolagem}
-        >
-          {linhas.map((linha, i) => (
-            <Box key={`${linha.banco?.id}-${linha.manual?.id}`}>
-              {celula(linha, 'manual', i)}
-            </Box>
-          ))}
-        </Box>
-      </Card>
-    </Stack>
+      </Box>
+      <Box
+        sx={{
+          ...rolagem,
+          scrollbarGutter: 'stable',
+          borderBottomLeftRadius: 12,
+          borderBottomRightRadius: 12,
+        }}
+      >
+        {linhas.map((linha) => (
+          <Box
+            key={`${linha.banco?.id}-${linha.manual?.id}`}
+            className="linha"
+            sx={{
+              ...linhaLeve,
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              columnGap: 1.5,
+            }}
+          >
+            {celula(linha, 'banco')}
+            {celula(linha, 'manual')}
+          </Box>
+        ))}
+      </Box>
+    </Box>
   );
 }
 

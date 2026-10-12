@@ -1,4 +1,4 @@
-import { ReactNode, useRef, useState } from 'react';
+import { ReactNode, useState } from 'react';
 import {
   alpha,
   Box,
@@ -66,6 +66,18 @@ const diaEMes = (dia: string) => `${dia.slice(8, 10)}/${dia.slice(5, 7)}`;
 /** As duas tabelas só se alinham linha a linha com a mesma altura */
 const ALTURA = 60;
 
+/** Uma cor chapada como imagem de fundo, para ir por cima do papel */
+const tinta = (cor: string) => `linear-gradient(${cor}, ${cor})`;
+
+/**
+ * A linha fora da tela não é desenhada até chegar perto (`content-visibility`):
+ * com centenas de pagamentos, rolar continua leve
+ */
+const linhaLeve = {
+  contentVisibility: 'auto',
+  containIntrinsicSize: `auto ${ALTURA}px`,
+} as const;
+
 /** A rolagem é das tabelas: a página fica parada com os cards à vista */
 const rolagem = {
   maxHeight: 'max(360px, calc(100vh - 380px))',
@@ -128,10 +140,6 @@ function ConciliacaoDaTesouraria({
 }: Props) {
   const theme = useTheme();
   const lado2lado = useMediaQuery(theme.breakpoints.up('md'));
-  const esquerda = useRef<HTMLDivElement>(null);
-  const direita = useRef<HTMLDivElement>(null);
-  // a mesma linha acesa dos dois lados, para o olho atravessar
-  const [emFoco, setEmFoco] = useState<string | null>(null);
   const [bancoMarcados, setBancoMarcados] = useState<string[]>([]);
   const [daquiMarcados, setDaquiMarcados] = useState<string[]>([]);
   const [rateando, setRateando] = useState<LinhaLivre[]>([]);
@@ -183,13 +191,6 @@ function ConciliacaoDaTesouraria({
     setter((atual) =>
       atual.includes(id) ? atual.filter((x) => x !== id) : [...atual, id]
     );
-
-  // as duas têm a mesma altura: igualar o scrollTop não volta a disparar
-  const sincronizar = (de: typeof esquerda, para: typeof esquerda) => () => {
-    if (de.current && para.current) {
-      para.current.scrollTop = de.current.scrollTop;
-    }
-  };
 
   const trazer = () =>
     distribuir.mutate(
@@ -571,7 +572,6 @@ function ConciliacaoDaTesouraria({
         direction="row"
         alignItems="center"
         spacing={1}
-        onMouseEnter={() => setEmFoco(linha.chave)}
         onClick={marcavel ? marcar : undefined}
         sx={{
           cursor: marcavel ? 'pointer' : undefined,
@@ -579,15 +579,28 @@ function ConciliacaoDaTesouraria({
           px: 1,
           borderBottom: `1px solid ${theme.palette.divider}`,
           borderLeft: `3px solid ${vazio ? 'transparent' : cor[linha.estado]}`,
-          // a linha que não existe deste lado, como no diff
-          background: vazio
-            ? `repeating-linear-gradient(135deg, ${alpha(
+          // a tinta vai por cima do papel: as duas colunas dividem uma
+          // rolagem só, sem o card atrás de cada uma
+          backgroundColor: 'background.paper',
+          backgroundImage: vazio
+            ? // a linha que não existe deste lado, como no diff
+              `repeating-linear-gradient(135deg, ${alpha(
                 theme.palette.text.primary,
                 0.05
               )} 0 6px, transparent 6px 12px)`
-            : marcado
-              ? alpha(theme.palette.primary.main, 0.12)
-              : alpha(cor[linha.estado], emFoco === linha.chave ? 0.16 : 0.07),
+            : tinta(
+                marcado
+                  ? alpha(theme.palette.primary.main, 0.12)
+                  : alpha(cor[linha.estado], 0.07)
+              ),
+          // a mesma linha acende dos dois lados, só com CSS: o hover não
+          // redesenha a tabela
+          ...(!vazio &&
+            !marcado && {
+              '.linha:hover &': {
+                backgroundImage: tinta(alpha(cor[linha.estado], 0.16)),
+              },
+            }),
         }}
       >
         <Box
@@ -762,11 +775,7 @@ function ConciliacaoDaTesouraria({
 
       {!lado2lado ? (
         // no celular não cabem duas tabelas: o banco em cima do lançamento
-        <Card
-          elevation={0}
-          sx={cardTabelaSx}
-          onMouseLeave={() => setEmFoco(null)}
-        >
+        <Card elevation={0} sx={cardTabelaSx}>
           {cabecalho(
             <CompareArrows sx={{ fontSize: 18, color: 'text.secondary' }} />,
             `Banco e ${t.lancamentos.toLowerCase()}`,
@@ -778,7 +787,10 @@ function ConciliacaoDaTesouraria({
                   // um vão entre os pares: as duas linhas de cada um juntas
                   <Box
                     key={linha.chave}
+                    className="linha"
                     sx={{
+                      ...linhaLeve,
+                      containIntrinsicSize: `auto ${ALTURA * 2 + 6}px`,
                       borderBottom: `6px solid ${theme.palette.background.default}`,
                     }}
                   >
@@ -790,40 +802,54 @@ function ConciliacaoDaTesouraria({
           </Box>
         </Card>
       ) : (
-        <Stack
-          direction="row"
-          spacing={1.5}
-          onMouseLeave={() => setEmFoco(null)}
-        >
-          <Card elevation={0} sx={{ ...cardTabelaSx, flex: 1, minWidth: 0 }}>
-            {cabecalho(iconeBanco, 'Extrato do banco', quantosBanco)}
-            <Box
-              ref={esquerda}
-              onScroll={sincronizar(esquerda, direita)}
-              sx={rolagem}
-            >
-              {linhas.length
-                ? linhas.map((linha) => (
-                    <Box key={linha.chave}>{celula(linha, 'banco')}</Box>
-                  ))
-                : vazia}
-            </Box>
-          </Card>
-          <Card elevation={0} sx={{ ...cardTabelaSx, flex: 1, minWidth: 0 }}>
-            {cabecalho(iconeDaqui, t.lancamentos, quantosDaqui)}
-            <Box
-              ref={direita}
-              onScroll={sincronizar(direita, esquerda)}
-              sx={rolagem}
-            >
-              {linhas.length
-                ? linhas.map((linha) => (
-                    <Box key={linha.chave}>{celula(linha, 'tesouraria')}</Box>
-                  ))
-                : vazia}
-            </Box>
-          </Card>
-        </Stack>
+        // as duas colunas numa rolagem só: banco e lançamento da mesma linha
+        // nunca desalinham, e rolar não depende de JavaScript
+        <Box>
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              columnGap: 1.5,
+              // o mesmo vão da barra de rolagem do corpo: as colunas alinham
+              overflowY: 'hidden',
+              scrollbarGutter: 'stable',
+              '& > *': {
+                borderTopLeftRadius: 12,
+                borderTopRightRadius: 12,
+                overflow: 'hidden',
+              },
+            }}
+          >
+            <Box>{cabecalho(iconeBanco, 'Extrato do banco', quantosBanco)}</Box>
+            <Box>{cabecalho(iconeDaqui, t.lancamentos, quantosDaqui)}</Box>
+          </Box>
+          <Box
+            sx={{
+              ...rolagem,
+              scrollbarGutter: 'stable',
+              borderBottomLeftRadius: 12,
+              borderBottomRightRadius: 12,
+            }}
+          >
+            {linhas.length
+              ? linhas.map((linha) => (
+                  <Box
+                    key={linha.chave}
+                    className="linha"
+                    sx={{
+                      ...linhaLeve,
+                      display: 'grid',
+                      gridTemplateColumns: '1fr 1fr',
+                      columnGap: 1.5,
+                    }}
+                  >
+                    {celula(linha, 'banco')}
+                    {celula(linha, 'tesouraria')}
+                  </Box>
+                ))
+              : vazia}
+          </Box>
+        </Box>
       )}
 
       {/* espaço da barra flutuante, para ela não cobrir as últimas linhas */}
