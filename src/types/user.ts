@@ -87,6 +87,8 @@ export interface TesoureiroDeEvento {
   eventId: string;
   eventName: string;
   churchId: string;
+  /** opcional: as sessões abertas antes de o login mandar o nome não o têm */
+  churchName?: string;
   kind: 'BASICO' | 'COMPLETO';
 }
 

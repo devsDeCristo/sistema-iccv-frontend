@@ -6,8 +6,10 @@ Regras de servidor: `docs/membros.md` no `ic-backend`.
 
 ## Quem acessa e de qual igreja
 
-- Só o **admin da igreja** (`ADMIN_ROLES`, `RequireRole` na rota), além de dev e super admin. No menu, "Membros" fica na seção **Módulos**, só para esses perfis. A tesouraria não vê a tela: ele vê os membros como dizimistas, na tela de Dizimistas.
-- Sempre **uma igreja**, entre as que a pessoa administra (`ChurchScopeBar` com `useIgrejaSelecionada()`): com várias e nenhuma escolhida, a tela pede a escolha.
+- **Quem mexe:** o **admin da igreja**, além de dev e super admin.
+- **Quem só consulta:** a **tesouraria** da igreja e o **tesoureiro(a) de um evento** dela. A mesma tela, sem a aba e o card de Pedidos, sem "Adicionar membro", sem marcar linhas e sem os menus (do membro e da família), com um aviso "Só consulta". A rota aceita `ADMIN_AREA_ROLES` e o tesoureiro (`aceitaTesoureiro="BASICO"`); a API devolve a lista sem os pedidos.
+- No menu, "Membros" fica na seção **Módulos**, para todos esses perfis.
+- Sempre **uma igreja** (`ChurchScopeBar` com `useIgrejaSelecionada(true, undefined, true)`): as que a pessoa administra, as em que é tesouraria e as dos eventos de que é tesoureira. Com várias e nenhuma escolhida, a tela pede a escolha.
 
 ## Como alguém vira membro
 
@@ -21,9 +23,10 @@ Regras de servidor: `docs/membros.md` no `ic-backend`.
 - **Cards:** membros, famílias (com quantos membros estão em família), sem família e pedidos.
 - **Filtros:** busca na lista (nome, CPF ou nome da família) e família (todos, em família, sem família).
 - **Tabela, com as famílias juntas:** primeiro as famílias, uma depois da outra (pelo nome), com os membros de cada uma em linhas seguidas; depois quem não tem família. Cada família tem uma cor (pela ordem na tabela, então vizinhas nunca repetem): uma faixa dessa cor à esquerda liga as linhas dela, com o fundo levemente tingido, e o nome da família (clicável) aparece na primeira linha. Como a ordem é o que junta a família, as colunas não se reordenam por clique.
-- **Colunas:** família, membro (foto, nome, CPF), contato, membro desde e o menu ⋮ (ver cadastro — abre a edição do usuário, já que a tela de Usuários é só do super admin; tirar da família; deixar de ser membro, com confirmação — perde também o valor do dízimo).
+- **Colunas:** família, membro (foto, nome, CPF), contato, **perfil** (chip Admin ou Tesouraria nesta igreja; traço sem perfil), membro desde e o menu ⋮ (ver cadastro — abre a edição do usuário, já que a tela de Usuários é só do super admin; permissão na igreja; tirar da família; deixar de ser membro, com confirmação — perde também o valor do dízimo).
 - **Juntar em família:** marcar membros na caixa de seleção abre a barra flutuante (`BarraDeSelecao`) com "Juntar em família". A janela (`modalFamilia.tsx`) cria uma **nova família** (o nome já vem sugerido pelo sobrenome do primeiro: "Família Mendes") ou junta a uma **família que já existe**. Quem estava em outra família sai dela; família que fica vazia some sozinha.
 - **Família (clique no nome):** renomear ou desfazer (com confirmação; as pessoas continuam membros).
+- **Permissão na igreja** (só o admin): no menu ⋮ do membro, ou para vários de uma vez na barra de seleção (ao lado de "Juntar em família"). Abre a mesma janela da edição em massa da tela de Usuários (`ModalPermissaoEmMassa`, com `igrejaFixa`: sem escolher igreja) — **Admin**, **Tesouraria** ou **Sem perfil nesta igreja** — e grava em `PUT /users/permissions`, com as travas de lá (a própria permissão não muda por aqui; super admin e dev não têm perfil de igreja). Quem o servidor recusar aparece listado, com o motivo.
 
 ## Código
 

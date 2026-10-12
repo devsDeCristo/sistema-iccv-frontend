@@ -14,6 +14,7 @@ import {
   Sync,
   AccountBalance,
   EditNote,
+  MoneyOff,
 } from '@mui/icons-material';
 import { format, startOfMonth } from 'date-fns';
 import { toast } from 'react-toastify';
@@ -42,6 +43,7 @@ import {
   useDesfazerConciliacao,
   useGetConciliacao,
   useImportarDoBanco,
+  useNaoConstaNoBanco,
 } from '../../../../features/admin/tesouraria/api';
 import {
   DiffDaConciliacao,
@@ -53,9 +55,11 @@ const NENHUM: ParMarcado = { banco: null, manual: null };
 
 /**
  * Conciliação: o extrato do banco (Pluggy) contra o que foi lançado à mão.
- * O mesmo dinheiro aparece nos dois lados; conciliar liga os dois, e o par
- * conta uma vez nos totais. O sistema sugere os pares (mesmo valor, datas
- * próximas); o resto a pessoa casa marcando um de cada lado.
+ * O banco é a fonte, e o lançamento manual fica para o que o banco não vê
+ * (o dinheiro em espécie). O mesmo dinheiro nos dois lados se concilia: o
+ * par conta uma vez nos totais. O sistema sugere os pares (mesmo valor, datas
+ * próximas); o resto a pessoa casa marcando um de cada lado. O manual que
+ * nunca vai aparecer no extrato fica "não consta no banco".
  */
 function Conciliacao() {
   const theme = useTheme();
@@ -82,9 +86,13 @@ function Conciliacao() {
   const conciliar = useConciliar();
   const conciliarSugeridos = useConciliarSugeridos();
   const desfazer = useDesfazerConciliacao();
+  const naoConsta = useNaoConstaNoBanco();
 
   const ocupado =
-    conciliar.isLoading || conciliarSugeridos.isLoading || desfazer.isLoading;
+    conciliar.isLoading ||
+    conciliarSugeridos.isLoading ||
+    desfazer.isLoading ||
+    naoConsta.isLoading;
   const temBanco = !!pluggy?.integracao?.enabled;
   const resumo = data?.resumo;
 
@@ -180,6 +188,14 @@ function Conciliacao() {
                 color: theme.palette.chips.alert,
                 compact: true,
               },
+              {
+                title: 'Não consta no banco',
+                value: String(resumo?.naoConsta ?? 0),
+                subtitle: 'Manuais em espécie',
+                icon: <MoneyOff sx={{ fontSize: 20 }} />,
+                color: theme.palette.chips.pending,
+                compact: true,
+              },
             ]}
           />
 
@@ -269,6 +285,14 @@ function Conciliacao() {
               onConciliar={(banco, manual) => parear(banco.id, manual.id)}
               onDesfazer={(manual) =>
                 churchId && desfazer.mutate({ churchId, manualId: manual.id })
+              }
+              onNaoConsta={(manual, marcar) =>
+                churchId &&
+                naoConsta.mutate({
+                  churchId,
+                  manualId: manual.id,
+                  naoConsta: marcar,
+                })
               }
             />
           )}

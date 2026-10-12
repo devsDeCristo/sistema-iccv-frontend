@@ -12,6 +12,8 @@ export interface Pessoa {
 export interface Membro extends Pessoa {
   memberSince: string | null;
   family: { id: string; name: string } | null;
+  /** O perfil dele nesta igreja: admin (2), tesouraria (3) ou nenhum */
+  perfil: number | null;
 }
 
 export interface Familia {

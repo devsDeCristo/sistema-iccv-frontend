@@ -17,6 +17,7 @@ import {
   CompareArrows,
   EditNote,
   Link as LinkIcon,
+  MoneyOff,
   Undo,
 } from '@mui/icons-material';
 
@@ -40,6 +41,8 @@ interface Props {
   onMarcar: (lado: 'banco' | 'manual', lancamento: Lancamento) => void;
   onConciliar: (banco: Lancamento, manual: Lancamento) => void;
   onDesfazer: (manual: Lancamento) => void;
+  /** Marca o manual como "não consta no banco", ou o devolve */
+  onNaoConsta: (manual: Lancamento, naoConsta: boolean) => void;
   ocupado: boolean;
 }
 
@@ -55,7 +58,9 @@ const diaEMes = (dia: string) => `${dia.slice(8, 10)}/${dia.slice(5, 7)}`;
  * - conciliado: verde, com o desfazer na linha;
  * - sugerido: azul, com o conciliar na linha;
  * - só de um lado: laranja, com a caixinha para montar o par à mão (o
- *   clique na linha também marca).
+ *   clique na linha também marca); o manual sem par pode ser marcado como
+ *   "não consta no banco" (dinheiro em espécie);
+ * - não consta no banco: azul-claro, com o voltar para a conciliação.
  *
  * No celular não cabem duas tabelas: vira o diff unificado, o banco em cima
  * do manual em cada linha.
@@ -66,6 +71,7 @@ function DiffDaConciliacao({
   onMarcar,
   onConciliar,
   onDesfazer,
+  onNaoConsta,
   ocupado,
 }: Props) {
   const theme = useTheme();
@@ -80,6 +86,7 @@ function DiffDaConciliacao({
     sugerido: theme.palette.chips.info,
     so_banco: theme.palette.chips.alert,
     so_manual: theme.palette.chips.alert,
+    nao_consta: theme.palette.chips.pending,
   };
 
   // as duas têm a mesma altura: igualar o scrollTop não volta a disparar
@@ -116,6 +123,9 @@ function DiffDaConciliacao({
     if (linha.estado === 'sugerido') {
       return <LinkIcon sx={{ fontSize: 18, color: cor.sugerido }} />;
     }
+    if (linha.estado === 'nao_consta' && l) {
+      return <MoneyOff sx={{ fontSize: 18, color: cor.nao_consta }} />;
+    }
     return l ? caixinha(lado, l) : null;
   };
 
@@ -132,6 +142,39 @@ function DiffDaConciliacao({
               sx={{ color: cor.sugerido }}
             >
               <CompareArrows fontSize="small" />
+            </IconButton>
+          </span>
+        </Tooltip>
+      );
+    }
+    if (
+      (linha.estado === 'so_manual' || linha.estado === 'nao_consta') &&
+      manual
+    ) {
+      const marcar = linha.estado === 'so_manual';
+      return (
+        <Tooltip
+          title={
+            marcar
+              ? 'Não consta no banco (dinheiro em espécie)'
+              : 'Voltar para a conciliação'
+          }
+        >
+          <span>
+            <IconButton
+              size="small"
+              disabled={ocupado}
+              onClick={(e) => {
+                // a linha sem par marca no clique: aqui o clique é do botão
+                e.stopPropagation();
+                onNaoConsta(manual, marcar);
+              }}
+            >
+              {marcar ? (
+                <MoneyOff fontSize="small" />
+              ) : (
+                <Undo fontSize="small" />
+              )}
             </IconButton>
           </span>
         </Tooltip>
@@ -212,6 +255,7 @@ function DiffDaConciliacao({
                 component="div"
               >
                 {[
+                  linha.estado === 'nao_consta' && 'Não consta no banco',
                   ROTULO_DA_CATEGORIA[l.category],
                   l.user?.fullName ?? l.payerName,
                 ]

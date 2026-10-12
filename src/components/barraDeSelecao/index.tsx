@@ -35,12 +35,15 @@ export type AcaoDaSelecao = {
 function BarraDeSelecao({
   quantos,
   acao,
+  acaoSecundaria,
   onLimpar,
   rotuloDaRegiao = 'Itens selecionados',
 }: {
   quantos: number;
   /** ausente para quem não pode agir: a barra só conta e limpa */
   acao?: AcaoDaSelecao;
+  /** a outra coisa que dá para fazer com eles, contornada, antes da principal */
+  acaoSecundaria?: AcaoDaSelecao;
   onLimpar: () => void;
   /** o que o leitor de tela anuncia, ex.: "Usuários selecionados" */
   rotuloDaRegiao?: string;
@@ -87,19 +90,34 @@ function BarraDeSelecao({
         {quantos === 1 ? 'selecionado' : 'selecionados'}
       </Typography>
 
+      {(acao || acaoSecundaria) && (
+        <Divider
+          orientation="vertical"
+          flexItem
+          sx={{ display: { xs: 'none', sm: 'block' } }}
+        />
+      )}
+      {acaoSecundaria && (
+        <Button
+          variant="outlined"
+          size="small"
+          startIcon={acaoSecundaria.icone}
+          onClick={acaoSecundaria.onClick}
+          // o tema capitaliza botão: "Ratear E Trazer"
+          sx={{ flexShrink: 0, whiteSpace: 'nowrap', textTransform: 'none' }}
+        >
+          {celular ? acaoSecundaria.rotuloCurto : acaoSecundaria.rotulo}
+        </Button>
+      )}
       {acao && (
         <>
-          <Divider
-            orientation="vertical"
-            flexItem
-            sx={{ display: { xs: 'none', sm: 'block' } }}
-          />
           <Button
             variant="contained"
             size="small"
             startIcon={acao.icone}
             onClick={acao.onClick}
-            sx={{ flexShrink: 0, whiteSpace: 'nowrap' }}
+            // o tema capitaliza botão: "Ratear E Trazer"
+            sx={{ flexShrink: 0, whiteSpace: 'nowrap', textTransform: 'none' }}
           >
             {celular ? acao.rotuloCurto : acao.rotulo}
           </Button>

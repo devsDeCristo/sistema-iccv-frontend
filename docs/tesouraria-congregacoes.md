@@ -22,7 +22,7 @@ Cada congregação da igreja tem a sua tesouraria, **só com entradas e saídas*
 
 ### 2. A lista (`/admin/tesouraria/congregacoes`)
 
-- **Aviso de não alocados** (`avisoNaoAlocados.tsx`), no topo: quantos lançamentos da conta das Congregações não estão em congregação nenhuma, e quanto somam. Parte é trabalho por fazer; parte nunca será de congregação (uma tarifa do banco).
+- **Aviso de não alocados** (`avisoNaoAlocados.tsx`), no topo: quantos lançamentos da conta das Congregações não estão em congregação nenhuma, e quanto somam, com o botão **Ver não alocados** (`/admin/tesouraria/congregacoes/nao-alocados`, a lista só leitura com o banco de cada um). Parte é trabalho por fazer; parte nunca será de congregação (uma tarifa do banco). Só aparece quando a conta tem banco próprio; com a conta única, o aviso da Administrativa basta.
 - **Filtro** Abertas, Fechadas e Todas, com a contagem; abre em Abertas.
 - **Cards** (`listaDeTesourarias.tsx`, o mesmo dos eventos): o chip **Aberta** ou **Fechada**, o nome, o local, e entradas, saídas e resultado em linhas (negativo em vermelho, com o sinal). "Abrir tesouraria" fica no rodapé.
 
@@ -32,16 +32,17 @@ Duas abas com endereço próprio, **Conciliação** e **Lançamentos** (`.../con
 
 #### Fechamento
 
-O mesmo do evento (`barraDoFechamento.tsx`): o admin da igreja vê **Fechar tesouraria** (com confirmação). Fechada, um aviso diz quando e por quem, e nada mais entra, sai ou muda de categoria — a Conciliação fica só leitura. Só o admin reabre.
+O mesmo do evento (`barraDoFechamento.tsx`): o admin e a tesouraria da igreja veem **Fechar tesouraria** (com confirmação). Fechada, um aviso diz quando e por quem, e nada mais entra, sai ou muda de categoria — a Conciliação fica só leitura. Só eles reabrem.
 
-#### Conciliação: alocar o extrato
+#### Conciliação
 
-O mesmo componente da tesouraria de evento (`distribuicaoDaConta.tsx`, com `conta="CONGREGACOES"`).
+O mesmo componente da tesouraria de evento (`conciliacaoDaTesouraria.tsx`, com `conta="CONGREGACOES"`): o diff da Administrativa, com **o que veio do banco à esquerda** e **os lançamentos da congregação à direita**, cada par na mesma linha.
 
-- **Cards:** quantos lançamentos estão nesta congregação (com o saldo), quantos estão a distribuir na conta (com o saldo do que falta) e quantos desta congregação estão sem categoria.
-- **À esquerda, A distribuir:** o que falta alocar de cada movimento da conta — os mesmos em todas as congregações. Marca-se o que é desta congregação (a caixinha ou o clique na linha) e usa-se **Trazer para esta congregação**, na barra que aparece no pé.
-- **Rateio:** o ícone de dividir na linha traz só uma parte do movimento — o boleto do material de limpeza das três congregações, por exemplo. O resto continua a distribuir, para as outras.
-- **À direita, Nesta congregação:** cada alocação com a categoria (entra "Sem categoria", em laranja; escolhe-se na própria linha) e o **devolver**, que manda o valor de volta para a distribuir.
+- A congregação não tem pagamentos nem lançamentos manuais: o lado direito é só o que foi **trazido do banco**.
+- **Só no banco** (direita hachurada): o movimento da conta que não foi para congregação nenhuma — os mesmos em todas —, com o banco de cada um. Marca-se o que é desta (a caixinha ou o clique na linha) e usa-se **Trazer para esta congregação**, na barra do pé.
+- **Rateio:** na mesma barra, ao lado, **Ratear e trazer** abre uma janela com uma aba por movimento marcado, cada uma com quanto vem para a congregação — o boleto do material de limpeza das três congregações, por exemplo. O resto continua no banco, para as outras.
+- **Conciliado** (verde): o movimento trazido vira o lançamento da congregação na mesma linha, com a categoria (entra "Sem categoria", em laranja; escolhe-se na própria linha) e o **devolver**, que o manda de volta para o banco.
+- **Cards:** conciliados, só no banco (com o saldo) e sem categoria.
 - **Categorias:**
   - entradas: Ofertas, Campanhas, Doações e Outras entradas;
   - saídas: Aluguel, Água e luz, Manutenção, Limpeza, Ação social e Outras saídas.
@@ -76,7 +77,7 @@ Todas com `RequireRole` em `ADMIN_AREA_ROLES` (`src/pages/admin/tesouraria/route
 - **Telas:** `src/pages/admin/tesouraria/congregacoes/` (`index.tsx` é a lista; `tesouraria.tsx` são as abas). As rotas ficam em `src/pages/admin/tesouraria/routes`.
 - **Dados de exemplo:** `src/features/admin/tesouraria/eventosECongregacoes/dados.ts` — as seções "tesourarias de congregação", "as contas de Eventos e de Congregações" e "fechamento".
 - **Componentes da congregação:** `modalNovaCongregacao.tsx` e `lancamentosDaCongregacao.tsx`, em `src/features/admin/tesouraria/eventosECongregacoes/components/`.
-- **Componentes compartilhados com a tesouraria de evento** (na mesma pasta): `distribuicaoDaConta.tsx`, `lancamentosDaTesouraria.tsx`, `listaDeTesourarias.tsx`, `avisoNaoAlocados.tsx` e `barraDoFechamento.tsx`.
+- **Componentes compartilhados com a tesouraria de evento** (na mesma pasta): `conciliacaoDaTesouraria.tsx`, `modalRateio.tsx`, `lancamentosDaTesouraria.tsx`, `listaDeTesourarias.tsx`, `avisoNaoAlocados.tsx` e `barraDoFechamento.tsx`.
 - **No Pluggy:** a escolha travada da conta das congregações está em `src/features/settings/integrations/pluggyForm.tsx`.
 
 ## Para virar dado de verdade

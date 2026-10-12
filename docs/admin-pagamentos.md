@@ -15,9 +15,9 @@ tem perfil tesouraria na igreja do evento (não administra) — ver
 
 O **tesoureiro(a) do evento** (básico ou completo, um vínculo só deste evento)
 vê só esta aba: lista, histórico, baixa e reembolso. O admin da igreja escolhe
-quem é, no botão **Tesoureiros** ao lado de "Esconder valores"
-(`ModalTesoureiros`); ver `docs/tesouraria.md`, seção "Tesoureiro(a) de
-evento".
+quem é em **Configurar tesoureiros**, na tesouraria do evento (Tesouraria ›
+Eventos › o evento, `ModalTesoureiros`); ver `docs/tesouraria.md`, seção
+"Tesoureiro(a) de evento".
 
 ## Aba Tesouraria
 

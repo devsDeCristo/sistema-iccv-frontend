@@ -79,7 +79,6 @@ import {
   Search,
   ShoppingBagOutlined,
   Sync,
-  SupervisorAccountOutlined,
   ViewModuleOutlined,
 } from '@mui/icons-material';
 import {
@@ -123,7 +122,6 @@ import { CardsRegistrations } from '../../../../features/admin/events/components
 import { toast } from 'react-toastify';
 import { useEventRole } from '../../../../hooks/useEventRole';
 import { TESOURARIA_EVENT_TABS } from '../../../../constants/roles';
-import { ModalTesoureiros } from '../../../../features/admin/events/components/modalTesoureiros';
 
 /**
  * Ícones em `small` (20px), o mesmo tamanho dos cards de status: em tamanho
@@ -237,7 +235,6 @@ function Details() {
     event?.churchId,
     eventId
   );
-  const [tesoureirosAbertos, setTesoureirosAbertos] = useState(false);
 
   /**
    * "Conferir no gateway" só faz sentido com cobrança online de pé: módulo de
@@ -752,17 +749,6 @@ function Details() {
               escondidos={valoresEscondidos}
               onAlternar={() => setValoresEscondidos((atual) => !atual)}
             />
-          )}
-          {/* quem escolhe os tesoureiros(as) do evento é o admin da igreja */}
-          {pageValue === 'pagamentos' && isAdminDoEvento && event?.churchId && (
-            <Button
-              variant="outlined"
-              startIcon={<SupervisorAccountOutlined />}
-              sx={{ flexShrink: 0, textTransform: 'none' }}
-              onClick={() => setTesoureirosAbertos(true)}
-            >
-              Tesoureiros
-            </Button>
           )}
           {isAdminDoEvento && (
             <Button
@@ -1304,14 +1290,6 @@ function Details() {
         filteredUsers={gridFilteredUsers}
         selectedUsers={gridSelectedUsers}
       />
-      {event?.churchId && (
-        <ModalTesoureiros
-          open={tesoureirosAbertos}
-          eventId={eventId}
-          churchId={event.churchId}
-          onClose={() => setTesoureirosAbertos(false)}
-        />
-      )}
     </PageStyle>
   );
 }

@@ -1,15 +1,18 @@
 import { Route } from 'react-router-dom';
 import { RequireRole } from '../../../../components/requireRole';
-import { ADMIN_ROLES } from '../../../../constants/roles';
+import { ADMIN_AREA_ROLES } from '../../../../constants/roles';
 import { Membros } from '..';
 
-/** Só o admin da igreja (e dev/super admin): `ADMIN_ROLES` */
+/**
+ * Admin da igreja (e dev/super admin) cuida dos membros; a tesouraria e o
+ * tesoureiro(a) de evento entram só para consultar (a tela se ajusta)
+ */
 function RoutesMembrosAdmin() {
   return (
     <Route
       path="/admin/membros"
       element={
-        <RequireRole allowedRoles={ADMIN_ROLES}>
+        <RequireRole allowedRoles={ADMIN_AREA_ROLES} aceitaTesoureiro="BASICO">
           <Membros />
         </RequireRole>
       }

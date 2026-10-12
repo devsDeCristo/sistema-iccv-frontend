@@ -75,6 +75,8 @@ export interface Lancamento {
   conciliado: boolean;
   /** o id do par, do lado de lá */
   conciliadoCom: string | null;
+  /** manual confirmado fora do extrato: não pede mais conciliação */
+  naoConstaNoBanco: boolean;
   createdAt: string;
 }
 
@@ -116,7 +118,7 @@ export interface ResultadoDaImportacao {
 
 /** Como uma linha do diff da conciliação está */
 export type EstadoDaLinha =
-  'conciliado' | 'sugerido' | 'so_banco' | 'so_manual';
+  'conciliado' | 'sugerido' | 'so_banco' | 'so_manual' | 'nao_consta';
 
 export interface LinhaDaConciliacao {
   estado: EstadoDaLinha;
@@ -132,6 +134,8 @@ export interface Conciliacao {
     sugeridos: number;
     soBanco: number;
     soManual: number;
+    /** manuais confirmados fora do extrato (dinheiro em espécie) */
+    naoConsta: number;
     /** saldo (entradas − saídas) do que só está de um lado */
     valorSoBanco: number;
     valorSoManual: number;

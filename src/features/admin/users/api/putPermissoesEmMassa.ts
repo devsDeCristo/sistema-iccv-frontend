@@ -2,6 +2,7 @@ import { useMutation } from 'react-query';
 import { apiClient } from '../../../../config/lib/axios/api-client';
 import { queryClient } from '../../../../config/lib/react-query/query-client';
 import { GET_USERS } from '../constants';
+import { GET_MEMBROS } from '../../membros/api';
 
 export type PermissoesEmMassa = {
   userIds: string[];
@@ -23,5 +24,10 @@ export const usePutPermissoesEmMassa = () =>
       apiClient
         .put<ResultadoEmMassa>('/users/permissions', dados)
         .then((resposta) => resposta.data),
-    onSuccess: () => queryClient.invalidateQueries(GET_USERS),
+    // a tela de Membros também mostra o perfil de cada um
+    onSuccess: () =>
+      Promise.all([
+        queryClient.invalidateQueries(GET_USERS),
+        queryClient.invalidateQueries(GET_MEMBROS),
+      ]),
   });

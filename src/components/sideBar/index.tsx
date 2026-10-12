@@ -673,9 +673,9 @@ const SideBar: React.FC<SideBarProps> = ({
    */
   const itensModulos: ItemMenu[] = isAdmin
     ? [
-        // primeiro da seção: os membros e as famílias são do admin da igreja
-        // (a tesouraria os vê como dizimistas, na Tesouraria)
-        ...(isAdminRole
+        // primeiro da seção: os membros e as famílias são do admin da igreja;
+        // a tesouraria e o tesoureiro(a) de evento só consultam
+        ...(isAdminRole || isTesouraria || soTesoureiroDeEvento
           ? [
               {
                 link: '/admin/membros',
@@ -701,40 +701,56 @@ const SideBar: React.FC<SideBarProps> = ({
               },
             ]
           : []),
-        // grupo: a tesouraria da igreja (o módulo de tesouraria). Admin e tesouraria.
-        // A administrativa e cada congregação têm Conciliação, Dízimos e
-        // Lançamentos em abas; cada evento, Conciliação e Lançamentos
-        {
-          link: '/admin/tesouraria',
-          icon: <AccountBalanceWallet />,
-          title: 'Tesouraria',
-          novo: true,
-          filhos: [
-            {
-              link: '/admin/tesouraria/administrativa',
-              icon: <Church />,
-              title: 'Administrativa',
-            },
-            {
-              link: '/admin/tesouraria/eventos',
-              icon: <Event />,
-              title: 'Eventos',
-              novo: true,
-            },
-            {
-              link: '/admin/tesouraria/congregacoes',
-              icon: <HolidayVillage />,
-              title: 'Congregações',
-              novo: true,
-            },
-          ],
-        },
-        {
-          link: '#patrimonio',
-          icon: <Inventory2 />,
-          title: 'Patrimônio',
-          emBreve: true,
-        },
+        // grupo: a tesouraria da igreja (o módulo de tesouraria). Admin e
+        // tesouraria veem tudo; o tesoureiro(a) completo de evento, só
+        // Eventos — a mesma tela, com os eventos dele
+        ...(!soTesoureiroDeEvento || temTesoureiroCompleto
+          ? [
+              {
+                link: '/admin/tesouraria',
+                icon: <AccountBalanceWallet />,
+                title: 'Tesouraria',
+                novo: true,
+                filhos: [
+                  ...(soTesoureiroDeEvento
+                    ? []
+                    : [
+                        {
+                          link: '/admin/tesouraria/administrativa',
+                          icon: <Church />,
+                          title: 'Administrativa',
+                        },
+                      ]),
+                  {
+                    link: '/admin/tesouraria/eventos',
+                    icon: <Event />,
+                    title: 'Eventos',
+                    novo: true,
+                  },
+                  ...(soTesoureiroDeEvento
+                    ? []
+                    : [
+                        {
+                          link: '/admin/tesouraria/congregacoes',
+                          icon: <HolidayVillage />,
+                          title: 'Congregações',
+                          novo: true,
+                        },
+                      ]),
+                ],
+              },
+            ]
+          : []),
+        ...(soTesoureiroDeEvento
+          ? []
+          : [
+              {
+                link: '#patrimonio',
+                icon: <Inventory2 />,
+                title: 'Patrimônio',
+                emBreve: true,
+              },
+            ]),
         // {
         //   link: '#loja',
         //   icon: <Storefront />,
@@ -777,30 +793,16 @@ const SideBar: React.FC<SideBarProps> = ({
       ]
     : [];
 
-  /**
-   * O tesoureiro(a) de evento não trabalha em igreja nenhuma: vê os eventos
-   * dele (a aba Tesouraria de cada um) e, se é completo, a tesouraria deles.
-   * Sem a conta do plano — ele não tem igreja; a API confere o do evento.
-   */
-  const itensDoTesoureiro: ItemMenu[] = [
-    { link: '/admin/eventos', icon: <Event />, title: 'Meus eventos' },
-    ...(temTesoureiroCompleto
-      ? [
-          {
-            link: '/admin/tesouraria/eventos',
-            icon: <AccountBalanceWallet />,
-            title: 'Tesouraria de eventos',
-          },
-        ]
-      : []),
-  ];
-
-  // módulo fora do plano de todas as igrejas da pessoa sai da régua
+  // módulo fora do plano de todas as igrejas da pessoa sai da régua. O
+  // tesoureiro(a) de evento não tem igreja para a conta: a API confere o plano
+  // da igreja do evento dele
   const doPlano = (itens: ItemMenu[]) =>
-    itens.filter(
-      (item) =>
-        !MODULO_DO_LINK[item.link] || temModulo(MODULO_DO_LINK[item.link])
-    );
+    soTesoureiroDeEvento
+      ? itens
+      : itens.filter(
+          (item) =>
+            !MODULO_DO_LINK[item.link] || temModulo(MODULO_DO_LINK[item.link])
+        );
 
   const secoes: SecaoMenu[] =
     areaAtual === 'configuracoes'
@@ -813,15 +815,18 @@ const SideBar: React.FC<SideBarProps> = ({
           { titulo: 'Tesouraria', itens: doPlano(configuracoesDaTesouraria) },
           { titulo: 'Sistema', itens: configuracoesDoSistema },
         ]
-      : areaAtual === 'admin' && soTesoureiroDeEvento
-        ? [{ titulo: 'Tesoureiro(a)', itens: itensDoTesoureiro }]
-        : areaAtual === 'admin'
-          ? [
-              { titulo: 'Administrador', itens: itensPainel },
-              { titulo: 'Módulos', itens: doPlano(itensModulos) },
-              { titulo: 'Manutenção', itens: itensManutencao },
-            ]
-          : [{ titulo: 'Inscrições', itens: itensPainel }];
+      : areaAtual === 'admin'
+        ? [
+            // o tesoureiro(a) de evento não tem igreja: Início e Meus planos
+            // são dela, e a régua dele começa nos módulos
+            {
+              titulo: 'Administrador',
+              itens: soTesoureiroDeEvento ? [] : itensPainel,
+            },
+            { titulo: 'Módulos', itens: doPlano(itensModulos) },
+            { titulo: 'Manutenção', itens: itensManutencao },
+          ]
+        : [{ titulo: 'Inscrições', itens: itensPainel }];
 
   return (
     <>

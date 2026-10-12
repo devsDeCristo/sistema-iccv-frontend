@@ -1,4 +1,6 @@
+import { ReactNode } from 'react';
 import {
+  Alert,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -16,6 +18,8 @@ type ConfirmModalProps = {
   /** Rótulos para quando "Confirmar" e "Cancelar" não dizem o que acontece */
   confirmLabel?: string;
   cancelLabel?: string;
+  /** O que a pessoa precisa saber antes de confirmar, em destaque */
+  alerta?: ReactNode;
 };
 
 function ConfirmModal({
@@ -26,11 +30,17 @@ function ConfirmModal({
   onConfirm,
   confirmLabel = 'Confirmar',
   cancelLabel = 'Cancelar',
+  alerta,
 }: ConfirmModalProps) {
   return (
     <Dialog open={open} onClose={onClose}>
       <DialogTitle>{title}</DialogTitle>
       <DialogContent>
+        {alerta && (
+          <Alert severity="warning" sx={{ mb: 2 }}>
+            {alerta}
+          </Alert>
+        )}
         <DialogContentText>{message}</DialogContentText>
       </DialogContent>
       <DialogActions>

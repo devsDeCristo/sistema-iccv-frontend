@@ -1,23 +1,36 @@
 /**
  * Tesourarias de eventos e de congregações — MVP com dados de exemplo.
  *
- * O modelo é o de uma conta por tesouraria: a tesouraria de Eventos tem a sua
- * conta no banco, e a de Congregações a dela (uma só para todas as
- * congregações). O extrato chega pelo Pluggy e fica salvo, e cada movimento é
- * **alocado** na tesouraria do evento (ou da congregação) a que pertence —
- * inteiro, ou em partes quando serve a mais de uma (rateio). Ninguém lança à
- * mão para depois conciliar: o banco é a fonte. O que não foi alocado em
- * nenhuma tesouraria (uma tarifa do banco, por exemplo) fica "não alocado".
+ * O modelo é o de uma conta por tesouraria: a tesouraria de Eventos tem os
+ * seus bancos (Sicredi e PagBank, aqui), e a de Congregações os dela (uma
+ * conta só para todas as congregações). O extrato chega pelo Pluggy e fica
+ * salvo, e cada movimento é **alocado** na tesouraria do evento (ou da
+ * congregação) a que pertence — inteiro, ou em partes quando serve a mais de
+ * uma (rateio). O que não foi alocado em nenhuma (uma tarifa do banco, por
+ * exemplo) fica "não alocado".
  *
- * ponytail: tudo aqui é mock, guardado em memória — o que se cria, aloca ou
- * fecha some ao recarregar a página. Quando virar dado de verdade, este
- * arquivo vira o `api.ts` (hooks) e as contas passam para o servidor.
+ * O evento tem também os lançamentos **do sistema**: os pagamentos das
+ * inscrições e dos produtos, e os lançamentos manuais (o dinheiro em
+ * espécie). Eles são registrados antes de o dinheiro aparecer no banco, e a
+ * conciliação liga cada um ao movimento do extrato que é o mesmo dinheiro —
+ * sozinha, quando o pagamento tem o código da transação; à mão, quando foi
+ * baixa manual. O que nunca vai passar pelo banco fica "não consta no banco".
+ *
+ * ponytail: tudo aqui é mock, guardado em memória — o que se cria, aloca,
+ * concilia ou fecha some ao recarregar a página. Quando virar dado de
+ * verdade, este arquivo vira o `api.ts` (hooks) e as contas passam para o
+ * servidor.
  */
 
 export type TipoDoLancamento = 'INCOME' | 'EXPENSE';
-/** De onde veio o lançamento: das inscrições pagas no sistema ou da conta */
-export type OrigemNaTesouraria = 'INSCRICOES' | 'BANCO';
 
+/** De onde veio um lançamento do sistema (o do banco é `BANCO`) */
+export type OrigemNoSistema = 'INSCRICAO' | 'PRODUTO' | 'MANUAL';
+
+/** Como o lançamento do sistema está diante do extrato */
+export type SituacaoNoBanco = 'CONCILIADO' | 'A_CONCILIAR' | 'NAO_CONSTA';
+
+/** Um lançamento como os totais e a tabela de Lançamentos o veem */
 export interface LancamentoDaTesouraria {
   id: string;
   tesourariaId: string;
@@ -27,14 +40,24 @@ export interface LancamentoDaTesouraria {
   valor: number;
   /** "2026-10-03" */
   data: string;
-  origem: OrigemNaTesouraria;
-  /** Pagamento das inscrições já conferido com um movimento da conta */
-  conferido?: boolean;
+  origem: OrigemNoSistema | 'BANCO';
+  /** O banco de onde veio (o do extrato, ou o do movimento conciliado) */
+  banco: string | null;
+  /** Só nos do sistema */
+  situacao: SituacaoNoBanco | null;
 }
 
-export const ROTULO_DA_ORIGEM: Record<OrigemNaTesouraria, string> = {
-  INSCRICOES: 'Pagamentos das inscrições',
-  BANCO: 'Extrato da conta',
+export const ROTULO_DA_ORIGEM: Record<OrigemNoSistema | 'BANCO', string> = {
+  INSCRICAO: 'Inscrição',
+  PRODUTO: 'Produto',
+  MANUAL: 'Manual',
+  BANCO: 'Extrato',
+};
+
+export const ROTULO_DA_SITUACAO: Record<SituacaoNoBanco, string> = {
+  CONCILIADO: 'Conciliado',
+  A_CONCILIAR: 'A conciliar',
+  NAO_CONSTA: 'Não consta no banco',
 };
 
 export const centavos = (valor: number) => Math.round(valor * 100) / 100;
@@ -53,8 +76,9 @@ export const saldoDe = (itens: { tipo: TipoDoLancamento; valor: number }[]) =>
 /**
  * Fechar a tesouraria é dar as contas dela por encerradas: nada mais entra,
  * sai ou muda de categoria. Não é o fim do evento — o fechamento vem bem
- * depois, quando o dinheiro todo assentou. Só o admin da igreja fecha (e
- * reabre); vale igual para evento e congregação.
+ * depois, quando o dinheiro todo assentou. Fecham (e reabrem) o admin e a
+ * tesouraria da igreja — o tesoureiro(a) do evento não; vale igual para
+ * evento e congregação.
  */
 export interface Fechamento {
   /** "2026-09-15" */
@@ -236,15 +260,38 @@ export function criarTesourariaDeCongregacao(dados: Omit<Congregacao, 'id'>) {
 /** As tesourarias que têm conta própria e distribuem o extrato */
 export type ContaDaTesouraria = 'EVENTOS' | 'CONGREGACOES';
 
-export const NOME_DA_CONTA: Record<ContaDaTesouraria, string> = {
-  EVENTOS: 'Sicredi · Conta de eventos',
-  CONGREGACOES: 'Cora · Conta das congregações',
+/**
+ * Os bancos de cada conta: uma tesouraria pode receber de mais de um (a de
+ * Eventos tem o Sicredi e o PagBank, onde caem as vendas do site)
+ */
+export const BANCOS_DA_CONTA: Record<ContaDaTesouraria, string[]> = {
+  EVENTOS: ['Sicredi', 'PagBank'],
+  CONGREGACOES: ['Cora'],
+};
+
+/** "Sicredi e PagBank" */
+export const nomeDosBancos = (conta: ContaDaTesouraria) =>
+  BANCOS_DA_CONTA[conta].join(' e ');
+
+/**
+ * A conta tem banco só dela — em Configurações › Integrações, "bancos
+ * divididos por tesouraria". Com a conta única (sem restrição de
+ * tesouraria), o que não foi alocado já aparece na Administrativa, e o aviso
+ * não se repete aqui.
+ *
+ * ponytail: fixo enquanto a divisão dos bancos não é salva (é só prévia na
+ * tela da Pluggy); depois, vem da integração da igreja.
+ */
+export const TEM_BANCO_PROPRIO: Record<ContaDaTesouraria, boolean> = {
+  EVENTOS: true,
+  CONGREGACOES: true,
 };
 
 /** Um movimento da conta, como o Pluggy trouxe e ficou salvo */
 export interface MovimentoDaConta {
   id: string;
   conta: ContaDaTesouraria;
+  banco: string;
   tipo: TipoDoLancamento;
   descricao: string;
   /** Quem pagou, quando o banco diz */
@@ -252,6 +299,11 @@ export interface MovimentoDaConta {
   valor: number;
   /** "2026-10-03" */
   data: string;
+  /**
+   * O código da transação que veio junto — o da venda no PagBank. É por ele
+   * que o pagamento do site se concilia sozinho
+   */
+  codigo: string | null;
 }
 
 /**
@@ -265,12 +317,6 @@ export interface Alocacao {
   valor: number;
   /** Nula até alguém classificar: aparece como "Sem categoria" */
   categoria: string | null;
-  /**
-   * O pagamento das inscrições que este movimento confirma (só em evento): o
-   * repasse do PagBank que cai na conta é o mesmo dinheiro das inscrições já
-   * registradas, e conferido não conta duas vezes
-   */
-  pagamentoId: string | null;
 }
 
 /** Um movimento com o que ainda falta alocar dele */
@@ -279,15 +325,27 @@ export interface LinhaLivre {
   restante: number;
 }
 
-/** Uma alocação desta tesouraria, com o movimento de onde ela veio */
+/** Um lançamento do sistema ligado a um movimento */
+export interface Conciliado {
+  lancamento: LancamentoDoSistema;
+  /** Ligado pelo código da transação, sem ninguém marcar */
+  automatica: boolean;
+}
+
+/** Uma alocação desta tesouraria, com o movimento e o que ela concilia */
 export interface LinhaDaqui {
   alocacao: Alocacao;
   movimento: MovimentoDaConta;
+  /**
+   * Os lançamentos do sistema que são este dinheiro. Vazio: o movimento foi
+   * trazido do banco e é, ele mesmo, o lançamento da tesouraria
+   */
+  conciliados: Conciliado[];
 }
 
 export const SEM_CATEGORIA = 'Sem categoria';
 
-/** As categorias que uma alocação pode receber */
+/** As categorias que uma alocação (ou um lançamento manual) pode receber */
 export const CATEGORIAS: Record<
   ContaDaTesouraria,
   Record<TipoDoLancamento, string[]>
@@ -295,8 +353,7 @@ export const CATEGORIAS: Record<
   EVENTOS: {
     INCOME: [
       'Ingressos',
-      'Loja do evento',
-      'Convites',
+      'Produtos',
       'Doações',
       'Patrocínio',
       'Outras entradas',
@@ -307,6 +364,7 @@ export const CATEGORIAS: Record<
       'Transporte',
       'Materiais',
       'Som e decoração',
+      'Tarifas',
       'Outras saídas',
     ],
   },
@@ -326,22 +384,36 @@ export const CATEGORIAS: Record<
 const EXTRATO: MovimentoDaConta[] = [];
 const ALOCACOES: Alocacao[] = [];
 
+type Linha = [
+  TipoDoLancamento,
+  string,
+  number,
+  string,
+  string | null,
+  string | null,
+];
+
 let proximo = 0;
 /** Grava um movimento e, se `tesourariaId`, a alocação dele inteiro */
 function movimento(
   conta: ContaDaTesouraria,
+  banco: string,
   tesourariaId: string | null,
-  [tipo, descricao, valor, data, categoria, pagador]: [
-    TipoDoLancamento,
-    string,
-    number,
-    string,
-    string | null,
-    string | null,
-  ]
+  [tipo, descricao, valor, data, categoria, pagador]: Linha,
+  codigo: string | null = null
 ) {
   const id = `mov-${++proximo}`;
-  EXTRATO.push({ id, conta, tipo, descricao, pagador, valor, data });
+  EXTRATO.push({
+    id,
+    conta,
+    banco,
+    tipo,
+    descricao,
+    pagador,
+    valor,
+    data,
+    codigo,
+  });
   if (tesourariaId) {
     ALOCACOES.push({
       id: `aloc-${id}`,
@@ -349,12 +421,96 @@ function movimento(
       tesourariaId,
       valor,
       categoria,
-      pagamentoId: null,
     });
   }
+  return id;
 }
 
-// a conta de Eventos: o que já foi para cada evento e o que não foi para nenhum
+// ---- os lançamentos do sistema (só evento) ---------------------------------------
+
+/**
+ * O que o evento registrou antes de o dinheiro aparecer no banco: os
+ * pagamentos das inscrições e dos produtos (vêm da tela de pagamentos do
+ * evento) e os lançamentos manuais da tesouraria.
+ */
+export interface LancamentoDoSistema {
+  id: string;
+  tesourariaId: string;
+  origem: OrigemNoSistema;
+  tipo: TipoDoLancamento;
+  categoria: string;
+  descricao: string;
+  valor: number;
+  /** "2026-10-03" */
+  data: string;
+  /** Pix, Cartão, Dinheiro… */
+  forma: string | null;
+  /**
+   * O código da transação no gateway (PagBank). Sem ele, o pagamento teve
+   * baixa manual no "Detalhes do pagamento", ou é um lançamento manual
+   */
+  codigo: string | null;
+  /** Gerado pela conciliação automática (a tarifa do gateway) */
+  automatico?: boolean;
+}
+
+/** O lançamento do sistema ligado ao movimento do extrato que é ele */
+interface Conciliacao {
+  lancamentoId: string;
+  movimentoId: string;
+  tesourariaId: string;
+  automatica: boolean;
+}
+
+/** Um lançamento do sistema, com a situação dele diante do extrato */
+export interface LinhaDoSistema {
+  lancamento: LancamentoDoSistema;
+  situacao: SituacaoNoBanco;
+  /** O movimento conciliado */
+  movimento: MovimentoDaConta | null;
+  automatica: boolean;
+}
+
+const SISTEMA: LancamentoDoSistema[] = [];
+const CONCILIACOES: Conciliacao[] = [];
+/** Os confirmados como "não consta no banco" */
+const NAO_CONSTA = new Set<string>();
+
+function lancamento(
+  tesourariaId: string,
+  origem: OrigemNoSistema,
+  [tipo, descricao, valor, data, categoria, forma]: Linha,
+  codigo: string | null = null
+) {
+  const id = `sis-${++proximo}`;
+  SISTEMA.push({
+    id,
+    tesourariaId,
+    origem,
+    tipo,
+    descricao,
+    valor,
+    data,
+    categoria: categoria ?? SEM_CATEGORIA,
+    forma,
+    codigo,
+  });
+  return id;
+}
+
+const ligar = (
+  lancamentoId: string,
+  movimentoId: string,
+  tesourariaId: string,
+  automatica = false
+) => {
+  NAO_CONSTA.delete(lancamentoId);
+  CONCILIACOES.push({ lancamentoId, movimentoId, tesourariaId, automatica });
+};
+
+// ---- a conta de Eventos ----------------------------------------------------------
+
+// o que já foi para cada evento
 for (const [tesourariaId, linhas] of [
   [
     'retiro-carnaval-2027',
@@ -521,77 +677,233 @@ for (const [tesourariaId, linhas] of [
       ],
     ],
   ],
+] as const) {
+  for (const linha of linhas) {
+    movimento('EVENTOS', 'Sicredi', tesourariaId, linha as unknown as Linha);
+  }
+}
+
+/**
+ * Os eventos que já acabaram: as inscrições vieram por lote, e cada repasse
+ * do PagBank que caiu no Sicredi já foi conciliado com o lote dele.
+ */
+for (const [tesourariaId, lotes] of [
   [
-    null,
+    'encontro-casais-2026',
     [
-      // o repasse das inscrições do 1º lote do retiro: conferir com o
-      // pagamento já registrado, e não contar de novo
+      ['Inscrições — 1º lote (18 casais)', 5400, '2026-07-20', '2026-07-22'],
+      ['Inscrições — 2º lote (13 casais)', 4550, '2026-08-25', '2026-08-27'],
+    ],
+  ],
+  [
+    'cursilho-48',
+    [
       [
-        'INCOME',
-        'Transferência recebida — PagSeguro (repasse)',
-        7790,
-        '2026-10-01',
-        null,
-        'PagSeguro Internet',
-      ],
-      // não é de evento nenhum: fica não alocado
-      [
-        'EXPENSE',
-        'Tarifa de manutenção da conta',
-        39.9,
-        '2026-10-05',
-        null,
-        null,
-      ],
-      // a gráfica imprimiu os banners de dois eventos: rateio
-      [
-        'EXPENSE',
-        'Pix enviado — Gráfica Rápida (banners de dois eventos)',
-        640,
-        '2026-10-06',
-        null,
-        null,
+        'Inscrições — 1º lote (30 inscrições)',
+        6600,
+        '2026-06-15',
+        '2026-06-17',
       ],
       [
-        'EXPENSE',
-        'Pix enviado — Casa de Retiros São José (caução)',
-        1500,
-        '2026-10-09',
-        null,
-        null,
+        'Inscrições — 2º lote (22 inscrições)',
+        5720,
+        '2026-07-15',
+        '2026-07-17',
       ],
-      ['INCOME', 'Pix recebido', 190, '2026-10-08', null, 'Carla Menezes'],
-      ['INCOME', 'Pix recebido', 450, '2026-10-02', null, 'Grupo de Jovens'],
-      ['INCOME', 'Depósito em dinheiro', 1240, '2026-09-22', null, null],
-      [
-        'INCOME',
-        'Pix recebido',
-        1520,
-        '2026-09-21',
-        null,
-        'Tesoureira do jantar',
-      ],
-      ['INCOME', 'Depósito em dinheiro', 1050, '2026-09-11', null, null],
-      [
-        'EXPENSE',
-        'Pix enviado — Gráfica Rápida',
-        280,
-        '2026-09-06',
-        null,
-        null,
-      ],
-      ['INCOME', 'Depósito em dinheiro', 1560, '2026-08-03', null, null],
     ],
   ],
 ] as const) {
-  for (const linha of linhas) {
-    movimento(
-      'EVENTOS',
-      tesourariaId,
-      linha as Parameters<typeof movimento>[2]
-    );
+  for (const [descricao, valor, pago, caiu] of lotes) {
+    const sis = lancamento(tesourariaId, 'INSCRICAO', [
+      'INCOME',
+      descricao,
+      valor,
+      pago,
+      'Ingressos',
+      'Site',
+    ]);
+    const mov = movimento('EVENTOS', 'Sicredi', tesourariaId, [
+      'INCOME',
+      'Transferência recebida — PagBank (repasse)',
+      valor,
+      caiu,
+      'Ingressos',
+      'PagBank',
+    ]);
+    ligar(sis, mov, tesourariaId);
   }
 }
+lancamento(
+  'encontro-casais-2026',
+  'PRODUTO',
+  [
+    'INCOME',
+    'Camisas do encontro (42 un.)',
+    1890,
+    '2026-09-20',
+    'Produtos',
+    'Dinheiro',
+  ],
+  null
+);
+NAO_CONSTA.add(SISTEMA[SISTEMA.length - 1].id);
+
+// o retiro, aberto: o que ainda está a distribuir e a conciliar
+const RETIRO = 'retiro-carnaval-2027';
+
+// as vendas do site, uma a uma, com o código da transação. A primeira ainda
+// não caiu no PagBank (cartão demora)
+for (const [origem, descricao, valor, data, codigo, forma] of [
+  [
+    'INSCRICAO',
+    'Inscrição — Ana Paula Souza',
+    190,
+    '2026-09-28',
+    'PAG-7F3A21',
+    'Cartão',
+  ],
+  [
+    'PRODUTO',
+    'Camisa do retiro — Ana Paula Souza',
+    45,
+    '2026-09-28',
+    'PAG-7F3A22',
+    'Cartão',
+  ],
+  [
+    'INSCRICAO',
+    'Inscrição — Bruno Lima',
+    190,
+    '2026-09-29',
+    'PAG-8C1D45',
+    'Pix',
+  ],
+  [
+    'INSCRICAO',
+    'Inscrição — Carla Menezes',
+    190,
+    '2026-10-01',
+    'PAG-2B9E77',
+    'Pix',
+  ],
+  [
+    'INSCRICAO',
+    'Inscrição — Diego Ramos',
+    190,
+    '2026-10-03',
+    'PAG-5E6F10',
+    'Cartão',
+  ],
+] as const) {
+  lancamento(
+    RETIRO,
+    origem,
+    [
+      'INCOME',
+      descricao,
+      valor,
+      data,
+      origem === 'PRODUTO' ? 'Produtos' : 'Ingressos',
+      forma,
+    ],
+    codigo
+  );
+}
+// e o que caiu no PagBank, já sem a tarifa
+for (const [codigo, valor, data] of [
+  ['PAG-7F3A21', 181.27, '2026-09-29'],
+  ['PAG-7F3A22', 42.93, '2026-09-29'],
+  ['PAG-8C1D45', 188.12, '2026-09-29'],
+  ['PAG-2B9E77', 188.12, '2026-10-01'],
+] as const) {
+  movimento(
+    'EVENTOS',
+    'PagBank',
+    null,
+    ['INCOME', `Venda — cód. ${codigo}`, valor, data, null, null],
+    codigo
+  );
+}
+
+// as baixas manuais: não têm código, a tesouraria concilia à mão
+for (const [origem, descricao, valor, data, categoria, forma] of [
+  [
+    'INSCRICAO',
+    'Inscrição — Elisa Prado (baixa manual)',
+    190,
+    '2026-10-02',
+    'Ingressos',
+    'Pix',
+  ],
+  [
+    'INSCRICAO',
+    'Inscrição — Fábio Nunes (baixa manual)',
+    190,
+    '2026-10-04',
+    'Ingressos',
+    'Dinheiro',
+  ],
+  [
+    'INSCRICAO',
+    'Inscrição — Gabriela Costa (baixa manual)',
+    190,
+    '2026-10-04',
+    'Ingressos',
+    'Dinheiro',
+  ],
+  [
+    'PRODUTO',
+    'Camisas — venda no balcão (3 un.)',
+    135,
+    '2026-10-05',
+    'Produtos',
+    'Dinheiro',
+  ],
+] as const) {
+  lancamento(RETIRO, origem, [
+    'INCOME',
+    descricao,
+    valor,
+    data,
+    categoria,
+    forma,
+  ]);
+}
+
+// o que está na conta e não foi para evento nenhum
+for (const linha of [
+  // a baixa manual da Elisa, que pagou por Pix direto na conta
+  ['INCOME', 'Pix recebido', 190, '2026-10-02', null, 'Elisa Prado'],
+  // as inscrições do Fábio e da Gabriela, depositadas juntas
+  ['INCOME', 'Depósito em dinheiro', 380, '2026-10-06', null, null],
+  // não é de evento nenhum: fica não alocado
+  ['EXPENSE', 'Tarifa de manutenção da conta', 39.9, '2026-10-05', null, null],
+  // a gráfica imprimiu os banners de dois eventos: rateio
+  [
+    'EXPENSE',
+    'Pix enviado — Gráfica Rápida (banners de dois eventos)',
+    640,
+    '2026-10-06',
+    null,
+    null,
+  ],
+  [
+    'EXPENSE',
+    'Pix enviado — Casa de Retiros São José (caução)',
+    1500,
+    '2026-10-09',
+    null,
+    null,
+  ],
+  ['INCOME', 'Pix recebido', 450, '2026-10-02', null, 'Grupo de Jovens'],
+  ['INCOME', 'Depósito em dinheiro', 1240, '2026-09-22', null, null],
+  ['INCOME', 'Pix recebido', 1520, '2026-09-21', null, 'Tesoureira do jantar'],
+  ['EXPENSE', 'Pix enviado — Gráfica Rápida', 280, '2026-09-06', null, null],
+] as const) {
+  movimento('EVENTOS', 'Sicredi', null, linha as unknown as Linha);
+}
+
+// ---- a conta das Congregações -----------------------------------------------------
 
 /**
  * A conta das Congregações, gerada para ter o ano inteiro sem uma lista de
@@ -638,7 +950,7 @@ tesourariasDeCongregacao.forEach((t, ti) => {
     pagador: string | null = null
   ) => {
     if (mes === OUTUBRO && d > HOJE) return;
-    movimento('CONGREGACOES', mes < OUTUBRO ? t.id : null, [
+    movimento('CONGREGACOES', 'Cora', mes < OUTUBRO ? t.id : null, [
       tipo,
       descricao,
       valor,
@@ -700,7 +1012,7 @@ tesourariasDeCongregacao.forEach((t, ti) => {
 });
 
 // não é de congregação nenhuma: fica não alocado
-movimento('CONGREGACOES', null, [
+movimento('CONGREGACOES', 'Cora', null, [
   'EXPENSE',
   'Tarifa de manutenção da conta',
   29.9,
@@ -709,7 +1021,7 @@ movimento('CONGREGACOES', null, [
   null,
 ]);
 // material de limpeza das três congregações num boleto só: rateio
-movimento('CONGREGACOES', null, [
+movimento('CONGREGACOES', 'Cora', null, [
   'EXPENSE',
   'Boleto — Material de limpeza (três congregações)',
   360,
@@ -717,6 +1029,8 @@ movimento('CONGREGACOES', null, [
   null,
   null,
 ]);
+
+// ---- distribuir o extrato ----------------------------------------------------------
 
 const maisRecentes = (a: string, b: string) => b.localeCompare(a);
 
@@ -728,18 +1042,32 @@ const alocadoDe = (movimentoId: string) =>
     )
   );
 
+const restanteDe = (movimentoId: string) =>
+  centavos(
+    (EXTRATO.find((m) => m.id === movimentoId)?.valor ?? 0) -
+      alocadoDe(movimentoId)
+  );
+
 /**
  * O que está na conta e ainda não foi (todo) para nenhuma tesouraria: os
  * movimentos não alocados, e o resto dos que foram só em parte.
  */
 export const aDistribuir = (conta: ContaDaTesouraria): LinhaLivre[] =>
   EXTRATO.filter((m) => m.conta === conta)
-    .map((m) => ({
-      movimento: m,
-      restante: centavos(m.valor - alocadoDe(m.id)),
-    }))
+    .map((m) => ({ movimento: m, restante: restanteDe(m.id) }))
     .filter((l) => l.restante > 0)
     .sort((a, b) => maisRecentes(a.movimento.data, b.movimento.data));
+
+const conciliadosDe = (
+  movimentoId: string,
+  tesourariaId: string
+): Conciliado[] =>
+  CONCILIACOES.filter(
+    (c) => c.movimentoId === movimentoId && c.tesourariaId === tesourariaId
+  ).map((c) => ({
+    lancamento: SISTEMA.find((s) => s.id === c.lancamentoId)!,
+    automatica: c.automatica,
+  }));
 
 /** As alocações desta tesouraria, com o movimento de cada uma */
 export const alocacoesDa = (tesourariaId: string): LinhaDaqui[] =>
@@ -747,35 +1075,22 @@ export const alocacoesDa = (tesourariaId: string): LinhaDaqui[] =>
     .map((alocacao) => ({
       alocacao,
       movimento: EXTRATO.find((m) => m.id === alocacao.movimentoId)!,
+      conciliados: conciliadosDe(alocacao.movimentoId, tesourariaId),
     }))
     .sort((a, b) => maisRecentes(a.movimento.data, b.movimento.data));
 
 /**
- * Traz para a tesouraria o que falta alocar de cada movimento (o movimento
- * inteiro, se nada dele foi alocado). Entra sem categoria.
- */
-export function distribuir(movimentoIds: string[], tesourariaId: string) {
-  for (const id of movimentoIds) {
-    const restante = centavos(
-      (EXTRATO.find((m) => m.id === id)?.valor ?? 0) - alocadoDe(id)
-    );
-    if (restante > 0) distribuirParte(id, tesourariaId, restante);
-  }
-}
-
-/**
  * Rateio: traz só uma parte do movimento; o resto continua a distribuir, para
  * outra tesouraria. Uma tesouraria tem no máximo uma alocação por movimento —
- * trazer de novo soma na que já existe.
+ * trazer de novo soma na que já existe. Entra sem categoria.
  */
 export function distribuirParte(
   movimentoId: string,
   tesourariaId: string,
-  valor: number
+  valor: number,
+  categoria: string | null = null
 ) {
-  const m = EXTRATO.find((x) => x.id === movimentoId);
-  if (!m) return;
-  const parte = centavos(Math.min(valor, m.valor - alocadoDe(movimentoId)));
+  const parte = centavos(Math.min(valor, restanteDe(movimentoId)));
   if (parte <= 0) return;
   const ja = ALOCACOES.find(
     (a) => a.movimentoId === movimentoId && a.tesourariaId === tesourariaId
@@ -789,97 +1104,323 @@ export function distribuirParte(
     movimentoId,
     tesourariaId,
     valor: parte,
-    categoria: null,
-    pagamentoId: null,
+    categoria,
   });
 }
 
-/** Devolve a alocação: o valor dela volta a distribuir */
+/** Traz para a tesouraria o que falta alocar de cada movimento */
+export function distribuir(movimentoIds: string[], tesourariaId: string) {
+  for (const id of movimentoIds) {
+    distribuirParte(id, tesourariaId, restanteDe(id));
+  }
+}
+
+/** Desfaz as conciliações de um movimento nesta tesouraria */
+function soltar(movimentoId: string, tesourariaId: string) {
+  for (let i = CONCILIACOES.length - 1; i >= 0; i--) {
+    const c = CONCILIACOES[i];
+    if (c.movimentoId !== movimentoId || c.tesourariaId !== tesourariaId) {
+      continue;
+    }
+    CONCILIACOES.splice(i, 1);
+    // a tarifa que a conciliação automática lançou some junto com ela
+    const s = SISTEMA.findIndex((x) => x.id === c.lancamentoId);
+    if (s >= 0 && SISTEMA[s].automatico) SISTEMA.splice(s, 1);
+  }
+}
+
+/**
+ * Devolve a alocação: o valor dela volta a distribuir, e o que ela
+ * conciliava volta a conciliar
+ */
 export function devolver(alocacaoId: string) {
   const i = ALOCACOES.findIndex((a) => a.id === alocacaoId);
-  if (i >= 0) ALOCACOES.splice(i, 1);
+  if (i < 0) return;
+  soltar(ALOCACOES[i].movimentoId, ALOCACOES[i].tesourariaId);
+  ALOCACOES.splice(i, 1);
 }
 
 export function classificar(alocacaoId: string, categoria: string) {
   const a = ALOCACOES.find((x) => x.id === alocacaoId);
-  if (!a) return;
-  a.categoria = categoria;
-  a.pagamentoId = null;
+  if (a) a.categoria = categoria;
 }
 
-// ---- os pagamentos das inscrições (só evento) -----------------------------------
+// ---- conciliar com o sistema ---------------------------------------------------------
 
-type Ingresso = [string, string, number, string];
+/** Os lançamentos do sistema desta tesouraria, com a situação de cada um */
+export const sistemaDa = (tesourariaId: string): LinhaDoSistema[] =>
+  SISTEMA.filter((s) => s.tesourariaId === tesourariaId)
+    .map((lancamento) => {
+      const c = CONCILIACOES.find((x) => x.lancamentoId === lancamento.id);
+      return {
+        lancamento,
+        situacao: c
+          ? 'CONCILIADO'
+          : NAO_CONSTA.has(lancamento.id)
+            ? 'NAO_CONSTA'
+            : 'A_CONCILIAR',
+        movimento: c ? EXTRATO.find((m) => m.id === c.movimentoId)! : null,
+        automatica: !!c?.automatica,
+      } satisfies LinhaDoSistema;
+    })
+    .sort((a, b) => maisRecentes(a.lancamento.data, b.lancamento.data));
 
-const INGRESSOS: Record<string, Ingresso[]> = {
-  'retiro-carnaval-2027': [
-    ['Ingressos', 'Ingressos — 1º lote (41 inscrições)', 7790, '2026-09-30'],
-    [
-      'Ingressos',
-      'Ingressos — 2º lote, parcial (17 inscrições)',
-      3740,
-      '2026-10-10',
-    ],
-    ['Loja do evento', 'Camisas — pré-venda (23 un.)', 1035, '2026-10-05'],
-  ],
-  'encontro-casais-2026': [
-    ['Ingressos', 'Ingressos — 1º lote (18 casais)', 5400, '2026-07-20'],
-    ['Ingressos', 'Ingressos — 2º lote (13 casais)', 4550, '2026-08-25'],
-    ['Loja do evento', 'Camisas do encontro (42 un.)', 1890, '2026-09-20'],
-  ],
-  'cursilho-48': [
-    ['Ingressos', 'Ingressos — 1º lote (30 inscrições)', 6600, '2026-06-15'],
-    ['Ingressos', 'Ingressos — 2º lote (22 inscrições)', 5720, '2026-07-15'],
-  ],
-};
+/** Os que ainda pedem conciliação: o fechamento avisa deles */
+export const aConciliarDa = (tesourariaId: string) =>
+  sistemaDa(tesourariaId).filter((l) => l.situacao === 'A_CONCILIAR');
 
 /**
- * Os pagamentos das inscrições registrados no sistema para o evento. O
- * dinheiro deles cai na conta (o repasse do PagBank); conferir o repasse com
- * o pagamento é o que impede contar o mesmo dinheiro duas vezes.
+ * Concilia um movimento do banco com lançamentos do sistema que são o mesmo
+ * dinheiro — um ou vários: o depósito do dinheiro de três inscrições, o
+ * repasse de um lote. A soma deles (entradas menos saídas) precisa bater com
+ * o valor do banco ao centavo; a tarifa do gateway entra como um lançamento
+ * de saída junto. O movimento ainda a distribuir vem para a tesouraria.
+ *
+ * Volta a mensagem do que impediu, ou `null`.
  */
-export const pagamentosDa = (tesourariaId: string): LancamentoDaTesouraria[] =>
-  (INGRESSOS[tesourariaId] ?? []).map(
-    ([categoria, descricao, valor, data], i) => {
-      const id = `${tesourariaId}-ingresso-${i}`;
-      return {
-        id,
-        tesourariaId,
-        tipo: 'INCOME',
-        categoria,
-        descricao,
-        valor,
-        data,
-        origem: 'INSCRICOES',
-        conferido: ALOCACOES.some((a) => a.pagamentoId === id),
-      };
-    }
+export function conciliar(
+  movimentoId: string,
+  lancamentoIds: string[],
+  tesourariaId: string
+): string | null {
+  const m = EXTRATO.find((x) => x.id === movimentoId);
+  if (!m || !lancamentoIds.length) return 'Marque o banco e o sistema';
+  if (conciliadosDe(movimentoId, tesourariaId).length) {
+    return 'Este movimento já está conciliado: desfaça antes';
+  }
+  const aqui = ALOCACOES.find(
+    (a) => a.movimentoId === movimentoId && a.tesourariaId === tesourariaId
   );
+  const doBanco = aqui?.valor ?? restanteDe(movimentoId);
+  const lancamentos = SISTEMA.filter((s) => lancamentoIds.includes(s.id));
+  const sinal = (tipo: TipoDoLancamento) => (tipo === 'INCOME' ? 1 : -1);
+  const soma = centavos(
+    lancamentos.reduce((t, l) => t + sinal(l.tipo) * l.valor, 0)
+  );
+  const banco = centavos(sinal(m.tipo) * doBanco);
+  if (soma !== banco) {
+    const fmt = (v: number) =>
+      v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    return `O banco tem ${fmt(banco)} e os lançamentos somam ${fmt(soma)}. Se a diferença é tarifa, lance-a como saída e marque junto.`;
+  }
+  if (!aqui) {
+    distribuirParte(
+      movimentoId,
+      tesourariaId,
+      doBanco,
+      lancamentos[0].categoria
+    );
+  }
+  for (const l of lancamentos) ligar(l.id, movimentoId, tesourariaId);
+  return null;
+}
 
-/** Confere a alocação com um pagamento das inscrições (ou desfaz, com null) */
-export function conferirComPagamento(
-  alocacaoId: string,
-  pagamentoId: string | null
+/** Desfaz a conciliação do lançamento (e dos outros do mesmo movimento) */
+/**
+ * Desfaz a conciliação do lançamento (e dos outros do mesmo movimento): o
+ * movimento volta para o lado do banco, sem par, e os lançamentos voltam a
+ * conciliar
+ */
+export function desfazerConciliacao(lancamentoId: string) {
+  const c = CONCILIACOES.find((x) => x.lancamentoId === lancamentoId);
+  const a =
+    c &&
+    ALOCACOES.find(
+      (x) =>
+        x.movimentoId === c.movimentoId && x.tesourariaId === c.tesourariaId
+    );
+  if (a) devolver(a.id);
+}
+
+/** Confirma que não vai aparecer no extrato (dinheiro em espécie), ou volta */
+export function marcarNaoConsta(lancamentoIds: string[], naoConsta: boolean) {
+  for (const id of lancamentoIds) {
+    if (CONCILIACOES.some((c) => c.lancamentoId === id)) continue;
+    if (naoConsta) NAO_CONSTA.add(id);
+    else NAO_CONSTA.delete(id);
+  }
+}
+
+/** Lançamento manual da tesouraria do evento: entra a conciliar */
+export function novoLancamento(
+  tesourariaId: string,
+  dados: Pick<
+    LancamentoDoSistema,
+    'tipo' | 'categoria' | 'descricao' | 'valor' | 'data' | 'forma'
+  >
 ) {
-  const a = ALOCACOES.find((x) => x.id === alocacaoId);
-  if (!a) return;
-  a.pagamentoId = pagamentoId;
-  a.categoria = pagamentoId
-    ? (pagamentosDa(a.tesourariaId).find((p) => p.id === pagamentoId)
-        ?.categoria ?? null)
-    : null;
+  SISTEMA.push({
+    ...dados,
+    id: `sis-${++proximo}`,
+    tesourariaId,
+    origem: 'MANUAL',
+    codigo: null,
+  });
+}
+
+/**
+ * A conciliação automática: o pagamento com código de transação casa com o
+ * movimento do extrato que traz o mesmo código, sem ninguém marcar nada. O
+ * banco recebe o valor já sem a tarifa do gateway; a diferença vira um
+ * lançamento de saída ("Tarifas"), conciliado junto.
+ *
+ * ponytail: roda uma vez, ao carregar; no servidor, roda a cada importação
+ * (do extrato ou dos pagamentos).
+ */
+function conciliarAutomatico() {
+  for (const s of [...SISTEMA]) {
+    if (!s.codigo || CONCILIACOES.some((c) => c.lancamentoId === s.id)) {
+      continue;
+    }
+    const m = EXTRATO.find(
+      (x) => x.codigo === s.codigo && restanteDe(x.id) === x.valor
+    );
+    if (!m) continue;
+    distribuirParte(m.id, s.tesourariaId, m.valor, s.categoria);
+    ligar(s.id, m.id, s.tesourariaId, true);
+    const tarifa = centavos(s.valor - m.valor);
+    if (tarifa > 0) {
+      const id = `sis-${++proximo}`;
+      SISTEMA.push({
+        id,
+        tesourariaId: s.tesourariaId,
+        origem: 'MANUAL',
+        tipo: 'EXPENSE',
+        categoria: 'Tarifas',
+        descricao: `Tarifa do PagBank — cód. ${s.codigo}`,
+        valor: tarifa,
+        data: m.data,
+        forma: null,
+        codigo: s.codigo,
+        automatico: true,
+      });
+      ligar(id, m.id, s.tesourariaId, true);
+    }
+  }
+}
+conciliarAutomatico();
+
+// ---- o diff da conciliação -----------------------------------------------------
+
+/** Como uma linha da conciliação está, como na Administrativa */
+export type EstadoDaLinha =
+  'so_banco' | 'so_evento' | 'nao_consta' | 'conciliado';
+
+/** O lado direito: um lançamento da tesouraria */
+export type LadoDaTesouraria =
+  /** pagamento ou manual do evento */
+  | ({ de: 'sistema'; situacao: SituacaoNoBanco } & Conciliado)
+  /** o movimento trazido do banco, que é ele mesmo o lançamento */
+  | { de: 'extrato'; alocacao: Alocacao };
+
+export interface LinhaDaConciliacao {
+  chave: string;
+  estado: EstadoDaLinha;
+  /** O lado esquerdo: o movimento do banco e quanto dele está nesta linha */
+  banco: { movimento: MovimentoDaConta; valor: number } | null;
+  /**
+   * O banco é o mesmo da linha de cima: um movimento que concilia com
+   * vários lançamentos (o depósito do dinheiro de três inscrições)
+   */
+  continua: boolean;
+  tesouraria: LadoDaTesouraria | null;
+}
+
+/**
+ * A conciliação de uma tesouraria como um diff, linha a linha: à esquerda o
+ * que veio do banco (o Pluggy), à direita os lançamentos da tesouraria.
+ *
+ * - só no banco: o que ainda não foi para tesouraria nenhuma;
+ * - só no evento: o pagamento ou o manual que ainda não achou o banco;
+ * - não consta no banco: o que nunca vai achar (dinheiro em espécie);
+ * - conciliado: o par — o pagamento com o movimento, ou o movimento trazido
+ *   do banco, que vira o lançamento da tesouraria.
+ *
+ * O que pede ação vem primeiro; dentro de cada grupo, do mais recente.
+ */
+export function conciliacaoDa(
+  conta: ContaDaTesouraria,
+  tesourariaId: string
+): LinhaDaConciliacao[] {
+  const sistema = conta === 'EVENTOS' ? sistemaDa(tesourariaId) : [];
+  const soDoSistema = (situacao: SituacaoNoBanco) =>
+    sistema
+      .filter((l) => l.situacao === situacao)
+      .map((l): LinhaDaConciliacao => ({
+        chave: l.lancamento.id,
+        estado: situacao === 'NAO_CONSTA' ? 'nao_consta' : 'so_evento',
+        banco: null,
+        continua: false,
+        tesouraria: {
+          de: 'sistema',
+          situacao,
+          lancamento: l.lancamento,
+          automatica: false,
+        },
+      }));
+
+  return [
+    ...aDistribuir(conta).map(
+      ({ movimento, restante }): LinhaDaConciliacao => ({
+        chave: movimento.id,
+        estado: 'so_banco',
+        banco: { movimento, valor: restante },
+        continua: false,
+        tesouraria: null,
+      })
+    ),
+    ...soDoSistema('A_CONCILIAR'),
+    ...soDoSistema('NAO_CONSTA'),
+    ...alocacoesDa(tesourariaId).flatMap(
+      ({ alocacao, movimento, conciliados }): LinhaDaConciliacao[] => {
+        const banco = { movimento, valor: alocacao.valor };
+        if (!conciliados.length) {
+          return [
+            {
+              chave: alocacao.id,
+              estado: 'conciliado',
+              banco,
+              continua: false,
+              tesouraria: { de: 'extrato', alocacao },
+            },
+          ];
+        }
+        return conciliados.map((c, i) => ({
+          chave: c.lancamento.id,
+          estado: 'conciliado',
+          banco,
+          continua: i > 0,
+          tesouraria: { de: 'sistema', situacao: 'CONCILIADO', ...c },
+        }));
+      }
+    ),
+  ];
 }
 
 // ---- lançamentos ----------------------------------------------------------------
 
 /**
- * Os lançamentos de uma tesouraria: os pagamentos das inscrições (só evento)
- * e o que foi alocado nela. A alocação conferida com um pagamento não entra:
- * o pagamento já conta aquele dinheiro.
+ * Os lançamentos de uma tesouraria: os do sistema (pagamentos e manuais,
+ * conciliados ou não) e o que veio do banco sem par no sistema. O movimento
+ * conciliado não entra: os lançamentos dele já contam aquele dinheiro.
  */
 export function lancamentosDa(tesourariaId: string): LancamentoDaTesouraria[] {
-  const daConta = alocacoesDa(tesourariaId)
-    .filter(({ alocacao }) => !alocacao.pagamentoId)
+  const doSistema = sistemaDa(tesourariaId).map(
+    ({ lancamento: l, situacao, movimento: m }): LancamentoDaTesouraria => ({
+      id: l.id,
+      tesourariaId,
+      tipo: l.tipo,
+      categoria: l.categoria,
+      descricao: l.descricao,
+      valor: l.valor,
+      data: l.data,
+      origem: l.origem,
+      banco: m?.banco ?? null,
+      situacao,
+    })
+  );
+  const doBanco = alocacoesDa(tesourariaId)
+    .filter(({ conciliados }) => !conciliados.length)
     .map(({ alocacao, movimento: m }): LancamentoDaTesouraria => ({
       id: alocacao.id,
       tesourariaId,
@@ -889,8 +1430,10 @@ export function lancamentosDa(tesourariaId: string): LancamentoDaTesouraria[] {
       valor: alocacao.valor,
       data: m.data,
       origem: 'BANCO',
+      banco: m.banco,
+      situacao: null,
     }));
-  return [...pagamentosDa(tesourariaId), ...daConta];
+  return [...doSistema, ...doBanco];
 }
 
 export function resumir(lancamentos: LancamentoDaTesouraria[]) {

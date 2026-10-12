@@ -35,7 +35,8 @@ const OPCOES: { valor: number | null; titulo: string; ajuda: string }[] = [
   {
     valor: Role.TESOURARIA,
     titulo: ROLE_LABELS[Role.TESOURARIA],
-    ajuda: 'Entra no painel só para a tesouraria dos eventos.',
+    ajuda:
+      'Entra no painel para a tesouraria da igreja (e consulta os membros).',
   },
   {
     valor: null,
@@ -58,9 +59,15 @@ function ModalPermissaoEmMassa({
   userIds,
   onClose,
   onConcluir,
+  igrejaFixa,
 }: {
   open: boolean;
   userIds: string[];
+  /**
+   * A igreja já está decidida (a tela de Membros é de uma igreja): sem a
+   * escolha, a janela muda só nela
+   */
+  igrejaFixa?: string;
   onClose: () => void;
   /** depois de aplicar: os ids que o servidor recusou ficam marcados */
   onConcluir: (recusados: string[]) => void;
@@ -93,11 +100,11 @@ function ModalPermissaoEmMassa({
   useEffect(() => {
     if (!open) return;
     // uma igreja só já vem escolhida; com várias, a pessoa escolhe
-    setChurchId(igrejas.length === 1 ? igrejas[0].id : '');
+    setChurchId(igrejaFixa ?? (igrejas.length === 1 ? igrejas[0].id : ''));
     setPerfil(Role.ADMIN);
     setResultado(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, chaveDasIgrejas]);
+  }, [open, chaveDasIgrejas, igrejaFixa]);
 
   const quantos = userIds.length;
 
@@ -187,25 +194,29 @@ function ModalPermissaoEmMassa({
               {quantos === 1
                 ? '1 usuário selecionado'
                 : `${quantos} usuários selecionados`}
-              . Muda só a igreja escolhida; o que cada um tem nas outras fica
-              como está.
+              .{' '}
+              {igrejaFixa
+                ? 'Muda só nesta igreja.'
+                : 'Muda só a igreja escolhida; o que cada um tem nas outras fica como está.'}
             </Typography>
 
-            <TextField
-              select
-              fullWidth
-              size="small"
-              label="Igreja"
-              value={churchId}
-              onChange={(evento) => setChurchId(evento.target.value)}
-              sx={{ mb: 2 }}
-            >
-              {igrejas.map((igreja) => (
-                <MenuItem key={igreja.id} value={igreja.id}>
-                  {igreja.name}
-                </MenuItem>
-              ))}
-            </TextField>
+            {!igrejaFixa && (
+              <TextField
+                select
+                fullWidth
+                size="small"
+                label="Igreja"
+                value={churchId}
+                onChange={(evento) => setChurchId(evento.target.value)}
+                sx={{ mb: 2 }}
+              >
+                {igrejas.map((igreja) => (
+                  <MenuItem key={igreja.id} value={igreja.id}>
+                    {igreja.name}
+                  </MenuItem>
+                ))}
+              </TextField>
+            )}
 
             <Stack gap={1} role="radiogroup" aria-label="Perfil">
               {OPCOES.map((opcao) => {

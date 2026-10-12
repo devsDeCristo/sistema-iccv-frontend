@@ -28,6 +28,14 @@ import { Lancamento } from '../types';
 /** "2026-10-03" → "03/10/2026", sem passar por fuso */
 const dataCurta = (dia: string) => dia.split('-').reverse().join('/');
 
+/** O manual sem par que alguém confirmou fora do extrato não está pendente */
+const situacao = (l: Lancamento) =>
+  l.conciliado
+    ? 'Conciliado'
+    : l.naoConstaNoBanco
+      ? 'Não consta no banco'
+      : 'Pendente';
+
 interface Props {
   lancamentos: Lancamento[];
   carregando: boolean;
@@ -120,17 +128,19 @@ function ListaDeLancamentos({
       field: 'conciliado',
       headerName: 'Conciliação',
       description:
-        'Conciliado: o lançamento manual e a transação do banco foram ligados na tela de Conciliação',
-      width: 130,
-      valueGetter: ({ row }) => (row.conciliado ? 'Conciliado' : 'Pendente'),
+        'Conciliado: o lançamento manual e a transação do banco foram ligados na tela de Conciliação. Não consta no banco: dinheiro que não passou pelo banco.',
+      width: 170,
+      valueGetter: ({ row }) => situacao(row),
       renderCell: ({ row }) => (
         <CustomChip
           size="small"
-          label={row.conciliado ? 'Conciliado' : 'Pendente'}
+          label={situacao(row)}
           customColor={
             row.conciliado
               ? theme.palette.chips.success
-              : theme.palette.chips.alert
+              : row.naoConstaNoBanco
+                ? theme.palette.chips.info
+                : theme.palette.chips.alert
           }
         />
       ),

@@ -43,6 +43,9 @@ import { ListaDePedidos } from '../../../features/admin/membros/components/lista
 import { ModalAdicionarMembro } from '../../../features/admin/membros/components/modalAdicionarMembro';
 import { ModalFamilia } from '../../../features/admin/membros/components/modalFamilia';
 import { Familia, Membro } from '../../../features/admin/membros/types';
+import { ModalPermissaoEmMassa } from '../../../features/admin/users/components/modalPermissaoEmMassa';
+import { useRole } from '../../../hooks/useRole';
+import { Role } from '../../../constants/roles';
 
 type Confirmacao =
   { tipo: 'remover'; membro: Membro } | { tipo: 'desfazer'; familia: Familia };
@@ -52,13 +55,20 @@ type Confirmacao =
  * quem é dela — e as famílias. Os dizimistas da tesouraria saem daqui.
  *
  * Uma pessoa é membro de uma igreja só. Ela entra pelo pedido feito na
- * inscrição (aba Pedidos) ou porque o admin da igreja a coloca.
+ * inscrição (aba Pedidos) ou porque o admin da igreja a coloca. É também aqui
+ * que o admin dá a um membro o perfil de admin ou de tesouraria na igreja.
+ *
+ * A tesouraria da igreja e o tesoureiro(a) de um evento dela só consultam: a
+ * mesma tela, sem os pedidos, sem marcar e sem o menu de cada um.
  */
 function Membros() {
   const theme = useTheme();
-  // só as igrejas que a pessoa administra: membros não são da tesouraria
-  const escopo = useIgrejaSelecionada();
+  const { isSuperAdmin, perfilNaIgreja } = useRole();
+  // as igrejas que administra, e as que só consulta (tesouraria, tesoureiro)
+  const escopo = useIgrejaSelecionada(true, undefined, true);
   const churchId = escopo.churchId;
+  const somenteLeitura =
+    !isSuperAdmin && (!churchId || perfilNaIgreja(churchId) !== Role.ADMIN);
 
   const [aba, setAba] = useState<'membros' | 'pedidos'>('membros');
   const [busca, setBusca] = useState('');
@@ -69,6 +79,7 @@ function Membros() {
   const [juntando, setJuntando] = useState<Membro[] | null>(null);
   const [renomeando, setRenomeando] = useState<Familia | null>(null);
   const [confirmando, setConfirmando] = useState<Confirmacao | null>(null);
+  const [dandoPermissao, setDandoPermissao] = useState<Membro[] | null>(null);
 
   const { data, isFetching } = useGetMembros(churchId);
   const aceitar = useAceitarPedido();
@@ -113,13 +124,14 @@ function Membros() {
         </Alert>
       ) : escopo.semIgreja ? (
         <Alert severity="info">
-          Você não é admin de nenhuma igreja. Os membros são por igreja, e quem
-          cuida deles é quem a administra.
+          Você não é admin nem tesouraria de nenhuma igreja. Os membros são por
+          igreja, e quem cuida deles é quem a administra.
         </Alert>
       ) : (
         <>
           <StatusCards
             isLoading={!data}
+            // quem só consulta não vê os pedidos
             cards={[
               {
                 title: 'Membros',
@@ -142,37 +154,49 @@ function Membros() {
                 icon: <PersonOutline sx={{ fontSize: 20 }} />,
                 color: theme.palette.chips.pending,
               },
-              {
-                title: 'Pedidos',
-                value: pendentes.length,
-                subtitle: 'Escolheram a igreja na inscrição',
-                icon: <HowToReg sx={{ fontSize: 20 }} />,
-                color: theme.palette.chips.alert,
-              },
+              ...(somenteLeitura
+                ? []
+                : [
+                    {
+                      title: 'Pedidos',
+                      value: pendentes.length,
+                      subtitle: 'Escolheram a igreja na inscrição',
+                      icon: <HowToReg sx={{ fontSize: 20 }} />,
+                      color: theme.palette.chips.alert,
+                    },
+                  ]),
             ]}
           />
 
-          <NavTabs
-            fullWidth
-            value={aba}
-            onChange={setAba}
-            sx={{ mb: 2 }}
-            options={[
-              {
-                value: 'membros',
-                label: 'Membros',
-                icon: <People fontSize="small" />,
-              },
-              {
-                value: 'pedidos',
-                // a contagem no rótulo: é o que diz que há gente esperando
-                label: pendentes.length
-                  ? `Pedidos (${pendentes.length})`
-                  : 'Pedidos',
-                icon: <HowToReg fontSize="small" />,
-              },
-            ]}
-          />
+          {somenteLeitura && (
+            <Alert severity="info" sx={{ mb: 2 }}>
+              Só consulta: quem mexe nos membros é o admin da igreja.
+            </Alert>
+          )}
+
+          {!somenteLeitura && (
+            <NavTabs
+              fullWidth
+              value={aba}
+              onChange={setAba}
+              sx={{ mb: 2 }}
+              options={[
+                {
+                  value: 'membros',
+                  label: 'Membros',
+                  icon: <People fontSize="small" />,
+                },
+                {
+                  value: 'pedidos',
+                  // a contagem no rótulo: é o que diz que há gente esperando
+                  label: pendentes.length
+                    ? `Pedidos (${pendentes.length})`
+                    : 'Pedidos',
+                  icon: <HowToReg fontSize="small" />,
+                },
+              ]}
+            />
+          )}
 
           {aba === 'membros' ? (
             <>
@@ -224,17 +248,19 @@ function Membros() {
 
                   <Box sx={{ flex: 1 }} />
 
-                  <Button
-                    variant="contained"
-                    startIcon={<Add />}
-                    onClick={() => setAdicionando(true)}
-                    sx={{
-                      textTransform: 'none',
-                      width: { xs: '100%', sm: 'auto' },
-                    }}
-                  >
-                    Adicionar membro
-                  </Button>
+                  {!somenteLeitura && (
+                    <Button
+                      variant="contained"
+                      startIcon={<Add />}
+                      onClick={() => setAdicionando(true)}
+                      sx={{
+                        textTransform: 'none',
+                        width: { xs: '100%', sm: 'auto' },
+                      }}
+                    >
+                      Adicionar membro
+                    </Button>
+                  )}
                 </Stack>
               </Paper>
 
@@ -242,6 +268,8 @@ function Membros() {
                 membros={visiveis}
                 familias={familias}
                 carregando={isFetching}
+                somenteLeitura={somenteLeitura}
+                onPermissao={setDandoPermissao}
                 onJuntar={setJuntando}
                 onRenomear={setRenomeando}
                 onDesfazer={(familia) =>
@@ -286,6 +314,13 @@ function Membros() {
                   setJuntando(null);
                   setRenomeando(null);
                 }}
+              />
+              <ModalPermissaoEmMassa
+                open={!!dandoPermissao}
+                userIds={dandoPermissao?.map((m) => m.id) ?? []}
+                igrejaFixa={churchId}
+                onClose={() => setDandoPermissao(null)}
+                onConcluir={() => setDandoPermissao(null)}
               />
             </>
           )}

@@ -47,31 +47,52 @@ export interface EscopoDeIgreja {
  * entram na lista — as outras a API recusa. Sem nenhuma, quem avisa é a rota
  * (`RequireRole` com `modulo`). Dev e super admin veem todos os módulos de
  * todas as igrejas: para eles a lista não é recortada.
+ *
+ * `incluirTesoureiroDeEvento`: a tela também é de quem é tesoureiro(a) de um
+ * evento — entram as igrejas dos eventos dele (Membros, só consulta).
  */
 export function useIgrejaSelecionada(
   incluirTesouraria = false,
-  modulo?: ModuloDaIgreja
+  modulo?: ModuloDaIgreja,
+  incluirTesoureiroDeEvento = false
 ): EscopoDeIgreja {
-  const { isSuperAdmin, churchRoles } = useRole();
+  const { isSuperAdmin, churchRoles, eventTreasurers } = useRole();
 
   const { data: todasAsIgrejas, isLoading } = useGetChurches({
     enabled: isSuperAdmin,
   });
 
-  const igrejas = useMemo<IgrejaDoPainel[]>(
-    () =>
-      isSuperAdmin
-        ? (todasAsIgrejas ?? []).map(({ id, name }) => ({ id, name }))
-        : churchRoles
-            .filter(
-              (vinculo) =>
-                (vinculo.role === Role.ADMIN ||
-                  (incluirTesouraria && vinculo.role === Role.TESOURARIA)) &&
-                (!modulo || vinculo.church.modulos?.includes(modulo))
-            )
-            .map(({ church: { id, name } }) => ({ id, name })),
-    [isSuperAdmin, todasAsIgrejas, churchRoles, incluirTesouraria, modulo]
-  );
+  const igrejas = useMemo<IgrejaDoPainel[]>(() => {
+    if (isSuperAdmin) {
+      return (todasAsIgrejas ?? []).map(({ id, name }) => ({ id, name }));
+    }
+    const dosVinculos = churchRoles
+      .filter(
+        (vinculo) =>
+          (vinculo.role === Role.ADMIN ||
+            (incluirTesouraria && vinculo.role === Role.TESOURARIA)) &&
+          (!modulo || vinculo.church.modulos?.includes(modulo))
+      )
+      .map(({ church: { id, name } }) => ({ id, name }));
+    if (!incluirTesoureiroDeEvento) return dosVinculos;
+    // a igreja de cada evento dele, uma vez só
+    const dosEventos = eventTreasurers
+      .filter((t) => !dosVinculos.some((igreja) => igreja.id === t.churchId))
+      .map((t) => ({ id: t.churchId, name: t.churchName ?? 'Igreja' }))
+      .filter(
+        (igreja, i, todas) =>
+          todas.findIndex((outra) => outra.id === igreja.id) === i
+      );
+    return [...dosVinculos, ...dosEventos];
+  }, [
+    isSuperAdmin,
+    todasAsIgrejas,
+    churchRoles,
+    eventTreasurers,
+    incluirTesouraria,
+    incluirTesoureiroDeEvento,
+    modulo,
+  ]);
 
   // A mesma escolha de todos os módulos (`useIgrejaEscolhida`, no
   // `localStorage`): quem escolheu a Filial em Notícias abre Pagamentos e

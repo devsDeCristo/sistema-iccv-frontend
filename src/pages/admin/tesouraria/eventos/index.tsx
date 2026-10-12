@@ -154,6 +154,7 @@ function TesourariaDeEventos() {
 
           <ModalNovaTesouraria
             open={criando}
+            churchId={escopo.churchId}
             onClose={() => setCriando(false)}
             onCriada={() => {
               setCriando(false);

@@ -13,7 +13,7 @@ import {
   fechamentoDa,
 } from '../../../../features/admin/tesouraria/eventosECongregacoes/dados';
 import { BarraDoFechamento } from '../../../../features/admin/tesouraria/eventosECongregacoes/components/barraDoFechamento';
-import { DistribuicaoDaConta } from '../../../../features/admin/tesouraria/eventosECongregacoes/components/distribuicaoDaConta';
+import { ConciliacaoDaTesouraria } from '../../../../features/admin/tesouraria/eventosECongregacoes/components/conciliacaoDaTesouraria';
 import { LancamentosDaCongregacao } from '../../../../features/admin/tesouraria/eventosECongregacoes/components/lancamentosDaCongregacao';
 
 const LISTA = '/admin/tesouraria/congregacoes';
@@ -109,7 +109,7 @@ function TesourariaDaCongregacao() {
           {aba === 'lancamentos' ? (
             <LancamentosDaCongregacao tesourariaId={tesouraria.id} />
           ) : (
-            <DistribuicaoDaConta
+            <ConciliacaoDaTesouraria
               conta="CONGREGACOES"
               tesourariaId={tesouraria.id}
               fechada={!!fechamentoDa(tesouraria.id)}

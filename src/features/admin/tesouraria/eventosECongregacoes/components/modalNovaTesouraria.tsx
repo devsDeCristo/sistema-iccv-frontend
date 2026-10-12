@@ -13,15 +13,25 @@ import { toast } from 'react-toastify';
 
 import { ResponsiveModal } from '../../../../../components/responsiveModal';
 import { InputDatePicker } from '../../../../../components/inputDatePicker';
+import { useGetEvents } from '../../../events/api/getEvents';
+import { Event } from '../../../events/types';
 import {
   criarTesouraria,
-  EVENTOS_DO_SISTEMA,
   listarTesourarias,
   TesourariaDeEvento,
 } from '../dados';
 
+/** "13/02 a 16/02/2027", ou o dia só */
+const periodoDo = (evento: Event) => {
+  const de = format(new Date(evento.startDate), 'dd/MM/yyyy');
+  const ate = format(new Date(evento.endDate), 'dd/MM/yyyy');
+  return de === ate ? de : `${de.slice(0, 5)} a ${ate}`;
+};
+
 interface Props {
   open: boolean;
+  /** A igreja da tela: os eventos cadastrados dela */
+  churchId: string | null;
   onClose: () => void;
   onCriada: (tesouraria: TesourariaDeEvento) => void;
 }
@@ -31,7 +41,7 @@ interface Props {
  * (um por tesouraria), ou é de um evento que não está no sistema — um jantar,
  * uma rifa —, e aí leva só o nome e a data.
  */
-function ModalNovaTesouraria({ open, onClose, onCriada }: Props) {
+function ModalNovaTesouraria({ open, churchId, onClose, onCriada }: Props) {
   const [tipo, setTipo] = useState<'SISTEMA' | 'FORA'>('SISTEMA');
   const [eventoId, setEventoId] = useState('');
   const [nome, setNome] = useState('');
@@ -45,9 +55,19 @@ function ModalNovaTesouraria({ open, onClose, onCriada }: Props) {
     setData(null);
   }, [open]);
 
+  // os eventos cadastrados de verdade: é com eles que os tesoureiros(as) do
+  // evento funcionam
+  const { data: doPainel, isLoading } = useGetEvents(
+    { painel: true },
+    { enabled: open }
+  );
+  const eventos = ((doPainel as Event[] | undefined) ?? [])
+    .filter((e) => !churchId || e.church?.id === churchId)
+    .map((e) => ({ id: e.id, nome: e.name, periodo: periodoDo(e) }));
+
   // um evento do sistema tem uma tesouraria só
   const comTesouraria = new Set(listarTesourarias().map((t) => t.eventoId));
-  const evento = EVENTOS_DO_SISTEMA.find((e) => e.id === eventoId);
+  const evento = eventos.find((e) => e.id === eventoId);
   const dataValida = !data || !Number.isNaN(data.getTime());
   const pronto = tipo === 'SISTEMA' ? !!evento : !!nome.trim() && dataValida;
 
@@ -106,9 +126,15 @@ function ModalNovaTesouraria({ open, onClose, onCriada }: Props) {
             label="Evento"
             value={eventoId}
             onChange={(e) => setEventoId(e.target.value)}
-            helperText="Um evento cadastrado tem uma tesouraria só"
+            helperText={
+              isLoading
+                ? 'Carregando os eventos…'
+                : eventos.length
+                  ? 'Um evento cadastrado tem uma tesouraria só'
+                  : 'Nenhum evento cadastrado nesta igreja'
+            }
           >
-            {EVENTOS_DO_SISTEMA.map((e) => (
+            {eventos.map((e) => (
               <MenuItem
                 key={e.id}
                 value={e.id}

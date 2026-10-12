@@ -20,6 +20,7 @@ import {
   FamilyRestroom,
   GroupRemove,
   LinkOff,
+  ManageAccounts,
   MoreVert,
   People,
 } from '@mui/icons-material';
@@ -31,6 +32,8 @@ import {
 } from '@mui/x-data-grid';
 
 import { UserAvatar } from '../../../../components/userAvatar';
+import CustomChip from '../../../../components/customChip';
+import { ROLE_LABELS } from '../../../../constants/roles';
 import { BarraDeSelecao } from '../../../../components/barraDeSelecao';
 import {
   cardTabelaSx,
@@ -53,6 +56,10 @@ interface Props {
   membros: Membro[];
   familias: Familia[];
   carregando: boolean;
+  /** Tesouraria e tesoureiro(a) de evento: só consulta, sem marcar nem menu */
+  somenteLeitura?: boolean;
+  /** Admin ou tesouraria nesta igreja, para os marcados */
+  onPermissao: (membros: Membro[]) => void;
   onJuntar: (membros: Membro[]) => void;
   onRenomear: (familia: Familia) => void;
   onDesfazer: (familia: Familia) => void;
@@ -70,6 +77,8 @@ function ListaDeMembros({
   membros,
   familias,
   carregando,
+  somenteLeitura = false,
+  onPermissao,
   onJuntar,
   onRenomear,
   onDesfazer,
@@ -113,6 +122,8 @@ function ListaDeMembros({
             <FaixaDaFamilia posicao={row.posicao} cor={cor} />
             {abreAFamilia(row.posicao) && familia && (
               <ButtonBase
+                // quem só consulta vê o nome, sem o menu da família
+                disabled={somenteLeitura}
                 onClick={(evento) =>
                   setMenu({ ancora: evento.currentTarget, familia })
                 }
@@ -185,6 +196,25 @@ function ListaDeMembros({
       ),
     },
     {
+      field: 'perfil',
+      headerName: 'Perfil',
+      width: 130,
+      sortable: false,
+      valueGetter: ({ row }) => (row.perfil ? ROLE_LABELS[row.perfil] : ''),
+      renderCell: ({ row }) =>
+        row.perfil ? (
+          <CustomChip
+            size="small"
+            label={ROLE_LABELS[row.perfil]}
+            customColor={theme.palette.chips.info}
+          />
+        ) : (
+          <Typography fontSize={13} color="text.disabled">
+            —
+          </Typography>
+        ),
+    },
+    {
       field: 'memberSince',
       headerName: 'Membro desde',
       width: 130,
@@ -192,26 +222,31 @@ function ListaDeMembros({
       valueFormatter: ({ value }) =>
         value ? new Date(value as string).toLocaleDateString('pt-BR') : '—',
     },
-    {
-      field: 'acoes',
-      headerName: '',
-      width: 56,
-      sortable: false,
-      filterable: false,
-      disableExport: true,
-      align: 'right',
-      renderCell: ({ row }) => (
-        <IconButton
-          size="small"
-          aria-label={`Ações de ${row.fullName}`}
-          onClick={(evento) =>
-            setMenu({ ancora: evento.currentTarget, membro: row })
-          }
-        >
-          <MoreVert fontSize="small" />
-        </IconButton>
-      ),
-    },
+    // quem só consulta não tem o que fazer com a linha
+    ...(somenteLeitura
+      ? []
+      : [
+          {
+            field: 'acoes',
+            headerName: '',
+            width: 56,
+            sortable: false,
+            filterable: false,
+            disableExport: true,
+            align: 'right',
+            renderCell: ({ row }) => (
+              <IconButton
+                size="small"
+                aria-label={`Ações de ${row.fullName}`}
+                onClick={(evento) =>
+                  setMenu({ ancora: evento.currentTarget, membro: row })
+                }
+              >
+                <MoreVert fontSize="small" />
+              </IconButton>
+            ),
+          } as GridColDef<Linha>,
+        ]),
   ];
 
   const escolhidos = linhas.filter((l) => selecionados.includes(l.id));
@@ -221,6 +256,15 @@ function ListaDeMembros({
       <BarraDeSelecao
         quantos={selecionados.length}
         rotuloDaRegiao="Membros selecionados"
+        acaoSecundaria={{
+          rotulo: 'Permissão na igreja',
+          rotuloCurto: 'Permissão',
+          icone: <ManageAccounts />,
+          onClick: () => {
+            onPermissao(escolhidos);
+            setSelecionados([]);
+          },
+        }}
         acao={{
           rotulo: 'Juntar em família',
           rotuloCurto: 'Família',
@@ -246,7 +290,7 @@ function ListaDeMembros({
           loading={carregando}
           getRowHeight={() => 'auto'}
           autoHeight
-          checkboxSelection
+          checkboxSelection={!somenteLeitura}
           disableRowSelectionOnClick
           rowSelectionModel={selecionados}
           onRowSelectionModelChange={setSelecionados}
@@ -323,6 +367,18 @@ function ListaDeMembros({
               <AccountCircleOutlined fontSize="small" />
             </ListItemIcon>
             Ver cadastro
+          </MenuItem>,
+          <MenuItem
+            key="permissao"
+            onClick={() => {
+              onPermissao([menu.membro as Membro]);
+              setMenu(null);
+            }}
+          >
+            <ListItemIcon>
+              <ManageAccounts fontSize="small" />
+            </ListItemIcon>
+            Permissão na igreja
           </MenuItem>,
           menu.membro.family && (
             <MenuItem

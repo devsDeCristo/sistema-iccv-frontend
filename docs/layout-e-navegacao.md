@@ -7,11 +7,11 @@ enxerga no menu e nas rotas. A garantia de verdade é sempre do servidor
 
 ## As três áreas (`AreaSideBar`)
 
-| Área | Quem entra | Layout | Régua |
-| --- | --- | --- | --- |
-| `usuario` | qualquer pessoa logada | `<Layout isAdmin={false} />`, protegido por `authLoader` | Página Inicial, Minhas Inscrições, Eventos |
-| `admin` | perfis do painel (`ADMIN_AREA_ROLES`: dev, super admin, admin, tesouraria) | `<Layout isAdmin={true} />`, protegido por `authLoaderAdmin` | Início, Usuários, Igrejas, Eventos, Notícias, Tesouraria, Registro de Atividades/Login, conforme o papel |
-| `configuracoes` | quem administra alguma igreja (admin/super admin/dev) | `<Layout isAdmin area="configuracoes" />`, também com `authLoaderAdmin` | Pagamentos, Disparadores, Termos de Uso, conforme o papel |
+| Área            | Quem entra                                                                 | Layout                                                                  | Régua                                                                                                    |
+| --------------- | -------------------------------------------------------------------------- | ----------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `usuario`       | qualquer pessoa logada                                                     | `<Layout isAdmin={false} />`, protegido por `authLoader`                | Página Inicial, Minhas Inscrições, Eventos                                                               |
+| `admin`         | perfis do painel (`ADMIN_AREA_ROLES`: dev, super admin, admin, tesouraria) | `<Layout isAdmin={true} />`, protegido por `authLoaderAdmin`            | Início, Usuários, Igrejas, Eventos, Notícias, Tesouraria, Registro de Atividades/Login, conforme o papel |
+| `configuracoes` | quem administra alguma igreja (admin/super admin/dev)                      | `<Layout isAdmin area="configuracoes" />`, também com `authLoaderAdmin` | Pagamentos, Disparadores, Termos de Uso, conforme o papel                                                |
 
 `/perfil` fica fora das três réguas específicas: entra pela área `usuario` (mesma rota para admin e usuário comum, acessada pelo menu da conta).
 
@@ -153,21 +153,21 @@ administra; **Módulos**, o que se opera por evento ou por igreja;
 **Manutenção**, no fim, os registros do sistema (dev e super admin). Cada seção tem seu título em caixa alta e só aparece se tiver
 alguma linha para o perfil (`ConteudoNav` recebe uma lista de `secoes`).
 
-| Seção | Item | Papéis que veem |
-| --- | --- | --- |
-| Administrador | Início | todos os quatro perfis do painel |
-| Administrador | Usuários | `isSuperAdmin` (dev, super admin) — as igrejas chegam numa pessoa pelos inscritos do evento e por Membros |
-| Administrador | Igrejas | `isSuperAdmin` (dev, super admin) |
-| Administrador | Planos | `isSuperAdmin` (dev, super admin) — logo abaixo de Igrejas; ver `docs/planos.md` |
-| Administrador | Meus planos | quem não é super admin (admin e tesouraria de igreja) — logo abaixo de Início: o plano da igreja e os outros para comparar; ver `docs/planos.md` |
-| Módulos | Eventos | todos os quatro perfis do painel |
-| Módulos | Notícias | `isAdminRole` — tesouraria não publica |
-| Módulos | Membros | `isAdminRole` (dev, super admin, admin) — a tesouraria não entra; primeiro item da seção, acima de Eventos; ver `docs/membros.md` |
-| Módulos | Tesouraria | todos os perfis do painel; grupo com três filhos: Administrativa (abas Conciliação, Dízimos e Lançamentos), Eventos e Congregações (as duas com "Novo"; a congregação tem Conciliação e Lançamentos e é só de admin e tesouraria — `docs/tesouraria-congregacoes.md`); o grupo abre na Administrativa — ver `docs/tesouraria.md`. Nas linhas de filho, que são recuadas, as etiquetas "Novo!" e "Em breve" saem menores (`Etiqueta pequena`): no tamanho cheio, "Em breve" cortava "Congregações" |
-| Tesoureiro(a) | Meus eventos, Tesouraria de eventos | só para quem é **apenas** tesoureiro(a) de evento (sem perfil em igreja): o menu tem só esta seção — os eventos dele (`/admin/eventos`) e, se é completo em algum, Tesouraria › Eventos; o logo leva a Meus eventos. Ver `docs/tesouraria.md` |
-| Módulos | Patrimônio, Loja | todos os perfis do painel — **em breve**: etiqueta "EM BREVE" em laranja, linha apagada e sem navegação (ainda não há tela) |
-| Manutenção | Registro de Atividades | `isSuperAdmin` (dev, super admin) |
-| Manutenção | Registro de Login | `isDev` apenas |
+| Seção         | Item                              | Papéis que veem                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| ------------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Administrador | Início                            | todos os quatro perfis do painel                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| Administrador | Usuários                          | `isSuperAdmin` (dev, super admin) — as igrejas chegam numa pessoa pelos inscritos do evento e por Membros                                                                                                                                                                                                                                                                                                                                                                                         |
+| Administrador | Igrejas                           | `isSuperAdmin` (dev, super admin)                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| Administrador | Planos                            | `isSuperAdmin` (dev, super admin) — logo abaixo de Igrejas; ver `docs/planos.md`                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| Administrador | Meus planos                       | quem não é super admin (admin e tesouraria de igreja) — logo abaixo de Início: o plano da igreja e os outros para comparar; ver `docs/planos.md`                                                                                                                                                                                                                                                                                                                                                  |
+| Módulos       | Eventos                           | todos os quatro perfis do painel, e o tesoureiro(a) de evento (a mesma lista, só com os eventos dele)                                                                                                                                                                                                                                                                                                                                                                                             |
+| Módulos       | Notícias                          | `isAdminRole` — tesouraria não publica                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| Módulos       | Membros                           | `isAdminRole` (dev, super admin, admin), e só para consulta a tesouraria e o tesoureiro(a) de evento; primeiro item da seção, acima de Eventos; ver `docs/membros.md`                                                                                                                                                                                                                                                                                                                             |
+| Módulos       | Tesouraria                        | todos os perfis do painel; grupo com três filhos: Administrativa (abas Conciliação, Dízimos e Lançamentos), Eventos e Congregações (as duas com "Novo"; a congregação tem Conciliação e Lançamentos e é só de admin e tesouraria — `docs/tesouraria-congregacoes.md`); o grupo abre na Administrativa — ver `docs/tesouraria.md`. Nas linhas de filho, que são recuadas, as etiquetas "Novo!" e "Em breve" saem menores (`Etiqueta pequena`): no tamanho cheio, "Em breve" cortava "Congregações" |
+| Módulos       | Tesouraria › Eventos (tesoureiro) | quem é **apenas** tesoureiro(a) de evento (sem perfil em igreja) vê os **mesmos itens** do sistema, recortados: Membros (consulta), Eventos e, se é completo em algum evento, o grupo Tesouraria só com o filho Eventos (o grupo abre nele). Sem Início, Meus planos e Patrimônio, que são da igreja; o logo leva a Eventos. Nada de seção ou rótulo próprio. Ver `docs/tesouraria.md`                                                                                                            |
+| Módulos       | Patrimônio, Loja                  | todos os perfis do painel — **em breve**: etiqueta "EM BREVE" em laranja, linha apagada e sem navegação (ainda não há tela)                                                                                                                                                                                                                                                                                                                                                                       |
+| Manutenção    | Registro de Atividades            | `isSuperAdmin` (dev, super admin)                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| Manutenção    | Registro de Login                 | `isDev` apenas                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 
 Módulo novo do sistema entra em `itensModulos`, e não no grupo Administrador.
 
@@ -183,12 +183,12 @@ fica com a cor de desabilitado. Quando a tela existir, troque `emBreve` por
 
 No topo, sem grupo, **Voltar ao painel** (todos). Embaixo, um grupo por módulo (grupo sem item não aparece):
 
-| Grupo | Item | Papéis que veem |
-| --- | --- | --- |
-| Eventos | Pagamentos | `isAdminRole`, com Eventos no plano |
-| Notícias | Disparadores › WhatsApp | `isAdminRole`, com Notícias no plano |
-| Tesouraria | Integrações | `isAdminRole` ou tesouraria, com Tesouraria no plano |
-| Sistema | Termos de Uso | `isSuperAdmin` — valem para a plataforma inteira, não por igreja |
+| Grupo      | Item                    | Papéis que veem                                                  |
+| ---------- | ----------------------- | ---------------------------------------------------------------- |
+| Eventos    | Pagamentos              | `isAdminRole`, com Eventos no plano                              |
+| Notícias   | Disparadores › WhatsApp | `isAdminRole`, com Notícias no plano                             |
+| Tesouraria | Integrações             | `isAdminRole` ou tesouraria, com Tesouraria no plano             |
+| Sistema    | Termos de Uso           | `isSuperAdmin` — valem para a plataforma inteira, não por igreja |
 
 Seção sem título (`titulo: ''`) não monta a linha de título; só a primeira monta, porque é dela o botão de recolher. Entre um grupo e outro da régua (em todas as áreas) o espaço é de 12px.
 

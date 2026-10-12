@@ -8,7 +8,11 @@ import {
   dataGridSx,
 } from '../../../../../components/listPageStyles';
 import { formatCurrency } from '../../../../../utils';
-import { LancamentoDaTesouraria, ROTULO_DA_ORIGEM } from '../dados';
+import {
+  LancamentoDaTesouraria,
+  ROTULO_DA_ORIGEM,
+  ROTULO_DA_SITUACAO,
+} from '../dados';
 
 /** "2026-10-03" → "03/10/2026", sem passar por fuso */
 const dataCurta = (dia: string) => dia.split('-').reverse().join('/');
@@ -46,8 +50,10 @@ function TabelaDaTesouraria({ lancamentos }: Props) {
             {row.descricao}
           </Typography>
           <Typography variant="caption" color="text.secondary" noWrap>
+            {/* de onde veio, de que banco e, no do sistema, a conciliação */}
             {ROTULO_DA_ORIGEM[row.origem]}
-            {row.conferido ? ' · conferido no extrato' : ''}
+            {row.banco ? ` · ${row.banco}` : ''}
+            {row.situacao ? ` · ${ROTULO_DA_SITUACAO[row.situacao]}` : ''}
           </Typography>
         </Box>
       ),

@@ -229,6 +229,36 @@ export const useConciliarSugeridos = () =>
     onSuccess: invalidar,
   });
 
+/** O manual que nunca vai aparecer no extrato sai da fila (ou volta) */
+export const useNaoConstaNoBanco = () =>
+  useMutation({
+    mutationFn: ({
+      churchId,
+      manualId,
+      naoConsta,
+    }: {
+      churchId: string;
+      manualId: string;
+      naoConsta: boolean;
+    }) =>
+      (naoConsta
+        ? apiClient.put(`${rota(churchId)}/conciliacao/${manualId}/nao-consta`)
+        : apiClient.delete(
+            `${rota(churchId)}/conciliacao/${manualId}/nao-consta`
+          )
+      )
+        .then((response) =>
+          handleResponseSuccess(
+            response.data,
+            naoConsta
+              ? 'Marcado como não consta no banco'
+              : 'De volta para a conciliação'
+          )()
+        )
+        .catch(handleResponseThrowError()),
+    onSuccess: invalidar,
+  });
+
 export const useDesfazerConciliacao = () =>
   useMutation({
     mutationFn: ({
