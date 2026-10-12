@@ -110,17 +110,8 @@ const renderCellWithCopy = (value: string | number) => {
   );
 };
 
-function List({
-  search,
-  churchId = 'all',
-}: {
-  search: string;
-  /** 'all' = todas; só o super admin recebe gente de mais de uma igreja */
-  churchId?: string;
-}) {
-  const { data = [], isLoading } = useGetUsers({
-    churchId: churchId === 'all' ? undefined : churchId,
-  });
+function List({ search }: { search: string }) {
+  const { data = [], isLoading } = useGetUsers({});
   // const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const openMenu = Boolean(anchorEl);
@@ -535,7 +526,6 @@ function List({
       <ModalPermissaoEmMassa
         open={emMassaAberto}
         userIds={selecionados.map(String)}
-        churchIdDaTela={churchId === 'all' ? undefined : churchId}
         onClose={() => setEmMassaAberto(false)}
         onConcluir={(recusados) => {
           setEmMassaAberto(false);

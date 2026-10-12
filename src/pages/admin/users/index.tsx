@@ -19,16 +19,13 @@ import {
 import { useState } from 'react';
 import { Add, Close, Search } from '@mui/icons-material';
 import { CardsStatus } from '../../../features/admin/users/components/cardsStatus';
-import { SeletorDeIgreja } from '../../../components/seletorDeIgreja';
-import { useIgrejaEscolhida } from '../../../hooks/useIgrejaEscolhida';
 
 function Users() {
   const navigate = useNavigate();
   const [searchUser, setSearchUser] = useState('');
-  // a lente da igreja: traz quem está nos eventos dela mais os
-  // administradores dela. Escolhida no seletor padrão, no canto superior
-  // direito; a lista de usuários é das igrejas que a pessoa administra
-  const [churchId, setChurchId] = useIgrejaEscolhida();
+  // sem seletor de igreja: os usuários são do sistema, e não de uma igreja (o
+  // que a igreja tem são membros, na tela de Membros). A tela é só do super
+  // admin, que vê todos
 
   const { isAdmin } = useRole();
   const styles = {
@@ -66,10 +63,8 @@ function Users() {
   };
   return (
     <PageStyle>
-      <Header title="Usuários" acaoAoLado>
-        <SeletorDeIgreja value={churchId} onChange={setChurchId} />
-      </Header>
-      <CardsStatus churchId={churchId} />
+      <Header title="Usuários" />
+      <CardsStatus />
       <Paper sx={styles.boxFilterAndButton}>
         <Box sx={styles.filtros}>
           <TextField
@@ -117,7 +112,7 @@ function Users() {
         </Button>
       </Paper>
 
-      <List search={searchUser} churchId={churchId} />
+      <List search={searchUser} />
     </PageStyle>
   );
 }

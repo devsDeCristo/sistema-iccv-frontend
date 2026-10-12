@@ -56,14 +56,11 @@ const OPCOES: { valor: number | null; titulo: string; ajuda: string }[] = [
 function ModalPermissaoEmMassa({
   open,
   userIds,
-  churchIdDaTela,
   onClose,
   onConcluir,
 }: {
   open: boolean;
   userIds: string[];
-  /** a igreja do seletor da tela, para já vir escolhida */
-  churchIdDaTela?: string;
   onClose: () => void;
   /** depois de aplicar: os ids que o servidor recusou ficam marcados */
   onConcluir: (recusados: string[]) => void;
@@ -95,18 +92,12 @@ function ModalPermissaoEmMassa({
 
   useEffect(() => {
     if (!open) return;
-    const daTela = igrejas.some((igreja) => igreja.id === churchIdDaTela);
-    setChurchId(
-      daTela
-        ? (churchIdDaTela as string)
-        : igrejas.length === 1
-          ? igrejas[0].id
-          : ''
-    );
+    // uma igreja só já vem escolhida; com várias, a pessoa escolhe
+    setChurchId(igrejas.length === 1 ? igrejas[0].id : '');
     setPerfil(Role.ADMIN);
     setResultado(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, churchIdDaTela, chaveDasIgrejas]);
+  }, [open, chaveDasIgrejas]);
 
   const quantos = userIds.length;
 
