@@ -2,7 +2,7 @@ import { alpha, Box, Paper, Stack, Typography } from '@mui/material';
 
 import { superficieSx } from '../../../../../components/listPageStyles';
 import { formatCurrency } from '../../../../../utils';
-import { TipoDoLancamento } from '../dados';
+import { TipoDoLancamento } from '../modelo';
 import { COR_ENTRADA, COR_SAIDA } from '../../constants';
 
 interface Props {

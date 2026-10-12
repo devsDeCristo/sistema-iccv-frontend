@@ -1,33 +1,24 @@
 import { ReactNode, useState } from 'react';
 import { Alert, Button, Paper, Stack, Typography } from '@mui/material';
 import { LockOpenOutlined, LockOutlined } from '@mui/icons-material';
-import { toast } from 'react-toastify';
 
 import { ConfirmModal } from '../../../../../components/ConfirmModal';
 import {
   barraLarguraCheiaNoCelularSx,
   superficieSx,
 } from '../../../../../components/listPageStyles';
-import { getStoredUser } from '../../../../../auth/session';
-import { Role } from '../../../../../constants/roles';
-import { useRole } from '../../../../../hooks/useRole';
 import { formatCurrency } from '../../../../../utils';
-import {
-  aConciliarDa,
-  fechamentoDa,
-  fecharTesouraria,
-  reabrirTesouraria,
-  saldoDe,
-} from '../dados';
+import { DetalheDaTesouraria } from '../modelo';
+import { useFecharTesouraria } from '../api';
 
 /** "2026-09-15" → "15/09/2026", sem passar por fuso */
 const dataCurta = (dia: string) => dia.split('-').reverse().join('/');
 
 interface Props {
-  tesourariaId: string;
-  /** A igreja da tela: o admin e a tesouraria dela fecham e reabrem */
-  churchId: string | null;
-  onMudou: () => void;
+  tesouraria: DetalheDaTesouraria;
+  churchId: string;
+  /** Os lançamentos do sistema ainda sem banco: a confirmação avisa deles */
+  aConciliar?: { quantos: number; saldo: number };
   /** No evento, lembra que fechar não é o evento acabar */
   deEvento?: boolean;
   /** Outros botões da tesouraria, ao lado do fechar (os tesoureiros) */
@@ -46,19 +37,17 @@ interface Props {
  * dinheiro entrou.
  */
 function BarraDoFechamento({
-  tesourariaId,
+  tesouraria,
   churchId,
-  onMudou,
+  aConciliar,
   deEvento = false,
   acoes,
 }: Props) {
   const [confirmando, setConfirmando] = useState(false);
-  const { isSuperAdmin, perfilNaIgreja } = useRole();
-  const perfil = churchId ? perfilNaIgreja(churchId) : null;
-  const podeFechar =
-    isSuperAdmin || perfil === Role.ADMIN || perfil === Role.TESOURARIA;
-  const fechamento = fechamentoDa(tesourariaId);
-  const pendentes = deEvento ? aConciliarDa(tesourariaId) : [];
+  const fechar = useFecharTesouraria();
+  // quem fecha (admin e tesouraria da igreja) a API diz
+  const { podeFechar, fechamento } = tesouraria;
+  const pendentes = deEvento ? (aConciliar?.quantos ?? 0) : 0;
 
   if (fechamento) {
     return (
@@ -74,11 +63,10 @@ function BarraDoFechamento({
                 color="inherit"
                 size="small"
                 startIcon={<LockOpenOutlined />}
-                onClick={() => {
-                  reabrirTesouraria(tesourariaId);
-                  toast.success('Tesouraria reaberta');
-                  onMudou();
-                }}
+                disabled={fechar.isLoading}
+                onClick={() =>
+                  fechar.mutate({ churchId, id: tesouraria.id, fechar: false })
+                }
                 sx={{ textTransform: 'none' }}
               >
                 Reabrir
@@ -135,27 +123,22 @@ function BarraDoFechamento({
         onClose={() => setConfirmando(false)}
         title="Fechar a tesouraria?"
         alerta={
-          pendentes.length > 0 &&
+          pendentes > 0 &&
           `${
-            pendentes.length === 1
+            pendentes === 1
               ? '1 lançamento do evento não foi conciliado'
-              : `${pendentes.length} lançamentos do evento não foram conciliados`
+              : `${pendentes} lançamentos do evento não foram conciliados`
           } com o banco (${formatCurrency(
-            saldoDe(pendentes.map(({ lancamento }) => lancamento))
+            aConciliar?.saldo ?? 0
           )}): não apareceu no extrato um movimento para ${
-            pendentes.length === 1 ? 'ele' : 'eles'
+            pendentes === 1 ? 'ele' : 'eles'
           }. Se for dinheiro que não passa pelo banco, marque como "não consta no banco" antes.`
         }
         message="Depois de fechada, nada mais entra, sai ou muda de categoria nela. Só o admin ou a tesouraria da igreja pode reabrir."
-        confirmLabel={pendentes.length ? 'Fechar mesmo assim' : 'Fechar'}
+        confirmLabel={pendentes ? 'Fechar mesmo assim' : 'Fechar'}
         onConfirm={() => {
-          fecharTesouraria(
-            tesourariaId,
-            getStoredUser()?.fullName ?? 'Admin da igreja'
-          );
+          fechar.mutate({ churchId, id: tesouraria.id, fechar: true });
           setConfirmando(false);
-          toast.success('Tesouraria fechada');
-          onMudou();
         }}
       />
     </Paper>

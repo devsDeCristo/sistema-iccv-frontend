@@ -1,5 +1,13 @@
-import { useReducer, useState } from 'react';
-import { Alert, Box, Button, Paper, Stack, Typography } from '@mui/material';
+import { useState } from 'react';
+import {
+  Alert,
+  Box,
+  Button,
+  Paper,
+  Skeleton,
+  Stack,
+  Typography,
+} from '@mui/material';
 import { Add, HolidayVillage, PlaceOutlined } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 
@@ -11,22 +19,24 @@ import {
 } from '../../../../components/listPageStyles';
 import { ChurchScopeBar } from '../../../../features/settings/shared/churchScopeBar';
 import { useIgrejaSelecionada } from '../../../../features/settings/shared/useIgrejaSelecionada';
-import { listarTesourariasDeCongregacao } from '../../../../features/admin/tesouraria/eventosECongregacoes/dados';
+import { useTesourarias } from '../../../../features/admin/tesouraria/eventosECongregacoes/api';
 import { AvisoNaoAlocados } from '../../../../features/admin/tesouraria/eventosECongregacoes/components/avisoNaoAlocados';
 import { ListaDeTesourarias } from '../../../../features/admin/tesouraria/eventosECongregacoes/components/listaDeTesourarias';
 import { ModalNovaCongregacao } from '../../../../features/admin/tesouraria/eventosECongregacoes/components/modalNovaCongregacao';
 
 /**
  * As tesourarias das congregações da igreja, uma por congregação. Por
- * enquanto criar a tesouraria cria a congregação junto. MVP: dados de exemplo
- * (`tesouraria/dados.ts`); o fluxo está em `docs/tesouraria-congregacoes.md`.
+ * enquanto criar a tesouraria cria a congregação junto. O fluxo está em
+ * `docs/tesouraria-congregacoes.md`.
  */
 function TesourariaDeCongregacoes() {
   const navigate = useNavigate();
   const escopo = useIgrejaSelecionada(true, 'TREASURY');
   const [criando, setCriando] = useState(false);
-  // os dados de exemplo mudam fora do React: isto só pede um novo desenho
-  const [, redesenhar] = useReducer((n: number) => n + 1, 0);
+  const { data: tesourarias, isLoading } = useTesourarias(
+    escopo.churchId,
+    'CONGREGATION'
+  );
 
   const abrir = (id: string) =>
     navigate(`/admin/tesouraria/congregacoes/${id}`);
@@ -53,11 +63,7 @@ function TesourariaDeCongregacoes() {
         </Alert>
       ) : (
         <>
-          <Alert severity="info" sx={{ mb: 2 }}>
-            Tela de demonstração: os números são de exemplo, e o que for criado,
-            distribuído ou fechado aqui some ao recarregar a página.
-          </Alert>
-          <AvisoNaoAlocados conta="CONGREGACOES" />
+          <AvisoNaoAlocados tipo="CONGREGATION" />
 
           <Paper
             sx={{
@@ -94,33 +100,37 @@ function TesourariaDeCongregacoes() {
             </Stack>
           </Paper>
 
-          <ListaDeTesourarias
-            tesourarias={listarTesourariasDeCongregacao().map((t) => ({
-              id: t.id,
-              nome: t.congregacao.nome,
-              icone: <HolidayVillage />,
-              detalhes: [
-                {
-                  icone: <PlaceOutlined />,
-                  texto: t.congregacao.local ?? 'Sem local',
-                },
-              ],
-            }))}
-            vazio={{
-              titulo: 'Nenhuma congregação',
-              texto:
-                'Crie a primeira: a congregação nasce junto com a sua tesouraria.',
-            }}
-            onAbrir={abrir}
-          />
+          {isLoading ? (
+            <Skeleton variant="rounded" height={200} sx={{ borderRadius: 3 }} />
+          ) : (
+            <ListaDeTesourarias
+              tesourarias={(tesourarias ?? []).map((t) => ({
+                id: t.id,
+                nome: t.nome,
+                icone: <HolidayVillage />,
+                detalhes: [
+                  {
+                    icone: <PlaceOutlined />,
+                    texto: t.local ?? 'Sem local',
+                  },
+                ],
+                fechamento: t.fechamento,
+                resumo: t.resumo,
+              }))}
+              vazio={{
+                titulo: 'Nenhuma congregação',
+                texto:
+                  'Crie a primeira: a congregação nasce junto com a sua tesouraria.',
+              }}
+              onAbrir={abrir}
+            />
+          )}
 
           <ModalNovaCongregacao
             open={criando}
+            churchId={escopo.churchId}
             onClose={() => setCriando(false)}
-            onCriada={() => {
-              setCriando(false);
-              redesenhar();
-            }}
+            onCriada={() => setCriando(false)}
           />
         </>
       )}

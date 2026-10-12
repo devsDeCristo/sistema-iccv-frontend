@@ -2,26 +2,21 @@ import { Alert, Button } from '@mui/material';
 import { Link } from 'react-router-dom';
 
 import { formatCurrency } from '../../../../../utils';
-import {
-  aDistribuir,
-  ContaDaTesouraria,
-  nomeDosBancos,
-  saldoDe,
-  TEM_BANCO_PROPRIO,
-} from '../dados';
+import { nomeDosBancos, saldoDe, TipoDaTesouraria } from '../modelo';
+import { useIgrejaDaTesouraria, useNaoAlocados } from '../api';
 
 const DE: Record<
-  ContaDaTesouraria,
+  TipoDaTesouraria,
   { nenhuma: string; uma: string; dela: string; de: string; lista: string }
 > = {
-  EVENTOS: {
+  EVENT: {
     nenhuma: 'nenhum evento',
     uma: 'um evento',
     dela: 'dele',
     de: 'evento',
     lista: '/admin/tesouraria/eventos/nao-alocados',
   },
-  CONGREGACOES: {
+  CONGREGATION: {
     nenhuma: 'nenhuma congregação',
     uma: 'uma congregação',
     dela: 'dela',
@@ -42,9 +37,11 @@ const DE: Record<
  * "Não alocado" é o termo de rateio de custos (o lançamento sem centro de
  * custo); "competência" diz *quando* o lançamento conta, e não *onde*.
  */
-function AvisoNaoAlocados({ conta }: { conta: ContaDaTesouraria }) {
-  const livres = aDistribuir(conta);
-  if (!TEM_BANCO_PROPRIO[conta] || !livres.length) return null;
+function AvisoNaoAlocados({ tipo }: { tipo: TipoDaTesouraria }) {
+  const { churchId } = useIgrejaDaTesouraria();
+  const { data } = useNaoAlocados(churchId, tipo);
+  const livres = data?.movimentos ?? [];
+  if (!data?.temBancoProprio || !livres.length) return null;
 
   const total = saldoDe(
     livres.map(({ movimento, restante }) => ({
@@ -60,7 +57,7 @@ function AvisoNaoAlocados({ conta }: { conta: ContaDaTesouraria }) {
       action={
         <Button
           component={Link}
-          to={DE[conta].lista}
+          to={DE[tipo].lista}
           color="inherit"
           size="small"
           sx={{ textTransform: 'none', whiteSpace: 'nowrap' }}
@@ -75,9 +72,9 @@ function AvisoNaoAlocados({ conta }: { conta: ContaDaTesouraria }) {
           ? 'lançamento não alocado'
           : 'lançamentos não alocados'}
       </b>{' '}
-      em {nomeDosBancos(conta)} ({formatCurrency(total)}): ainda não estão em{' '}
-      {DE[conta].nenhuma}. O que é de {DE[conta].uma} se aloca na Conciliação{' '}
-      {DE[conta].dela}; tarifas do banco e o que não é de {DE[conta].de} ficam
+      em {nomeDosBancos(data.bancos)} ({formatCurrency(total)}): ainda não estão
+      em {DE[tipo].nenhuma}. O que é de {DE[tipo].uma} se aloca na Conciliação{' '}
+      {DE[tipo].dela}; tarifas do banco e o que não é de {DE[tipo].de} ficam
       aqui.
     </Alert>
   );

@@ -1,10 +1,10 @@
-import { useReducer, useState } from 'react';
+import { useState } from 'react';
 import {
   Alert,
   Button,
   Paper,
+  Skeleton,
   Stack,
-  Tooltip,
   Typography,
 } from '@mui/material';
 import {
@@ -18,7 +18,6 @@ import { Link, useParams } from 'react-router-dom';
 import { PageStyle } from '../../../../components/pageStyle';
 import { Header } from '../../../../components/header';
 import { ChurchScopeBar } from '../../../../features/settings/shared/churchScopeBar';
-import { useIgrejaSelecionada } from '../../../../features/settings/shared/useIgrejaSelecionada';
 import { useRole } from '../../../../hooks/useRole';
 import { Role } from '../../../../constants/roles';
 import {
@@ -29,11 +28,11 @@ import { ModalTesoureiros } from '../../../../features/admin/events/components/m
 import { ModalLancamentoDoEvento } from '../../../../features/admin/tesouraria/eventosECongregacoes/components/modalLancamentoDoEvento';
 import { AbasDaTesouraria } from '../../../../features/admin/tesouraria/components/abasDaTesouraria';
 import {
-  buscarTesouraria,
-  EVENTOS_DO_SISTEMA,
-  fechamentoDa,
-  lancamentosDa,
-} from '../../../../features/admin/tesouraria/eventosECongregacoes/dados';
+  useConciliacaoDaTesouraria,
+  useIgrejaDaTesouraria,
+  useLancamentosDaTesouraria,
+  useTesouraria,
+} from '../../../../features/admin/tesouraria/eventosECongregacoes/api';
 import { BarraDoFechamento } from '../../../../features/admin/tesouraria/eventosECongregacoes/components/barraDoFechamento';
 import { ConciliacaoDaTesouraria } from '../../../../features/admin/tesouraria/eventosECongregacoes/components/conciliacaoDaTesouraria';
 import { LancamentosDaTesouraria } from '../../../../features/admin/tesouraria/eventosECongregacoes/components/lancamentosDaTesouraria';
@@ -51,26 +50,19 @@ const LISTA = '/admin/tesouraria/eventos';
  */
 function TesourariaDoEvento() {
   const { id, aba } = useParams();
-  const escopo = useIgrejaSelecionada(true, 'TREASURY');
-  const {
-    soTesoureiroDeEvento,
-    eventTreasurers,
-    isSuperAdmin,
-    perfilNaIgreja,
-  } = useRole();
+  // o tesoureiro(a) do evento não escolhe igreja; a API recusa a tesouraria
+  // de evento que não é dele
+  const { escopo, churchId, soTesoureiroDeEvento } = useIgrejaDaTesouraria();
+  const { isSuperAdmin, perfilNaIgreja } = useRole();
   const [lancando, setLancando] = useState(false);
   const [tesoureiros, setTesoureiros] = useState(false);
-  // os dados de exemplo mudam fora do React: isto só pede um novo desenho
-  const [, redesenhar] = useReducer((n: number) => n + 1, 0);
 
-  const encontrada = buscarTesouraria(id);
-  const tesouraria =
-    soTesoureiroDeEvento &&
-    !eventTreasurers.some(
-      (t) => t.kind === 'COMPLETO' && t.eventId === encontrada?.eventoId
-    )
-      ? null
-      : encontrada;
+  const { data: tesouraria, isLoading } = useTesouraria(churchId, id);
+  const { data: conciliacao } = useConciliacaoDaTesouraria(churchId, id);
+  const { data: lancamentos } = useLancamentosDaTesouraria(
+    churchId,
+    aba === 'lancamentos' ? id : undefined
+  );
 
   const voltar = (
     <Button
@@ -84,60 +76,62 @@ function TesourariaDoEvento() {
     </Button>
   );
 
-  if (!tesouraria) {
+  if (!soTesoureiroDeEvento && (escopo.precisaEscolher || escopo.semIgreja)) {
+    return (
+      <PageStyle>
+        {voltar}
+        <Alert severity="info">
+          {escopo.semIgreja
+            ? 'Você não é admin nem tesouraria de nenhuma igreja. A tesouraria é por igreja.'
+            : 'Escolha no topo da página de qual igreja é a tesouraria: cada igreja tem a sua.'}
+        </Alert>
+      </PageStyle>
+    );
+  }
+
+  if (isLoading || escopo.carregando) {
+    return (
+      <PageStyle>
+        {voltar}
+        <Skeleton variant="rounded" height={240} sx={{ borderRadius: 3 }} />
+      </PageStyle>
+    );
+  }
+
+  if (!tesouraria || !churchId) {
     return (
       <PageStyle>
         {voltar}
         <Alert severity="warning">
-          Tesouraria não encontrada. As criadas nesta demonstração somem ao
-          recarregar a página.
+          Tesouraria não encontrada, ou de um evento em que você não é
+          tesoureiro(a).
         </Alert>
       </PageStyle>
     );
   }
 
   const base = `${LISTA}/${tesouraria.id}`;
-  const fechada = !!fechamentoDa(tesouraria.id);
-  const churchId = escopo.churchId;
-  // os tesoureiros(as) são do evento do sistema; os de exemplo não existem
-  // na API, e o evento fora do sistema não tem a quem ligar
-  const deExemplo = EVENTOS_DO_SISTEMA.some(
-    (e) => e.id === tesouraria.eventoId
-  );
+  const fechada = !!tesouraria.fechamento;
+  // os tesoureiros(as) são do evento do sistema; o de fora não tem a quem
+  // ligar. Escolhe quem é admin da igreja
   const botaoTesoureiros = tesouraria.eventoId &&
-    churchId &&
     (isSuperAdmin || perfilNaIgreja(churchId) === Role.ADMIN) && (
-      <Tooltip
-        title={
-          deExemplo
-            ? 'Evento de exemplo: crie a tesouraria de um evento cadastrado para escolher os tesoureiros(as)'
-            : ''
-        }
+      <Button
+        variant="outlined"
+        startIcon={<SupervisorAccountOutlined />}
+        onClick={() => setTesoureiros(true)}
+        sx={{ textTransform: 'none', width: { xs: '100%', sm: 'auto' } }}
       >
-        <span>
-          <Button
-            variant="outlined"
-            startIcon={<SupervisorAccountOutlined />}
-            disabled={deExemplo}
-            onClick={() => setTesoureiros(true)}
-            sx={{ textTransform: 'none', width: { xs: '100%', sm: 'auto' } }}
-          >
-            Configurar tesoureiros
-          </Button>
-        </span>
-      </Tooltip>
+        Configurar tesoureiros
+      </Button>
     );
 
   const conteudo = (
     <>
-      <Alert severity="info" sx={{ mb: 2 }}>
-        Tela de demonstração: os números são de exemplo, e o que for distribuído
-        ou fechado aqui some ao recarregar a página.
-      </Alert>
       <BarraDoFechamento
-        tesourariaId={tesouraria.id}
+        tesouraria={tesouraria}
         churchId={churchId}
-        onMudou={redesenhar}
+        aConciliar={conciliacao?.aConciliar}
         deEvento
         acoes={botaoTesoureiros || undefined}
       />
@@ -189,7 +183,7 @@ function TesourariaDoEvento() {
       )}
       {aba === 'lancamentos' ? (
         <LancamentosDaTesouraria
-          lancamentos={lancamentosDa(tesouraria.id)}
+          lancamentos={lancamentos ?? []}
           periodo="No evento"
           destaque={{
             categoria: 'Ingressos',
@@ -199,21 +193,20 @@ function TesourariaDoEvento() {
         />
       ) : (
         <ConciliacaoDaTesouraria
-          conta="EVENTOS"
+          tipo="EVENT"
+          churchId={churchId}
           tesourariaId={tesouraria.id}
           fechada={fechada}
         />
       )}
       <ModalLancamentoDoEvento
         open={lancando}
+        churchId={churchId}
         tesourariaId={tesouraria.id}
         onClose={() => setLancando(false)}
-        onSalvo={() => {
-          setLancando(false);
-          redesenhar();
-        }}
+        onSalvo={() => setLancando(false)}
       />
-      {tesouraria.eventoId && churchId && !deExemplo && (
+      {tesouraria.eventoId && (
         <ModalTesoureiros
           open={tesoureiros}
           eventId={tesouraria.eventoId}
@@ -229,9 +222,13 @@ function TesourariaDoEvento() {
       {voltar}
       <Header
         title={tesouraria.nome}
-        description={`Tesouraria de evento · ${tesouraria.periodo}${
-          tesouraria.eventoId ? '' : ' · fora do sistema'
-        }`}
+        description={[
+          'Tesouraria de evento',
+          tesouraria.periodo,
+          tesouraria.eventoId ? '' : 'fora do sistema',
+        ]
+          .filter(Boolean)
+          .join(' · ')}
         acaoAoLado
       >
         {/* o tesoureiro(a) do evento não escolhe igreja: o evento é dele */}
@@ -240,21 +237,7 @@ function TesourariaDoEvento() {
         )}
       </Header>
 
-      {soTesoureiroDeEvento ? (
-        conteudo
-      ) : escopo.precisaEscolher ? (
-        <Alert severity="info">
-          Escolha no topo da página de qual igreja é a tesouraria: cada igreja
-          tem a sua.
-        </Alert>
-      ) : escopo.semIgreja ? (
-        <Alert severity="info">
-          Você não é admin nem tesouraria de nenhuma igreja. A tesouraria é por
-          igreja.
-        </Alert>
-      ) : (
-        conteudo
-      )}
+      {conteudo}
     </PageStyle>
   );
 }

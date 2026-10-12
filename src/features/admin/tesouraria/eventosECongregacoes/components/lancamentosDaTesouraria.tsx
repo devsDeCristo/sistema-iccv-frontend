@@ -15,7 +15,7 @@ import {
   porCategoria,
   resumir,
   TipoDoLancamento,
-} from '../dados';
+} from '../modelo';
 import { ResumoPorCategoria } from './resumoPorCategoria';
 import { TabelaDaTesouraria } from './tabelaDaTesouraria';
 

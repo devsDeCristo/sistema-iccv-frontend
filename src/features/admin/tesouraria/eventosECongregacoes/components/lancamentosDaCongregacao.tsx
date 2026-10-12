@@ -5,7 +5,7 @@ import {
   barraLarguraCheiaNoCelularSx,
   superficieSx,
 } from '../../../../../components/listPageStyles';
-import { lancamentosDa } from '../dados';
+import { useLancamentosDaTesouraria } from '../api';
 import { LancamentosDaTesouraria } from './lancamentosDaTesouraria';
 
 const ANO = 'ANO';
@@ -23,13 +23,21 @@ const nomeDoMes = (mes: string) => {
  * Os lançamentos da congregação, que é tesouraria do dia a dia (como a
  * administrativa): por mês ou pelo ano inteiro.
  */
-function LancamentosDaCongregacao({ tesourariaId }: { tesourariaId: string }) {
+function LancamentosDaCongregacao({
+  churchId,
+  tesourariaId,
+}: {
+  churchId: string;
+  tesourariaId: string;
+}) {
   const ano = String(new Date().getFullYear());
   const [periodo, setPeriodo] = useState(ANO);
-
-  const doAno = lancamentosDa(tesourariaId).filter((l) =>
-    l.data.startsWith(ano)
+  const { data: lancamentos } = useLancamentosDaTesouraria(
+    churchId,
+    tesourariaId
   );
+
+  const doAno = (lancamentos ?? []).filter((l) => l.data.startsWith(ano));
   const meses = [...new Set(doAno.map((l) => l.data.slice(0, 7)))]
     .sort()
     .reverse();

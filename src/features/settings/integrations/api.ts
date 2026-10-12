@@ -8,10 +8,17 @@ import {
 
 export const GET_PLUGGY = 'GET_PLUGGY';
 
+/** A tesouraria de um banco, como a API chama */
+export type ContaDoBanco = 'ADMINISTRATIVE' | 'EVENTS' | 'CONGREGATIONS';
+
 export interface PluggyIntegration {
   enabled: boolean;
   credentialsHint: { clientId?: string } | null;
   itemIds: string[];
+  /** Bancos divididos por tesouraria (cada banco é de uma) */
+  splitByTreasury: boolean;
+  /** Com a divisão: de qual tesouraria é cada banco (`itemId` → conta) */
+  itemAccounts: Record<string, ContaDoBanco>;
   /** Aviso de banco pedindo reconexão no MeuPluggy. Nulo: tudo certo */
   statusMessage: string | null;
   lastSyncAt: string | null;
@@ -45,6 +52,8 @@ export interface SavePluggyPayload {
   clientId?: string;
   clientSecret?: string;
   itemIds: string[];
+  splitByTreasury?: boolean;
+  itemAccounts?: Record<string, ContaDoBanco>;
   enabled: boolean;
 }
 

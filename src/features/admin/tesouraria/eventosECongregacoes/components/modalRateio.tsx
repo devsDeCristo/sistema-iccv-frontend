@@ -3,7 +3,7 @@ import { Button, Stack, Tab, Tabs, TextField, Typography } from '@mui/material';
 
 import { ResponsiveModal } from '../../../../../components/responsiveModal';
 import { formatCurrency } from '../../../../../utils';
-import { LinhaLivre } from '../dados';
+import { LinhaLivre } from '../modelo';
 
 /** "2026-10-05" → "05/10": o ano é o do período */
 const diaEMes = (dia: string) => `${dia.slice(8, 10)}/${dia.slice(5, 7)}`;

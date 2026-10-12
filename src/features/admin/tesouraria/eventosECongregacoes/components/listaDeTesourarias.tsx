@@ -25,7 +25,7 @@ import { NavTabs } from '../../../../../components/navTabs';
 import { superficieSx } from '../../../../../components/listPageStyles';
 import { sombraSuperficie } from '../../../../../themes';
 import { formatCurrency } from '../../../../../utils';
-import { fechamentoDa, lancamentosDa, resumir } from '../dados';
+import { Fechamento, Resumo } from '../modelo';
 
 export interface CardDeTesouraria {
   id: string;
@@ -34,6 +34,8 @@ export interface CardDeTesouraria {
   icone: ReactNode;
   /** As linhas embaixo do nome, cada uma com um ícone pequeno */
   detalhes: { icone: ReactNode; texto: string }[];
+  fechamento: Fechamento | null;
+  resumo: Resumo;
 }
 
 interface Props {
@@ -61,10 +63,9 @@ function ListaDeTesourarias({ tesourarias, vazio, onAbrir }: Props) {
     'ABERTAS'
   );
 
-  const fechada = (id: string) => !!fechamentoDa(id);
-  const abertas = tesourarias.filter((t) => !fechada(t.id)).length;
+  const abertas = tesourarias.filter((t) => !t.fechamento).length;
   const visiveis = tesourarias.filter((t) =>
-    situacao === 'TODAS' ? true : fechada(t.id) === (situacao === 'FECHADAS')
+    situacao === 'TODAS' ? true : !!t.fechamento === (situacao === 'FECHADAS')
   );
 
   if (!tesourarias.length) {
@@ -164,8 +165,7 @@ function ListaDeTesourarias({ tesourarias, vazio, onAbrir }: Props) {
         }}
       >
         {visiveis.map((t) => {
-          const resumo = resumir(lancamentosDa(t.id));
-          const fechamento = fechamentoDa(t.id);
+          const { resumo, fechamento } = t;
           // aberta em verde; fechada neutra: é consulta, não trabalho
           const cor = fechamento
             ? theme.palette.chips.default

@@ -1,5 +1,4 @@
-import { useReducer } from 'react';
-import { Alert, Button } from '@mui/material';
+import { Alert, Button, Skeleton } from '@mui/material';
 import { ArrowBack } from '@mui/icons-material';
 import { Link, useParams } from 'react-router-dom';
 
@@ -8,10 +7,7 @@ import { Header } from '../../../../components/header';
 import { ChurchScopeBar } from '../../../../features/settings/shared/churchScopeBar';
 import { useIgrejaSelecionada } from '../../../../features/settings/shared/useIgrejaSelecionada';
 import { AbasDaTesouraria } from '../../../../features/admin/tesouraria/components/abasDaTesouraria';
-import {
-  buscarTesourariaDeCongregacao,
-  fechamentoDa,
-} from '../../../../features/admin/tesouraria/eventosECongregacoes/dados';
+import { useTesouraria } from '../../../../features/admin/tesouraria/eventosECongregacoes/api';
 import { BarraDoFechamento } from '../../../../features/admin/tesouraria/eventosECongregacoes/components/barraDoFechamento';
 import { ConciliacaoDaTesouraria } from '../../../../features/admin/tesouraria/eventosECongregacoes/components/conciliacaoDaTesouraria';
 import { LancamentosDaCongregacao } from '../../../../features/admin/tesouraria/eventosECongregacoes/components/lancamentosDaCongregacao';
@@ -26,9 +22,8 @@ const LISTA = '/admin/tesouraria/congregacoes';
 function TesourariaDaCongregacao() {
   const { id, aba } = useParams();
   const escopo = useIgrejaSelecionada(true, 'TREASURY');
-  // os dados de exemplo mudam fora do React: isto só pede um novo desenho
-  const [, redesenhar] = useReducer((n: number) => n + 1, 0);
-  const tesouraria = buscarTesourariaDeCongregacao(id);
+  const churchId = escopo.churchId;
+  const { data: tesouraria, isLoading } = useTesouraria(churchId, id);
 
   const voltar = (
     <Button
@@ -42,80 +37,82 @@ function TesourariaDaCongregacao() {
     </Button>
   );
 
-  if (!tesouraria) {
+  if (escopo.precisaEscolher || escopo.semIgreja) {
+    return (
+      <PageStyle>
+        {voltar}
+        <Alert severity="info">
+          {escopo.semIgreja
+            ? 'Você não é admin nem tesouraria de nenhuma igreja. A tesouraria é por igreja.'
+            : 'Escolha no topo da página de qual igreja é a tesouraria: cada igreja tem a sua.'}
+        </Alert>
+      </PageStyle>
+    );
+  }
+
+  if (isLoading || escopo.carregando) {
+    return (
+      <PageStyle>
+        {voltar}
+        <Skeleton variant="rounded" height={240} sx={{ borderRadius: 3 }} />
+      </PageStyle>
+    );
+  }
+
+  if (!tesouraria || !churchId) {
     return (
       <PageStyle>
         {voltar}
         <Alert severity="warning">
-          Tesouraria não encontrada. As criadas nesta demonstração somem ao
-          recarregar a página.
+          Tesouraria não encontrada nesta igreja.
         </Alert>
       </PageStyle>
     );
   }
 
   const base = `${LISTA}/${tesouraria.id}`;
-  const { congregacao } = tesouraria;
 
   return (
     <PageStyle>
       {voltar}
       <Header
-        title={congregacao.nome}
+        title={tesouraria.nome}
         description={`Tesouraria da congregação${
-          congregacao.local ? ` · ${congregacao.local}` : ''
+          tesouraria.local ? ` · ${tesouraria.local}` : ''
         }`}
         acaoAoLado
       >
         <ChurchScopeBar escopo={escopo} oQueMuda="a tesouraria" />
       </Header>
 
-      {escopo.precisaEscolher ? (
-        <Alert severity="info">
-          Escolha no topo da página de qual igreja é a tesouraria: cada igreja
-          tem a sua.
-        </Alert>
-      ) : escopo.semIgreja ? (
-        <Alert severity="info">
-          Você não é admin nem tesouraria de nenhuma igreja. A tesouraria é por
-          igreja.
-        </Alert>
+      <BarraDoFechamento tesouraria={tesouraria} churchId={churchId} />
+      <AbasDaTesouraria
+        atual={aba === 'lancamentos' ? 'lancamentos' : 'conciliacao'}
+        abas={[
+          {
+            valor: 'conciliacao',
+            rotulo: 'Conciliação',
+            link: `${base}/conciliacao`,
+          },
+          {
+            valor: 'lancamentos',
+            rotulo: 'Lançamentos',
+            link: `${base}/lancamentos`,
+          },
+        ]}
+      />
+      {aba === 'lancamentos' ? (
+        <LancamentosDaCongregacao
+          churchId={churchId}
+          tesourariaId={tesouraria.id}
+        />
       ) : (
-        <>
-          <Alert severity="info" sx={{ mb: 2 }}>
-            Tela de demonstração: os números são de exemplo, e o que for
-            distribuído ou fechado aqui some ao recarregar a página.
-          </Alert>
-          <BarraDoFechamento
-            tesourariaId={tesouraria.id}
-            churchId={escopo.churchId}
-            onMudou={redesenhar}
-          />
-          <AbasDaTesouraria
-            atual={aba === 'lancamentos' ? 'lancamentos' : 'conciliacao'}
-            abas={[
-              {
-                valor: 'conciliacao',
-                rotulo: 'Conciliação',
-                link: `${base}/conciliacao`,
-              },
-              {
-                valor: 'lancamentos',
-                rotulo: 'Lançamentos',
-                link: `${base}/lancamentos`,
-              },
-            ]}
-          />
-          {aba === 'lancamentos' ? (
-            <LancamentosDaCongregacao tesourariaId={tesouraria.id} />
-          ) : (
-            <ConciliacaoDaTesouraria
-              conta="CONGREGACOES"
-              tesourariaId={tesouraria.id}
-              fechada={!!fechamentoDa(tesouraria.id)}
-            />
-          )}
-        </>
+        <ConciliacaoDaTesouraria
+          tipo="CONGREGATION"
+          churchId={churchId}
+          tesourariaId={tesouraria.id}
+          fechada={!!tesouraria.fechamento}
+        />
       )}
     </PageStyle>
   );

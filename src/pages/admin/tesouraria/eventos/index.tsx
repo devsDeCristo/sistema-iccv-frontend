@@ -1,5 +1,12 @@
-import { useReducer, useState } from 'react';
-import { Alert, Button, Paper, Stack, Typography } from '@mui/material';
+import { useState } from 'react';
+import {
+  Alert,
+  Button,
+  Paper,
+  Skeleton,
+  Stack,
+  Typography,
+} from '@mui/material';
 import {
   Add,
   CalendarMonth,
@@ -17,9 +24,10 @@ import {
   superficieSx,
 } from '../../../../components/listPageStyles';
 import { ChurchScopeBar } from '../../../../features/settings/shared/churchScopeBar';
-import { useIgrejaSelecionada } from '../../../../features/settings/shared/useIgrejaSelecionada';
-import { useRole } from '../../../../hooks/useRole';
-import { listarTesourarias } from '../../../../features/admin/tesouraria/eventosECongregacoes/dados';
+import {
+  useIgrejaDaTesouraria,
+  useTesourarias,
+} from '../../../../features/admin/tesouraria/eventosECongregacoes/api';
 import { AvisoNaoAlocados } from '../../../../features/admin/tesouraria/eventosECongregacoes/components/avisoNaoAlocados';
 import { ListaDeTesourarias } from '../../../../features/admin/tesouraria/eventosECongregacoes/components/listaDeTesourarias';
 import { ModalNovaTesouraria } from '../../../../features/admin/tesouraria/eventosECongregacoes/components/modalNovaTesouraria';
@@ -27,31 +35,26 @@ import { ModalNovaTesouraria } from '../../../../features/admin/tesouraria/event
 /**
  * As tesourarias de evento da igreja. Só existe tesouraria de evento que foi
  * criada aqui — ligada a um evento do sistema ou a um que não está nele, como
- * um jantar. MVP: dados de exemplo (`eventosECongregacoes/dados.ts`).
+ * um jantar.
  *
  * O tesoureiro(a) completo de um evento também entra, e vê só a tesouraria
  * dos eventos dele — sem criar nenhuma.
  */
 function TesourariaDeEventos() {
   const navigate = useNavigate();
-  const escopo = useIgrejaSelecionada(true, 'TREASURY');
-  const { soTesoureiroDeEvento, eventTreasurers } = useRole();
+  // o tesoureiro(a) do evento não escolhe igreja: a API já devolve só as
+  // tesourarias dos eventos dele
+  const { escopo, churchId, soTesoureiroDeEvento } = useIgrejaDaTesouraria();
   const [criando, setCriando] = useState(false);
-  // os dados de exemplo mudam fora do React: isto só pede um novo desenho
-  const [, redesenhar] = useReducer((n: number) => n + 1, 0);
+  const { data: tesourarias, isLoading } = useTesourarias(churchId, 'EVENT');
 
   const abrir = (id: string) => navigate(`/admin/tesouraria/eventos/${id}`);
-  const dosEventosDele = new Set(
-    eventTreasurers.filter((t) => t.kind === 'COMPLETO').map((t) => t.eventId)
-  );
-  const tesourarias = listarTesourarias().filter(
-    (t) =>
-      !soTesoureiroDeEvento || (!!t.eventoId && dosEventosDele.has(t.eventoId))
-  );
 
-  const lista = (
+  const lista = isLoading ? (
+    <Skeleton variant="rounded" height={200} sx={{ borderRadius: 3 }} />
+  ) : (
     <ListaDeTesourarias
-      tesourarias={tesourarias.map((t) => ({
+      tesourarias={(tesourarias ?? []).map((t) => ({
         id: t.id,
         nome: t.nome,
         // evento do sistema e fora dele: ícone e legenda, não só cor
@@ -62,13 +65,15 @@ function TesourariaDeEventos() {
             ? { icone: <LinkIcon />, texto: 'Evento do sistema' }
             : { icone: <LinkOff />, texto: 'Fora do sistema' },
         ],
+        fechamento: t.fechamento,
+        resumo: t.resumo,
       }))}
       vazio={
         soTesoureiroDeEvento
           ? {
               titulo: 'Nenhuma tesouraria dos seus eventos',
               texto:
-                'Aqui aparecem as tesourarias dos eventos em que você é tesoureiro(a) completo. Nesta demonstração os eventos são de exemplo, então nenhum é seu.',
+                'Aqui aparecem as tesourarias dos eventos em que você é tesoureiro(a) completo, quando a igreja cria uma para o evento.',
             }
           : {
               titulo: 'Nenhuma tesouraria de evento',
@@ -107,11 +112,7 @@ function TesourariaDeEventos() {
         </Alert>
       ) : (
         <>
-          <Alert severity="info" sx={{ mb: 2 }}>
-            Tela de demonstração: os números são de exemplo, e o que for criado,
-            distribuído ou fechado aqui some ao recarregar a página.
-          </Alert>
-          <AvisoNaoAlocados conta="EVENTOS" />
+          <AvisoNaoAlocados tipo="EVENT" />
 
           <Paper
             sx={{
@@ -156,10 +157,7 @@ function TesourariaDeEventos() {
             open={criando}
             churchId={escopo.churchId}
             onClose={() => setCriando(false)}
-            onCriada={() => {
-              setCriando(false);
-              redesenhar();
-            }}
+            onCriada={() => setCriando(false)}
           />
         </>
       )}

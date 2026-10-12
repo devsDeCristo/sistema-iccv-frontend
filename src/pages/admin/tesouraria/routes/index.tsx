@@ -72,7 +72,7 @@ function RoutesTesourariaAdmin() {
         element={comPerfil(<Lancamentos />)}
       />
 
-      {/* MVP com dados de exemplo — ver `features/admin/tesouraria/eventosECongregacoes` */}
+      {/* tesourarias de evento — ver `features/admin/tesouraria/eventosECongregacoes` */}
       <Route
         path="/admin/tesouraria/eventos"
         element={comTesoureiroCompleto(<TesourariaDeEventos />)}
@@ -80,7 +80,7 @@ function RoutesTesourariaAdmin() {
       {/* o caminho fixo ganha do `:id` no roteador */}
       <Route
         path="/admin/tesouraria/eventos/nao-alocados"
-        element={comPerfil(<NaoAlocados conta="EVENTOS" />)}
+        element={comPerfil(<NaoAlocados tipo="EVENT" />)}
       />
       <Route
         path="/admin/tesouraria/eventos/:id"
@@ -91,14 +91,14 @@ function RoutesTesourariaAdmin() {
         element={comTesoureiroCompleto(<TesourariaDoEvento />)}
       />
 
-      {/* MVP com dados de exemplo — ver docs/tesouraria-congregacoes.md */}
+      {/* tesourarias de congregação — ver docs/tesouraria-congregacoes.md */}
       <Route
         path="/admin/tesouraria/congregacoes"
         element={comPerfil(<TesourariaDeCongregacoes />)}
       />
       <Route
         path="/admin/tesouraria/congregacoes/nao-alocados"
-        element={comPerfil(<NaoAlocados conta="CONGREGACOES" />)}
+        element={comPerfil(<NaoAlocados tipo="CONGREGATION" />)}
       />
       <Route
         path="/admin/tesouraria/congregacoes/:id"

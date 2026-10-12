@@ -5,26 +5,28 @@ import { Link } from 'react-router-dom';
 import { PageStyle } from '../../../components/pageStyle';
 import { Header } from '../../../components/header';
 import { ChurchScopeBar } from '../../../features/settings/shared/churchScopeBar';
-import { useIgrejaSelecionada } from '../../../features/settings/shared/useIgrejaSelecionada';
 import { formatCurrency } from '../../../utils';
 import {
-  aDistribuir,
-  ContaDaTesouraria,
   nomeDosBancos,
   saldoDe,
-} from '../../../features/admin/tesouraria/eventosECongregacoes/dados';
+  TipoDaTesouraria,
+} from '../../../features/admin/tesouraria/eventosECongregacoes/modelo';
+import {
+  useIgrejaDaTesouraria,
+  useNaoAlocados,
+} from '../../../features/admin/tesouraria/eventosECongregacoes/api';
 import { TabelaDaTesouraria } from '../../../features/admin/tesouraria/eventosECongregacoes/components/tabelaDaTesouraria';
 
 const DA_CONTA: Record<
-  ContaDaTesouraria,
+  TipoDaTesouraria,
   { voltar: string; rotulo: string; nenhuma: string }
 > = {
-  EVENTOS: {
+  EVENT: {
     voltar: '/admin/tesouraria/eventos',
     rotulo: 'Tesourarias de eventos',
     nenhuma: 'nenhum evento',
   },
-  CONGREGACOES: {
+  CONGREGATION: {
     voltar: '/admin/tesouraria/congregacoes',
     rotulo: 'Tesourarias de congregações',
     nenhuma: 'nenhuma congregação',
@@ -36,10 +38,11 @@ const DA_CONTA: Record<
  * aviso da lista conta. Só leitura: alocar é na Conciliação de cada
  * tesouraria. A mesma tabela dos Lançamentos, com o banco de cada um.
  */
-function NaoAlocados({ conta }: { conta: ContaDaTesouraria }) {
-  const escopo = useIgrejaSelecionada(true, 'TREASURY');
-  const d = DA_CONTA[conta];
-  const livres = aDistribuir(conta);
+function NaoAlocados({ tipo }: { tipo: TipoDaTesouraria }) {
+  const { escopo, churchId } = useIgrejaDaTesouraria();
+  const d = DA_CONTA[tipo];
+  const { data, isLoading } = useNaoAlocados(churchId, tipo);
+  const livres = data?.movimentos ?? [];
 
   return (
     <PageStyle>
@@ -54,23 +57,25 @@ function NaoAlocados({ conta }: { conta: ContaDaTesouraria }) {
       </Button>
       <Header
         title="Lançamentos não alocados"
-        description={`Em ${nomeDosBancos(conta)}, ainda em ${d.nenhuma}`}
+        description={`Em ${nomeDosBancos(data?.bancos ?? [])}, ainda em ${d.nenhuma}`}
         acaoAoLado
       >
         <ChurchScopeBar escopo={escopo} oQueMuda="a tesouraria" />
       </Header>
 
       <Alert severity="info" sx={{ mb: 2 }}>
-        {livres.length
-          ? `${livres.length} na conta, ${formatCurrency(
-              saldoDe(
-                livres.map(({ movimento, restante }) => ({
-                  tipo: movimento.tipo,
-                  valor: restante,
-                }))
-              )
-            )} (entradas menos saídas). Para alocar, abra a Conciliação da tesouraria a que cada um pertence. Dados de exemplo.`
-          : 'Tudo o que está na conta já foi alocado.'}
+        {isLoading
+          ? 'Carregando…'
+          : livres.length
+            ? `${livres.length} na conta, ${formatCurrency(
+                saldoDe(
+                  livres.map(({ movimento, restante }) => ({
+                    tipo: movimento.tipo,
+                    valor: restante,
+                  }))
+                )
+              )} (entradas menos saídas). Para alocar, abra a Conciliação da tesouraria a que cada um pertence.`
+            : 'Tudo o que está na conta já foi alocado.'}
       </Alert>
 
       <TabelaDaTesouraria

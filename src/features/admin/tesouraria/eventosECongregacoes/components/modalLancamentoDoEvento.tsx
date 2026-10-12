@@ -9,16 +9,17 @@ import {
   useTheme,
 } from '@mui/material';
 import { format } from 'date-fns';
-import { toast } from 'react-toastify';
 
 import { ResponsiveModal } from '../../../../../components/responsiveModal';
 import { InputDatePicker } from '../../../../../components/inputDatePicker';
 import { formatCurrency } from '../../../../../utils';
 import { ROTULO_DA_FORMA } from '../../constants';
-import { CATEGORIAS, novoLancamento, TipoDoLancamento } from '../dados';
+import { CATEGORIAS, TipoDoLancamento } from '../modelo';
+import { useNovoLancamentoDaTesouraria } from '../api';
 
 interface Props {
   open: boolean;
+  churchId: string;
   tesourariaId: string;
   onClose: () => void;
   onSalvo: () => void;
@@ -33,13 +34,15 @@ interface Props {
  */
 function ModalLancamentoDoEvento({
   open,
+  churchId,
   tesourariaId,
   onClose,
   onSalvo,
 }: Props) {
   const theme = useTheme();
+  const lancar = useNovoLancamentoDaTesouraria();
   const [tipo, setTipo] = useState<TipoDoLancamento>('INCOME');
-  const [categoria, setCategoria] = useState(CATEGORIAS.EVENTOS.INCOME[0]);
+  const [categoria, setCategoria] = useState(CATEGORIAS.EVENT.INCOME[0]);
   // o valor em centavos: a pessoa digita só números, como em app de banco
   const [centavos, setCentavos] = useState(0);
   const [data, setData] = useState<Date | null>(new Date());
@@ -49,7 +52,7 @@ function ModalLancamentoDoEvento({
   useEffect(() => {
     if (!open) return;
     setTipo('INCOME');
-    setCategoria(CATEGORIAS.EVENTOS.INCOME[0]);
+    setCategoria(CATEGORIAS.EVENT.INCOME[0]);
     setCentavos(0);
     setData(new Date());
     setDescricao('');
@@ -58,24 +61,26 @@ function ModalLancamentoDoEvento({
 
   const trocarTipo = (novo: TipoDoLancamento) => {
     setTipo(novo);
-    setCategoria(CATEGORIAS.EVENTOS[novo][0]);
+    setCategoria(CATEGORIAS.EVENT[novo][0]);
   };
 
   const dataValida = !!data && !Number.isNaN(data.getTime());
   const pronto = centavos > 0 && dataValida && descricao.trim().length > 0;
 
-  const salvar = () => {
-    novoLancamento(tesourariaId, {
-      tipo,
-      categoria,
-      descricao: descricao.trim(),
-      valor: centavos / 100,
-      data: format(data as Date, 'yyyy-MM-dd'),
-      forma: forma || null,
-    });
-    toast.success('Lançamento criado: concilie quando cair no banco');
-    onSalvo();
-  };
+  const salvar = () =>
+    lancar.mutate(
+      {
+        churchId,
+        id: tesourariaId,
+        type: tipo,
+        category: categoria,
+        description: descricao.trim(),
+        amount: centavos / 100,
+        date: format(data as Date, 'yyyy-MM-dd'),
+        method: forma || undefined,
+      },
+      { onSuccess: onSalvo }
+    );
 
   return (
     <ResponsiveModal
@@ -89,7 +94,11 @@ function ModalLancamentoDoEvento({
           <Button onClick={onClose} color="inherit">
             Cancelar
           </Button>
-          <Button variant="contained" onClick={salvar} disabled={!pronto}>
+          <Button
+            variant="contained"
+            onClick={salvar}
+            disabled={!pronto || lancar.isLoading}
+          >
             Salvar
           </Button>
         </>
@@ -154,7 +163,7 @@ function ModalLancamentoDoEvento({
             value={categoria}
             onChange={(evento) => setCategoria(evento.target.value)}
           >
-            {CATEGORIAS.EVENTOS[tipo].map((c) => (
+            {CATEGORIAS.EVENT[tipo].map((c) => (
               <MenuItem key={c} value={c}>
                 {c}
               </MenuItem>
@@ -169,9 +178,9 @@ function ModalLancamentoDoEvento({
             onChange={(evento) => setForma(evento.target.value)}
           >
             <MenuItem value="">Não informada</MenuItem>
-            {Object.values(ROTULO_DA_FORMA).map((f) => (
-              <MenuItem key={f} value={f}>
-                {f}
+            {Object.entries(ROTULO_DA_FORMA).map(([valor, rotulo]) => (
+              <MenuItem key={valor} value={valor}>
+                {rotulo}
               </MenuItem>
             ))}
           </TextField>

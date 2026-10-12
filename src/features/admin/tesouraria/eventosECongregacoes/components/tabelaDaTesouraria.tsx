@@ -12,7 +12,7 @@ import {
   LancamentoDaTesouraria,
   ROTULO_DA_ORIGEM,
   ROTULO_DA_SITUACAO,
-} from '../dados';
+} from '../modelo';
 
 /** "2026-10-03" → "03/10/2026", sem passar por fuso */
 const dataCurta = (dia: string) => dia.split('-').reverse().join('/');

@@ -1,8 +1,8 @@
-# Tesouraria das congregações (/admin/tesouraria/congregacoes) — MVP
+# Tesouraria das congregações (/admin/tesouraria/congregacoes)
 
 Cada congregação da igreja tem a sua tesouraria, **só com entradas e saídas**: ofertas, doações, aluguel, contas. Não há dízimo nem membros na congregação. O registro é de controle: o dinheiro é todo da igreja central (o CNPJ é dela). No menu, é o terceiro filho de **Tesouraria** (Administrativa, Eventos, Congregações).
 
-**Situação:** MVP só no front, com **dados de exemplo** (`features/admin/tesouraria/eventosECongregacoes/dados.ts`). Nada vai à API; o que se cria, aloca ou fecha fica em memória e some ao recarregar a página. Um aviso no topo das telas diz isso. A igreja do seletor no topo não muda os números.
+**Dados da API** (`eventosECongregacoes/api.ts`; regras no `docs/tesouraria.md` do `ic-backend`, seção "Tesourarias de evento e de congregação").
 
 **Quem vê:** só a tesouraria da igreja e o admin (`ADMIN_AREA_ROLES`), que é quem fecha. O tesoureiro(a) de evento não entra aqui. Ver `docs/tesouraria.md`.
 
@@ -11,6 +11,7 @@ Cada congregação da igreja tem a sua tesouraria, **só com entradas e saídas*
 - Em Configurações › Integrações (Pluggy), com **bancos divididos por tesouraria**, cada banco diz de qual tesouraria é: Administrativa, Eventos ou Congregações (`docs/configuracoes.md`).
 - **Conta das congregações:** a ideia é a pessoa escolher entre **uma conta para todas** as congregações ou **uma conta por congregação**. O servidor pode já nascer aceitando as duas. No front a escolha aparece **travada em "uma para todas"** (a outra opção fica à vista, desligada, "em breve"), e é só com ela que o MVP funciona.
 - O extrato chega pelo Pluggy e fica salvo. Cada movimento é **alocado** na congregação a que pertence — inteiro, ou em partes quando serve a mais de uma (rateio).
+- **Sem banco de Congregações** (sem a divisão, ou nenhum banco escolhido para Congregações), a congregação distribui da conta única, a da Administrativa — e o que vai para ela sai dos totais de lá.
 - **Ninguém lança à mão para depois conciliar:** o que veio do banco já é o lançamento. Conciliar, aqui, é alocar e dar a categoria.
 
 ## O fluxo
@@ -65,29 +66,13 @@ O mesmo componente da tesouraria de evento (`conciliacaoDaTesouraria.tsx`, com `
 
 Todas com `RequireRole` em `ADMIN_AREA_ROLES` (`src/pages/admin/tesouraria/routes`).
 
-## Os dados de exemplo
-
-- **Três congregações:** Vila Nova (paga aluguel), São José (prédio próprio) e Jardim das Flores (paga aluguel).
-- **O extrato é gerado,** com valores por regra fixa (não por sorteio), para não mudarem a cada recarga: ofertas em dinheiro duas vezes por mês (dias 8 e 22), uma doação de vez em quando, aluguel (dia 10), luz (dia 15), água (dia 18) e alguns gastos de um mês só.
-- **De janeiro a setembro de 2026** tudo já está alocado. **Outubro** (até o dia 12) está a distribuir.
-- **Para mostrar os casos novos:** a tarifa de manutenção da conta (não alocado, que não é de congregação nenhuma) e o boleto do material de limpeza das três congregações (para ratear).
-
 ## Código
 
 - **Telas:** `src/pages/admin/tesouraria/congregacoes/` (`index.tsx` é a lista; `tesouraria.tsx` são as abas). As rotas ficam em `src/pages/admin/tesouraria/routes`.
-- **Dados de exemplo:** `src/features/admin/tesouraria/eventosECongregacoes/dados.ts` — as seções "tesourarias de congregação", "as contas de Eventos e de Congregações" e "fechamento".
+- **Dados:** `src/features/admin/tesouraria/eventosECongregacoes/api.ts` (hooks) e `modelo.ts` (tipos, categorias e as contas da tela).
 - **Componentes da congregação:** `modalNovaCongregacao.tsx` e `lancamentosDaCongregacao.tsx`, em `src/features/admin/tesouraria/eventosECongregacoes/components/`.
 - **Componentes compartilhados com a tesouraria de evento** (na mesma pasta): `conciliacaoDaTesouraria.tsx`, `modalRateio.tsx`, `lancamentosDaTesouraria.tsx`, `listaDeTesourarias.tsx`, `avisoNaoAlocados.tsx` e `barraDoFechamento.tsx`.
 - **No Pluggy:** a escolha travada da conta das congregações está em `src/features/settings/integrations/pluggyForm.tsx`.
-
-## Para virar dado de verdade
-
-O que o servidor precisa ter (proposta; nada disso existe ainda):
-
-1. **Congregação:** uma tabela da congregação, por igreja, com nome e local. No começo ela é criada junto com a tesouraria; depois ganha cadastro próprio.
-2. **Tesouraria:** a tesouraria da congregação, ligada à congregação, com o fechamento (quando e por quem). Pode ser a mesma tabela da tesouraria de evento, com o tipo (evento ou congregação).
-3. **Divisão dos bancos:** salvar na integração Pluggy de qual tesouraria (Administrativa, Eventos ou Congregações) é cada banco e, para Congregações, se a conta é uma para todas ou uma por congregação. Hoje a escolha é só prévia, não vai ao servidor.
-4. **Movimentos e alocações:** os movimentos importados da conta das Congregações, e as alocações (movimento, tesouraria, valor e categoria). O que falta alocar de um movimento é o valor dele menos as alocações.
 
 ## Em aberto
 

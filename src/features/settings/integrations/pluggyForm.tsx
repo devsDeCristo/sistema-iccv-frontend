@@ -18,7 +18,7 @@ import { Add, DeleteOutline, Lock, OpenInNew } from '@mui/icons-material';
 
 import { Input } from '../../../components/input';
 import { ResponsiveModal } from '../../../components/responsiveModal';
-import { PluggyIntegration, useSavePluggy } from './api';
+import { ContaDoBanco, PluggyIntegration, useSavePluggy } from './api';
 import { PluggyLogo } from './pluggyLogo';
 import { semAutopreencher } from '../shared/semAutopreencher';
 
@@ -31,6 +31,16 @@ const lerItemIds = (texto: string) =>
 
 /** A tesouraria a que um banco serve, quando os bancos são divididos */
 type TesourariaDoBanco = 'ADMINISTRATIVA' | 'EVENTOS' | 'CONGREGACOES';
+
+/** Os nomes da tela e os da API (`TreasuryAccount`) */
+const PARA_API: Record<TesourariaDoBanco, ContaDoBanco> = {
+  ADMINISTRATIVA: 'ADMINISTRATIVE',
+  EVENTOS: 'EVENTS',
+  CONGREGACOES: 'CONGREGATIONS',
+};
+const DA_API = Object.fromEntries(
+  Object.entries(PARA_API).map(([tela, api]) => [api, tela])
+) as Record<ContaDoBanco, TesourariaDoBanco>;
 
 const TESOURARIAS_DO_BANCO: { valor: TesourariaDoBanco; rotulo: string }[] = [
   { valor: 'ADMINISTRATIVA', rotulo: 'Administrativa' },
@@ -68,9 +78,9 @@ function PluggyForm({
   const [novo, setNovo] = useState<number | null>(null);
   const [ativa, setAtiva] = useState(true);
   /**
-   * ponytail: prévia — a divisão dos bancos por tesouraria ainda não vai para
-   * o servidor (a rota recusaria o campo). Fica só enquanto a tela está
-   * aberta; quando entrar no backend, vai junto no `salvar` como os Item IDs.
+   * A divisão dos bancos por tesouraria: vai junto no `salvar`, como os Item
+   * IDs. Sem ela, tudo é da Administrativa (e evento e congregação distribuem
+   * de lá); com ela, cada banco alimenta a tesouraria dele.
    */
   const [divisao, setDivisao] = useState<'LIVRE' | 'POR_TESOURARIA'>('LIVRE');
   // pelo Item ID, e não pela posição: remover um campo não troca a
@@ -89,6 +99,14 @@ function PluggyForm({
     setItemIds(integracao?.itemIds.length ? [...integracao.itemIds] : ['']);
     setNovo(null);
     setAtiva(integracao?.enabled ?? true);
+    setDivisao(integracao?.splitByTreasury ? 'POR_TESOURARIA' : 'LIVRE');
+    setTesourariaDoBanco(
+      Object.fromEntries(
+        Object.entries(integracao?.itemAccounts ?? {}).map(
+          ([itemId, conta]) => [itemId, DA_API[conta]]
+        )
+      )
+    );
   }, [open, integracao]);
 
   // vazios saem e repetidos contam uma vez
@@ -126,6 +144,14 @@ function PluggyForm({
         ...(clientSecret.trim() ? { clientSecret: clientSecret.trim() } : {}),
         itemIds: ids,
         enabled: ativa,
+        splitByTreasury: porTesouraria,
+        // banco sem escolha é da Administrativa, que é o padrão do servidor
+        itemAccounts: Object.fromEntries(
+          ids.map((id) => [
+            id,
+            PARA_API[tesourariaDoBanco[id] ?? 'ADMINISTRATIVA'],
+          ])
+        ),
       },
       { onSuccess: onClose }
     );
@@ -264,12 +290,6 @@ function PluggyForm({
               />
             ))}
           </RadioGroup>
-
-          {porTesouraria && (
-            <Alert severity="info" sx={{ py: 0.25 }}>
-              Prévia: a divisão dos bancos por tesouraria ainda não é salva.
-            </Alert>
-          )}
 
           {/* ponytail: travado em "uma para todas"; a conta por congregação
               fica à vista, desligada, até a tesouraria das congregações

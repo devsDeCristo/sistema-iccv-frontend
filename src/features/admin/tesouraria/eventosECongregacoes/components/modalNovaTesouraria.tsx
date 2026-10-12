@@ -9,17 +9,13 @@ import {
   Typography,
 } from '@mui/material';
 import { format } from 'date-fns';
-import { toast } from 'react-toastify';
 
 import { ResponsiveModal } from '../../../../../components/responsiveModal';
 import { InputDatePicker } from '../../../../../components/inputDatePicker';
 import { useGetEvents } from '../../../events/api/getEvents';
 import { Event } from '../../../events/types';
-import {
-  criarTesouraria,
-  listarTesourarias,
-  TesourariaDeEvento,
-} from '../dados';
+import { TesourariaNaLista } from '../modelo';
+import { useCriarTesouraria, useTesourarias } from '../api';
 
 /** "13/02 a 16/02/2027", ou o dia só */
 const periodoDo = (evento: Event) => {
@@ -33,7 +29,7 @@ interface Props {
   /** A igreja da tela: os eventos cadastrados dela */
   churchId: string | null;
   onClose: () => void;
-  onCriada: (tesouraria: TesourariaDeEvento) => void;
+  onCriada: (tesouraria: TesourariaNaLista) => void;
 }
 
 /**
@@ -46,6 +42,8 @@ function ModalNovaTesouraria({ open, churchId, onClose, onCriada }: Props) {
   const [eventoId, setEventoId] = useState('');
   const [nome, setNome] = useState('');
   const [data, setData] = useState<Date | null>(null);
+  const criarNaApi = useCriarTesouraria();
+  const { data: existentes } = useTesourarias(churchId, 'EVENT');
 
   useEffect(() => {
     if (!open) return;
@@ -66,24 +64,24 @@ function ModalNovaTesouraria({ open, churchId, onClose, onCriada }: Props) {
     .map((e) => ({ id: e.id, nome: e.name, periodo: periodoDo(e) }));
 
   // um evento do sistema tem uma tesouraria só
-  const comTesouraria = new Set(listarTesourarias().map((t) => t.eventoId));
+  const comTesouraria = new Set((existentes ?? []).map((t) => t.eventoId));
   const evento = eventos.find((e) => e.id === eventoId);
   const dataValida = !data || !Number.isNaN(data.getTime());
   const pronto = tipo === 'SISTEMA' ? !!evento : !!nome.trim() && dataValida;
 
-  const criar = () => {
-    const nova = criarTesouraria(
+  const criar = () =>
+    churchId &&
+    criarNaApi.mutate(
       tipo === 'SISTEMA' && evento
-        ? { nome: evento.nome, eventoId: evento.id, periodo: evento.periodo }
+        ? { churchId, kind: 'EVENT', eventId: evento.id }
         : {
-            nome: nome.trim(),
-            eventoId: null,
-            periodo: data ? format(data, 'dd/MM/yyyy') : 'Sem data',
-          }
+            churchId,
+            kind: 'EVENT',
+            name: nome.trim(),
+            date: data ? format(data, 'yyyy-MM-dd') : undefined,
+          },
+      { onSuccess: (nova) => onCriada(nova as TesourariaNaLista) }
     );
-    toast.success('Tesouraria criada');
-    onCriada(nova);
-  };
 
   return (
     <ResponsiveModal
@@ -97,8 +95,12 @@ function ModalNovaTesouraria({ open, churchId, onClose, onCriada }: Props) {
           <Button onClick={onClose} color="inherit">
             Cancelar
           </Button>
-          <Button variant="contained" onClick={criar} disabled={!pronto}>
-            Criar
+          <Button
+            variant="contained"
+            onClick={criar}
+            disabled={!pronto || !churchId || criarNaApi.isLoading}
+          >
+            {criarNaApi.isLoading ? 'Criando…' : 'Criar'}
           </Button>
         </>
       }

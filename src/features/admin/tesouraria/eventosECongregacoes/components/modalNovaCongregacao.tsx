@@ -1,24 +1,24 @@
 import { useEffect, useState } from 'react';
 import { Alert, Button, Stack, TextField } from '@mui/material';
-import { toast } from 'react-toastify';
 
 import { ResponsiveModal } from '../../../../../components/responsiveModal';
-import {
-  criarTesourariaDeCongregacao,
-  TesourariaDeCongregacao,
-} from '../dados';
+import { TesourariaNaLista } from '../modelo';
+import { useCriarTesouraria } from '../api';
 
 interface Props {
   open: boolean;
+  /** A igreja da tela */
+  churchId: string | null;
   onClose: () => void;
-  onCriada: (tesouraria: TesourariaDeCongregacao) => void;
+  onCriada: (tesouraria: TesourariaNaLista) => void;
 }
 
 /**
  * Nova tesouraria de congregação. Ainda não há cadastro de congregações:
  * criar a tesouraria cria a congregação junto, só com o nome e o local.
  */
-function ModalNovaCongregacao({ open, onClose, onCriada }: Props) {
+function ModalNovaCongregacao({ open, churchId, onClose, onCriada }: Props) {
+  const criarNaApi = useCriarTesouraria();
   const [nome, setNome] = useState('');
   const [local, setLocal] = useState('');
 
@@ -28,14 +28,17 @@ function ModalNovaCongregacao({ open, onClose, onCriada }: Props) {
     setLocal('');
   }, [open]);
 
-  const criar = () => {
-    const nova = criarTesourariaDeCongregacao({
-      nome: nome.trim(),
-      local: local.trim() || null,
-    });
-    toast.success('Congregação criada, com a sua tesouraria');
-    onCriada(nova);
-  };
+  const criar = () =>
+    churchId &&
+    criarNaApi.mutate(
+      {
+        churchId,
+        kind: 'CONGREGATION',
+        name: nome.trim(),
+        location: local.trim() || undefined,
+      },
+      { onSuccess: (nova) => onCriada(nova as TesourariaNaLista) }
+    );
 
   return (
     <ResponsiveModal
@@ -49,8 +52,12 @@ function ModalNovaCongregacao({ open, onClose, onCriada }: Props) {
           <Button onClick={onClose} color="inherit">
             Cancelar
           </Button>
-          <Button variant="contained" onClick={criar} disabled={!nome.trim()}>
-            Criar
+          <Button
+            variant="contained"
+            onClick={criar}
+            disabled={!nome.trim() || !churchId || criarNaApi.isLoading}
+          >
+            {criarNaApi.isLoading ? 'Criando…' : 'Criar'}
           </Button>
         </>
       }

@@ -1,4 +1,4 @@
-import { ReactNode, useReducer, useRef, useState } from 'react';
+import { ReactNode, useRef, useState } from 'react';
 import {
   alpha,
   Box,
@@ -38,26 +38,26 @@ import {
 } from '../../../../../components/listPageStyles';
 import { formatCurrency } from '../../../../../utils';
 import {
-  aDistribuir,
   CATEGORIAS,
-  classificar,
-  conciliacaoDa,
-  conciliar,
-  ContaDaTesouraria,
-  desfazerConciliacao,
-  devolver,
-  distribuir,
-  distribuirParte,
   EstadoDaLinha,
   LinhaDaConciliacao,
   LinhaLivre,
-  marcarNaoConsta,
   nomeDosBancos,
   ROTULO_DA_ORIGEM,
   saldoDe,
   SEM_CATEGORIA,
+  TipoDaTesouraria,
   TipoDoLancamento,
-} from '../dados';
+} from '../modelo';
+import {
+  useClassificar,
+  useConciliacaoDaTesouraria,
+  useConciliarNaTesouraria,
+  useDesfazerNaTesouraria,
+  useDevolver,
+  useDistribuir,
+  useNaoConsta,
+} from '../api';
 import { ModalRateio } from './modalRateio';
 
 /** "2026-10-05" → "05/10": o ano é o do período */
@@ -73,15 +73,18 @@ const rolagem = {
 } as const;
 
 /** O que muda entre a tesouraria de um evento e a de uma congregação */
-const TEXTOS = {
-  EVENTOS: {
+const TEXTOS: Record<
+  TipoDaTesouraria,
+  Record<'lancamentos' | 'so' | 'paraEste' | 'paraO' | 'mais', string>
+> = {
+  EVENT: {
     lancamentos: 'Lançamentos do evento',
     so: 'Só no evento',
     paraEste: 'para este evento',
     paraO: 'para o evento',
     mais: 'mais de um evento',
   },
-  CONGREGACOES: {
+  CONGREGATION: {
     lancamentos: 'Lançamentos da congregação',
     so: 'Só na congregação',
     paraEste: 'para esta congregação',
@@ -91,7 +94,8 @@ const TEXTOS = {
 };
 
 interface Props {
-  conta: ContaDaTesouraria;
+  tipo: TipoDaTesouraria;
+  churchId: string;
   tesourariaId: string;
   /** Tesouraria fechada: só leitura */
   fechada: boolean;
@@ -108,28 +112,52 @@ interface Props {
  *   só uma parte) — e vira, ele mesmo, um lançamento daqui, na mesma linha.
  * - Só no evento: o pagamento das inscrições e dos produtos, ou o lançamento
  *   manual, que ainda não achou o banco. Marcado junto com um movimento do
- *   banco, concilia. O pagamento com código de transação chega conciliado.
+ *   banco, concilia.
+ * - Sugerido: o movimento e o lançamento de mesmo valor e data próxima, na
+ *   mesma linha, com o conciliar na ponta (a regra da Administrativa).
  * - Não consta no banco: o que nunca vai passar por ele (dinheiro em espécie).
  *
  * A congregação não tem pagamentos nem manuais: o lado direito é só o que
  * veio do banco.
  */
-function ConciliacaoDaTesouraria({ conta, tesourariaId, fechada }: Props) {
+function ConciliacaoDaTesouraria({
+  tipo,
+  churchId,
+  tesourariaId,
+  fechada,
+}: Props) {
   const theme = useTheme();
   const lado2lado = useMediaQuery(theme.breakpoints.up('md'));
   const esquerda = useRef<HTMLDivElement>(null);
   const direita = useRef<HTMLDivElement>(null);
   // a mesma linha acesa dos dois lados, para o olho atravessar
   const [emFoco, setEmFoco] = useState<string | null>(null);
-  // os dados de exemplo mudam fora do React: isto só pede um novo desenho
-  const [, redesenhar] = useReducer((n: number) => n + 1, 0);
   const [bancoMarcados, setBancoMarcados] = useState<string[]>([]);
   const [daquiMarcados, setDaquiMarcados] = useState<string[]>([]);
   const [rateando, setRateando] = useState<LinhaLivre[]>([]);
 
-  const t = TEXTOS[conta];
-  const comSistema = conta === 'EVENTOS';
-  const linhas = conciliacaoDa(conta, tesourariaId);
+  const t = TEXTOS[tipo];
+  const comSistema = tipo === 'EVENT';
+  const { data: conciliacao } = useConciliacaoDaTesouraria(
+    churchId,
+    tesourariaId
+  );
+  const linhas = conciliacao?.linhas ?? [];
+  const daTesouraria = { churchId, id: tesourariaId };
+  const distribuir = useDistribuir();
+  const devolver = useDevolver();
+  const classificar = useClassificar();
+  const conciliar = useConciliarNaTesouraria();
+  const desfazer = useDesfazerNaTesouraria();
+  const marcarNaoConsta = useNaoConsta();
+  const ocupado = [
+    distribuir,
+    devolver,
+    classificar,
+    conciliar,
+    desfazer,
+    marcarNaoConsta,
+  ].some((m) => m.isLoading);
   const doEstado = (estado: EstadoDaLinha) =>
     linhas.filter((l) => l.estado === estado);
   const soBanco = doEstado('so_banco');
@@ -139,6 +167,7 @@ function ConciliacaoDaTesouraria({ conta, tesourariaId, fechada }: Props) {
   );
 
   const cor: Record<EstadoDaLinha, string> = {
+    sugerido: theme.palette.chips.info,
     conciliado: theme.palette.chips.success,
     so_banco: theme.palette.chips.alert,
     so_evento: theme.palette.chips.alert,
@@ -149,10 +178,7 @@ function ConciliacaoDaTesouraria({ conta, tesourariaId, fechada }: Props) {
     setBancoMarcados([]);
     setDaquiMarcados([]);
   };
-  const mudou = () => {
-    limpar();
-    redesenhar();
-  };
+  const mudou = limpar;
   const alternar = (setter: typeof setBancoMarcados) => (id: string) =>
     setter((atual) =>
       atual.includes(id) ? atual.filter((x) => x !== id) : [...atual, id]
@@ -165,55 +191,79 @@ function ConciliacaoDaTesouraria({ conta, tesourariaId, fechada }: Props) {
     }
   };
 
-  const trazer = () => {
-    distribuir(bancoMarcados, tesourariaId);
-    toast.success(
-      bancoMarcados.length === 1
-        ? `Movimento trazido ${t.paraO}`
-        : `${bancoMarcados.length} movimentos trazidos ${t.paraO}`
+  const trazer = () =>
+    distribuir.mutate(
+      {
+        ...daTesouraria,
+        partes: bancoMarcados.map((movimentoId) => ({ movimentoId })),
+      },
+      {
+        onSuccess: () => {
+          toast.success(
+            bancoMarcados.length === 1
+              ? `Movimento trazido ${t.paraO}`
+              : `${bancoMarcados.length} movimentos trazidos ${t.paraO}`
+          );
+          mudou();
+        },
+      }
     );
-    mudou();
-  };
 
-  const ratear = (partes: { movimentoId: string; valor: number }[]) => {
-    for (const p of partes) {
-      distribuirParte(p.movimentoId, tesourariaId, p.valor);
-    }
-    toast.success(
-      `${formatCurrency(
-        partes.reduce((s, p) => s + p.valor, 0)
-      )} trazidos ${t.paraO}`
+  const ratear = (partes: { movimentoId: string; valor: number }[]) =>
+    distribuir.mutate(
+      { ...daTesouraria, partes },
+      {
+        onSuccess: () => {
+          toast.success(
+            `${formatCurrency(
+              partes.reduce((s, p) => s + p.valor, 0)
+            )} trazidos ${t.paraO}`
+          );
+          setRateando([]);
+          mudou();
+        },
+      }
     );
-    setRateando([]);
-    mudou();
-  };
+
+  const conciliarCom = (movimentoId: string, lancamentoIds: string[]) =>
+    conciliar.mutate(
+      { ...daTesouraria, movimentoId, lancamentoIds },
+      { onSuccess: mudou }
+    );
 
   const conciliarMarcados = () => {
     if (bancoMarcados.length !== 1) {
       toast.error('Marque um movimento do banco só');
       return;
     }
-    const erro = conciliar(bancoMarcados[0], daquiMarcados, tesourariaId);
-    if (erro) {
-      toast.error(erro);
-      return;
-    }
-    toast.success('Conciliado');
-    mudou();
+    conciliarCom(bancoMarcados[0], daquiMarcados);
   };
 
+  /** O id do lançamento do sistema de uma linha (o da sugestão também) */
+  const idDaqui = (l: LinhaDaConciliacao) =>
+    l.tesouraria?.de === 'sistema' ? l.tesouraria.lancamento.id : l.chave;
+
   const todosNaoConstam = daquiMarcados.every((id) =>
-    linhas.some((l) => l.chave === id && l.estado === 'nao_consta')
+    linhas.some((l) => idDaqui(l) === id && l.estado === 'nao_consta')
   );
-  const naoConsta = () => {
-    marcarNaoConsta(daquiMarcados, !todosNaoConstam);
-    toast.success(
-      todosNaoConstam
-        ? 'De volta para a conciliação'
-        : 'Marcado como não consta no banco'
+  const naoConsta = () =>
+    marcarNaoConsta.mutate(
+      {
+        ...daTesouraria,
+        lancamentoIds: daquiMarcados,
+        naoConsta: !todosNaoConstam,
+      },
+      {
+        onSuccess: () => {
+          toast.success(
+            todosNaoConstam
+              ? 'De volta para a conciliação'
+              : 'Marcado como não consta no banco'
+          );
+          mudou();
+        },
+      }
     );
-    mudou();
-  };
 
   // o que a barra oferece depende do que está marcado
   const acoes = (() => {
@@ -252,9 +302,17 @@ function ConciliacaoDaTesouraria({ conta, tesourariaId, fechada }: Props) {
           icone: <CallSplit />,
           onClick: () =>
             setRateando(
-              aDistribuir(conta).filter((l) =>
-                bancoMarcados.includes(l.movimento.id)
-              )
+              linhas
+                .filter(
+                  (l) =>
+                    !!l.banco &&
+                    (l.estado === 'so_banco' || l.estado === 'sugerido') &&
+                    bancoMarcados.includes(l.banco.movimento.id)
+                )
+                .map((l): LinhaLivre => ({
+                  movimento: l.banco!.movimento,
+                  restante: l.banco!.valor,
+                }))
             ),
         },
         acao: {
@@ -319,6 +377,7 @@ function ConciliacaoDaTesouraria({ conta, tesourariaId, fechada }: Props) {
     </Typography>
   );
 
+  const tipoDaTesouraria = tipo;
   const seletor = (
     alocacao: { id: string; categoria: string | null },
     tipo: TipoDoLancamento,
@@ -327,12 +386,15 @@ function ConciliacaoDaTesouraria({ conta, tesourariaId, fechada }: Props) {
     <TextField
       select
       variant="standard"
-      disabled={fechada}
+      disabled={fechada || ocupado}
       value={alocacao.categoria ?? ''}
-      onChange={(e) => {
-        classificar(alocacao.id, e.target.value);
-        redesenhar();
-      }}
+      onChange={(e) =>
+        classificar.mutate({
+          ...daTesouraria,
+          alocacaoId: alocacao.id,
+          categoria: e.target.value || null,
+        })
+      }
       inputProps={{ 'aria-label': `Categoria de ${descricao}` }}
       InputProps={{ disableUnderline: true }}
       SelectProps={{
@@ -351,7 +413,7 @@ function ConciliacaoDaTesouraria({ conta, tesourariaId, fechada }: Props) {
         },
       }}
     >
-      {CATEGORIAS[conta][tipo].map((c) => (
+      {CATEGORIAS[tipoDaTesouraria][tipo].map((c) => (
         <MenuItem key={c} value={c} sx={{ fontSize: 14 }}>
           {c}
         </MenuItem>
@@ -361,7 +423,12 @@ function ConciliacaoDaTesouraria({ conta, tesourariaId, fechada }: Props) {
 
   const botao = (titulo: string, icone: ReactNode, onClick: () => void) => (
     <Tooltip title={titulo}>
-      <IconButton size="small" aria-label={titulo} onClick={onClick}>
+      <IconButton
+        size="small"
+        aria-label={titulo}
+        disabled={ocupado}
+        onClick={onClick}
+      >
         {icone}
       </IconButton>
     </Tooltip>
@@ -424,25 +491,28 @@ function ConciliacaoDaTesouraria({ conta, tesourariaId, fechada }: Props) {
             botao(
               `Devolver ${m.descricao} para o banco`,
               <Undo fontSize="small" />,
-              () => {
-                devolver(d.alocacao.id);
-                mudou();
-              }
+              () =>
+                devolver.mutate(
+                  { ...daTesouraria, alocacaoId: d.alocacao.id },
+                  { onSuccess: mudou }
+                )
             )}
         </>
       );
     }
     const l = d.lancamento;
     const situacao =
-      d.situacao === 'CONCILIADO'
-        ? d.automatica
-          ? 'Conciliado pelo código'
-          : 'Conciliado'
-        : d.situacao === 'NAO_CONSTA'
-          ? 'Não consta no banco'
-          : l.codigo
-            ? 'Aguardando o banco'
-            : 'A conciliar';
+      linha.estado === 'sugerido'
+        ? 'Sugerido: mesmo valor no banco'
+        : d.situacao === 'CONCILIADO'
+          ? d.automatica
+            ? 'Conciliado pelo código'
+            : 'Conciliado'
+          : d.situacao === 'NAO_CONSTA'
+            ? 'Não consta no banco'
+            : l.codigo
+              ? 'Aguardando o banco'
+              : 'A conciliar';
     return (
       <>
         {data(l.data)}
@@ -451,6 +521,15 @@ function ConciliacaoDaTesouraria({ conta, tesourariaId, fechada }: Props) {
           `${ROTULO_DA_ORIGEM[l.origem]}${l.forma ? ` · ${l.forma}` : ''} · ${situacao}`
         )}
         {valor(l.tipo, l.valor)}
+        {/* a sugestão concilia na própria linha */}
+        {!fechada &&
+          linha.estado === 'sugerido' &&
+          linha.banco &&
+          botao(
+            `Conciliar ${l.descricao} com o banco`,
+            <CompareArrows fontSize="small" />,
+            () => conciliarCom(linha.banco!.movimento.id, [l.id])
+          )}
         {!fechada &&
           d.situacao === 'CONCILIADO' &&
           // a linha de cima já tem o desfazer do movimento
@@ -458,10 +537,12 @@ function ConciliacaoDaTesouraria({ conta, tesourariaId, fechada }: Props) {
           botao(
             `Desfazer a conciliação de ${l.descricao}`,
             <LinkOff fontSize="small" />,
-            () => {
-              desfazerConciliacao(l.id);
-              mudou();
-            }
+            () =>
+              linha.banco &&
+              desfazer.mutate(
+                { ...daTesouraria, movimentoId: linha.banco.movimento.id },
+                { onSuccess: mudou }
+              )
           )}
       </>
     );
@@ -470,15 +551,17 @@ function ConciliacaoDaTesouraria({ conta, tesourariaId, fechada }: Props) {
   const celula = (linha: LinhaDaConciliacao, lado: 'banco' | 'tesouraria') => {
     const ehBanco = lado === 'banco';
     const vazio = ehBanco ? !linha.banco : !linha.tesouraria;
-    const id = ehBanco ? linha.banco?.movimento.id : linha.chave;
+    const id = ehBanco ? linha.banco?.movimento.id : idDaqui(linha);
     const marcados = ehBanco ? bancoMarcados : daquiMarcados;
     // marca-se o que ainda não tem par; o clique na linha também marca
     const marcavel =
       !fechada &&
       !vazio &&
       (ehBanco
-        ? linha.estado === 'so_banco'
-        : linha.estado === 'so_evento' || linha.estado === 'nao_consta');
+        ? linha.estado === 'so_banco' || linha.estado === 'sugerido'
+        : linha.estado === 'so_evento' ||
+          linha.estado === 'nao_consta' ||
+          linha.estado === 'sugerido');
     const marcado = !!id && marcados.includes(id);
     const marcar = () =>
       id && alternar(ehBanco ? setBancoMarcados : setDaquiMarcados)(id);
@@ -667,13 +750,13 @@ function ConciliacaoDaTesouraria({ conta, tesourariaId, fechada }: Props) {
         <Typography variant="body2" color="text.secondary">
           À esquerda, o que veio de{' '}
           <Box component="b" sx={{ color: 'text.primary' }}>
-            {nomeDosBancos(conta)}
+            {nomeDosBancos(conciliacao?.bancos ?? [])}
           </Box>{' '}
           pelo Pluggy; à direita, os {t.lancamentos.toLowerCase()}. O movimento
           que é daqui e não tem par: marque e traga — inteiro, ou só uma parte
           quando é de {t.mais} (<b>Ratear e trazer</b>).
           {comSistema &&
-            ' O pagamento com código de transação se concilia sozinho; a baixa manual e o lançamento manual, marque junto com o movimento do banco que é o mesmo dinheiro. O que nunca passa pelo banco, marque como "não consta no banco".'}
+            ' Pagamento e lançamento com o mesmo valor de um movimento, em data próxima, vêm sugeridos (em azul): confira e concilie na linha. Os outros, marque junto com o movimento do banco que é o mesmo dinheiro. O que nunca passa pelo banco, marque como "não consta no banco".'}
         </Typography>
       </Paper>
 
