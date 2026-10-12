@@ -1,4 +1,4 @@
-import { Box, Stack, Typography } from '@mui/material';
+import { Box, Stack, Tooltip, Typography } from '@mui/material';
 import { FamilyRestroom } from '@mui/icons-material';
 
 import { UserAvatar } from '../../../../components/userAvatar';
@@ -13,11 +13,14 @@ import { Dizimista } from '../types';
  * desenharem igual nas duas.
  */
 
-/** A faixa da família e, na primeira linha dela, o nome com o ícone */
+/**
+ * A faixa da família e, na primeira linha dela, o ícone — o nome fica na dica,
+ * para a coluna ser estreita
+ */
 function CelulaDaFamilia({ row }: { row: EmFamilia<Dizimista> }) {
   if (!row.family || !row.posicao || !row.cor) {
     return (
-      <Typography fontSize={13} color="text.disabled">
+      <Typography fontSize={13} color="text.disabled" sx={{ ml: 1.5 }}>
         —
       </Typography>
     );
@@ -26,23 +29,12 @@ function CelulaDaFamilia({ row }: { row: EmFamilia<Dizimista> }) {
     <>
       <FaixaDaFamilia posicao={row.posicao} cor={row.cor} />
       {abreAFamilia(row.posicao) && (
-        <Stack
-          direction="row"
-          spacing={0.75}
-          alignItems="center"
-          sx={{ ml: 2, color: row.cor, minWidth: 0 }}
-        >
-          <FamilyRestroom sx={{ fontSize: 16 }} />
-          <Typography
-            fontSize={13}
-            fontWeight={700}
-            color="inherit"
-            noWrap
-            title={row.family.name}
-          >
-            {row.family.name}
-          </Typography>
-        </Stack>
+        <Tooltip title={row.family.name}>
+          <FamilyRestroom
+            aria-label={row.family.name}
+            sx={{ ml: 1.5, fontSize: 18, color: row.cor }}
+          />
+        </Tooltip>
       )}
     </>
   );

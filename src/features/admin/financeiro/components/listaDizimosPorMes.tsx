@@ -1,26 +1,25 @@
 import { useMemo } from 'react';
 import {
-  Box,
+  ButtonBase,
   Card,
-  IconButton,
   Stack,
   Tooltip,
   Typography,
   alpha,
   useTheme,
 } from '@mui/material';
-import { EditOutlined, VolunteerActivism } from '@mui/icons-material';
+import {
+  EditOutlined,
+  FamilyRestroom,
+  VolunteerActivism,
+} from '@mui/icons-material';
 import { DataGrid, GridColDef, ptBR } from '@mui/x-data-grid';
 
 import {
   cardTabelaSx,
   dataGridSx,
 } from '../../../../components/listPageStyles';
-import {
-  formatBRNumber,
-  formatCurrency,
-  formatPhoneNumber,
-} from '../../../../utils';
+import { formatCurrency } from '../../../../utils';
 import { MESES_CURTOS } from '../constants';
 import { Dizimista } from '../types';
 import { CelulaDaFamilia, CelulaDoMembro } from './celulasDoDizimista';
@@ -48,14 +47,13 @@ interface Props {
 }
 
 /**
- * Os dizimistas — os membros da igreja —, cada um numa linha: contato, o
- * valor do dízimo, quanto dizimou em cada mês do ano e o total; a última
- * linha soma a igreja. As famílias ficam juntas, como na tela de Membros. O
- * lápis edita o valor do dízimo.
+ * Os dizimistas — os membros da igreja —, cada um numa linha: o valor do
+ * dízimo, quanto dizimou em cada mês do ano e o total; a última
+ * linha soma a igreja. As famílias ficam juntas, como na tela de Membros.
+ * Clicar no valor do dízimo o edita.
  *
  * Família e membro com as mesmas células de `celulasDoDizimista` (foto, nome, CPF).
- * O valor vai sem o "R$" (as doze colunas não caberiam com ele); o mês sem
- * dízimo mostra um traço, e o que ainda não chegou fica vazio.
+ * O valor vai com o "R$"; o mês sem dízimo mostra um traço, e o que ainda não chegou fica vazio.
  */
 function ListaDizimosPorMes({
   dizimistas,
@@ -103,7 +101,7 @@ function ListaDizimosPorMes({
         fontWeight={total ? 700 : valor ? 600 : 400}
         color={valor ? 'text.primary' : 'text.disabled'}
       >
-        {valor ? formatBRNumber(valor) : '—'}
+        {valor ? formatCurrency(valor) : '—'}
       </Typography>
     );
   };
@@ -112,7 +110,14 @@ function ListaDizimosPorMes({
     {
       field: 'familia',
       headerName: 'Família',
-      width: 150,
+      // só o ícone: o nome da família fica na dica dele
+      description: 'Família',
+      renderHeader: () => (
+        <FamilyRestroom
+          sx={{ fontSize: 18, ml: 1.5, color: 'text.secondary' }}
+        />
+      ),
+      width: 56,
       valueGetter: ({ row }) => row.family?.name ?? '',
       // a linha do total não tem família: nem o traço de "sem família"
       renderCell: ({ row }) =>
@@ -135,53 +140,45 @@ function ListaDizimosPorMes({
         ),
     },
     {
-      field: 'contato',
-      headerName: 'Contato',
-      width: 160,
-      valueGetter: ({ row }) =>
-        row.total ? '' : `${formatPhoneNumber(row.cellphone)} ${row.email}`,
-      renderCell: ({ row }) =>
-        row.total ? null : (
-          <Box sx={{ minWidth: 0 }}>
-            <Typography fontSize={13}>
-              {formatPhoneNumber(row.cellphone)}
-            </Typography>
-            <Typography
-              variant="caption"
-              color="text.secondary"
-              noWrap
-              title={row.email}
-              component="div"
-            >
-              {row.email}
-            </Typography>
-          </Box>
-        ),
-    },
-    {
       field: 'titheAmount',
       headerName: 'Dízimo',
       // o cabeçalho curto cabe; a dica explica o que é
       description:
-        'Valor do dízimo. Na importação do banco separa dízimo (este valor) de oferta (outro valor)',
-      width: 100,
+        'Valor do dízimo (clique para mudar). Na importação do banco separa dízimo (este valor) de oferta (outro valor)',
+      width: 124,
       align: 'right',
       headerAlign: 'right',
       valueGetter: ({ row }) => (row.total ? null : row.titheAmount),
+      // o próprio valor é o botão de editar, com o lápis ao lado
       renderCell: ({ row }) =>
         row.total ? null : (
-          <Typography
-            fontSize={13}
-            color={row.titheAmount ? 'text.primary' : 'text.disabled'}
-          >
-            {row.titheAmount ? formatCurrency(row.titheAmount) : '—'}
-          </Typography>
+          <Tooltip title="Mudar o valor do dízimo">
+            <ButtonBase
+              onClick={() => onEditar(row)}
+              sx={{
+                gap: 0.5,
+                px: 0.75,
+                py: 0.25,
+                borderRadius: 1,
+                color: row.titheAmount ? 'text.primary' : 'text.disabled',
+                '& svg': { opacity: 0.45 },
+                '&:hover': { bgcolor: 'action.hover' },
+                '&:hover svg': { opacity: 1 },
+              }}
+            >
+              <Typography fontSize={13} color="inherit">
+                {row.titheAmount ? formatCurrency(row.titheAmount) : '—'}
+              </Typography>
+              <EditOutlined sx={{ fontSize: 14 }} />
+            </ButtonBase>
+          </Tooltip>
         ),
     },
     ...MESES_CURTOS.map((nome, indice): GridColDef<Linha> => ({
       field: `mes${indice + 1}`,
       headerName: nome,
-      width: 64,
+      // cabe "R$ 12.345,67" (o total da igreja, em negrito)
+      width: 108,
       align: 'right',
       headerAlign: 'right',
       // a exportação leva o número, não o texto da célula
@@ -200,22 +197,6 @@ function ListaDizimosPorMes({
           {formatCurrency(row.totalNoAno)}
         </Typography>
       ),
-    },
-    {
-      field: 'acoes',
-      headerName: '',
-      width: 52,
-      filterable: false,
-      disableExport: true,
-      align: 'right',
-      renderCell: ({ row }) =>
-        row.total ? null : (
-          <Tooltip title="Valor do dízimo">
-            <IconButton size="small" onClick={() => onEditar(row)}>
-              <EditOutlined fontSize="small" />
-            </IconButton>
-          </Tooltip>
-        ),
     },
   ];
 
