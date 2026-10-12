@@ -5,7 +5,7 @@ import {
   handleResponseSuccess,
   handleResponseThrowError,
 } from '../../../utils/service';
-import { GET_DIZIMISTAS } from '../financeiro/constants';
+import { GET_DIZIMISTAS } from '../tesouraria/constants';
 import { ListaDeMembros, PessoaEncontrada } from './types';
 
 export const GET_MEMBROS = 'GET_MEMBROS';

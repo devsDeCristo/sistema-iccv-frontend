@@ -16,7 +16,7 @@ interface TreasuryKpisProps {
 }
 
 /**
- * A régua do financeiro: só dinheiro.
+ * A régua da tesouraria: só dinheiro.
  *
  * Vagas, ritmo e lista de espera saíram — nada disso é decisão dele. O que
  * entrou, o que falta entrar, o que espera conferência e quantas pessoas

@@ -80,12 +80,12 @@ export function CardsPayments({
 }
 
 /**
- * Esconder os valores dos cards, como no app do banco: a tela do financeiro
+ * Esconder os valores dos cards, como no app do banco: a tela da tesouraria
  * fica aberta em reunião e em projetor. Lembrado entre visitas, por usuário.
  */
 export function useValoresEscondidos() {
   return useFiltroSalvo(
-    'financeiro:esconderValores',
+    'tesouraria:esconderValores',
     false,
     (valor): valor is boolean => typeof valor === 'boolean'
   );

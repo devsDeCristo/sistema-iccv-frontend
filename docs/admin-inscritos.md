@@ -8,15 +8,15 @@ equipes e transporte também (`docs/admin-quartos-equipes-transporte.md`).
 ## Abas do painel
 
 - **Inscritos** (`usuarios`), **Lista de Espera** (`lista-espera`),
-  **Financeiro** (`pagamentos`), **Pedidos de Produtos** (`produtos`),
+  **Tesouraria** (`pagamentos`), **Pedidos de Produtos** (`produtos`),
   **Quartos**, **Equipes**, **Transporte**.
 - **Quem vê o quê:**
   - Quem administra a igreja do evento (`isAdminDoEvento`, via `useEventRole`)
     vê as sete. É o perfil **efetivo no evento**, não o perfil geral da pessoa —
-    quem é admin numa igreja pode ser só financeiro na igreja de outro evento, e
-    aí só enxerga Inscritos e Financeiro.
-  - Quem não administra (perfil financeiro, ou enquanto o evento ainda carrega)
-    vê só **Inscritos** e **Financeiro**. Começar pelo conjunto menor evita
+    quem é admin numa igreja pode ser só tesouraria na igreja de outro evento, e
+    aí só enxerga Inscritos e Tesouraria.
+  - Quem não administra (perfil tesouraria, ou enquanto o evento ainda carrega)
+    vê só **Inscritos** e **Tesouraria**. Começar pelo conjunto menor evita
     oferecer uma aba que a API recusaria.
   - Aba de um módulo desligado (Quartos, Equipes ou Transporte) some do menu —
     ver `docs/admin-eventos.md`, seção Módulos.
@@ -25,7 +25,7 @@ equipes e transporte também (`docs/admin-quartos-equipes-transporte.md`).
 - **Check-in:** botão "Abrir check-in" na linha das abas, à direita e alinhado
   a elas (no celular, embaixo das abas), só para quem administra o evento —
   abre a tela cheia de check-in (`docs/checkin.md`), fora das abas. Na aba
-  Financeiro, o "Esconder valores" fica ao lado dele (`docs/admin-pagamentos.md`).
+  Tesouraria, o "Esconder valores" fica ao lado dele (`docs/admin-pagamentos.md`).
   Os botões não encolhem: no aperto, quem cede são as abas, que rolam.
 - **Cabeçalho compacto:** nome do evento em 18px e, embaixo, o período com
   ícone de calendário; menos respiro no topo da página. Ver

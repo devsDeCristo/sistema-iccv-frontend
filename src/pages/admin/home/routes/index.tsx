@@ -1,5 +1,16 @@
-import { Route } from 'react-router-dom';
+import { Navigate, Route } from 'react-router-dom';
 import { Home } from '../../../../features/admin/home';
+import { useRole } from '../../../../hooks/useRole';
+
+/**
+ * O tesoureiro(a) de evento não trabalha em igreja nenhuma: a home (números
+ * da igreja) não é dele, e a entrada do painel é a lista dos eventos dele.
+ */
+function Inicio() {
+  const { soTesoureiroDeEvento } = useRole();
+  if (soTesoureiroDeEvento) return <Navigate to="/admin/eventos" replace />;
+  return <Home />;
+}
 
 /**
  * Entrada do painel. Sem `RequireRole`: a tela é dos quatro perfis que chegam
@@ -7,7 +18,7 @@ import { Home } from '../../../../features/admin/home';
  * barrou quem não entra no painel.
  */
 function RoutesHomeAdmin() {
-  return <Route path="/admin/inicio" element={<Home />} />;
+  return <Route path="/admin/inicio" element={<Inicio />} />;
 }
 
 export { RoutesHomeAdmin };

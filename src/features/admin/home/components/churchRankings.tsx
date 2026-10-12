@@ -63,11 +63,11 @@ export function ChurchRankings({ churches, panorama }: ChurchRankingsProps) {
             propósito: super admin e dev não têm vínculo de igreja, então o que
             eles fazem não é de nenhuma.
           */
-          legenda={`Escritas de admin e financeiro nos últimos ${panorama.activityWindowDays} dias — super admin e dev não entram, não pertencem a uma igreja`}
+          legenda={`Escritas de admin e tesouraria nos últimos ${panorama.activityWindowDays} dias — super admin e dev não entram, não pertencem a uma igreja`}
         >
           <BarrasRanking
             unidade="ações"
-            vazio="Nenhuma ação de admin ou financeiro no período."
+            vazio="Nenhuma ação de admin ou tesouraria no período."
             linhas={acoes.map((linha) => ({
               key: linha.churchId,
               label: nomePorId.get(linha.churchId) ?? 'Igreja removida',

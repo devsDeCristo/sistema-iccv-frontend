@@ -16,7 +16,7 @@ inscrição por grupo também (`docs/inscricao-em-grupos.md`).
   no navegador entre visitas.
 - **Igreja:** escolhida no seletor padrão, no canto superior direito
   (`SeletorDeIgreja`), com a mesma escolha dos outros módulos. Ele aparece para
-  o super admin e para quem administra ou é financeiro em mais de uma igreja.
+  o super admin e para quem administra ou é tesouraria em mais de uma igreja.
   Quem tem uma igreja só vê os eventos dela, sem seletor. Se a igreja escolhida
   deixou de existir ou de pertencer à pessoa, volta para "Todas" em silêncio.
 - **Ordem das colunas:** Tipo (chip Cursilho/Retiro) vem antes do Nome, logo

@@ -37,7 +37,7 @@ contexto para quem (pessoa ou IA) for mexer nessas telas.
 | Usuários | painel | [usuarios.md](usuarios.md) |
 | Membros e famílias | `/admin/membros` | [membros.md](membros.md) |
 | Logs e registro de login | painel | [logs-e-logins.md](logs-e-logins.md) |
-| Tesouraria (administrativa e eventos) | `/admin/tesouraria` | [financeiro.md](financeiro.md) |
+| Tesouraria (administrativa, eventos e tesoureiros de evento) | `/admin/tesouraria` | [tesouraria.md](tesouraria.md) |
 | Tesouraria das congregações (MVP) | `/admin/tesouraria/congregacoes` | [tesouraria-congregacoes.md](tesouraria-congregacoes.md) |
 | Configurações | gateways, WhatsApp, disparos, termos | [configuracoes.md](configuracoes.md) |
 

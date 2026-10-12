@@ -37,7 +37,7 @@ export const MODEL_OPTIONS = [
   { value: 'Waitlist', label: 'Lista de espera' },
   { value: 'Discounts', label: 'Desconto' },
   { value: 'UserToken', label: 'Código de redefinição' },
-  { value: 'FinancialEntry', label: 'Lançamento financeiro' },
+  { value: 'FinancialEntry', label: 'Lançamento da tesouraria' },
   { value: 'Family', label: 'Família' },
 ];
 

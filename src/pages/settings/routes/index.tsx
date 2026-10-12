@@ -13,7 +13,7 @@ import { TermsSettings } from '../terms';
 import { IntegrationsSettings } from '../integrations';
 
 /**
- * A primeira tela que a pessoa alcança: o financeiro não entra em Pagamentos,
+ * A primeira tela que a pessoa alcança: a tesouraria não entra em Pagamentos,
  * e tela de módulo fora do plano das igrejas dela fica de fora. Sem nenhuma,
  * cai em Integrações, que diz que está fora do plano. Dev e super admin veem
  * todos os módulos: abrem em Pagamentos.
@@ -54,9 +54,9 @@ function InicioDasConfiguracoes() {
  * rótulo e valor `-1`, e comparar com o super admin puro o deixava de fora —
  * era jogado de volta para o painel ao tentar abrir Configurações.
  *
- * O financeiro fica de fora das duas: ele dá baixa em pagamento, mas não
+ * A tesouraria fica de fora das duas: ela dá baixa em pagamento, mas não
  * decide para qual conta o dinheiro vai nem por qual número o aviso sai. Ele
- * entra só em Integrações, que alimenta o módulo financeiro.
+ * entra só em Integrações, que alimenta o módulo de tesouraria.
  */
 function RoutesSettings() {
   return (
@@ -99,7 +99,7 @@ function RoutesSettings() {
           </RequireRole>
         }
       />
-      {/* por igreja, como Pagamentos; e o financeiro também entra */}
+      {/* por igreja, como Pagamentos; e a tesouraria também entra */}
       <Route
         path="/configuracoes/integracoes"
         element={

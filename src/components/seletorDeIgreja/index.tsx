@@ -10,11 +10,11 @@ interface SeletorDeIgrejaProps {
   value: string;
   onChange: (churchId: string) => void;
   /**
-   * Telas que o financeiro também usa (home, eventos) oferecem as igrejas
-   * onde ele é financeiro; as de admin (notícias, usuários), só as que a
+   * Telas que a tesouraria também usa (home, eventos) oferecem as igrejas
+   * onde ele é tesouraria; as de admin (notícias, usuários), só as que a
    * pessoa administra.
    */
-  incluirFinanceiro?: boolean;
+  incluirTesouraria?: boolean;
 }
 
 /**
@@ -35,10 +35,10 @@ interface SeletorDeIgrejaProps {
 function SeletorDeIgreja({
   value,
   onChange,
-  incluirFinanceiro = false,
+  incluirTesouraria = false,
 }: SeletorDeIgrejaProps) {
   const { igrejas, mostraSeletor, carregando } = useIgrejasDoSeletor({
-    incluirFinanceiro,
+    incluirTesouraria,
   });
 
   const valida =

@@ -38,7 +38,7 @@ interface HomeProps {
  * A página se lê de cima para baixo como uma resposta, e a resposta muda com
  * quem pergunta:
  *
- * - admin e financeiro abrem na igreja deles — eventos, inscritos e caixa;
+ * - admin e tesouraria abrem na igreja deles — eventos, inscritos e caixa;
  * - o super admin, em "como estão as igrejas e as pessoas do sistema";
  * - o dev, nos indicadores de funcionamento.
  *
@@ -108,7 +108,7 @@ export function Home({ churchId }: HomeProps = {}) {
         ) : (
           <>
             {/* o seletor padrão, no canto superior direito da página; a
-                home é também do financeiro, então entram as igrejas dele */}
+                home é também da tesouraria, então entram as igrejas dela */}
             <Box
               sx={{
                 display: 'flex',
@@ -120,7 +120,7 @@ export function Home({ churchId }: HomeProps = {}) {
               <SeletorDeIgreja
                 value={escolhida}
                 onChange={setEscolhida}
-                incluirFinanceiro
+                incluirTesouraria
               />
             </Box>
             <Hero churches={data?.churches} role={data?.role} />
@@ -130,7 +130,7 @@ export function Home({ churchId }: HomeProps = {}) {
         {/* a igreja em números: só os eventos em jogo */}
         {data?.events && !data.treasury && <ChurchKpis events={data.events} />}
 
-        {/* a do financeiro é só dinheiro — vaga e ritmo não são decisão dele */}
+        {/* a da tesouraria é só dinheiro — vaga e ritmo não são decisão dela */}
         {data?.events && data.treasury && (
           <TreasuryKpis events={data.events} treasury={data.treasury} />
         )}
@@ -154,7 +154,7 @@ export function Home({ churchId }: HomeProps = {}) {
 
         {/*
           A lista de eventos e o bloco de finanças são de quem administra a
-          igreja. Para o financeiro os dois seriam repetição: a régua acima já
+          igreja. Para a tesouraria os dois seriam repetição: a régua acima já
           traz os três estados do dinheiro, e "ganhos por evento" abaixo já
           abre o caixa evento a evento.
         */}

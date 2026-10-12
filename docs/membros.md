@@ -1,19 +1,19 @@
 # Membros (/admin/membros)
 
-Os membros da igreja — o recorte, entre todos os usuários do sistema, de quem é dela — e as famílias. Os dizimistas do financeiro **são** estes membros: todo membro é um dizimista em potencial.
+Os membros da igreja — o recorte, entre todos os usuários do sistema, de quem é dela — e as famílias. Os dizimistas da tesouraria **são** estes membros: todo membro é um dizimista em potencial.
 
 Regras de servidor: `docs/membros.md` no `ic-backend`.
 
 ## Quem acessa e de qual igreja
 
-- Só o **admin da igreja** (`ADMIN_ROLES`, `RequireRole` na rota), além de dev e super admin. No menu, "Membros" fica na seção **Módulos**, só para esses perfis. O financeiro não vê a tela: ele vê os membros como dizimistas, na tela de Dizimistas.
+- Só o **admin da igreja** (`ADMIN_ROLES`, `RequireRole` na rota), além de dev e super admin. No menu, "Membros" fica na seção **Módulos**, só para esses perfis. A tesouraria não vê a tela: ele vê os membros como dizimistas, na tela de Dizimistas.
 - Sempre **uma igreja**, entre as que a pessoa administra (`ChurchScopeBar` com `useIgrejaSelecionada()`): com várias e nenhuma escolhida, a tela pede a escolha.
 
 ## Como alguém vira membro
 
 - **Pedido da inscrição:** quem escolhe a igreja ao se cadastrar aparece na aba **Pedidos** (abas do sistema, `NavTabs`; o número de pedidos vai no rótulo, "Pedidos (3)"), com Aceitar e Recusar. Aceito, vira membro; recusado, o pedido some.
 - **Adicionar membro:** busca qualquer pessoa do sistema pelo **CPF completo** ou por **pelo menos dois nomes** (ex.: Maria Souza). Cada resultado mostra o CPF pela metade e a situação: "Membro de ICCV Filial" (desligado: lá precisam tirar antes), "Já é membro desta igreja", "Pediu para entrar nesta igreja", "Disse ser de: Batista Central" (o "Outra" da inscrição) ou "Sem igreja".
-- **Planilha de dízimos** (em Tesouraria › Administrativa › Dízimos, só o admin): quem a planilha liga e ainda não é membro de nenhuma igreja vira membro desta. Ver `docs/financeiro.md`.
+- **Planilha de dízimos** (em Tesouraria › Administrativa › Dízimos, só o admin): quem a planilha liga e ainda não é membro de nenhuma igreja vira membro desta. Ver `docs/tesouraria.md`.
 - Uma pessoa é membro de **uma igreja só**.
 
 ## Aba Membros
@@ -29,4 +29,4 @@ Regras de servidor: `docs/membros.md` no `ic-backend`.
 
 - Tela: `src/pages/admin/membros`, rota em `src/pages/admin/membros/routes`.
 - `src/features/admin/membros/familias.ts` (`emBlocos`, cores, classe e `sx` do fundo) e `components/faixaDaFamilia.tsx`: o agrupamento das famílias, usado aqui e na tabela de Dizimistas, para as duas desenharem a família do mesmo jeito.
-- `src/features/admin/membros`: `api.ts` (hooks; mexer em membro recarrega também os dizimistas, e o financeiro recarrega os membros), `types.ts` e `components/` (`listaDeMembros`, `listaDePedidos`, `modalAdicionarMembro`, `modalFamilia`).
+- `src/features/admin/membros`: `api.ts` (hooks; mexer em membro recarrega também os dizimistas, e a tesouraria recarrega os membros), `types.ts` e `components/` (`listaDeMembros`, `listaDePedidos`, `modalAdicionarMembro`, `modalFamilia`).

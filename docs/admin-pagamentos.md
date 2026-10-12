@@ -1,6 +1,6 @@
-# Admin: pagamentos e pedidos de produtos (aba Financeiro / Pedidos de Produtos)
+# Admin: pagamentos e pedidos de produtos (aba Tesouraria / Pedidos de Produtos)
 
-As abas "Financeiro" e "Pedidos de Produtos" do painel de detalhes do evento
+As abas "Tesouraria" e "Pedidos de Produtos" do painel de detalhes do evento
 (`/admin/eventos/:id/detalhes/pagamentos` e `/produtos`). Cobrem cada cobrança
 gerada — inscrição ou compra avulsa na loja — e a entrega dos produtos
 comprados. As regras de servidor (adapters de gateway, credenciais, webhooks,
@@ -9,22 +9,28 @@ que aparece na tela.
 
 ## Quem vê
 
-A aba Financeiro é a única, além de Inscritos, que aparece também para quem só
-tem perfil financeiro na igreja do evento (não administra) — ver
+A aba Tesouraria é a única, além de Inscritos, que aparece também para quem só
+tem perfil tesouraria na igreja do evento (não administra) — ver
 `docs/admin-inscritos.md`, seção "Abas do painel".
 
-## Aba Financeiro
+O **tesoureiro(a) do evento** (básico ou completo, um vínculo só deste evento)
+vê só esta aba: lista, histórico, baixa e reembolso. O admin da igreja escolhe
+quem é, no botão **Tesoureiros** ao lado de "Esconder valores"
+(`ModalTesoureiros`); ver `docs/tesouraria.md`, seção "Tesoureiro(a) de
+evento".
+
+## Aba Tesouraria
 
 - **Cards de resumo** (`CardsPayments`): montante total, receita realizada
   (soma de pagamentos `PAID`) e receita pendente (soma do resto), vindos da
   mesma consulta da tabela.
   - **Esconder valores:** botão com olho na linha das abas, ao lado do "Abrir
-    check-in", só na aba Financeiro (`BotaoEsconderValores`). Troca os três
+    check-in", só na aba Tesouraria (`BotaoEsconderValores`). Troca os três
     valores por "R$ ••••••", como no app do banco, para a tela aberta em
     reunião ou projetor. Só os cards: a tabela continua com os valores. O
     estado fica na página (`useValoresEscondidos`) e desce para os cards; é
     lembrado entre visitas, por usuário
-    (`useFiltroSalvo('financeiro:esconderValores')`).
+    (`useFiltroSalvo('tesouraria:esconderValores')`).
 - **Abas:** "Todos", os grupos de inscrição e "Produtos Avulsos".
   - **Todos** vem primeiro e é a aba inicial, com **uma linha por pessoa**: a
     inscrição e as compras avulsas dela juntas (`porPessoa`).
@@ -41,12 +47,14 @@ tem perfil financeiro na igreja do evento (não administra) — ver
       pagamento de verdade, nunca a linha somada.
 
     As outras abas continuam com uma linha por pagamento.
+
   - **Grupos de inscrição:** uma aba por grupo, como na aba Inscritos.
   - **Produtos Avulsos:** compra de produto sem grupo.
 
   "Todos" e "Produtos Avulsos" são botões em superfície própria, no mesmo
   desenho, um de cada lado da régua de grupos, porque não são grupos. Até
   09/10/2026 a tela abria no primeiro grupo e não havia como ver todos juntos.
+
 - **Busca:** nome, CPF ou id exato (bipagem do crachá lê o id do usuário, não
   o do pagamento).
 - **Colunas:**
@@ -100,7 +108,7 @@ Arquivos: `src/features/admin/events/components/modalPayments.tsx`, `modalReceip
 ## Histórico do pagamento (`ModalPaymentHistory`)
 
 - Linha do tempo do mais recente para o mais antigo, cada passo com o que
-  mudou (de → para, só os campos relevantes ao financeiro: valor, método,
+  mudou (de → para, só os campos relevantes à tesouraria: valor, método,
   status, desconto, comprovante — nunca a linha inteira) e a origem: pelo
   painel, retorno do gateway, conferência automática ou pelo sistema.
 - Existe ao lado de Editar e Extornar como a terceira pergunta antes de mexer
@@ -157,7 +165,7 @@ Arquivo: `src/features/admin/events/components/modalPaymentHistory.tsx`, `src/fe
 - **Uma linha por compra**, com todos os itens dentro — quem leva duas
   camisas paga uma vez só.
 - **Coluna Compra:** "Avulsa" (comprada solta na loja) ou "Com a inscrição".
-- **Coluna Status do pagamento:** clicar leva para a aba Financeiro já com a
+- **Coluna Status do pagamento:** clicar leva para a aba Tesouraria já com a
   pessoa na busca (por CPF, ou nome se não tiver CPF).
 - **Entrega:**
   - Botão "Registrar entrega" só libera com o pagamento `PAID` — o servidor

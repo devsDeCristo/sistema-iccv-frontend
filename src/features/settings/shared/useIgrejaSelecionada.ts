@@ -39,7 +39,7 @@ export interface EscopoDeIgreja {
  * igreja que o `ChurchTenantGuard` vai recusar depois.
  */
 /**
- * `incluirFinanceiro`: a tela também é do financeiro (Integrações). As outras
+ * `incluirTesouraria`: a tela também é da tesouraria (Integrações). As outras
  * ficam só com as igrejas em que a pessoa é admin, porque é o que a API delas
  * aceita.
  *
@@ -49,7 +49,7 @@ export interface EscopoDeIgreja {
  * todas as igrejas: para eles a lista não é recortada.
  */
 export function useIgrejaSelecionada(
-  incluirFinanceiro = false,
+  incluirTesouraria = false,
   modulo?: ModuloDaIgreja
 ): EscopoDeIgreja {
   const { isSuperAdmin, churchRoles } = useRole();
@@ -66,11 +66,11 @@ export function useIgrejaSelecionada(
             .filter(
               (vinculo) =>
                 (vinculo.role === Role.ADMIN ||
-                  (incluirFinanceiro && vinculo.role === Role.FINANCE)) &&
+                  (incluirTesouraria && vinculo.role === Role.TESOURARIA)) &&
                 (!modulo || vinculo.church.modulos?.includes(modulo))
             )
             .map(({ church: { id, name } }) => ({ id, name })),
-    [isSuperAdmin, todasAsIgrejas, churchRoles, incluirFinanceiro, modulo]
+    [isSuperAdmin, todasAsIgrejas, churchRoles, incluirTesouraria, modulo]
   );
 
   // A mesma escolha de todos os módulos (`useIgrejaEscolhida`, no

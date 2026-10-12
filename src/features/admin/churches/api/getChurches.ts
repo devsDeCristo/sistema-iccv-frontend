@@ -14,7 +14,7 @@ export interface Church {
   plan?: { id: string; name: string; modules: ModuloDaIgreja[] } | null;
   /**
    * Vínculos da igreja. `users` conta só quem entra no painel (admin e
-   * financeiro) — inscrito não pertence a igreja nenhuma. É o que impede a
+   * tesouraria) — inscrito não pertence a igreja nenhuma. É o que impede a
    * remoção: apagar a igreja levaria os eventos dela junto.
    */
   _count?: {

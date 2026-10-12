@@ -26,6 +26,13 @@ type RequireRoleProps = {
    * plano, a tela diz que está fora do plano
    */
   modulo?: ModuloDaIgreja;
+  /**
+   * A rota também é do tesoureiro(a) de evento: `BASICO` aceita qualquer
+   * vínculo, `COMPLETO` só quem é completo em algum evento. Quem entra por
+   * aqui não passa pela conta do plano — ele não tem igreja; a API confere o
+   * plano da igreja do evento.
+   */
+  aceitaTesoureiro?: 'BASICO' | 'COMPLETO';
 };
 
 /**
@@ -37,11 +44,17 @@ function RequireRole({
   children,
   redirectTo = '/admin/inicio',
   modulo,
+  aceitaTesoureiro,
 }: RequireRoleProps) {
-  const { role } = useRole();
+  const { role, eventTreasurers, temTesoureiroCompleto } = useRole();
   const { temModulo } = useModulos();
 
   if (role === null || !allowedRoles.includes(role)) {
+    const comoTesoureiro =
+      aceitaTesoureiro === 'COMPLETO'
+        ? temTesoureiroCompleto
+        : aceitaTesoureiro === 'BASICO' && eventTreasurers.length > 0;
+    if (comoTesoureiro) return <>{children}</>;
     return <Navigate to={redirectTo} replace />;
   }
 

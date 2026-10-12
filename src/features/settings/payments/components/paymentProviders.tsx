@@ -113,7 +113,7 @@ function PaymentProviders({ escopo }: Props) {
 
       <Typography variant="caption" color="text.secondary">
         As credenciais ficam cifradas no banco e não são exibidas depois de
-        salvas. Só quem administra a igreja alcança esta tela — o financeiro dá
+        salvas. Só quem administra a igreja alcança esta tela — a tesouraria dá
         baixa em pagamento, mas não escolhe a conta que recebe.
       </Typography>
 

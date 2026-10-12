@@ -11,7 +11,7 @@ import { useIgrejaSelecionada } from '../../../features/settings/shared/useIgrej
  *
  * Fica nas configurações e não no painel da igreja porque é ajuste de sistema,
  * feito uma vez e revisitado raramente — e porque a tela de pagamentos do
- * painel é do financeiro, que dá baixa mas não escolhe a conta que recebe.
+ * painel é da tesouraria, que dá baixa mas não escolhe a conta que recebe.
  */
 function PaymentsSettings() {
   const escopo = useIgrejaSelecionada(false, 'EVENTS');

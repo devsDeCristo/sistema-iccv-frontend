@@ -9,11 +9,11 @@ import { useRole } from './useRole';
  * uma só, não há o que escolher e o seletor fica escondido (`mostraSeletor`).
  * Mesma regra do filtro de admin/usuários.
  *
- * `incluirFinanceiro`: telas que o financeiro também usa (a home do painel)
- * oferecem as igrejas onde ele é financeiro, além das que administra. As de
+ * `incluirTesouraria`: telas que a tesouraria também usa (a home do painel)
+ * oferecem as igrejas onde ele é tesouraria, além das que administra. As de
  * admin (notícias) ficam só com as que a pessoa administra.
  */
-export function useIgrejasDoSeletor({ incluirFinanceiro = false } = {}) {
+export function useIgrejasDoSeletor({ incluirTesouraria = false } = {}) {
   const { isSuperAdmin, igrejasQueAdministra, churchRoles } = useRole();
   const { data: todas = [], isLoading } = useGetChurches({
     enabled: isSuperAdmin,
@@ -21,7 +21,7 @@ export function useIgrejasDoSeletor({ incluirFinanceiro = false } = {}) {
 
   const igrejas = isSuperAdmin
     ? todas.map((igreja) => ({ id: igreja.id, name: igreja.name }))
-    : incluirFinanceiro
+    : incluirTesouraria
       ? churchRoles.map((vinculo) => vinculo.church)
       : igrejasQueAdministra;
 

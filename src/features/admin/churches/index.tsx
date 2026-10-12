@@ -333,7 +333,7 @@ export function Churches() {
           </Stack>
 
           {/* não é "pessoas": inscrito não pertence a igreja nenhuma, o que
-              conta aqui é quem entra no painel dela — admin e financeiro.
+              conta aqui é quem entra no painel dela — admin e tesouraria.
               No pé do cartão (`mt: auto`): os da mesma linha da grade têm a
               mesma altura, então os números alinham com nome curto ou longo */}
           <Stack gap={0.75} sx={{ mt: 'auto', pt: 2 }}>

@@ -10,7 +10,7 @@ enxerga no menu e nas rotas. A garantia de verdade é sempre do servidor
 | Área | Quem entra | Layout | Régua |
 | --- | --- | --- | --- |
 | `usuario` | qualquer pessoa logada | `<Layout isAdmin={false} />`, protegido por `authLoader` | Página Inicial, Minhas Inscrições, Eventos |
-| `admin` | perfis do painel (`ADMIN_AREA_ROLES`: dev, super admin, admin, financeiro) | `<Layout isAdmin={true} />`, protegido por `authLoaderAdmin` | Início, Usuários, Igrejas, Eventos, Notícias, Financeiro, Registro de Atividades/Login, conforme o papel |
+| `admin` | perfis do painel (`ADMIN_AREA_ROLES`: dev, super admin, admin, tesouraria) | `<Layout isAdmin={true} />`, protegido por `authLoaderAdmin` | Início, Usuários, Igrejas, Eventos, Notícias, Tesouraria, Registro de Atividades/Login, conforme o papel |
 | `configuracoes` | quem administra alguma igreja (admin/super admin/dev) | `<Layout isAdmin area="configuracoes" />`, também com `authLoaderAdmin` | Pagamentos, Disparadores, Termos de Uso, conforme o papel |
 
 `/perfil` fica fora das três réguas específicas: entra pela área `usuario` (mesma rota para admin e usuário comum, acessada pelo menu da conta).
@@ -159,11 +159,12 @@ alguma linha para o perfil (`ConteudoNav` recebe uma lista de `secoes`).
 | Administrador | Usuários | `isSuperAdmin` (dev, super admin) — as igrejas chegam numa pessoa pelos inscritos do evento e por Membros |
 | Administrador | Igrejas | `isSuperAdmin` (dev, super admin) |
 | Administrador | Planos | `isSuperAdmin` (dev, super admin) — logo abaixo de Igrejas; ver `docs/planos.md` |
-| Administrador | Meus planos | quem não é super admin (admin e financeiro de igreja) — logo abaixo de Início: o plano da igreja e os outros para comparar; ver `docs/planos.md` |
+| Administrador | Meus planos | quem não é super admin (admin e tesouraria de igreja) — logo abaixo de Início: o plano da igreja e os outros para comparar; ver `docs/planos.md` |
 | Módulos | Eventos | todos os quatro perfis do painel |
-| Módulos | Notícias | `isAdminRole` — financeiro não publica |
-| Módulos | Membros | `isAdminRole` (dev, super admin, admin) — o financeiro não entra; primeiro item da seção, acima de Eventos; ver `docs/membros.md` |
-| Módulos | Tesouraria | todos os perfis do painel; grupo com três filhos: Administrativa (abas Conciliação, Dízimos e Lançamentos), Eventos e Congregações (as duas com "Novo"; a congregação tem as mesmas abas da administrativa — `docs/tesouraria-congregacoes.md`); o grupo abre na Administrativa — ver `docs/financeiro.md`. Nas linhas de filho, que são recuadas, as etiquetas "Novo!" e "Em breve" saem menores (`Etiqueta pequena`): no tamanho cheio, "Em breve" cortava "Congregações" |
+| Módulos | Notícias | `isAdminRole` — tesouraria não publica |
+| Módulos | Membros | `isAdminRole` (dev, super admin, admin) — a tesouraria não entra; primeiro item da seção, acima de Eventos; ver `docs/membros.md` |
+| Módulos | Tesouraria | todos os perfis do painel; grupo com três filhos: Administrativa (abas Conciliação, Dízimos e Lançamentos), Eventos e Congregações (as duas com "Novo"; a congregação tem Conciliação e Lançamentos e é só de admin e tesouraria — `docs/tesouraria-congregacoes.md`); o grupo abre na Administrativa — ver `docs/tesouraria.md`. Nas linhas de filho, que são recuadas, as etiquetas "Novo!" e "Em breve" saem menores (`Etiqueta pequena`): no tamanho cheio, "Em breve" cortava "Congregações" |
+| Tesoureiro(a) | Meus eventos, Tesouraria de eventos | só para quem é **apenas** tesoureiro(a) de evento (sem perfil em igreja): o menu tem só esta seção — os eventos dele (`/admin/eventos`) e, se é completo em algum, Tesouraria › Eventos; o logo leva a Meus eventos. Ver `docs/tesouraria.md` |
 | Módulos | Patrimônio, Loja | todos os perfis do painel — **em breve**: etiqueta "EM BREVE" em laranja, linha apagada e sem navegação (ainda não há tela) |
 | Manutenção | Registro de Atividades | `isSuperAdmin` (dev, super admin) |
 | Manutenção | Registro de Login | `isDev` apenas |
@@ -186,7 +187,7 @@ No topo, sem grupo, **Voltar ao painel** (todos). Embaixo, um grupo por módulo 
 | --- | --- | --- |
 | Eventos | Pagamentos | `isAdminRole`, com Eventos no plano |
 | Notícias | Disparadores › WhatsApp | `isAdminRole`, com Notícias no plano |
-| Tesouraria | Integrações | `isAdminRole` ou financeiro, com Tesouraria no plano |
+| Tesouraria | Integrações | `isAdminRole` ou tesouraria, com Tesouraria no plano |
 | Sistema | Termos de Uso | `isSuperAdmin` — valem para a plataforma inteira, não por igreja |
 
 Seção sem título (`titulo: ''`) não monta a linha de título; só a primeira monta, porque é dela o botão de recolher. Entre um grupo e outro da régua (em todas as áreas) o espaço é de 12px.
@@ -203,9 +204,9 @@ Arquivo: `src/components/sideBar/index.tsx`.
 - **Grupos:**
   - `SUPER_ADMIN_ROLES` = dev + super admin.
   - `ADMIN_ROLES` = `SUPER_ADMIN_ROLES` + admin (acesso total ao painel).
-  - `ADMIN_AREA_ROLES` = `ADMIN_ROLES` + financeiro (quem entra no painel, com abas restritas).
-  - `FINANCE_EVENT_TABS` = abas de detalhes do evento liberadas ao financeiro (`usuarios`, `pagamentos`).
-- **`useRole()`:** lê o usuário guardado na sessão e devolve `role` (perfil efetivo — o mais alto entre os vínculos por igreja), `isAdmin`, `isSuperAdmin`, `isDev`, `isFinance`, `canAccessAdminArea`, `churchRoles` (perfil por igreja), `igrejasQueAdministra` e `perfilNaIgreja(churchId)`.
+  - `ADMIN_AREA_ROLES` = `ADMIN_ROLES` + tesouraria (quem entra no painel, com abas restritas).
+  - `TESOURARIA_EVENT_TABS` = abas de detalhes do evento liberadas à tesouraria (`usuarios`, `pagamentos`).
+- **`useRole()`:** lê o usuário guardado na sessão e devolve `role` (perfil efetivo — o mais alto entre os vínculos por igreja), `isAdmin`, `isSuperAdmin`, `isDev`, `isTesouraria`, `canAccessAdminArea`, `churchRoles` (perfil por igreja), `igrejasQueAdministra` e `perfilNaIgreja(churchId)`.
 - **`RequireRole`:** componente de rota que esconde a tela de quem não tem o perfil exigido, redirecionando (padrão: `/admin/inicio`). É só usabilidade — quem garante é o `RolesGuard` da API.
 - **`RequireEventRole`:** para telas que dependem da igreja do evento (editar, check-in, quadrante) — usa o papel da pessoa **naquela igreja específica**, e não o perfil efetivo geral, porque admin de uma igreja não deve mexer no evento de outra.
 
@@ -238,8 +239,8 @@ igreja" para super admin ou dev.
 - **Quais igrejas (`useIgrejasDoSeletor`):**
   - super admin e dev: todas (`useGetChurches`);
   - admin: as suas (`igrejasQueAdministra`);
-  - `incluirFinanceiro: true`: também as igrejas onde a pessoa é financeira
-    (início e eventos, telas que o financeiro usa).
+  - `incluirTesouraria: true`: também as igrejas onde a pessoa é financeira
+    (início e eventos, telas que a tesouraria usa).
 - **Criação** (evento, notícia): a igreja é a primeira pergunta do
   formulário, obrigatória e sem sugestão. Isso é um campo do formulário, e não
   o seletor da tela.

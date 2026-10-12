@@ -506,7 +506,14 @@ const SideBar: React.FC<SideBarProps> = ({
   setOpenDrawer,
 }) => {
   const theme = useTheme();
-  const { isAdmin: isAdminRole, isDev, isSuperAdmin, isFinance } = useRole();
+  const {
+    isAdmin: isAdminRole,
+    isDev,
+    isSuperAdmin,
+    isTesouraria,
+    soTesoureiroDeEvento,
+    temTesoureiroCompleto,
+  } = useRole();
   const { temModulo } = useModulos();
   // recolher vale para a régua da tela grande, e é lembrado entre visitas
   const [recolhida, setRecolhida] = useFiltroSalvo(
@@ -556,9 +563,9 @@ const SideBar: React.FC<SideBarProps> = ({
       : []),
   ];
   // também por igreja: a credencial da Pluggy é da igreja que a cadastrou.
-  // O financeiro entra aqui, e só aqui: ela alimenta o módulo dele
+  // A tesouraria entra aqui, e só aqui: Integrações alimenta o módulo dela
   const configuracoesDaTesouraria: ItemMenu[] = [
-    ...(isAdminRole || isFinance
+    ...(isAdminRole || isTesouraria
       ? [
           {
             link: '/configuracoes/integracoes',
@@ -667,7 +674,7 @@ const SideBar: React.FC<SideBarProps> = ({
   const itensModulos: ItemMenu[] = isAdmin
     ? [
         // primeiro da seção: os membros e as famílias são do admin da igreja
-        // (o financeiro os vê como dizimistas, no Financeiro)
+        // (a tesouraria os vê como dizimistas, na Tesouraria)
         ...(isAdminRole
           ? [
               {
@@ -683,7 +690,7 @@ const SideBar: React.FC<SideBarProps> = ({
           icon: <Event />,
           title: 'Eventos',
         },
-        // publicar notícia é do admin; o financeiro não entra aqui
+        // publicar notícia é do admin; a tesouraria não entra aqui
         ...(isAdminRole
           ? [
               {
@@ -694,7 +701,7 @@ const SideBar: React.FC<SideBarProps> = ({
               },
             ]
           : []),
-        // grupo: a tesouraria da igreja (o módulo financeiro). Admin e financeiro.
+        // grupo: a tesouraria da igreja (o módulo de tesouraria). Admin e tesouraria.
         // A administrativa e cada congregação têm Conciliação, Dízimos e
         // Lançamentos em abas; cada evento, Conciliação e Lançamentos
         {
@@ -770,6 +777,24 @@ const SideBar: React.FC<SideBarProps> = ({
       ]
     : [];
 
+  /**
+   * O tesoureiro(a) de evento não trabalha em igreja nenhuma: vê os eventos
+   * dele (a aba Tesouraria de cada um) e, se é completo, a tesouraria deles.
+   * Sem a conta do plano — ele não tem igreja; a API confere o do evento.
+   */
+  const itensDoTesoureiro: ItemMenu[] = [
+    { link: '/admin/eventos', icon: <Event />, title: 'Meus eventos' },
+    ...(temTesoureiroCompleto
+      ? [
+          {
+            link: '/admin/tesouraria/eventos',
+            icon: <AccountBalanceWallet />,
+            title: 'Tesouraria de eventos',
+          },
+        ]
+      : []),
+  ];
+
   // módulo fora do plano de todas as igrejas da pessoa sai da régua
   const doPlano = (itens: ItemMenu[]) =>
     itens.filter(
@@ -788,13 +813,15 @@ const SideBar: React.FC<SideBarProps> = ({
           { titulo: 'Tesouraria', itens: doPlano(configuracoesDaTesouraria) },
           { titulo: 'Sistema', itens: configuracoesDoSistema },
         ]
-      : areaAtual === 'admin'
-        ? [
-            { titulo: 'Administrador', itens: itensPainel },
-            { titulo: 'Módulos', itens: doPlano(itensModulos) },
-            { titulo: 'Manutenção', itens: itensManutencao },
-          ]
-        : [{ titulo: 'Inscrições', itens: itensPainel }];
+      : areaAtual === 'admin' && soTesoureiroDeEvento
+        ? [{ titulo: 'Tesoureiro(a)', itens: itensDoTesoureiro }]
+        : areaAtual === 'admin'
+          ? [
+              { titulo: 'Administrador', itens: itensPainel },
+              { titulo: 'Módulos', itens: doPlano(itensModulos) },
+              { titulo: 'Manutenção', itens: itensManutencao },
+            ]
+          : [{ titulo: 'Inscrições', itens: itensPainel }];
 
   return (
     <>
@@ -852,7 +879,13 @@ const SideBar: React.FC<SideBarProps> = ({
         {/* a marca aparece só aqui: na tela grande ela já está na barra do topo */}
         <Stack
           component={Link}
-          to={isAdmin ? '/admin/inicio' : '/home'}
+          to={
+            !isAdmin
+              ? '/home'
+              : soTesoureiroDeEvento
+                ? '/admin/eventos'
+                : '/admin/inicio'
+          }
           onClick={() => setOpenDrawer(false)}
           direction="row"
           alignItems="center"

@@ -6,7 +6,7 @@ import { GET_USERS } from '../constants';
 export type PermissoesEmMassa = {
   userIds: string[];
   churchId: string;
-  /** admin ou financeiro; `null` tira o perfil na igreja */
+  /** admin ou tesouraria; `null` tira o perfil na igreja */
   role: number | null;
 };
 

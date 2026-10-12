@@ -18,7 +18,11 @@ function RoutesEventsAdmin() {
       <Route
         path="/admin/eventos"
         element={
-          <RequireRole allowedRoles={ADMIN_AREA_ROLES} modulo="EVENTS">
+          <RequireRole
+            allowedRoles={ADMIN_AREA_ROLES}
+            modulo="EVENTS"
+            aceitaTesoureiro="BASICO"
+          >
             <Events />
           </RequireRole>
         }
@@ -44,12 +48,16 @@ function RoutesEventsAdmin() {
       <Route
         path="/admin/eventos/:id/detalhes/:subPage"
         element={
-          <RequireRole allowedRoles={ADMIN_AREA_ROLES} modulo="EVENTS">
+          <RequireRole
+            allowedRoles={ADMIN_AREA_ROLES}
+            modulo="EVENTS"
+            aceitaTesoureiro="BASICO"
+          >
             <Details />
           </RequireRole>
         }
       />
-      {/* o check-in é de quem administra a igreja do evento: o financeiro não
+      {/* o check-in é de quem administra a igreja do evento: a tesouraria não
           opera, e admin de outra igreja também não */}
       <Route
         path="/admin/eventos/:id/checkin"

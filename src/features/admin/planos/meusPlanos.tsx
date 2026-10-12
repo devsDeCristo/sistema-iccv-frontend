@@ -56,7 +56,7 @@ function Preco({ price, grande = false }: { price: number; grande?: boolean }) {
 
 /**
  * "Meus planos": o plano da igreja, em destaque, e todos os planos lado a lado
- * para comparar. Para quem trabalha na igreja (admin e financeiro); trocar de
+ * para comparar. Para quem trabalha na igreja (admin e tesouraria); trocar de
  * plano é com quem administra o sistema.
  */
 function MeusPlanos() {

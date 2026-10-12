@@ -17,7 +17,7 @@ que chegue sem seção.
 | Perfil | O que abre | Blocos exclusivos |
 | --- | --- | --- |
 | Admin de igreja | a home da igreja dele (`scope: 'church'`) | `ChurchKpis`, lista de eventos, mural (`news`), últimas inscrições |
-| Financeiro | a home da igreja dele, mesmo layout | `TreasuryKpis` e `EventEarnings` no lugar dos números e da lista de eventos do admin |
+| Tesouraria | a home da igreja dele, mesmo layout | `TreasuryKpis` e `EventEarnings` no lugar dos números e da lista de eventos do admin |
 | Super admin | panorama do sistema (`scope: 'system'`) | `SystemKpis`, comparativo entre igrejas, lista de igrejas, base de usuários |
 | Dev | mesmo panorama do super admin | `SystemInsights` (indicadores de funcionamento), além dos blocos do super admin |
 
@@ -26,12 +26,12 @@ Arquivos: `src/pages/admin/home/routes/index.tsx`, `src/auth/functions/authLoade
 ## Seletor de igreja (multitenant)
 
 No `/admin/inicio`, quem alcança mais de uma igreja (super admin, dev, admin
-ou financeiro de várias) tem o seletor padrão (`SeletorDeIgreja`) no canto
+ou tesouraria de várias) tem o seletor padrão (`SeletorDeIgreja`) no canto
 superior direito, com a mesma escolha de igreja dos outros módulos. O padrão é
 **"Todas as igrejas"**, a home de sempre. Escolher uma abre a home daquela
 igreja (`GET /dashboard?churchId=…`), com o perfil que a pessoa tem **nela**:
-quem é financeiro na igreja vê a home do financeiro. O seletor recebe
-`incluirFinanceiro`, porque a home também é do financeiro. Na home aberta pela lista de igrejas (`churchHome`) o seletor não
+quem é tesouraria na igreja vê a home da tesouraria. O seletor recebe
+`incluirTesouraria`, porque a home também é da tesouraria. Na home aberta pela lista de igrejas (`churchHome`) o seletor não
 aparece, porque a igreja já veio na URL.
 
 - **De qual igreja é cada pendência:** aparece o nome da igreja sempre que a
@@ -41,7 +41,7 @@ aparece, porque a igreja já veio na URL.
 ## Faixa de abertura (`Hero`)
 
 - Saudação do dia + primeiro nome de quem entrou, com foto e um selo de perfil
-  no canto do avatar (coroa para admin/super admin, cifrão para financeiro,
+  no canto do avatar (coroa para admin/super admin, cifrão para tesouraria,
   `</>` para dev).
 - Frase de apresentação (`apresentacao`, em `utils.ts`) diz o cargo e a igreja
   por extenso:
@@ -58,7 +58,7 @@ aparece, porque a igreja já veio na URL.
 
 Arquivos: `src/features/admin/home/components/hero.tsx`, `src/features/admin/home/components/roleBadge.tsx`, `src/features/admin/home/utils.ts`.
 
-## Painel de quem administra a igreja (admin e financeiro)
+## Painel de quem administra a igreja (admin e tesouraria)
 
 Todos os números somam só os **eventos em jogo**: os ativos, ou o último
 encerrado quando não há nenhum aberto ou a caminho (nesse caso o título da
@@ -69,7 +69,7 @@ lista vira "Último evento encerrado" em vez de "Eventos ativos").
   comprovantes a conferir. Ocupação olha só o que não terminou; dinheiro olha
   todos os eventos, porque cobrança em aberto não desaparece com o fim do
   cursilho.
-- **KPIs do financeiro (`TreasuryKpis`):** aparece no lugar do anterior
+- **KPIs da tesouraria (`TreasuryKpis`):** aparece no lugar do anterior
   quando a API manda `treasury` preenchido. Só dinheiro — recebido, a
   receber, a conferir e quantas pessoas devem. Vaga, ritmo e lista de espera
   saem, porque não são decisão dele.
@@ -77,9 +77,9 @@ lista vira "Último evento encerrado" em vez de "Eventos ativos").
   próprio), com fase (acontecendo/aberto/encerrado, com pulso animado no que
   está rolando agora), vagas por evento e por grupo (com aviso de "lotado"),
   caixa recebido, ritmo de inscrição (some no evento encerrado) e check-in
-  (só aparece se já começou). Some para o financeiro — some no lugar entra
+  (só aparece se já começou). Some para a tesouraria — some no lugar entra
   `EventEarnings`.
-- **Ganhos por evento (`EventEarnings`):** só do financeiro. Uma barra
+- **Ganhos por evento (`EventEarnings`):** só da tesouraria. Uma barra
   empilhada por evento (recebido / em análise / a receber), escalada pelo
   maior evento, para comparar uns com os outros. Eventos sem cobrança
   (`finance.expected === 0`) não entram.
@@ -88,7 +88,7 @@ lista vira "Último evento encerrado" em vez de "Eventos ativos").
   linkando direto para a aba do evento. A seção some quando não há nada; não
   mostra "tudo em dia" para não ensinar o olho a pular a região.
 - **Últimas inscrições e mural:** lado a lado quando há espaço. As inscrições
-  recentes são o pulso da tela; o mural (`news`) é só do admin — o financeiro
+  recentes são o pulso da tela; o mural (`news`) é só do admin — a tesouraria
   e o super admin não publicam notícia, e por isso não recebem o bloco.
 
 Arquivos: `src/features/admin/home/components/churchKpis.tsx`, `treasuryKpis.tsx`, `eventsList.tsx`, `eventEarnings.tsx`, `pendingActions.tsx`, `recentRegistrations.tsx`, `newsBoard.tsx`.
@@ -105,7 +105,7 @@ nenhuma igreja e por isso atravessa todas.
   perfil diferente de `USER`), porque vínculo de igreja não serve de contagem
   aqui: super admin e dev não têm nenhum.
 - **Comparativo entre igrejas (`ChurchRankings`):** dois rankings lado a
-  lado — igrejas com mais ações de admin/financeiro na janela recente
+  lado — igrejas com mais ações de admin/tesouraria na janela recente
   (`activityWindowDays`; super admin e dev ficam de fora porque não têm
   vínculo de igreja) e igrejas com mais eventos cadastrados.
 - **Igrejas (`ChurchBreakdown`):** substitui a lista de eventos da home de
@@ -150,7 +150,7 @@ Arquivos: `src/features/admin/churchHome/index.tsx`, `src/pages/admin/churches/r
   cada número mora dentro do evento a que pertence. Bloco `null` quer dizer
   "não é da alçada de quem pediu", nunca "zerado". Campos: `scope`, `role`,
   `churches`, `events`, `pending`, `recentRegistrations`, `news`, `byChurch`,
-  `treasury` (só financeiro), `panorama` (só super admin) e `insights` (só
+  `treasury` (só tesouraria), `panorama` (só super admin) e `insights` (só
   dev).
 
 Arquivos: `src/features/admin/home/api/getDashboard.ts`, `src/features/admin/home/types.ts`, `src/features/admin/home/constants.ts`.

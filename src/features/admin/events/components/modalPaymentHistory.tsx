@@ -61,7 +61,7 @@ const ORIGEM: Record<PaymentLogSource, string> = {
  * Os campos que aparecem no passo, e só eles.
  *
  * A trilha guarda a linha inteira — id, vínculos, referência do gateway. Nada
- * disso é decisão do financeiro, e listar tudo transformaria o histórico num
+ * disso é decisão da tesouraria, e listar tudo transformaria o histórico num
  * despejo de tabela. O status fica de fora porque já é o título do passo.
  *
  * Duas ausências pensadas:
@@ -95,7 +95,7 @@ function valorLegivel(campo: string, valor: unknown): string {
  *
  * Mudança de status é o passo em si — "Pago", "Em análise". Quando nada de
  * status mudou, o título diz o que de fato houve, e o link de pagamento ganha
- * frase própria: para o financeiro, gerar cobrança no PagBank e dar baixa são
+ * frase própria: para a tesouraria, gerar cobrança no PagBank e dar baixa são
  * dois acontecimentos diferentes.
  */
 function tituloDoPasso(passo: PaymentLog): string {

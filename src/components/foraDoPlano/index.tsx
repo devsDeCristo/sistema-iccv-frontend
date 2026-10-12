@@ -5,7 +5,7 @@ import { ModuloDaIgreja, ROTULO_DO_MODULO } from '../../constants/modulos';
 
 /**
  * A tela de um módulo que nenhuma igreja da pessoa tem no plano. Só quem
- * trabalha na igreja (admin, financeiro) chega aqui: dev e super admin veem
+ * trabalha na igreja (admin, tesouraria) chega aqui: dev e super admin veem
  * todos os módulos.
  */
 function ForaDoPlano({ modulo }: { modulo: ModuloDaIgreja }) {

@@ -37,7 +37,7 @@ function selo(role: number, theme: Theme) {
     return { icone: <Code />, cor: escuro ? '#A78BFA' : VIOLETA_VIVO };
   }
 
-  if (role === Role.FINANCE) {
+  if (role === Role.TESOURARIA) {
     return { icone: <AttachMoney />, cor: theme.palette.chips.success };
   }
 

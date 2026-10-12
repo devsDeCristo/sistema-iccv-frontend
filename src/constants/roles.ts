@@ -9,7 +9,7 @@ export enum Role {
   DEV = -1,
   SUPER_ADMIN = 1,
   ADMIN = 2,
-  FINANCE = 3,
+  TESOURARIA = 3,
   USER = 5,
 }
 
@@ -19,16 +19,16 @@ export const SUPER_ADMIN_ROLES = [Role.DEV, Role.SUPER_ADMIN];
 /** Acesso total ao painel administrativo */
 export const ADMIN_ROLES = [...SUPER_ADMIN_ROLES, Role.ADMIN];
 
-/** Perfis que entram no painel — o financeiro com abas restritas */
-export const ADMIN_AREA_ROLES = [...ADMIN_ROLES, Role.FINANCE];
+/** Perfis que entram no painel — a tesouraria com abas restritas */
+export const ADMIN_AREA_ROLES = [...ADMIN_ROLES, Role.TESOURARIA];
 
 export const ROLE_LABELS: Record<number, string> = {
   [Role.DEV]: 'Dev',
   [Role.SUPER_ADMIN]: 'Super Admin',
   [Role.ADMIN]: 'Admin',
-  [Role.FINANCE]: 'Financeiro',
+  [Role.TESOURARIA]: 'Tesouraria',
   [Role.USER]: 'Usuário',
 };
 
-/** Abas de detalhes do evento liberadas para o financeiro */
-export const FINANCE_EVENT_TABS = ['usuarios', 'pagamentos'];
+/** Abas de detalhes do evento liberadas para a tesouraria */
+export const TESOURARIA_EVENT_TABS = ['usuarios', 'pagamentos'];

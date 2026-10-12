@@ -42,7 +42,7 @@ function Chave({ cor, nome }: { cor: string; nome: string }) {
 /**
  * Quanto cada evento já rendeu, e quanto dele ainda está no ar.
  *
- * É a seção de eventos do financeiro — a única. Vaga, ritmo e check-in não
+ * É a seção de eventos da tesouraria — a única. Vaga, ritmo e check-in não
  * são decisão dele, e uma lista de eventos ao lado desta repetiria os mesmos
  * valores duas vezes na mesma tela.
  *

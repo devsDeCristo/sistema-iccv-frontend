@@ -199,7 +199,7 @@ function PluggyIntegrationCard({ churchId }: Props) {
         }}
       >
         Open Finance: lê saldos e extratos dos bancos da igreja para o
-        financeiro.
+        tesouraria.
       </Typography>
 
       <Typography variant="caption" color="text.secondary">

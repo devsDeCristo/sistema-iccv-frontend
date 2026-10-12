@@ -3,12 +3,7 @@ import { ModuloDaIgreja } from '../constants/modulos';
 import { REGISTER_USERS_SCHEMA } from '../features/admin/users/constants';
 
 export type PaymentStatus =
-  | 'PAID'
-  | 'IN_ANALYSIS'
-  | 'DECLINED'
-  | 'CANCELED'
-  | 'WAITING'
-  | 'REFUNDED';
+  'PAID' | 'IN_ANALYSIS' | 'DECLINED' | 'CANCELED' | 'WAITING' | 'REFUNDED';
 
 /**
  * Por onde o dinheiro entrou. `PENDING` é o estado de nascença — a cobrança
@@ -18,18 +13,13 @@ export type PaymentStatus =
 export type PaymentReceived = 'PENDING' | 'SYSTEM' | 'EXTERNAL';
 
 export type PaymentMethod =
-  | 'PIX'
-  | 'CREDIT_CARD'
-  | 'DEBIT_CARD'
-  | 'CASH'
-  | 'BOLETO'
-  | 'OTHER';
+  'PIX' | 'CREDIT_CARD' | 'DEBIT_CARD' | 'CASH' | 'BOLETO' | 'OTHER';
 
-  export interface discountsResponse {
-    id: string;
-    percentage: number;
-    description: string;
-  }
+export interface discountsResponse {
+  id: string;
+  percentage: number;
+  description: string;
+}
 
 export interface PaymentResponse {
   // dados do usuário
@@ -88,6 +78,18 @@ export interface ChurchRole {
   };
 }
 
+/**
+ * Tesoureiro(a) de um evento, sem ser admin nem tesouraria da igreja (vem na
+ * sessão). Básico vê só a aba Tesouraria dos detalhes do evento; completo vê
+ * também Tesouraria › Eventos, só com os eventos dele.
+ */
+export interface TesoureiroDeEvento {
+  eventId: string;
+  eventName: string;
+  churchId: string;
+  kind: 'BASICO' | 'COMPLETO';
+}
+
 export interface User {
   id: string;
   email: string;
@@ -120,9 +122,11 @@ export interface User {
   role?: number;
   /**
    * Vínculos de painel: o perfil que ela tem em cada igreja. A mesma pessoa
-   * pode ser admin de uma e financeiro de outra. Inscrito não tem nenhum.
+   * pode ser admin de uma e tesouraria de outra. Inscrito não tem nenhum.
    */
   churchRoles?: ChurchRole[];
+  /** Os eventos em que ela é tesoureira; não muda o `role` */
+  eventTreasurers?: TesoureiroDeEvento[];
   emergencyContact?: string;
   indicatedBy?: string;
   leadershipPosition?: string;
@@ -164,7 +168,6 @@ export interface User {
       endDate?: string;
     };
   }[];
-
 }
 export interface UserTeam extends User {
   roleTeam: 'LEADER' | 'MEMBER';

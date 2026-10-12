@@ -281,7 +281,7 @@ export default function MenuAppBar({
                 exigia super admin puro, e ele voltava para o painel sem
                 explicação.
 
-                O financeiro também entra: só em Integrações, que é para onde
+                A tesouraria também entra: só em Integrações, que é para onde
                 o redirecionamento o leva.
               */}
               {canAccessAdminArea && (

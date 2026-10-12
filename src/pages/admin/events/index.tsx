@@ -47,7 +47,7 @@ function Events() {
   // A igreja do seletor padrão, no canto superior direito — a mesma em todos
   // os módulos e lembrada entre visitas. O seletor devolve "Todas" quando a
   // salva deixou de valer (igreja apagada, vínculo removido). A lista de
-  // eventos é também do financeiro, então entram as igrejas dele
+  // eventos é também da tesouraria, então entram as igrejas dela
   const [churchId, setChurchId] = useIgrejaEscolhida();
   const styles = {
     boxFilterAndPdf: {
@@ -84,7 +84,7 @@ function Events() {
         <SeletorDeIgreja
           value={churchId}
           onChange={setChurchId}
-          incluirFinanceiro
+          incluirTesouraria
         />
       </Header>
       <CardsStatus churchId={churchId} />

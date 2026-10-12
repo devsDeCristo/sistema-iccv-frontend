@@ -37,12 +37,12 @@ interface ModalEditRoleProps {
 /** Um vínculo em edição na tela: igreja + perfil naquela igreja. */
 type Vinculo = { churchId: string; churchName: string; role: number };
 
-const PERFIS_DE_IGREJA = [Role.ADMIN, Role.FINANCE];
+const PERFIS_DE_IGREJA = [Role.ADMIN, Role.TESOURARIA];
 
 /**
  * Permissões de uma pessoa.
  *
- * A permissão é por igreja: a mesma pessoa pode ser admin de uma e financeiro
+ * A permissão é por igreja: a mesma pessoa pode ser admin de uma e tesouraria
  * de outra, e cada linha aqui é um desses vínculos. Sem vínculo nenhum ela é
  * usuário comum — não entra no painel, mas continua se inscrevendo em evento de
  * qualquer igreja.
@@ -219,7 +219,7 @@ function ModalEditRole({
           </Typography>
           <Typography variant="body2" color="text.secondary">
             A permissão é por igreja. A mesma pessoa pode ser admin de uma e
-            financeiro de outra.
+            tesouraria de outra.
           </Typography>
 
           <Divider sx={{ my: 2 }} />

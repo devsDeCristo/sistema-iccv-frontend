@@ -2,7 +2,7 @@ import { EventStatus } from '../events/types';
 
 /**
  * Formato da home. `church` é o painel de quem administra uma igreja (admin e
- * financeiro); `system` é o de quem atravessa todas (super admin e dev).
+ * tesouraria); `system` é o de quem atravessa todas (super admin e dev).
  */
 export type DashboardScope = 'church' | 'system';
 
@@ -129,7 +129,7 @@ export interface DashboardChurchRow {
  * nenhum — a tabela de logs guarda escritas. O rótulo da tela diz isso.
  */
 /**
- * A tesouraria da igreja, só para o financeiro.
+ * A tesouraria da igreja, só para a tesouraria.
  *
  * O sistema não registra despesa: `Payment` guarda entrada, então a única
  * "saída" que existe é o estorno. Fluxo de caixa de verdade pediria uma
@@ -153,7 +153,7 @@ export interface DashboardTreasury {
 export interface DashboardPanorama {
   /**
    * Ações por igreja, atribuídas pelo vínculo de quem executou — admin e
-   * financeiro. Super admin e dev não entram: não pertencem a igreja nenhuma.
+   * tesouraria. Super admin e dev não entram: não pertencem a igreja nenhuma.
    */
   churchActivity: { churchId: string; total: number }[];
   activityWindowDays: number;
@@ -217,10 +217,10 @@ export interface Dashboard {
   pending: DashboardPending[];
   /** `null` no escopo de sistema — quem entrou é assunto de quem administra a igreja */
   recentRegistrations: RecentRegistration[] | null;
-  /** Só o admin: publicar notícia não é do financeiro nem do super admin */
+  /** Só o admin: publicar notícia não é da tesouraria nem do super admin */
   news: NewsBoard | null;
   byChurch: DashboardChurchRow[] | null;
-  /** Só o financeiro */
+  /** Só a tesouraria */
   treasury: DashboardTreasury | null;
   /** Só o super admin */
   panorama: DashboardPanorama | null;

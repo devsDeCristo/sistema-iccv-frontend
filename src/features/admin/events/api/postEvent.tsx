@@ -36,7 +36,7 @@ const postCreateEvent = ({ data, files }: PostCreateEventProps) => {
     formData.append('products', JSON.stringify(data.products));
   }
   if (data.groupLink) formData.append('groupLink', data.groupLink);
-  // vazio para admin e financeiro: o backend usa a igreja do perfil deles
+  // vazio para admin e tesouraria: o backend usa a igreja do perfil deles
   if (data.churchId) formData.append('churchId', data.churchId);
 
   return apiClient

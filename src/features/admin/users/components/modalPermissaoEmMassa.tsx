@@ -33,9 +33,9 @@ const OPCOES: { valor: number | null; titulo: string; ajuda: string }[] = [
       'Entra no painel da igreja e administra eventos, inscritos e notícias.',
   },
   {
-    valor: Role.FINANCE,
-    titulo: ROLE_LABELS[Role.FINANCE],
-    ajuda: 'Entra no painel só para o financeiro dos eventos.',
+    valor: Role.TESOURARIA,
+    titulo: ROLE_LABELS[Role.TESOURARIA],
+    ajuda: 'Entra no painel só para a tesouraria dos eventos.',
   },
   {
     valor: null,

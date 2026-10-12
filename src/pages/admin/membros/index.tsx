@@ -49,14 +49,14 @@ type Confirmacao =
 
 /**
  * Os membros da igreja — o recorte, entre todos os usuários do sistema, de
- * quem é dela — e as famílias. Os dizimistas do financeiro saem daqui.
+ * quem é dela — e as famílias. Os dizimistas da tesouraria saem daqui.
  *
  * Uma pessoa é membro de uma igreja só. Ela entra pelo pedido feito na
  * inscrição (aba Pedidos) ou porque o admin da igreja a coloca.
  */
 function Membros() {
   const theme = useTheme();
-  // só as igrejas que a pessoa administra: membros não são do financeiro
+  // só as igrejas que a pessoa administra: membros não são da tesouraria
   const escopo = useIgrejaSelecionada();
   const churchId = escopo.churchId;
 

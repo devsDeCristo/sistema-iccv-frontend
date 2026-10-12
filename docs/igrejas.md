@@ -41,7 +41,7 @@ rolagem lateral.
 - **Números:** um embaixo do outro, rótulo à esquerda e valor à direita —
   quatro por linha deixa o cartão estreito demais para lado a lado. Eventos
   (`_count.events`) e Administradores (`_count.users` — conta só quem entra no
-  painel dela, admin e financeiro; inscrito não pertence a igreja nenhuma).
+  painel dela, admin e tesouraria; inscrito não pertence a igreja nenhuma).
   Ficam no pé do cartão: os da mesma linha da grade têm a mesma altura, então
   os números alinham com nome curto ou longo.
 - **Carregando:** quatro cartões em esqueleto. **Vazio:** "Nenhuma igreja
@@ -82,7 +82,7 @@ Formulário em modal (`Dialog`), mesmo componente para criar e editar.
 - Vincular alguém como líder espiritual **também o torna admin da igreja**
   (texto de ajuda do campo: "Assina o e-mail dos eventos desta igreja e vira
   admin dela"). O front não expõe aqui outros vínculos de admin — só o do
-  líder; vincular outras pessoas como admin/financeiro de uma igreja é feito
+  líder; vincular outras pessoas como admin/tesouraria de uma igreja é feito
   na tela de Usuários.
 
 Arquivos: `src/features/admin/churches/index.tsx`, `src/features/admin/churches/api/saveChurch.ts`, `src/features/admin/churches/api/getChurches.ts`.
@@ -93,7 +93,7 @@ Arquivos: `src/features/admin/churches/index.tsx`, `src/features/admin/churches/
 | --- | --- | --- |
 | `ACTIVE` (Ativa) | verde (`chips.success`) | No ar: aparece no filtro de igrejas da home |
 | `TEST` (Em teste) | laranja (`chips.alert`) | Em implantação: o painel funciona, mas para o público ela não existe — não aparece na escolha de igreja da inscrição nem no filtro da home, e os eventos dela ficam fora do catálogo (só quem a administra os vê) |
-| `INACTIVE` (Inativa) | cinza (`chips.canceled`) | Fora do ar: some do filtro da home; os dados continuam guardados (nada é apagado). Admin e financeiro dela viram usuários comuns: perdem a área de admin, ou ficam só com as outras igrejas ativas que administram. Reativar devolve o acesso |
+| `INACTIVE` (Inativa) | cinza (`chips.canceled`) | Fora do ar: some do filtro da home; os dados continuam guardados (nada é apagado). Admin e tesouraria dela viram usuários comuns: perdem a área de admin, ou ficam só com as outras igrejas ativas que administram. Reativar devolve o acesso |
 
 O vocabulário e as cores acompanham de propósito o status do evento (Ativo /
 Inativo / Teste), para não obrigar a aprender duas escalas diferentes.
@@ -104,7 +104,7 @@ Arquivo: `src/features/admin/churches/constants.ts`.
 
 - A igreja em si não guarda uma lista de admins editável nesta tela — só o
   líder espiritual, que vira admin automaticamente ao ser vinculado.
-- O vínculo de outras pessoas como admin ou financeiro de uma igreja (o
+- O vínculo de outras pessoas como admin ou tesouraria de uma igreja (o
   `role` por igreja) é gerenciado na tela de Usuários
   (`src/features/admin/users/components/modalEditRole.tsx`), que lista os
   vínculos `{ churchId, churchName, role }` de cada pessoa.

@@ -271,6 +271,27 @@ function PluggyForm({
             </Alert>
           )}
 
+          {/* ponytail: travado em "uma para todas"; a conta por congregação
+              fica à vista, desligada, até a tesouraria das congregações
+              existir de verdade */}
+          {porTesouraria && (
+            <TextField
+              select
+              size="small"
+              label="Conta das congregações"
+              value="UMA_PARA_TODAS"
+              sx={{ mt: 1 }}
+              helperText="Por enquanto, uma conta para todas: a conciliação de cada congregação distribui o extrato dela."
+            >
+              <MenuItem value="UMA_PARA_TODAS">
+                Uma conta para todas as congregações
+              </MenuItem>
+              <MenuItem value="UMA_POR_CONGREGACAO" disabled>
+                Uma conta por congregação (em breve)
+              </MenuItem>
+            </TextField>
+          )}
+
           {itemIds.map((id, indice) => (
             <Stack
               key={indice}

@@ -134,7 +134,7 @@ function List({ search }: { search: string }) {
     [Role.DEV]: theme.palette.chips.default,
     [Role.SUPER_ADMIN]: theme.palette.chips.info,
     [Role.ADMIN]: theme.palette.chips.alert,
-    [Role.FINANCE]: theme.palette.chips.pending,
+    [Role.TESOURARIA]: theme.palette.chips.pending,
     [Role.USER]: theme.palette.chips.success,
   };
 
@@ -311,7 +311,7 @@ function List({ search }: { search: string }) {
         const label = ROLE_LABELS[role] ?? ROLE_LABELS[Role.USER];
         /**
          * A permissão só diz metade: é a igreja que decide qual painel a
-         * pessoa enxerga, e a mesma pessoa pode ser admin de uma e financeiro
+         * pessoa enxerga, e a mesma pessoa pode ser admin de uma e tesouraria
          * de outra. Sai um chip por vínculo — o super admin vê os de todas as
          * igrejas, e sem o nome junto não dá para saber de quem é qual.
          *

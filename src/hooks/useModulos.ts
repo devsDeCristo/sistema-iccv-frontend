@@ -5,7 +5,7 @@ import { useRole } from './useRole';
 /**
  * Os módulos das igrejas que a pessoa alcança, pelo plano de cada uma.
  *
- * O plano recorta quem trabalha na igreja (admin, financeiro): os módulos vêm
+ * O plano recorta quem trabalha na igreja (admin, tesouraria): os módulos vêm
  * dos vínculos da sessão (`/auth/validate` devolve os de cada igreja, e a
  * sessão se renova a cada navegação no painel). Dev e super admin veem todos
  * os módulos de todas as igrejas.

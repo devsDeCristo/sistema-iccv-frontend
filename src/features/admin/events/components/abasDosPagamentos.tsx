@@ -12,7 +12,7 @@ interface AbasDosPagamentosProps {
 
 /**
  * Abas dos modais de pagamento (editar e histórico) quando a linha junta mais
- * de um pagamento da mesma pessoa — a aba "Todos" do financeiro. O menu da
+ * de um pagamento da mesma pessoa — a aba "Todos" da tesouraria. O menu da
  * linha é um só; é por aqui que se anda entre a inscrição e as compras
  * avulsas, cada uma com o próprio formulário e histórico.
  */

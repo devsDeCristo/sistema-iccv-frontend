@@ -8,10 +8,10 @@ import { PluggyIntegrationCard } from '../../../features/settings/integrations/p
 
 /**
  * Integrações da igreja com serviços de fora. Hoje só a Pluggy, que dá ao
- * financeiro acesso aos bancos da igreja; a próxima entra como outro card aqui.
+ * tesouraria acesso aos bancos da igreja; a próxima entra como outro card aqui.
  */
 function IntegrationsSettings() {
-  // o financeiro também configura: a Pluggy alimenta o módulo dele
+  // a tesouraria também configura: a Pluggy alimenta o módulo dela
   const escopo = useIgrejaSelecionada(true, 'TREASURY');
 
   return (
@@ -31,7 +31,7 @@ function IntegrationsSettings() {
           </Alert>
         ) : escopo.semIgreja ? (
           <Alert severity="info">
-            Você não é admin nem financeiro de nenhuma igreja. As integrações
+            Você não é admin nem tesouraria de nenhuma igreja. As integrações
             são configuradas por igreja.
           </Alert>
         ) : (

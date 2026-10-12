@@ -6,7 +6,7 @@ import { ADMIN_ROLES } from '../../../../constants/roles';
 function RoutesNewsAdmin() {
   return (
     <>
-      {/* o financeiro não publica notícia */}
+      {/* a tesouraria não publica notícia */}
       <Route
         path="/admin/noticias"
         element={

@@ -326,7 +326,7 @@ function List({
       headerAlign: 'center',
       renderCell: (params) => {
         // linha a linha: a mesma pessoa pode administrar a igreja de um evento
-        // e ser só financeiro na do evento de baixo
+        // e ser só tesouraria na do evento de baixo
         const podeEditar =
           isSuperAdmin || perfilNaIgreja(params.row.church?.id) === Role.ADMIN;
 

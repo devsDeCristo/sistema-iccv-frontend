@@ -79,6 +79,7 @@ import {
   Search,
   ShoppingBagOutlined,
   Sync,
+  SupervisorAccountOutlined,
   ViewModuleOutlined,
 } from '@mui/icons-material';
 import {
@@ -121,7 +122,8 @@ import {
 import { CardsRegistrations } from '../../../../features/admin/events/components/cardsRegistrations';
 import { toast } from 'react-toastify';
 import { useEventRole } from '../../../../hooks/useEventRole';
-import { FINANCE_EVENT_TABS } from '../../../../constants/roles';
+import { TESOURARIA_EVENT_TABS } from '../../../../constants/roles';
+import { ModalTesoureiros } from '../../../../features/admin/events/components/modalTesoureiros';
 
 /**
  * Ícones em `small` (20px), o mesmo tamanho dos cards de status: em tamanho
@@ -140,7 +142,7 @@ const EVENT_TABS = [
     icon: <HourglassEmptyOutlined fontSize="small" />,
   },
   {
-    label: 'Financeiro',
+    label: 'Tesouraria',
     value: 'pagamentos',
     icon: <PaymentsOutlined fontSize="small" />,
   },
@@ -228,10 +230,14 @@ function Details() {
   const event = eventData as EventDetails;
   /**
    * O perfil desta pessoa na igreja *deste* evento. Um admin de uma igreja
-   * pode ser financeiro em outra: usar o perfil efetivo aqui abriria as abas
-   * de admin num evento onde a API só a reconhece como financeiro.
+   * pode ser tesouraria em outra: usar o perfil efetivo aqui abriria as abas
+   * de admin num evento onde a API só a reconhece como tesouraria.
    */
-  const { isAdminDoEvento, resolvido } = useEventRole(event?.churchId);
+  const { isAdminDoEvento, isTesoureiroDoEvento, resolvido } = useEventRole(
+    event?.churchId,
+    eventId
+  );
+  const [tesoureirosAbertos, setTesoureirosAbertos] = useState(false);
 
   /**
    * "Conferir no gateway" só faz sentido com cobrança online de pé: módulo de
@@ -263,12 +269,14 @@ function Details() {
         enabled: !!eventId && isAdminDoEvento,
       }
     );
+  // os inscritos são da aba Inscritos: o tesoureiro(a) do evento não a vê, e
+  // a API recusaria
   const { data: usersData, isLoading: loadingUsers } = useGetUsers(
     {
       eventId: eventId,
     },
     {
-      enabled: !!eventId,
+      enabled: !!eventId && resolvido && !isTesoureiroDoEvento,
     }
   );
   const users = usersData as User[];
@@ -445,14 +453,17 @@ function Details() {
 
   /**
    * Só quem administra a igreja deste evento vê as cinco abas. As outras — o
-   * financeiro, e o intervalo em que o evento ainda está carregando — ficam em
+   * tesouraria, e o intervalo em que o evento ainda está carregando — ficam em
    * Inscritos e Pagamentos: começar pelo conjunto menor e abrir depois nunca
    * chega a oferecer uma aba que a API vai recusar.
    */
   const visibleTabs = useMemo(() => {
+    // o tesoureiro(a) do evento vê só a aba Tesouraria
     const porPerfil = isAdminDoEvento
       ? EVENT_TABS
-      : EVENT_TABS.filter((tab) => FINANCE_EVENT_TABS.includes(tab.value));
+      : isTesoureiroDoEvento
+        ? EVENT_TABS.filter((tab) => tab.value === 'pagamentos')
+        : EVENT_TABS.filter((tab) => TESOURARIA_EVENT_TABS.includes(tab.value));
 
     /**
      * Módulo desligado tira a aba do ar. Evento sem a chave `modules` — todos
@@ -462,10 +473,10 @@ function Details() {
       const modulo = ABA_DO_MODULO[tab.value];
       return !modulo || moduloAtivo(event?.data, modulo);
     });
-  }, [isAdminDoEvento, event?.data]);
+  }, [isAdminDoEvento, isTesoureiroDoEvento, event?.data]);
 
   // acesso direto pela URL a uma aba bloqueada volta para a primeira liberada.
-  // Só depois do evento chegar: antes disso todo mundo parece financeiro, e um
+  // Só depois do evento chegar: antes disso todo mundo parece tesouraria, e um
   // link direto para Quartos seria jogado fora antes de dar tempo de decidir
   useEffect(() => {
     if (!resolvido) return;
@@ -741,6 +752,17 @@ function Details() {
               escondidos={valoresEscondidos}
               onAlternar={() => setValoresEscondidos((atual) => !atual)}
             />
+          )}
+          {/* quem escolhe os tesoureiros(as) do evento é o admin da igreja */}
+          {pageValue === 'pagamentos' && isAdminDoEvento && event?.churchId && (
+            <Button
+              variant="outlined"
+              startIcon={<SupervisorAccountOutlined />}
+              sx={{ flexShrink: 0, textTransform: 'none' }}
+              onClick={() => setTesoureirosAbertos(true)}
+            >
+              Tesoureiros
+            </Button>
           )}
           {isAdminDoEvento && (
             <Button
@@ -1282,6 +1304,14 @@ function Details() {
         filteredUsers={gridFilteredUsers}
         selectedUsers={gridSelectedUsers}
       />
+      {event?.churchId && (
+        <ModalTesoureiros
+          open={tesoureirosAbertos}
+          eventId={eventId}
+          churchId={event.churchId}
+          onClose={() => setTesoureirosAbertos(false)}
+        />
+      )}
     </PageStyle>
   );
 }
