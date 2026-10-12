@@ -23,9 +23,9 @@ function InicioDasConfiguracoes() {
   const { temModulo } = useModulos();
 
   const destino =
-    isAdmin && temModulo('ONLINE_PAYMENTS')
+    isAdmin && temModulo('EVENTS')
       ? '/configuracoes/pagamentos'
-      : isAdmin && temModulo('WHATSAPP')
+      : isAdmin && temModulo('NEWS')
         ? '/configuracoes/disparadores/whatsapp'
         : '/configuracoes/integracoes';
 
@@ -86,7 +86,7 @@ function RoutesSettings() {
       <Route
         path="/configuracoes/disparadores/whatsapp"
         element={
-          <RequireRole allowedRoles={ADMIN_ROLES} modulo="WHATSAPP">
+          <RequireRole allowedRoles={ADMIN_ROLES} modulo="NEWS">
             <DispatcherWhatsapp />
           </RequireRole>
         }
@@ -94,7 +94,7 @@ function RoutesSettings() {
       <Route
         path="/configuracoes/pagamentos"
         element={
-          <RequireRole allowedRoles={ADMIN_ROLES} modulo="ONLINE_PAYMENTS">
+          <RequireRole allowedRoles={ADMIN_ROLES} modulo="EVENTS">
             <PaymentsSettings />
           </RequireRole>
         }
@@ -103,7 +103,7 @@ function RoutesSettings() {
       <Route
         path="/configuracoes/integracoes"
         element={
-          <RequireRole allowedRoles={ADMIN_AREA_ROLES} modulo="INTEGRATIONS">
+          <RequireRole allowedRoles={ADMIN_AREA_ROLES} modulo="TREASURY">
             <IntegrationsSettings />
           </RequireRole>
         }

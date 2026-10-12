@@ -69,14 +69,15 @@ function PaymentProviders({ escopo }: Props) {
       ) : (
         <>
           {/*
-            A cobrança online é um módulo do plano da igreja: sem ele não há o
-            que mostrar (a igreja não cobra). O admin só vê as igrejas com o
-            módulo; dev e super admin veem todas, e aqui leem o porquê.
+            A tela é do módulo Eventos; a cobrança online é outro módulo do
+            plano. Sem ele não há gateway a mostrar (a igreja não cobra), e a
+            tela diz o porquê.
           */}
           {data && !data.modulePayment && (
             <Alert severity="info">
               O plano desta igreja não inclui Cobrança online: ela não recebe
-              pelo site. Para ligar, escolha em Igrejas um plano com o módulo.
+              pelo site. O valor das inscrições é combinado direto com a
+              organização do evento.
             </Alert>
           )}
           {data?.modulePayment && (

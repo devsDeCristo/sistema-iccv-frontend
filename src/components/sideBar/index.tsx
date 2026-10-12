@@ -51,9 +51,10 @@ const MODULO_DO_LINK: Record<string, ModuloDaIgreja> = {
   '/admin/eventos': 'EVENTS',
   '/admin/noticias': 'NEWS',
   '/admin/tesouraria': 'TREASURY',
-  '/configuracoes/pagamentos': 'ONLINE_PAYMENTS',
-  '/configuracoes/disparadores': 'WHATSAPP',
-  '/configuracoes/integracoes': 'INTEGRATIONS',
+  // as configurações seguem o módulo a que servem
+  '/configuracoes/pagamentos': 'EVENTS',
+  '/configuracoes/disparadores': 'NEWS',
+  '/configuracoes/integracoes': 'TREASURY',
 };
 /** Recolhida: só a coluna dos ícones */
 const LARGURA_RECOLHIDA = 65;
@@ -390,6 +391,7 @@ function ItemNav({
  */
 /** Um grupo da régua: título em caixa alta e as linhas dele */
 interface SecaoMenu {
+  /** vazio: a seção não tem título (o "Voltar ao painel" das configurações) */
   titulo: string;
   itens: ItemMenu[];
 }
@@ -432,17 +434,21 @@ function ConteudoNav({
       {secoes
         .filter((secao) => secao.itens.length > 0)
         .map(({ titulo, itens }, indice) => (
-          <Box key={titulo} sx={{ mt: indice > 0 ? 3 : 0 }}>
-            <TituloSecao
-              recolhida={recolhida}
-              acao={
-                indice === 0 && onAlternar ? (
-                  <BotaoRecolher recolhida={recolhida} onClick={onAlternar} />
-                ) : undefined
-              }
-            >
-              {titulo}
-            </TituloSecao>
+          <Box key={titulo} sx={{ mt: indice > 0 ? 1.5 : 0 }}>
+            {/* sem título, só a primeira seção monta a linha: é dela o botão
+                de recolher */}
+            {(titulo || indice === 0) && (
+              <TituloSecao
+                recolhida={recolhida}
+                acao={
+                  indice === 0 && onAlternar ? (
+                    <BotaoRecolher recolhida={recolhida} onClick={onAlternar} />
+                  ) : undefined
+                }
+              >
+                {titulo}
+              </TituloSecao>
+            )}
 
             <Box sx={{ px: 1.5 }}>
               {itens.map((item) => (
@@ -511,9 +517,14 @@ const SideBar: React.FC<SideBarProps> = ({
 
   const areaAtual: AreaSideBar = area ?? (isAdmin ? 'admin' : 'usuario');
 
-  const itensConfiguracoes: ItemMenu[] = [
-    // a cobrança é por igreja: quem administra a sua configura a dela, e o
-    // super admin escolhe qual na própria tela
+  /**
+   * As configurações em grupos, cada uma no módulo a que serve (e que a
+   * libera no plano): Pagamentos em Eventos, Disparadores em Notícias,
+   * Integrações em Tesouraria. Os termos valem para a plataforma: Sistema.
+   */
+  // a cobrança é por igreja: quem administra a sua configura a dela, e o
+  // super admin escolhe qual na própria tela
+  const configuracoesDeEventos: ItemMenu[] = [
     ...(isAdminRole
       ? [
           {
@@ -523,8 +534,10 @@ const SideBar: React.FC<SideBarProps> = ({
           },
         ]
       : []),
-    // o número do WhatsApp também é por igreja: quem administra a sua pareia o
-    // dela e não alcança as outras
+  ];
+  // o número do WhatsApp também é por igreja: quem administra a sua pareia o
+  // dela e não alcança as outras
+  const configuracoesDeNoticias: ItemMenu[] = [
     ...(isAdminRole
       ? [
           {
@@ -541,8 +554,10 @@ const SideBar: React.FC<SideBarProps> = ({
           },
         ]
       : []),
-    // também por igreja: a credencial da Pluggy é da igreja que a cadastrou.
-    // O financeiro entra aqui, e só aqui: ela alimenta o módulo dele
+  ];
+  // também por igreja: a credencial da Pluggy é da igreja que a cadastrou.
+  // O financeiro entra aqui, e só aqui: ela alimenta o módulo dele
+  const configuracoesDaTesouraria: ItemMenu[] = [
     ...(isAdminRole || isFinance
       ? [
           {
@@ -552,18 +567,21 @@ const SideBar: React.FC<SideBarProps> = ({
           },
         ]
       : []),
-    // os termos valem para a plataforma inteira, e não por igreja
-    ...(isSuperAdmin
-      ? [
-          {
-            link: '/configuracoes/termos',
-            icon: <Gavel />,
-            title: 'Termos de Uso',
-          },
-        ]
-      : []),
-    // volta para onde a pessoa estava trabalhando; sem isto a única saída das
-    // configurações seria o avatar da barra do topo
+  ];
+  // os termos valem para a plataforma inteira, e não por igreja: só dev e
+  // super admin
+  const configuracoesDoSistema: ItemMenu[] = isSuperAdmin
+    ? [
+        {
+          link: '/configuracoes/termos',
+          icon: <Gavel />,
+          title: 'Termos de Uso',
+        },
+      ]
+    : [];
+  // volta para onde a pessoa estava trabalhando; sem isto a única saída das
+  // configurações seria o avatar da barra do topo
+  const voltarAoPainel: ItemMenu[] = [
     {
       link: '/admin/inicio',
       icon: <ArrowBack />,
@@ -749,7 +767,15 @@ const SideBar: React.FC<SideBarProps> = ({
 
   const secoes: SecaoMenu[] =
     areaAtual === 'configuracoes'
-      ? [{ titulo: 'Configurações', itens: doPlano(itensConfiguracoes) }]
+      ? // grupo sem item (módulo fora do plano, perfil sem acesso) não aparece
+        [
+          // o voltar fica no topo, sem grupo
+          { titulo: '', itens: voltarAoPainel },
+          { titulo: 'Eventos', itens: doPlano(configuracoesDeEventos) },
+          { titulo: 'Notícias', itens: doPlano(configuracoesDeNoticias) },
+          { titulo: 'Tesouraria', itens: doPlano(configuracoesDaTesouraria) },
+          { titulo: 'Sistema', itens: configuracoesDoSistema },
+        ]
       : areaAtual === 'admin'
         ? [
             { titulo: 'Administrador', itens: itensPainel },

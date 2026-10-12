@@ -3,15 +3,11 @@
  * plano, o módulo some do painel daquela igreja e a API dele recusa; nada é
  * apagado. Igreja sem plano não tem módulo nenhum.
  *
- * Membros não é módulo: toda igreja tem, com ou sem plano.
+ * Membros não é módulo: toda igreja tem, com ou sem plano. As configurações
+ * seguem o módulo a que servem: Pagamentos é de Eventos, Disparadores
+ * (WhatsApp) de Notícias, Integrações (Pluggy) de Tesouraria.
  */
-export type ModuloDaIgreja =
-  | 'EVENTS'
-  | 'NEWS'
-  | 'TREASURY'
-  | 'WHATSAPP'
-  | 'INTEGRATIONS'
-  | 'ONLINE_PAYMENTS';
+export type ModuloDaIgreja = 'EVENTS' | 'NEWS' | 'TREASURY' | 'ONLINE_PAYMENTS';
 
 /** Na ordem do menu, com o que cada um abre */
 export const MODULOS: {
@@ -23,23 +19,17 @@ export const MODULOS: {
     value: 'EVENTS',
     label: 'Eventos',
     ajuda:
-      'Criar e gerir eventos no painel. O evento já publicado segue aberto ao público',
+      'Criar e gerir eventos no painel, e os gateways de pagamento. O evento já publicado segue aberto ao público',
   },
-  { value: 'NEWS', label: 'Notícias', ajuda: 'Notícias e disparos' },
+  {
+    value: 'NEWS',
+    label: 'Notícias',
+    ajuda: 'Notícias, disparos e o WhatsApp da igreja',
+  },
   {
     value: 'TREASURY',
     label: 'Tesouraria',
-    ajuda: 'Dízimos, lançamentos e conciliação',
-  },
-  {
-    value: 'WHATSAPP',
-    label: 'WhatsApp',
-    ajuda: 'O número da igreja nos disparadores',
-  },
-  {
-    value: 'INTEGRATIONS',
-    label: 'Integrações',
-    ajuda: 'Os bancos da igreja pela Pluggy',
+    ajuda: 'Dízimos, lançamentos, conciliação e os bancos (Pluggy)',
   },
   {
     value: 'ONLINE_PAYMENTS',

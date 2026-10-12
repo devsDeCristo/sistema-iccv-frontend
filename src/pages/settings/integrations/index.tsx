@@ -12,7 +12,7 @@ import { PluggyIntegrationCard } from '../../../features/settings/integrations/p
  */
 function IntegrationsSettings() {
   // o financeiro também configura: a Pluggy alimenta o módulo dele
-  const escopo = useIgrejaSelecionada(true, 'INTEGRATIONS');
+  const escopo = useIgrejaSelecionada(true, 'TREASURY');
 
   return (
     <PageStyle>

@@ -7,8 +7,9 @@ quem lista as sub-seções; a URL não tem página de índice própria.
 
 ## Quem acessa e como as sub-seções se organizam
 
-- **`/configuracoes`:** redireciona para a primeira tela que a pessoa tem, pelo perfil e pelo plano das igrejas dela: Pagamentos (admin, com Cobrança online; dev e super admin sempre), WhatsApp (admin, com WhatsApp) ou Integrações. Não existe uma tela de boas-vindas da área.
-- **Plano da igreja:** Pagamentos, WhatsApp e Integrações são módulos do plano (`ONLINE_PAYMENTS`, `WHATSAPP`, `INTEGRATIONS`): fora do plano de todas as igrejas da pessoa, somem do menu e a rota mostra que está fora do plano; o seletor de igreja de cada tela só oferece as igrejas com o módulo. Dev e super admin veem todos. Ver `docs/planos.md`.
+- **`/configuracoes`:** redireciona para a primeira tela que a pessoa tem, pelo perfil e pelo plano das igrejas dela: Pagamentos (admin, com Eventos; dev e super admin sempre), WhatsApp (admin, com Notícias) ou Integrações. Não existe uma tela de boas-vindas da área.
+- **Menu em grupos, um por módulo:** **Eventos** (Pagamentos), **Notícias** (Disparadores › WhatsApp), **Tesouraria** (Integrações), **Sistema** (Termos de Uso, só dev e super admin). "Voltar ao painel" fica no topo, sem grupo. Grupo sem item não aparece.
+- **Plano da igreja:** cada tela segue o módulo a que serve — Pagamentos é de Eventos, Disparadores de Notícias, Integrações de Tesouraria: fora do plano de todas as igrejas da pessoa, somem do menu e a rota mostra que está fora do plano; o seletor de igreja de cada tela só oferece as igrejas com o módulo. Dev e super admin veem todos. Ver `docs/planos.md`.
 - **`Gateways de pagamento` (`/configuracoes/pagamentos`):** liberado para `ADMIN_ROLES` (dev, super admin e admin).
 - **`Disparadores` (`/configuracoes/disparadores`):** redireciona para `/configuracoes/disparadores/whatsapp` — "Disparadores" é um grupo de canais, hoje só o WhatsApp, sem página de índice própria (o segundo canal, quando existir, decide para onde esse redirecionamento aponta).
 - **`WhatsApp` (`/configuracoes/disparadores/whatsapp`):** liberado para `ADMIN_ROLES`. Já foi restrito a super admin porque o número era um só para o sistema inteiro; hoje é por igreja (`churches/:churchId/whatsapp`, com `ChurchTenantGuard` no servidor), então quem administra uma igreja só mexe na dela.
@@ -47,6 +48,7 @@ mostra e permite configurar.
 
 - **É um módulo do plano da igreja** (`ONLINE_PAYMENTS`, ver `docs/planos.md`). Antes era um interruptor nesta tela (`moduloDePagamento.tsx`, só para dev e super admin), que saiu: quem muda é o plano, em Igrejas.
 - A tela **Pagamentos** só aparece no menu, e só oferece no seletor, as igrejas com Cobrança online no plano. Sem nenhuma, a rota mostra que está fora do plano.
+- A tela Pagamentos é do módulo **Eventos**; a Cobrança online é outro módulo: numa igreja sem ela, a tela avisa que a igreja não recebe pelo site e não mostra a grade de gateways.
 - Sem o módulo, os inscritos não veem nada de pagamento no site e cobranças em aberto não recebem baixa automática. As credenciais cadastradas continuam guardadas.
 
 ### "Recebendo agora" e a grade de gateways

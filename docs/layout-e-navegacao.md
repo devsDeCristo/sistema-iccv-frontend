@@ -165,7 +165,7 @@ alguma linha para o perfil (`ConteudoNav` recebe uma lista de `secoes`).
 
 Módulo novo do sistema entra em `itensModulos`, e não no grupo Administrador.
 
-**Plano da igreja:** os itens de módulo (Eventos, Notícias, Tesouraria — Membros não é módulo, toda igreja tem; e em Configurações, Pagamentos, Disparadores e Integrações) só aparecem se alguma igreja da pessoa tem o módulo no plano (`MODULO_DO_LINK` + `useModulos`); dev e super admin veem todos. Módulo novo que entra no plano ganha uma linha em `MODULO_DO_LINK` — ver `docs/planos.md`.
+**Plano da igreja:** os itens de módulo (Eventos, Notícias, Tesouraria — Membros não é módulo, toda igreja tem; e em Configurações, Pagamentos → Eventos, Disparadores → Notícias, Integrações → Tesouraria) só aparecem se alguma igreja da pessoa tem o módulo no plano (`MODULO_DO_LINK` + `useModulos`); dev e super admin veem todos. Módulo novo que entra no plano ganha uma linha em `MODULO_DO_LINK` — ver `docs/planos.md`.
 
 **Etiquetas da linha:** "NOVO!" (`novo`), com degradê azul e violeta, estreia
 uma tela. "EM BREVE" (`emBreve`), com degradê laranja e âmbar, anuncia um
@@ -175,12 +175,16 @@ fica com a cor de desabilitado. Quando a tela existir, troque `emBreve` por
 
 **Configurações (`configuracoes`)**
 
-| Item | Papéis que veem |
-| --- | --- |
-| Pagamentos | `isAdminRole` |
-| Disparadores › WhatsApp | `isAdminRole` |
-| Termos de Uso | `isSuperAdmin` — valem para a plataforma inteira, não por igreja |
-| Voltar ao painel | todos |
+No topo, sem grupo, **Voltar ao painel** (todos). Embaixo, um grupo por módulo (grupo sem item não aparece):
+
+| Grupo | Item | Papéis que veem |
+| --- | --- | --- |
+| Eventos | Pagamentos | `isAdminRole`, com Eventos no plano |
+| Notícias | Disparadores › WhatsApp | `isAdminRole`, com Notícias no plano |
+| Tesouraria | Integrações | `isAdminRole` ou financeiro, com Tesouraria no plano |
+| Sistema | Termos de Uso | `isSuperAdmin` — valem para a plataforma inteira, não por igreja |
+
+Seção sem título (`titulo: ''`) não monta a linha de título; só a primeira monta, porque é dela o botão de recolher. Entre um grupo e outro da régua (em todas as áreas) o espaço é de 12px.
 
 **Usuário (`usuario`)**
 
