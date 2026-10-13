@@ -182,9 +182,11 @@ Quem é admin de um evento (`eventAdmins` na sessão; `useRole().adminDoEvento`)
 vale como admin da igreja **dentro daquele evento**: `useEventRole` devolve
 `isAdminDoEvento`, então detalhes, edição, check-in, quadrante e as ações dos
 inscritos e dos pagamentos se abrem para ele. As rotas de Eventos aceitam com
-`aceitaAdminDeEvento`. Fora do evento ele vê Membros (só a lista, e o menu ⋮
-"Ver e editar cadastro") e edita o perfil das pessoas — sem e-mail e CPF, que
-ficam travados no formulário. Não vê Tesouraria, Início nem Meus planos.
+`aceitaAdminDeEvento`. Fora do evento ele vê Membros só para consulta, como o
+tesoureiro(a) de evento (sem coluna de ações nem menu). O cadastro de um
+inscrito ele abre pela lista de inscritos do evento, e edita o perfil — sem
+e-mail e CPF, que ficam travados no formulário. Não vê Tesouraria, Início nem
+Meus planos.
 
 Arquivos: `src/pages/admin/events/edit/index.tsx`, `src/features/admin/events/api/putEvent.tsx`.
 

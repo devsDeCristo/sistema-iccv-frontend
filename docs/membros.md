@@ -7,8 +7,7 @@ Regras de servidor: `docs/membros.md` no `ic-backend`.
 ## Quem acessa e de qual igreja
 
 - **Quem mexe:** o **admin da igreja**, além de dev e super admin.
-- **Admin de um evento** desta igreja: a mesma tela de quem só consulta, mas o menu ⋮ de cada membro abre o cadastro para editar (`soCadastro` em `ListaDeMembros`). O seletor de igreja traz as igrejas dos eventos dele.
-- **Quem só consulta:** a **tesouraria** da igreja e o **tesoureiro(a) de um evento** dela. A mesma tela, sem a aba e o card de Pedidos, sem "Adicionar membro", sem marcar linhas e sem os menus (do membro e da família), com um aviso "Só consulta". A rota aceita `ADMIN_AREA_ROLES` e o tesoureiro (`aceitaTesoureiro="BASICO"`); a API devolve a lista sem os pedidos.
+- **Quem só consulta:** a **tesouraria** da igreja e o **tesoureiro(a)** e o **admin de um evento** dela — os três veem a mesma tela. Sem a aba e o card de Pedidos, sem "Adicionar membro", sem marcar linhas, sem a coluna de ações nem os menus (do membro e da família), e sem aviso de "Só consulta" (até 13/10/2026 havia um, e o admin de evento tinha o menu ⋮ para abrir o cadastro). O seletor de igreja traz também as igrejas dos eventos deles. A rota aceita `ADMIN_AREA_ROLES` e o tesoureiro (`aceitaTesoureiro="BASICO"`); a API devolve a lista sem os pedidos.
 - No menu, "Membros" fica na seção **Módulos**, para todos esses perfis.
 - Sempre **uma igreja** (`ChurchScopeBar` com `useIgrejaSelecionada(true, undefined, true)`): as que a pessoa administra, as em que é tesouraria e as dos eventos de que é tesoureira. Com várias e nenhuma escolhida, a tela pede a escolha.
 

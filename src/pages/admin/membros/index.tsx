@@ -60,19 +60,16 @@ type Confirmacao =
  *
  * A tesouraria da igreja e o tesoureiro(a) de um evento dela só consultam: a
  * mesma tela, sem os pedidos, sem marcar e sem o menu de cada um. O admin de
- * um evento dela também, mas abre o cadastro de cada um para editar.
+ * um evento dela também.
  */
 function Membros() {
   const theme = useTheme();
-  const { isSuperAdmin, perfilNaIgreja, eventAdmins } = useRole();
+  const { isSuperAdmin, perfilNaIgreja } = useRole();
   // as igrejas que administra, e as que só consulta (tesouraria, tesoureiro)
   const escopo = useIgrejaSelecionada(true, true);
   const churchId = escopo.churchId;
   const somenteLeitura =
     !isSuperAdmin && (!churchId || perfilNaIgreja(churchId) !== Role.ADMIN);
-  // o admin de um evento desta igreja consulta e edita o cadastro
-  const soCadastro =
-    somenteLeitura && eventAdmins.some((a) => a.churchId === churchId);
 
   const [aba, setAba] = useState<'membros' | 'pedidos'>('membros');
   const [busca, setBusca] = useState('');
@@ -172,12 +169,6 @@ function Membros() {
             ]}
           />
 
-          {somenteLeitura && (
-            <Alert severity="info" sx={{ mb: 2 }}>
-              Só consulta: quem mexe nos membros é o admin da igreja.
-            </Alert>
-          )}
-
           {!somenteLeitura && (
             <NavTabs
               fullWidth
@@ -273,7 +264,6 @@ function Membros() {
                 familias={familias}
                 carregando={isFetching}
                 somenteLeitura={somenteLeitura}
-                soCadastro={soCadastro}
                 onPermissao={setDandoPermissao}
                 onJuntar={setJuntando}
                 onRenomear={setRenomeando}

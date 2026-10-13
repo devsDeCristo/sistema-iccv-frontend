@@ -56,10 +56,11 @@ interface Props {
   membros: Membro[];
   familias: Familia[];
   carregando: boolean;
-  /** Tesouraria e tesoureiro(a) de evento: só consulta, sem marcar nem menu */
+  /**
+   * Tesouraria, tesoureiro(a) e admin de evento: só consulta, sem marcar nem
+   * menu
+   */
   somenteLeitura?: boolean;
-  /** Admin de evento: só consulta, mas o menu da linha abre o cadastro */
-  soCadastro?: boolean;
   /** Admin ou tesouraria nesta igreja, para os marcados */
   onPermissao: (membros: Membro[]) => void;
   onJuntar: (membros: Membro[]) => void;
@@ -80,7 +81,6 @@ function ListaDeMembros({
   familias,
   carregando,
   somenteLeitura = false,
-  soCadastro = false,
   onPermissao,
   onJuntar,
   onRenomear,
@@ -225,9 +225,8 @@ function ListaDeMembros({
       valueFormatter: ({ value }) =>
         value ? new Date(value as string).toLocaleDateString('pt-BR') : '—',
     },
-    // quem só consulta não tem o que fazer com a linha (o admin de evento só
-    // abre o cadastro)
-    ...(somenteLeitura && !soCadastro
+    // quem só consulta não tem o que fazer com a linha
+    ...(somenteLeitura
       ? []
       : [
           {
@@ -370,52 +369,47 @@ function ListaDeMembros({
             <ListItemIcon>
               <AccountCircleOutlined fontSize="small" />
             </ListItemIcon>
-            {soCadastro ? 'Ver e editar cadastro' : 'Ver cadastro'}
+            Ver cadastro
           </MenuItem>,
-          // daqui para baixo é do admin da igreja
-          ...(soCadastro
-            ? []
-            : [
-                <MenuItem
-                  key="permissao"
-                  onClick={() => {
-                    onPermissao([menu.membro as Membro]);
-                    setMenu(null);
-                  }}
-                >
-                  <ListItemIcon>
-                    <ManageAccounts fontSize="small" />
-                  </ListItemIcon>
-                  Permissão na igreja
-                </MenuItem>,
-                menu.membro.family && (
-                  <MenuItem
-                    key="tirar"
-                    onClick={() => {
-                      onTirarDaFamilia(menu.membro as Membro);
-                      setMenu(null);
-                    }}
-                  >
-                    <ListItemIcon>
-                      <LinkOff fontSize="small" />
-                    </ListItemIcon>
-                    Tirar da família
-                  </MenuItem>
-                ),
-                <MenuItem
-                  key="remover"
-                  onClick={() => {
-                    onRemover(menu.membro as Membro);
-                    setMenu(null);
-                  }}
-                  sx={{ color: theme.palette.chips.canceled }}
-                >
-                  <ListItemIcon sx={{ color: 'inherit' }}>
-                    <DeleteOutline fontSize="small" />
-                  </ListItemIcon>
-                  Deixar de ser membro
-                </MenuItem>,
-              ]),
+          <MenuItem
+            key="permissao"
+            onClick={() => {
+              onPermissao([menu.membro as Membro]);
+              setMenu(null);
+            }}
+          >
+            <ListItemIcon>
+              <ManageAccounts fontSize="small" />
+            </ListItemIcon>
+            Permissão na igreja
+          </MenuItem>,
+          menu.membro.family && (
+            <MenuItem
+              key="tirar"
+              onClick={() => {
+                onTirarDaFamilia(menu.membro as Membro);
+                setMenu(null);
+              }}
+            >
+              <ListItemIcon>
+                <LinkOff fontSize="small" />
+              </ListItemIcon>
+              Tirar da família
+            </MenuItem>
+          ),
+          <MenuItem
+            key="remover"
+            onClick={() => {
+              onRemover(menu.membro as Membro);
+              setMenu(null);
+            }}
+            sx={{ color: theme.palette.chips.canceled }}
+          >
+            <ListItemIcon sx={{ color: 'inherit' }}>
+              <DeleteOutline fontSize="small" />
+            </ListItemIcon>
+            Deixar de ser membro
+          </MenuItem>,
         ]}
       </Menu>
     </>
