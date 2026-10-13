@@ -412,9 +412,9 @@ function TermsSettings() {
                   </Stack>
                   <Typography variant="body2" color="text.secondary">
                     {formatDateTime(versao.publishedAt)}
-                    {versao.publishedBy
-                      ? ` · ${versao.publishedBy.fullName}`
-                      : ''}
+                    {/* sem autor: a primeira versão veio da migration, e a conta
+                        de quem publicou pode ter sido apagada */}
+                    {` · ${versao.publishedBy ? `Publicado por ${versao.publishedBy.fullName}` : 'Publicado pelo sistema'}`}
                     {` · ${versao.acceptances} ${versao.acceptances === 1 ? 'aceite' : 'aceites'}`}
                   </Typography>
                 </Box>

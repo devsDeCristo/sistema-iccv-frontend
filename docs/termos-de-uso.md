@@ -50,7 +50,7 @@ cadastro. Ver `docs/login-e-cadastro.md`.
   - Cria uma versão nova; a versão anterior não é alterada — é o texto que alguém aceitou, e permanece disponível no histórico.
   - Interruptor **"Mudança relevante"**: liga quando a mudança altera o que é coletado, para que serve, com quem é compartilhado, valores ou responsabilidades. Ligado, todo mundo (inclusive quem publicou) precisa aceitar de novo no próximo acesso, via `TermsGate`. Desligado, é tratado como correção de texto e ninguém precisa reaceitar.
   - Botão "Publicar" só habilita quando o texto ou o resumo mudaram em relação à versão vigente carregada.
-- **Histórico:** lista todas as versões publicadas, com data, quem publicou, se exigiu novo aceite ("Exigiu novo aceite" / "Correção") e quantos aceites cada versão tem registrado. É possível carregar o texto de uma versão antiga de volta no editor (não republica sozinho — precisa clicar em "Publicar" de novo).
+- **Histórico:** lista todas as versões publicadas, com data, quem publicou ("Publicado por Fulano"; versão sem autor — a primeira, que veio da migration, ou de uma conta apagada — mostra "Publicado pelo sistema"), se exigiu novo aceite ("Exigiu novo aceite" / "Correção") e quantos aceites cada versão tem registrado. É possível carregar o texto de uma versão antiga de volta no editor (não republica sozinho — precisa clicar em "Publicar" de novo).
 - **Link "Ver página pública":** abre `/termos` em nova aba.
 
 Arquivo: `src/pages/settings/terms/index.tsx`.

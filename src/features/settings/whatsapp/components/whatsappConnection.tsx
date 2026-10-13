@@ -412,23 +412,14 @@ function WhatsappConnection({ churchId }: Props) {
           {/* a escolha do número é a decisão de maior consequência desta tela,
               e ela é feita antes de qualquer clique aqui */}
           <Alert severity="info" sx={{ mt: 2.5, borderRadius: 2 }}>
-            <AlertTitle sx={{ mb: 0.5 }}>
-              Use um número do ministério, não o seu pessoal
-            </AlertTitle>
+            <AlertTitle sx={{ mb: 0.5 }}>Qual número conectar</AlertTitle>
 
             <Typography variant="body2">
-              O sistema entra como mais um aparelho conectado, do mesmo jeito
-              que o WhatsApp Web — o WhatsApp não tem uma porta oficial para
-              isso. No ritmo daqui, poucos avisos por semana em grupos onde as
-              pessoas entraram por vontade própria, o risco é pequeno; mas nunca
-              é zero. Uma denúncia de quem recebe, ou um envio que pareça
-              automático demais, pode custar um bloqueio ao número.
-            </Typography>
-
-            <Typography variant="body2" sx={{ mt: 1 }}>
-              Por isso vale um chip separado, o da secretaria por exemplo. Se um
-              dia acontecer, o que se perde são os avisos — e não as suas
-              conversas, contatos e grupos.
+              A conexão funciona como o WhatsApp Web: o sistema passa a ser um
+              aparelho conectado ao número escolhido, e os avisos saem dele.
+              Como o envio é automático, o WhatsApp pode entender o número como
+              um bot e bloqueá-lo. Por isso é indicado conectar um número do
+              ministério, como o da secretaria, separado das conversas pessoais.
             </Typography>
           </Alert>
 
@@ -443,6 +434,7 @@ function WhatsappConnection({ churchId }: Props) {
               <QrCode2 fontSize="small" />
               Ler o QR code
             </ToggleButton>
+           
             <ToggleButton value="codigo">
               <DialpadOutlined fontSize="small" />
               Digitar o número
