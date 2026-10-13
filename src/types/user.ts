@@ -94,6 +94,13 @@ export interface TesoureiroDeEvento {
   kind: 'BASICO' | 'COMPLETO';
 }
 
+/**
+ * Admin de um evento, sem ser admin da igreja (vem na sessão): administra o
+ * evento (tudo, menos apagar) e edita o perfil dos membros da igreja dele.
+ * Não vê a tesouraria.
+ */
+export type AdminDeEvento = Omit<TesoureiroDeEvento, 'kind'>;
+
 export interface User {
   id: string;
   email: string;
@@ -131,6 +138,7 @@ export interface User {
   churchRoles?: ChurchRole[];
   /** Os eventos em que ela é tesoureira; não muda o `role` */
   eventTreasurers?: TesoureiroDeEvento[];
+  eventAdmins?: AdminDeEvento[];
   emergencyContact?: string;
   indicatedBy?: string;
   leadershipPosition?: string;

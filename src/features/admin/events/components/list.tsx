@@ -147,7 +147,8 @@ function List({
 }) {
   const navigate = useNavigate();
   const theme = useTheme();
-  const { isDev, isSuperAdmin, isAdmin, perfilNaIgreja } = useRole();
+  const { isDev, isSuperAdmin, isAdmin, perfilNaIgreja, adminDoEvento } =
+    useRole();
   /** marcados na tabela: alimentam a barra flutuante e a exportação */
   const [selecionados, setSelecionados] = useState<GridRowSelectionModel>([]);
   const [statusAberto, setStatusAberto] = useState(false);
@@ -326,9 +327,11 @@ function List({
       headerAlign: 'center',
       renderCell: (params) => {
         // linha a linha: a mesma pessoa pode administrar a igreja de um evento
-        // e ser só tesouraria na do evento de baixo
+        // e ser só tesouraria na do evento de baixo (ou admin só deste evento)
         const podeEditar =
-          isSuperAdmin || perfilNaIgreja(params.row.church?.id) === Role.ADMIN;
+          isSuperAdmin ||
+          perfilNaIgreja(params.row.church?.id) === Role.ADMIN ||
+          adminDoEvento(params.row.id);
 
         return (
           <AcoesDoEvento

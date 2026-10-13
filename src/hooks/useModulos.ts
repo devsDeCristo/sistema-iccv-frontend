@@ -13,13 +13,14 @@ import { useRole } from './useRole';
  * É só usabilidade: quem recusa de verdade é o `ModuloGuard` da API.
  */
 export function useModulos() {
-  const { isSuperAdmin, churchRoles, eventTreasurers } = useRole();
+  const { isSuperAdmin, churchRoles, eventTreasurers, eventAdmins } = useRole();
 
-  // o tesoureiro(a) de evento alcança a igreja do evento sem vínculo nela
+  // o tesoureiro(a) e o admin de evento alcançam a igreja do evento sem
+  // vínculo nela
   const porIgreja = useMemo(
     () =>
       new Map<string, ModuloDaIgreja[]>([
-        ...eventTreasurers.map(
+        ...[...eventTreasurers, ...eventAdmins].map(
           (t) => [t.churchId, t.modulos ?? []] as [string, ModuloDaIgreja[]]
         ),
         ...churchRoles.map(
@@ -27,7 +28,7 @@ export function useModulos() {
             [v.church.id, v.church.modulos ?? []] as [string, ModuloDaIgreja[]]
         ),
       ]),
-    [churchRoles, eventTreasurers]
+    [churchRoles, eventTreasurers, eventAdmins]
   );
 
   return {

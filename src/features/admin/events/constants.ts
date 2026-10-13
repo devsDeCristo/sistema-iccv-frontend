@@ -9,6 +9,7 @@ import {
   Tune,
   Settings,
   ShoppingBag,
+  Groups,
 } from '@mui/icons-material';
 import { z } from 'zod';
 import { GroupRole } from './types';
@@ -343,6 +344,12 @@ export const STEPS = [
     label: 'Produtos',
     icon: ShoppingBag,
   },
+  // quem cuida do evento sem ser admin da igreja: admins e tesoureiros(as)
+  {
+    id: 9,
+    label: 'Equipe',
+    icon: Groups,
+  },
 ];
 
 export const PANELS = [
@@ -380,6 +387,12 @@ export const PANELS = [
     id: 7,
     label: 'Produtos',
     icon: ShoppingBag,
+  },
+  // só para quem administra a igreja: o admin de evento não mexe na equipe
+  {
+    id: 8,
+    label: 'Equipe',
+    icon: Groups,
   },
 ];
 export const STEPS_SUB = [

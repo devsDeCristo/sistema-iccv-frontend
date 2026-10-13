@@ -116,11 +116,17 @@ function booleanLabel(value: unknown) {
 function Form({
   readOnly = false,
   cpfTravado = false,
+  emailTravado = false,
   campoDaIgreja,
 }: {
   readOnly?: boolean;
   /** No perfil o CPF não muda: é a identidade de acesso — ver `PUT /users/me` */
   cpfTravado?: boolean;
+  /**
+   * O admin de evento não troca o e-mail de ninguém: com ele trocado, o
+   * "esqueci a senha" daria a conta a quem trocou
+   */
+  emailTravado?: boolean;
   /**
    * Na inscrição, a escolha da igreja (lista do sistema ou "Outra") entra no
    * lugar do texto livre — ver `pages/users/register`. Nas outras telas a
@@ -414,8 +420,14 @@ function Form({
                     label="E-mail"
                     type="email"
                     autoComplete="email"
+                    disabled={emailTravado}
                     error={!!errors.email}
-                    errorMessage={errors.email?.message}
+                    errorMessage={
+                      errors.email?.message ??
+                      (emailTravado
+                        ? 'Só o admin da igreja troca o e-mail'
+                        : undefined)
+                    }
                   />
                 )}
               />

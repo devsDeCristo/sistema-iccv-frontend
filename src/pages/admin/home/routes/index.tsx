@@ -3,12 +3,13 @@ import { Home } from '../../../../features/admin/home';
 import { useRole } from '../../../../hooks/useRole';
 
 /**
- * O tesoureiro(a) de evento não trabalha em igreja nenhuma: a home (números
- * da igreja) não é dele, e a entrada do painel é a lista dos eventos dele.
+ * O tesoureiro(a) e o admin de evento não trabalham em igreja nenhuma: a home
+ * (números da igreja) não é deles, e a entrada do painel é a lista dos
+ * eventos deles.
  */
 function Inicio() {
-  const { soTesoureiroDeEvento } = useRole();
-  if (soTesoureiroDeEvento) return <Navigate to="/admin/eventos" replace />;
+  const { soPorEvento } = useRole();
+  if (soPorEvento) return <Navigate to="/admin/eventos" replace />;
   return <Home />;
 }
 

@@ -4,7 +4,7 @@ import { useRole } from './useRole';
 type EventRoleInfo = {
   /** Perfil de quem está logado na igreja deste evento */
   perfil: number | null;
-  /** Administra a igreja deste evento */
+  /** Administra a igreja deste evento, ou este evento (`EventAdmin`) */
   isAdminDoEvento: boolean;
   /** É tesouraria na igreja deste evento */
   isTesourariaDoEvento: boolean;
@@ -39,7 +39,8 @@ function useEventRole(
   churchId?: string | null,
   eventId?: string | null
 ): EventRoleInfo {
-  const { isSuperAdmin, perfilNaIgreja, tesoureiroDoEvento } = useRole();
+  const { isSuperAdmin, perfilNaIgreja, tesoureiroDoEvento, adminDoEvento } =
+    useRole();
 
   // o super admin atravessa as igrejas: não tem vínculo e não precisa de um
   if (isSuperAdmin) {
@@ -57,14 +58,21 @@ function useEventRole(
   if (!churchId) return NAO_RESOLVIDO;
 
   const perfil = perfilNaIgreja(churchId);
+  // o admin deste evento vale como o admin da igreja, só aqui
+  const isAdminDoEvento =
+    perfil === Role.ADMIN || (!!eventId && adminDoEvento(eventId));
 
   return {
     perfil,
-    isAdminDoEvento: perfil === Role.ADMIN,
+    isAdminDoEvento,
     isTesourariaDoEvento: perfil === Role.TESOURARIA,
-    // quem tem perfil na igreja já vê mais que o tesoureiro
+    // quem tem perfil na igreja (ou administra o evento) já vê mais que o
+    // tesoureiro
     isTesoureiroDoEvento:
-      perfil === null && !!eventId && !!tesoureiroDoEvento(eventId),
+      perfil === null &&
+      !isAdminDoEvento &&
+      !!eventId &&
+      !!tesoureiroDoEvento(eventId),
     resolvido: true,
   };
 }

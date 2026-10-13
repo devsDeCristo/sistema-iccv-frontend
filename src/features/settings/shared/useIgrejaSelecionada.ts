@@ -49,14 +49,14 @@ export interface EscopoDeIgreja {
  * todas as igrejas: para eles a lista não é recortada.
  *
  * `incluirTesoureiroDeEvento`: a tela também é de quem é tesoureiro(a) de um
- * evento — entram as igrejas dos eventos dele (Membros, só consulta).
+ * evento (ou admin de um) — entram as igrejas dos eventos dele (Membros).
  */
 export function useIgrejaSelecionada(
   incluirTesouraria = false,
   modulo?: ModuloDaIgreja,
   incluirTesoureiroDeEvento = false
 ): EscopoDeIgreja {
-  const { isSuperAdmin, churchRoles, eventTreasurers } = useRole();
+  const { isSuperAdmin, churchRoles, eventTreasurers, eventAdmins } = useRole();
 
   const { data: todasAsIgrejas, isLoading } = useGetChurches({
     enabled: isSuperAdmin,
@@ -76,7 +76,7 @@ export function useIgrejaSelecionada(
       .map(({ church: { id, name } }) => ({ id, name }));
     if (!incluirTesoureiroDeEvento) return dosVinculos;
     // a igreja de cada evento dele, uma vez só
-    const dosEventos = eventTreasurers
+    const dosEventos = [...eventTreasurers, ...eventAdmins]
       .filter(
         (t) =>
           !dosVinculos.some((igreja) => igreja.id === t.churchId) &&
@@ -93,6 +93,7 @@ export function useIgrejaSelecionada(
     todasAsIgrejas,
     churchRoles,
     eventTreasurers,
+    eventAdmins,
     incluirTesouraria,
     incluirTesoureiroDeEvento,
     modulo,

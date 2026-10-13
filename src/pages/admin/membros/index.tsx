@@ -59,16 +59,20 @@ type Confirmacao =
  * que o admin dá a um membro o perfil de admin ou de tesouraria na igreja.
  *
  * A tesouraria da igreja e o tesoureiro(a) de um evento dela só consultam: a
- * mesma tela, sem os pedidos, sem marcar e sem o menu de cada um.
+ * mesma tela, sem os pedidos, sem marcar e sem o menu de cada um. O admin de
+ * um evento dela também, mas abre o cadastro de cada um para editar.
  */
 function Membros() {
   const theme = useTheme();
-  const { isSuperAdmin, perfilNaIgreja } = useRole();
+  const { isSuperAdmin, perfilNaIgreja, eventAdmins } = useRole();
   // as igrejas que administra, e as que só consulta (tesouraria, tesoureiro)
   const escopo = useIgrejaSelecionada(true, undefined, true);
   const churchId = escopo.churchId;
   const somenteLeitura =
     !isSuperAdmin && (!churchId || perfilNaIgreja(churchId) !== Role.ADMIN);
+  // o admin de um evento desta igreja consulta e edita o cadastro
+  const soCadastro =
+    somenteLeitura && eventAdmins.some((a) => a.churchId === churchId);
 
   const [aba, setAba] = useState<'membros' | 'pedidos'>('membros');
   const [busca, setBusca] = useState('');
@@ -269,6 +273,7 @@ function Membros() {
                 familias={familias}
                 carregando={isFetching}
                 somenteLeitura={somenteLeitura}
+                soCadastro={soCadastro}
                 onPermissao={setDandoPermissao}
                 onJuntar={setJuntando}
                 onRenomear={setRenomeando}
@@ -318,6 +323,7 @@ function Membros() {
               <ModalPermissaoEmMassa
                 open={!!dandoPermissao}
                 userIds={dandoPermissao?.map((m) => m.id) ?? []}
+                pessoas={dandoPermissao ?? []}
                 igrejaFixa={churchId}
                 onClose={() => setDandoPermissao(null)}
                 onConcluir={() => setDandoPermissao(null)}

@@ -511,7 +511,7 @@ const SideBar: React.FC<SideBarProps> = ({
     isDev,
     isSuperAdmin,
     isTesouraria,
-    soTesoureiroDeEvento,
+    soPorEvento,
     temTesoureiroCompleto,
   } = useRole();
   const { temModulo } = useModulos();
@@ -674,8 +674,9 @@ const SideBar: React.FC<SideBarProps> = ({
   const itensModulos: ItemMenu[] = isAdmin
     ? [
         // primeiro da seção: os membros e as famílias são do admin da igreja;
-        // a tesouraria e o tesoureiro(a) de evento só consultam
-        ...(isAdminRole || isTesouraria || soTesoureiroDeEvento
+        // a tesouraria e o tesoureiro(a) de evento só consultam, e o admin de
+        // evento edita o perfil
+        ...(isAdminRole || isTesouraria || soPorEvento
           ? [
               {
                 link: '/admin/membros',
@@ -704,7 +705,7 @@ const SideBar: React.FC<SideBarProps> = ({
         // grupo: a tesouraria da igreja (o módulo de tesouraria). Admin e
         // tesouraria veem tudo; o tesoureiro(a) completo de evento, só
         // Eventos — a mesma tela, com os eventos dele
-        ...(!soTesoureiroDeEvento || temTesoureiroCompleto
+        ...(!soPorEvento || temTesoureiroCompleto
           ? [
               {
                 link: '/admin/tesouraria',
@@ -712,7 +713,7 @@ const SideBar: React.FC<SideBarProps> = ({
                 title: 'Tesouraria',
                 novo: true,
                 filhos: [
-                  ...(soTesoureiroDeEvento
+                  ...(soPorEvento
                     ? []
                     : [
                         {
@@ -727,7 +728,7 @@ const SideBar: React.FC<SideBarProps> = ({
                     title: 'Eventos',
                     novo: true,
                   },
-                  ...(soTesoureiroDeEvento
+                  ...(soPorEvento
                     ? []
                     : [
                         {
@@ -741,7 +742,7 @@ const SideBar: React.FC<SideBarProps> = ({
               },
             ]
           : []),
-        ...(soTesoureiroDeEvento
+        ...(soPorEvento
           ? []
           : [
               {
@@ -814,11 +815,11 @@ const SideBar: React.FC<SideBarProps> = ({
         ]
       : areaAtual === 'admin'
         ? [
-            // o tesoureiro(a) de evento não tem igreja: Início e Meus planos
-            // são dela, e a régua dele começa nos módulos
+            // o tesoureiro(a) e o admin de evento não têm igreja: Início e
+            // Meus planos são dela, e a régua deles começa nos módulos
             {
               titulo: 'Administrador',
-              itens: soTesoureiroDeEvento ? [] : itensPainel,
+              itens: soPorEvento ? [] : itensPainel,
             },
             { titulo: 'Módulos', itens: doPlano(itensModulos) },
             { titulo: 'Manutenção', itens: itensManutencao },
@@ -884,7 +885,7 @@ const SideBar: React.FC<SideBarProps> = ({
           to={
             !isAdmin
               ? '/home'
-              : soTesoureiroDeEvento
+              : soPorEvento
                 ? '/admin/eventos'
                 : '/admin/inicio'
           }

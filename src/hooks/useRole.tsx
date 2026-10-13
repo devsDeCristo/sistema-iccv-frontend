@@ -5,7 +5,7 @@ import {
   SUPER_ADMIN_ROLES,
 } from '../constants/roles';
 import { getStoredUser } from '../auth/session';
-import { ChurchRole, TesoureiroDeEvento } from '../types/user';
+import { AdminDeEvento, ChurchRole, TesoureiroDeEvento } from '../types/user';
 
 type Igreja = { id: string; name: string };
 
@@ -19,10 +19,22 @@ type RoleInfo = {
   /** Perfil interno de desenvolvimento; só ele concede o próprio perfil */
   isDev: boolean;
   isTesouraria: boolean;
-  /** Entra no painel administrativo (inclui a tesouraria e o tesoureiro de evento) */
+  /**
+   * Entra no painel administrativo (inclui a tesouraria e quem é tesoureiro
+   * ou admin de evento)
+   */
   canAccessAdminArea: boolean;
   /** Os eventos em que é tesoureira (`EventTreasurer`) */
   eventTreasurers: TesoureiroDeEvento[];
+  /** Os eventos de que é admin (`EventAdmin`) */
+  eventAdmins: AdminDeEvento[];
+  /**
+   * Entra no painel só por vínculos de evento (tesoureiro ou admin), sem
+   * trabalhar em igreja nenhuma: não tem Início nem Meus planos
+   */
+  soPorEvento: boolean;
+  /** É admin deste evento (sem ser admin da igreja)? */
+  adminDoEvento: (eventId: string) => boolean;
   /**
    * Só tesoureiro(a) de evento: entra no painel, mas não trabalha em igreja
    * nenhuma — vê os eventos dele e nada mais
@@ -53,7 +65,9 @@ function useRole(): RoleInfo {
   const role = stored?.role ?? null;
   const churchRoles = stored?.churchRoles ?? [];
   const eventTreasurers = stored?.eventTreasurers ?? [];
+  const eventAdmins = stored?.eventAdmins ?? [];
   const noPainelPeloPerfil = role !== null && ADMIN_AREA_ROLES.includes(role);
+  const porEvento = eventTreasurers.length > 0 || eventAdmins.length > 0;
 
   return {
     role,
@@ -61,8 +75,12 @@ function useRole(): RoleInfo {
     isSuperAdmin: role !== null && SUPER_ADMIN_ROLES.includes(role),
     isDev: role === Role.DEV,
     isTesouraria: role === Role.TESOURARIA,
-    canAccessAdminArea: noPainelPeloPerfil || eventTreasurers.length > 0,
+    canAccessAdminArea: noPainelPeloPerfil || porEvento,
     eventTreasurers,
+    eventAdmins,
+    soPorEvento: !noPainelPeloPerfil && porEvento,
+    adminDoEvento: (eventId: string) =>
+      eventAdmins.some((a) => a.eventId === eventId),
     soTesoureiroDeEvento: !noPainelPeloPerfil && eventTreasurers.length > 0,
     temTesoureiroCompleto: eventTreasurers.some((t) => t.kind === 'COMPLETO'),
     tesoureiroDoEvento: (eventId: string) =>

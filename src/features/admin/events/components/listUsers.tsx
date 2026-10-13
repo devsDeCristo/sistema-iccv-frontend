@@ -137,7 +137,7 @@ function ListUsers({
   const navigate = useNavigate();
   // ações de inscrição são de quem administra a igreja deste evento — o
   // tesouraria abre a mesma lista, mas só para olhar
-  const { isAdminDoEvento } = useEventRole(event?.churchId);
+  const { isAdminDoEvento } = useEventRole(event?.churchId, eventId);
   const { data: usersData, isLoading } = useGetUsers(
     {
       eventId: eventId,

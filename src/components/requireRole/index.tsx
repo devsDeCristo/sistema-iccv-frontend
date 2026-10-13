@@ -28,11 +28,12 @@ type RequireRoleProps = {
   modulo?: ModuloDaIgreja;
   /**
    * A rota também é do tesoureiro(a) de evento: `BASICO` aceita qualquer
-   * vínculo, `COMPLETO` só quem é completo em algum evento. Quem entra por
-   * aqui não passa pela conta do plano — ele não tem igreja; a API confere o
-   * plano da igreja do evento.
+   * vínculo, `COMPLETO` só quem é completo em algum evento. O plano conta
+   * pelas igrejas dos eventos dele.
    */
   aceitaTesoureiro?: 'BASICO' | 'COMPLETO';
+  /** A rota também é do admin de evento (de algum evento; a API cobra qual) */
+  aceitaAdminDeEvento?: boolean;
 };
 
 /**
@@ -45,8 +46,10 @@ function RequireRole({
   redirectTo = '/admin/inicio',
   modulo,
   aceitaTesoureiro,
+  aceitaAdminDeEvento,
 }: RequireRoleProps) {
-  const { role, eventTreasurers, temTesoureiroCompleto } = useRole();
+  const { role, eventTreasurers, eventAdmins, temTesoureiroCompleto } =
+    useRole();
   const { temModulo } = useModulos();
 
   if (role === null || !allowedRoles.includes(role)) {
@@ -54,10 +57,14 @@ function RequireRole({
       aceitaTesoureiro === 'COMPLETO'
         ? temTesoureiroCompleto
         : aceitaTesoureiro === 'BASICO' && eventTreasurers.length > 0;
-    if (!comoTesoureiro) return <Navigate to={redirectTo} replace />;
+    const comoAdminDeEvento = !!aceitaAdminDeEvento && eventAdmins.length > 0;
+    if (!comoTesoureiro && !comoAdminDeEvento) {
+      return <Navigate to={redirectTo} replace />;
+    }
   }
 
-  // o tesoureiro(a) de evento também: a sessão traz o plano da igreja do evento
+  // tesoureiro(a) e admin de evento também: a sessão traz o plano da igreja
+  // do evento
   if (modulo && !temModulo(modulo)) return <ForaDoPlano modulo={modulo} />;
 
   return <>{children}</>;
@@ -83,7 +90,7 @@ function RequireEventRole({
     { enabled: !!id }
   );
   const event = data as EventDetails;
-  const { isAdminDoEvento, resolvido } = useEventRole(event?.churchId);
+  const { isAdminDoEvento, resolvido } = useEventRole(event?.churchId, id);
   const modulos = useModulos();
 
   // evento de outra igreja nem chega a existir para o painel: a resposta é 404

@@ -9,7 +9,10 @@ import {
   Paper,
   Skeleton,
 } from '@mui/material';
-import { EventDetails } from '../../../../features/admin/events/types';
+import {
+  EquipeFormType,
+  EventDetails,
+} from '../../../../features/admin/events/types';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   DateAndLocalFormType,
@@ -49,6 +52,12 @@ import { useGetEvents } from '../../../../features/admin/events/api/getEvents';
 import { usePutUpdateEvent } from '../../../../features/admin/events/api/putEvent';
 import React, { useEffect, useMemo, useState } from 'react';
 import { FormGeneralInfo } from '../../../../features/admin/events/components/formGeneralInfo';
+import {
+  FormEquipe,
+  equipeParaEnvio,
+} from '../../../../features/admin/events/components/formEquipe';
+import { useRole } from '../../../../hooks/useRole';
+import { Role } from '../../../../constants/roles';
 
 import { toast } from 'react-toastify';
 import { Check } from '@mui/icons-material';
@@ -67,6 +76,26 @@ function Edit() {
     }
   );
   const event = eventData as EventDetails;
+  // a equipe do evento é do admin da igreja; o admin de evento não a vê aqui
+  const { isSuperAdmin, perfilNaIgreja } = useRole();
+  const defineEquipe =
+    isSuperAdmin ||
+    (!!event?.churchId && perfilNaIgreja(event.churchId) === Role.ADMIN);
+  const getDefaultEquipeValues = (event?: EventDetails): EquipeFormType => ({
+    admins: (event?.admins ?? []).map(({ user }) => ({
+      id: user.id,
+      fullName: user.fullName,
+      profilePhotoUrl: user.profilePhotoUrl,
+      detalhe: user.email,
+    })),
+    tesoureiros: (event?.treasurers ?? []).map(({ kind, user }) => ({
+      id: user.id,
+      fullName: user.fullName,
+      profilePhotoUrl: user.profilePhotoUrl,
+      detalhe: user.email,
+      kind,
+    })),
+  });
 
   const getDefaultGeneralInfoValues = (
     event?: EventDetails
@@ -186,6 +215,9 @@ function Edit() {
     },
     mode: 'onChange',
   });
+  const methodsEquipe = useForm<EquipeFormType>({
+    defaultValues: getDefaultEquipeValues(event),
+  });
   const eventTypeSelected = useMemo(() => event?.type, [event]);
   useEffect(() => {
     if (event) {
@@ -201,6 +233,7 @@ function Edit() {
         publicStore: !!event.data?.publicStore,
         products: produtosParaFormulario(event.products),
       });
+      methodsEquipe.reset(getDefaultEquipeValues(event));
     }
   }, [event]);
   const { mutate: mutatePutUpdateEvent, isLoading: isLoadingEdit } =
@@ -282,6 +315,7 @@ function Edit() {
             type: eventTypeSelected!,
             groupRoles: registrationSettingsData.groupRoles,
             products: produtosParaEnvio(methodsProducts.getValues().products),
+            ...(defineEquipe ? equipeParaEnvio(methodsEquipe.getValues()) : {}),
             data: {
               description: generalInfoData.description,
               shortDescription: generalInfoData.shortDescription,
@@ -396,6 +430,13 @@ function Edit() {
       component: FormProducts,
       props: {},
     },
+    {
+      step: 8,
+      formMethods: methodsEquipe,
+      onSubmit: registrationSettingsSubmit,
+      component: FormEquipe,
+      props: { churchId: event?.churchId ?? null },
+    },
   ];
   function onError(errors: any) {
     const firstError = JSON.stringify(errors);
@@ -420,11 +461,13 @@ function Edit() {
             bare
             value={currentStep}
             onChange={setCurrentStep}
-            options={PANELS.map(({ label, id, icon: Icon }) => ({
-              value: id,
-              label,
-              icon: <Icon />,
-            }))}
+            options={PANELS.filter(({ id }) => id !== 8 || defineEquipe).map(
+              ({ label, id, icon: Icon }) => ({
+                value: id,
+                label,
+                icon: <Icon />,
+              })
+            )}
           />
           <FormProvider
             {...(panelsMethods[currentStep - 1].formMethods as any)}

@@ -153,10 +153,12 @@ function Login() {
     localStorage.setItem('access_token', response.access_token);
     localStorage.setItem('user', JSON.stringify(response.user));
 
-    // o tesoureiro(a) de evento entra no painel sem perfil de igreja
-    const tesoureiro = !!response.user.eventTreasurers?.length;
+    // o tesoureiro(a) e o admin de evento entram no painel sem perfil de igreja
+    const porEvento =
+      !!response.user.eventTreasurers?.length ||
+      !!response.user.eventAdmins?.length;
     const canAccessAdminArea =
-      ADMIN_AREA_ROLES.includes(response.user.role) || tesoureiro;
+      ADMIN_AREA_ROLES.includes(response.user.role) || porEvento;
     const areaInicial = canAccessAdminArea ? '/admin/inicio' : '/home';
 
     /**

@@ -5,6 +5,7 @@ import { FormGeneralInfo } from '../../../../features/admin/events/components/fo
 import { Box, Button, CircularProgress, Paper } from '@mui/material';
 import {
   CategoryEventFormType,
+  EquipeFormType,
   DateAndLocalFormType,
   EventLogoFormType,
   EventType,
@@ -47,6 +48,10 @@ import { FormProducts } from '../../../../features/admin/events/components/formP
 import { produtosParaEnvio } from '../../../../features/admin/events/products';
 import { coresParaSalvar } from '../../../../features/admin/events/eventColors';
 import { textoDoTermo } from '../../../../features/admin/events/terms';
+import {
+  FormEquipe,
+  equipeParaEnvio,
+} from '../../../../features/admin/events/components/formEquipe';
 
 function Register() {
   const navigate = useNavigate();
@@ -113,6 +118,13 @@ function Register() {
     resolver: zodResolver(PRODUCTS_SCHEMA),
     defaultValues: { publicStore: false, products: [] },
   });
+  // a equipe é opcional; a busca de pessoas é pela igreja do evento
+  const methodsEquipe = useForm<EquipeFormType>({
+    defaultValues: { admins: [], tesoureiros: [] },
+  });
+  const igrejaDoEvento =
+    methodsGeneralInfo.watch('churchId') ||
+    (igrejasQueAdministra.length === 1 ? igrejasQueAdministra[0].id : null);
   const { mutate: mutatePostCreateEvent, isLoading: isCreatingEvent } =
     usePostCreateEvent({
       onSuccess: () => {
@@ -179,12 +191,20 @@ function Register() {
       }
     });
   }
-  /**
-   * Última etapa: produtos são opcionais, e a lista vazia passa direto. Os
-   * grupos já foram conferidos na etapa anterior, mas são conferidos de novo —
-   * o stepper deixa clicar nas etapas e voltar a mexer neles.
-   */
+  /** Produtos são opcionais: a lista vazia passa direto */
   function productsSubmit() {
+    methodsProducts.trigger().then((isValid) => {
+      if (isValid) {
+        setCurrentStep((passo) => passo + 1);
+      }
+    });
+  }
+  /**
+   * Última etapa: a equipe é opcional. Os grupos e os produtos já foram
+   * conferidos nas etapas deles, mas são conferidos de novo — o stepper deixa
+   * clicar nas etapas e voltar a mexer neles.
+   */
+  function equipeSubmit() {
     if (isCreatingEvent) return;
 
     Promise.all([
@@ -225,6 +245,7 @@ function Register() {
             type: eventTypeSelected!,
             groupRoles: registrationSettingsData.groupRoles,
             products: produtosParaEnvio(methodsProducts.getValues().products),
+            ...equipeParaEnvio(methodsEquipe.getValues()),
             data: {
               description: generalInfoData.description,
               shortDescription: generalInfoData.shortDescription,
@@ -344,6 +365,13 @@ function Register() {
       component: FormProducts,
       props: {},
     },
+    {
+      step: 9,
+      formMethods: methodsEquipe,
+      onSubmit: equipeSubmit,
+      component: FormEquipe,
+      props: { churchId: igrejaDoEvento },
+    },
   ];
 
   const canProceedToNextStep = () => {
@@ -364,6 +392,8 @@ function Register() {
         return methodsRegistrationSettings.formState.isValid;
       case 8:
         return methodsProducts.formState.isValid;
+      case 9:
+        return true;
       default:
         return false;
     }

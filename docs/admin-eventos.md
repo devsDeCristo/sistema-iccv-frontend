@@ -139,6 +139,15 @@ Configurações de inscrição, Produtos.
 - **Produtos (passo 8):** loja do evento e produtos vendidos junto com a
   inscrição — documentado em `docs/loja-do-evento.md`. Passo opcional: lista
   vazia passa direto.
+- **Equipe** (último passo, opcional — é ele que finaliza): os **admins do
+  evento** e os **tesoureiros(as)** (básico ou completo). Qualquer usuário do
+  sistema, membro da igreja ou não: o seletor mostra os membros da igreja de
+  cara (busca local, sem acento) e, com o CPF completo ou nome e sobrenome,
+  busca os usuários do sistema (`useBuscarPessoas`, a busca de Membros). É
+  **só aqui** (e na edição) que se dá e tira admin de evento; os tesoureiros
+  também se alocam pela Tesouraria. Quem já é admin da igreja (ou tesouraria,
+  como tesoureiro) a API recusa com o nome. `FormEquipe` e `equipeParaEnvio`
+  em `components/formEquipe.tsx`; vai em `adminIds` e `tesoureiros`.
 
 Ao finalizar, o formulário reúne os dados de todos os passos num único envio
 (`POST /events`), junto dos arquivos (logo, capa, termo).
@@ -160,6 +169,20 @@ formulário.
 - Registrados e em espera de cada regra de grupo (`registered`, `waitlisted`)
   são só leitura na tela e removidos do payload antes de enviar — são
   contadores do servidor, não campos editáveis.
+- **Aba Equipe:** a mesma do cadastro, preenchida com o que o detalhe do
+  evento traz (`admins`, `treasurers`). Só aparece para quem administra a
+  igreja do evento (e dev/super admin) — o admin de evento edita o resto, mas
+  não a equipe, e o formulário dele nem manda os campos (a API recusaria).
+
+### Admin de evento
+
+Quem é admin de um evento (`eventAdmins` na sessão; `useRole().adminDoEvento`)
+vale como admin da igreja **dentro daquele evento**: `useEventRole` devolve
+`isAdminDoEvento`, então detalhes, edição, check-in, quadrante e as ações dos
+inscritos e dos pagamentos se abrem para ele. As rotas de Eventos aceitam com
+`aceitaAdminDeEvento`. Fora do evento ele vê Membros (só a lista, e o menu ⋮
+"Ver e editar cadastro") e edita o perfil das pessoas — sem e-mail e CPF, que
+ficam travados no formulário. Não vê Tesouraria, Início nem Meus planos.
 
 Arquivos: `src/pages/admin/events/edit/index.tsx`, `src/features/admin/events/api/putEvent.tsx`.
 

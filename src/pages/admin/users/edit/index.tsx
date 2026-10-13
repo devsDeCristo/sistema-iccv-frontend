@@ -24,7 +24,7 @@ import { WebcamModal } from '../../../../features/admin/users/components/webcamM
 
 function EditUser() {
   const { id = '' } = useParams();
-  const { isSuperAdmin } = useRole();
+  const { isSuperAdmin, isAdmin } = useRole();
   const [isOpenWebcamModal, setIsOpenWebcamModal] = useState(false);
   // a tela abre em leitura; "Editar" libera os inputs
   const [isEditing, setIsEditing] = useState(false);
@@ -151,7 +151,12 @@ function EditUser() {
         </Box>
         <FormProvider {...methods}>
           <form onSubmit={methods.handleSubmit(onSubmitForm)}>
-            <Form readOnly={!isEditing} />
+            {/* o admin de evento edita o perfil, mas não o acesso da pessoa */}
+            <Form
+              readOnly={!isEditing}
+              cpfTravado={!isAdmin}
+              emailTravado={!isAdmin}
+            />
             {isEditing && (
               <Stack
                 direction="row"

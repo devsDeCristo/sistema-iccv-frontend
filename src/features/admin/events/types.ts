@@ -23,7 +23,7 @@ export type EventType = 'CURSILHO' | 'RETIRO';
 export type EventStatus = 'ACTIVE' | 'INACTIVE' | 'TEST';
 
 export type EventStatusFilter = 'active' | 'inactive' | 'test' | 'all';
-export interface EventDetails {
+export interface EventDetails extends EquipeDoEventoApi {
   id: string;
   name: string;
   /** igreja dona do evento — só o super admin escolhe e altera */
@@ -251,6 +251,9 @@ export interface CreateEventPayload {
   endDate: Date;
   groupRoles: GroupRole[];
   products?: EventProduct[];
+  /** a equipe do evento (admins e tesoureiros); ausente, nada muda */
+  adminIds?: string[];
+  tesoureiros?: { userId: string; kind: 'BASICO' | 'COMPLETO' }[];
   data: EventDataJson;
   type: EventType;
 }
@@ -303,3 +306,30 @@ export type RegistrationSettingsFormType = z.infer<
 >;
 export type ProductsFormType = z.infer<typeof PRODUCTS_SCHEMA>;
 export type CategoryEventFormType = z.infer<typeof CATEGORY_EVENT_SCHEMA>;
+
+/** Alguém da equipe do evento, como o formulário mostra */
+export interface PessoaDaEquipe {
+  id: string;
+  fullName: string;
+  profilePhotoUrl: string | null;
+  /** CPF, e-mail ou a igreja de que é membro: para distinguir homônimos */
+  detalhe?: string;
+}
+
+/**
+ * A equipe do evento: admins (tudo no evento, menos apagar) e
+ * tesoureiros(as). Qualquer usuário do sistema, membro da igreja ou não.
+ */
+export interface EquipeFormType {
+  admins: PessoaDaEquipe[];
+  tesoureiros: (PessoaDaEquipe & { kind: 'BASICO' | 'COMPLETO' })[];
+}
+
+/** Como a API devolve a equipe no detalhe do evento (só no painel) */
+export interface EquipeDoEventoApi {
+  admins?: { user: PessoaDaEquipe & { email: string } }[];
+  treasurers?: {
+    kind: 'BASICO' | 'COMPLETO';
+    user: PessoaDaEquipe & { email: string };
+  }[];
+}

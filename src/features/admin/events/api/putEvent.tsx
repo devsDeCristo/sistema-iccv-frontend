@@ -39,6 +39,14 @@ const putUpdateEvent = ({ data, id, files }: PutUpdateEventProps) => {
   if (data.products !== undefined) {
     formData.append('products', JSON.stringify(data.products));
   }
+  // a equipe do evento: ausente, o servidor não mexe nela (o admin de evento
+  // não a envia); lista vazia tira todo mundo
+  if (data.adminIds !== undefined) {
+    formData.append('adminIds', JSON.stringify(data.adminIds));
+  }
+  if (data.tesoureiros !== undefined) {
+    formData.append('tesoureiros', JSON.stringify(data.tesoureiros));
+  }
   if (data.groupLink) formData.append('groupLink', data.groupLink);
   // mudar a igreja do evento é do super admin; dos outros perfis o campo nem
   // sai da tela, e o backend ignora se vier

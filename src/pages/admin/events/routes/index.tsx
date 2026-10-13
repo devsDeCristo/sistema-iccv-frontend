@@ -22,6 +22,7 @@ function RoutesEventsAdmin() {
             allowedRoles={ADMIN_AREA_ROLES}
             modulo="EVENTS"
             aceitaTesoureiro="BASICO"
+            aceitaAdminDeEvento
           >
             <Events />
           </RequireRole>
@@ -52,6 +53,7 @@ function RoutesEventsAdmin() {
             allowedRoles={ADMIN_AREA_ROLES}
             modulo="EVENTS"
             aceitaTesoureiro="BASICO"
+            aceitaAdminDeEvento
           >
             <Details />
           </RequireRole>

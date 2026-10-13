@@ -7,6 +7,7 @@ Regras de servidor: `docs/membros.md` no `ic-backend`.
 ## Quem acessa e de qual igreja
 
 - **Quem mexe:** o **admin da igreja**, além de dev e super admin.
+- **Admin de um evento** desta igreja: a mesma tela de quem só consulta, mas o menu ⋮ de cada membro abre o cadastro para editar (`soCadastro` em `ListaDeMembros`). O seletor de igreja traz as igrejas dos eventos dele.
 - **Quem só consulta:** a **tesouraria** da igreja e o **tesoureiro(a) de um evento** dela. A mesma tela, sem a aba e o card de Pedidos, sem "Adicionar membro", sem marcar linhas e sem os menus (do membro e da família), com um aviso "Só consulta". A rota aceita `ADMIN_AREA_ROLES` e o tesoureiro (`aceitaTesoureiro="BASICO"`); a API devolve a lista sem os pedidos.
 - No menu, "Membros" fica na seção **Módulos**, para todos esses perfis.
 - Sempre **uma igreja** (`ChurchScopeBar` com `useIgrejaSelecionada(true, undefined, true)`): as que a pessoa administra, as em que é tesouraria e as dos eventos de que é tesoureira. Com várias e nenhuma escolhida, a tela pede a escolha.
@@ -26,7 +27,7 @@ Regras de servidor: `docs/membros.md` no `ic-backend`.
 - **Colunas:** família, membro (foto, nome, CPF), contato, **perfil** (chip Admin ou Tesouraria nesta igreja; traço sem perfil), membro desde e o menu ⋮ (ver cadastro — abre a edição do usuário, já que a tela de Usuários é só do super admin; permissão na igreja; tirar da família; deixar de ser membro, com confirmação — perde também o valor do dízimo).
 - **Juntar em família:** marcar membros na caixa de seleção abre a barra flutuante (`BarraDeSelecao`) com "Juntar em família". A janela (`modalFamilia.tsx`) cria uma **nova família** (o nome já vem sugerido pelo sobrenome do primeiro: "Família Mendes") ou junta a uma **família que já existe**. Quem estava em outra família sai dela; família que fica vazia some sozinha.
 - **Família (clique no nome):** renomear ou desfazer (com confirmação; as pessoas continuam membros).
-- **Permissão na igreja** (só o admin): no menu ⋮ do membro, ou para vários de uma vez na barra de seleção (ao lado de "Juntar em família"). Abre a mesma janela da edição em massa da tela de Usuários (`ModalPermissaoEmMassa`, com `igrejaFixa`: sem escolher igreja) — **Admin**, **Tesouraria** ou **Sem perfil nesta igreja** — e grava em `PUT /users/permissions`, com as travas de lá (a própria permissão não muda por aqui; super admin e dev não têm perfil de igreja). Quem o servidor recusar aparece listado, com o motivo.
+- **Permissão na igreja** (só o admin): no menu ⋮ do membro, ou para vários de uma vez na barra de seleção (ao lado de "Juntar em família"). Abre a mesma janela da edição em massa da tela de Usuários (`ModalPermissaoEmMassa`, com `igrejaFixa`: sem escolher igreja). No topo, quem está sendo editado (com uma pessoa só: foto, nome e o perfil de agora; com várias, as fotos) e as opções em cartões com ícone — **Admin**, **Tesouraria** ou **Sem perfil nesta igreja**; a opção que a pessoa já tem leva a etiqueta "Atual", e salvar sem mudar fica desligado. **Só o perfil na igreja:** admin e tesoureiro(a) de evento se definem no cadastro do evento. Grava e grava em `PUT /users/permissions`, com as travas de lá (a própria permissão não muda por aqui; super admin e dev não têm perfil de igreja). Quem o servidor recusar aparece listado, com o motivo.
 
 ## Código
 

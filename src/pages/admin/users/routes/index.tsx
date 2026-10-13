@@ -10,7 +10,8 @@ import { ADMIN_ROLES, SUPER_ADMIN_ROLES } from '../../../../constants/roles';
  * A tela de Usuários (a lista de todos e o cadastro de alguém novo) é só de
  * dev e super admin. A igreja chega numa pessoa pelos inscritos do evento e
  * pela tela de Membros, que abrem o cadastro dela — por isso editar segue
- * aberto ao admin (a API confere que a pessoa é da igreja dele).
+ * aberto ao admin e ao admin de evento (a API confere que a pessoa é da igreja
+ * dele, e o que cada um pode mudar).
  */
 function RoutesUsersAdmin() {
   return (
@@ -26,7 +27,7 @@ function RoutesUsersAdmin() {
       <Route
         path="/admin/usuario/:id/editar"
         element={
-          <RequireRole allowedRoles={ADMIN_ROLES}>
+          <RequireRole allowedRoles={ADMIN_ROLES} aceitaAdminDeEvento>
             <EditUser />
           </RequireRole>
         }
