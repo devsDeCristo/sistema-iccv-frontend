@@ -25,6 +25,7 @@ import {
   GROUP_ROLE_SELECT_SCHEMA,
   ROLE_SELECT_SCHEMA,
   STEPS_SUB,
+  idadeDoTermo,
 } from '../../../features/admin/events/constants';
 import { zodResolver } from '@hookform/resolvers/zod';
 import React, { useEffect, useRef, useState } from 'react';
@@ -82,7 +83,8 @@ function Subscribe() {
   const isMinor = Boolean(
     loggedUser?.birthday &&
       event?.startDate &&
-      calculateAge(new Date(loggedUser.birthday), new Date(event.startDate)) < 16
+      calculateAge(new Date(loggedUser.birthday), new Date(event.startDate)) <
+        idadeDoTermo(event.data)
   );
   const [signedTermFile, setSignedTermFile] = useState<File | null>(null);
   /**
@@ -428,6 +430,7 @@ function Subscribe() {
       props: {
         groupRoles: groupRolesSelected || null,
         isMinor,
+        idadeDoTermo: idadeDoTermo(event?.data),
         minorTermUrl: event?.data?.minorTermUrl,
         signedTermFile,
         onSignedTermFileChange: setSignedTermFile,
@@ -442,7 +445,7 @@ function Subscribe() {
       case 1:
         return methodsSelectGroupRole.formState.isValid;
       case 2:
-        // menor de 16 só avança depois de marcar que leu o aviso do termo
+        // menor (pela idade do evento) só avança depois de marcar que leu o aviso do termo
         return (
           methodsSelectRole.formState.isValid && (!isMinor || avisoMenorLido)
         );

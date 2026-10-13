@@ -232,8 +232,13 @@ export interface EventDataJson {
    * não compra.
    */
   publicStore?: boolean;
-  /** Termo de autorização em branco, para pais de menores de 16 anos baixarem e assinarem */
+  /** Termo de autorização em branco, para pais de menores baixarem e assinarem */
   minorTermUrl?: string;
+  /**
+   * Até que idade o termo de autorização é exigido. Ausente é 16 — ver
+   * `idadeDoTermo` em `features/admin/events/constants.ts`.
+   */
+  minorAgeLimit?: 16 | 18;
   /**
    * Termo do evento em HTML: o texto que a pessoa precisa aceitar para se
    * inscrever. Ausente ou vazio significa evento sem termo — a inscrição segue

@@ -32,6 +32,7 @@ import {
   REGISTRATION_SETTINGS_SCHEMA,
   MODULES_SCHEMA,
   TERMS_SCHEMA,
+  idadeDoTermo,
 } from '../../../../features/admin/events/constants';
 import { FormProducts } from '../../../../features/admin/events/components/formProducts';
 import {
@@ -168,6 +169,7 @@ function Edit() {
       ? event?.data?.minorTermUrl
       : undefined,
     registrationTerm: event?.data?.registrationTerm || '',
+    minorAgeLimit: idadeDoTermo(event?.data),
   });
 
   const [currentStep, setCurrentStep] = useState(1);
@@ -332,6 +334,7 @@ function Edit() {
               registrationTerm: textoDoTermo(
                 methodsTerms.getValues().registrationTerm
               ),
+              minorAgeLimit: methodsTerms.getValues().minorAgeLimit ?? 16,
               colors: coresParaSalvar(methodsEventLogo.getValues()),
               modules: {
                 bedrooms: methodsModules.getValues().moduleBedrooms,

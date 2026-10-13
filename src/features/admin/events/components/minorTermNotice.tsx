@@ -22,6 +22,8 @@ import {
 import { extensionFromDataUri, triggerDownload } from '../../../../utils';
 
 interface MinorTermNoticeProps {
+  /** Até que idade o evento exige o termo (16 ou 18) */
+  idade: number;
   /** Termo em branco anexado ao evento, para download */
   minorTermUrl?: string | null;
   /** Termo assinado escolhido aqui — pode ser enviado depois em Minhas Inscrições */
@@ -77,7 +79,8 @@ function Passo({
 /**
  * O aviso do termo de autorização, na tela de inscrição.
  *
- * Só aparece para quem terá menos de 16 anos na data do evento — ou seja, a
+ * Só aparece para quem terá menos da idade do evento (16 ou 18, ver
+ * `idadeDoTermo`) na data dele — ou seja, a
  * pessoa que está lendo é exatamente a de quem o aviso fala. Por isso ele
  * conversa com ela ("você precisa"), e não anuncia uma regra em terceira
  * pessoa: o texto anterior abria com "ATENÇÃO — PARTICIPANTES MENORES DE 16
@@ -93,6 +96,7 @@ function Passo({
  * clique.
  */
 function MinorTermNotice({
+  idade,
   minorTermUrl,
   signedTermFile,
   onSignedTermFileChange,
@@ -172,7 +176,7 @@ function MinorTermNotice({
             Você precisa de uma autorização assinada
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Na data do evento você terá menos de 16 anos, então seus pais ou
+            Na data do evento você terá menos de {idade} anos, então seus pais ou
             responsáveis precisam autorizar sua participação e dizer quem vai
             acompanhar você.
           </Typography>

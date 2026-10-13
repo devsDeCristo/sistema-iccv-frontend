@@ -2,11 +2,13 @@ import {
   Alert,
   alpha,
   Box,
+  FormControlLabel,
   Grid,
   IconButton,
   Link,
   Paper,
   Stack,
+  Switch,
   Tooltip,
   Typography,
   useTheme,
@@ -38,6 +40,8 @@ type CampoDocumentoProps = {
   erro?: string;
   onEscolher: () => void;
   onRemover: () => void;
+  /** O que vem entre o cabeçalho e o arquivo (o switch da idade) */
+  children?: React.ReactNode;
 };
 
 /**
@@ -54,6 +58,7 @@ function CampoDocumento({
   erro,
   onEscolher,
   onRemover,
+  children,
 }: CampoDocumentoProps) {
   const theme = useTheme();
 
@@ -109,6 +114,8 @@ function CampoDocumento({
           {descricao}
         </Typography>
       </Box>
+
+      {children}
 
       {url ? (
         <Box sx={styles.arquivo}>
@@ -207,6 +214,7 @@ function FormTerms() {
 
   const termFile = useWatch({ control, name: 'eventTerm' });
   const minorTermUrl = useWatch({ control, name: 'minorTermUrl' });
+  const idade = useWatch({ control, name: 'minorAgeLimit' }) ?? 16;
 
   const termPreview = usePreviaArquivo(termFile);
 
@@ -311,7 +319,7 @@ function FormTerms() {
 
       <Grid item xs={12}>
         <CampoDocumento
-          titulo="Termo de autorização (menores de 16 anos)"
+          titulo={`Termo de autorização (menores de ${idade} anos)`}
           descricao="Modelo em branco que os pais/responsáveis baixam, assinam e reenviam na inscrição."
           url={termUrl}
           nomeArquivo={termFile?.[0]?.name ?? null}
@@ -327,7 +335,38 @@ function FormTerms() {
             setValue('eventTerm', null);
             clearErrors('eventTerm');
           }}
-        />
+        >
+          {/* a idade vale para a inscrição inteira: quem terá menos que ela
+              no primeiro dia do evento só se inscreve com o termo aprovado */}
+          <Controller
+            control={control}
+            name="minorAgeLimit"
+            render={({ field: { value, onChange } }) => (
+              <FormControlLabel
+                sx={{ alignItems: 'flex-start', ml: 0, gap: 1 }}
+                control={
+                  <Switch
+                    sx={{ mt: -0.75 }}
+                    checked={value === 18}
+                    onChange={(_, ligado) => onChange(ligado ? 18 : 16)}
+                  />
+                }
+                label={
+                  <Box>
+                    <Typography variant="body2" fontWeight={600}>
+                      Exigir até os 18 anos
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {idade === 18
+                        ? 'Quem terá menos de 18 anos no primeiro dia do evento precisa do termo.'
+                        : 'Desligado, o termo é exigido só de quem terá menos de 16 anos.'}
+                    </Typography>
+                  </Box>
+                }
+              />
+            )}
+          />
+        </CampoDocumento>
       </Grid>
     </Grid>
   );

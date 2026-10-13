@@ -3,7 +3,7 @@ import { calculateAge } from '../../../utils';
 export const GET_USERS = 'GET_USERS';
 
 /** Idade a partir da qual o cadastro deixa de exigir dados do responsável */
-export const GUARDIAN_REQUIRED_BELOW_AGE = 16;
+export const GUARDIAN_REQUIRED_BELOW_AGE = 18;
 
 const DEFAULT_MESSAGE = 'Campo obrigatório';
 

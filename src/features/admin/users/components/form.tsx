@@ -163,7 +163,7 @@ function Form({
     : false;
   // Em leitura, um cadastro salvo quando a pessoa era menor continua
   // mostrando os dados do responsável mesmo que a idade calculada hoje já
-  // tenha passado de 16 — o dado gravado não deveria desaparecer da tela.
+  // tenha passado de 18 — o dado gravado não deveria desaparecer da tela.
   const showGuardianSection = isMinor || (readOnly && !!values.guardianName);
 
   /**

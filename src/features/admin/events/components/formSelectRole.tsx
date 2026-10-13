@@ -7,8 +7,10 @@ import { formatCurrency } from '../../../../utils';
 
 interface FormSelectRoleProps {
   groupRoles: GroupRole[];
-  /** Participante vai completar menos de 16 anos na data do evento */
+  /** Participante terá menos de `idadeDoTermo` anos na data do evento */
   isMinor?: boolean;
+  /** Até que idade o evento exige o termo (16 ou 18) */
+  idadeDoTermo?: number;
   /** Termo em branco anexado ao evento, para download */
   minorTermUrl?: string | null;
   /** Termo assinado escolhido nesta tela — pode ser enviado depois em "Minhas Inscrições" */
@@ -33,6 +35,7 @@ interface FormSelectRoleProps {
 function FormSelectRole({
   groupRoles,
   isMinor,
+  idadeDoTermo,
   minorTermUrl,
   signedTermFile,
   onSignedTermFileChange,
@@ -321,6 +324,7 @@ function FormSelectRole({
       {isMinor && (
         <Box sx={{ mt: 3 }}>
           <MinorTermNotice
+            idade={idadeDoTermo ?? 16}
             minorTermUrl={minorTermUrl}
             signedTermFile={signedTermFile}
             onSignedTermFileChange={onSignedTermFileChange}

@@ -78,7 +78,8 @@ function pendenciasDa(
       icone: <AttachFile fontSize="small" />,
       titulo: 'Termo do responsável pendente',
       texto:
-        'Por ser menor de 16 anos, a inscrição só vale com o termo assinado pelos pais ou responsáveis e a aprovação da organização.',
+        // sem a idade: ela é do evento (16 ou 18), e a pendência já diz o que fazer
+        'Pela sua idade, a inscrição só vale com o termo assinado pelos pais ou responsáveis e a aprovação da organização.',
       acao: { rotulo: 'Anexar termo', onClick: onAnexarTermo },
     });
   } else if (termo === 'PENDING') {

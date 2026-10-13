@@ -78,6 +78,8 @@ function Register() {
   });
   const methodsTerms = useForm<TermsFormType>({
     resolver: zodResolver(TERMS_SCHEMA),
+    // a regra de sempre; o switch da etapa de termos sobe para 18
+    defaultValues: { minorAgeLimit: 16 },
   });
   const methodsModules = useForm<ModulesFormType>({
     resolver: zodResolver(MODULES_SCHEMA),
@@ -260,6 +262,7 @@ function Register() {
               number: dateAndTimeData.number,
               linkMaps: dateAndTimeData.linkMaps,
               registrationTerm: textoDoTermo(termsData.registrationTerm),
+              minorAgeLimit: termsData.minorAgeLimit ?? 16,
               colors: coresParaSalvar(eventLogoData),
               modules: {
                 bedrooms: modulesData.moduleBedrooms,

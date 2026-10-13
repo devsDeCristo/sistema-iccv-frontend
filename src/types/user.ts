@@ -146,7 +146,7 @@ export interface User {
   congregation?: string;
   pastorName?: string;
   /**
-   * Nome do responsável — preenchido só quando o usuário é menor de 16 anos.
+   * Nome do responsável — preenchido só quando o usuário é menor de 18 anos.
    * O telefone do responsável usa `emergencyContact`, mesmo campo.
    */
   guardianName?: string;

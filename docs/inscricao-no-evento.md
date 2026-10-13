@@ -41,9 +41,9 @@ Arquivos: `src/features/admin/events/terms.ts`, `src/features/events/components/
 
 ## Menor de idade e termo do responsável
 
-- **Quem é menor:** calculado no front — `calculateAge(nascimento, dataDeInício do evento) < 16`. É a data do evento que importa, não a data de hoje.
+- **Quem é menor:** calculado no front — `calculateAge(nascimento, dataDeInício do evento) < idadeDoTermo(event.data)`. A idade é a do evento: 16 ou 18 (`data.minorAgeLimit`, switch no cadastro; ausente é 16). É a data do evento que importa, não a data de hoje. O aviso mostra a idade do evento; a pendência em Minhas Inscrições fala em "pela sua idade", sem número.
 - **Aviso (`MinorTermNotice`):** aparece no passo 2, abaixo da escolha de ingresso, só para quem é menor. Dois passos numerados: baixar o modelo do termo (`event.data.minorTermUrl`, quando o evento anexou um) e enviar o termo assinado — pode ser feito ali mesmo (anexa um arquivo) ou depois, em Minhas Inscrições.
-- **Bloqueio de avanço:** menor de 16 só avança do passo 2 com o checkbox "Li o aviso e vou entregar o termo assinado" marcado (`avisoMenorLido`). Este aceite é estado da tela, não campo do formulário — não trava quem não é menor.
+- **Bloqueio de avanço:** quem é menor (pela idade do evento) só avança do passo 2 com o checkbox "Li o aviso e vou entregar o termo assinado" marcado (`avisoMenorLido`). Este aceite é estado da tela, não campo do formulário — não trava quem não é menor.
 - **Envio do termo assinado:** se a pessoa anexou o arquivo nesta tela, ele sobe (`usePostGuardianTerm`, `POST /events/:eventId/users/:userId/guardian-term`) logo depois da inscrição ser confirmada com sucesso. A inscrição em si não espera a aprovação do termo — ela fica pendente de aprovação da organização, com ou sem envio imediato do arquivo.
 - **Status da aprovação:** acompanhado depois em Minhas Inscrições / ingresso (`minorApprovalStatus`, `signedTermUrl`, `minorApprovalRejectionReason`) — ver `docs/ingresso.md`.
 

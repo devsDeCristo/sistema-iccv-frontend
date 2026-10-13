@@ -273,12 +273,23 @@ export const MODULES_SCHEMA = z.object({
 });
 
 export const TERMS_SCHEMA = z.object({
-  /** Termo de autorização em branco (menores de 16 anos) */
+  /** Termo de autorização em branco (menores de `minorAgeLimit` anos) */
   eventTerm: z.any().optional(),
+  /** Até que idade o termo de autorização é exigido: 16 ou 18 */
+  minorAgeLimit: z.union([z.literal(16), z.literal(18)]).optional(),
   minorTermUrl: z.string().optional().nullable(),
   /** Termo do evento, em HTML do editor */
   registrationTerm: z.string().optional().nullable(),
 });
+
+/**
+ * Até que idade o evento exige o termo de autorização dos pais: 16 ou 18, um
+ * switch na etapa de termos. Evento sem a chave é de antes do switch, e vale 16
+ * como sempre valeu. A idade é a do primeiro dia do evento. O servidor aplica a
+ * mesma regra (`idadeDoTermo` em `event-terms.ts`).
+ */
+export const idadeDoTermo = (data?: { minorAgeLimit?: number } | null) =>
+  data?.minorAgeLimit === 18 ? 18 : 16;
 
 export const REGISTER_EVENT_SCHEMA = GENERAL_INFO_SCHEMA.merge(
   DATE_AND_LOCAL_SCHEMA

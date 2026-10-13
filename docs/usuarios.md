@@ -84,7 +84,7 @@ Arquivo: `src/pages/admin/users/edit/index.tsx`.
 | Igreja (congregação) | Não | texto livre — pode ser igreja fora do sistema |
 | Ministério | Não | cargo de liderança na igreja |
 | Nome do pastor | Não | — |
-| Nome do responsável | Só se menor de 16 anos | exigido junto do telefone do responsável |
+| Nome do responsável | Só se menor de 18 anos | exigido junto do telefone do responsável |
 | Indicado por | Sim | quem indicou o evento, mínimo 2 caracteres |
 
 ### Endereço e busca automática de CEP
@@ -97,9 +97,9 @@ Arquivo: `src/pages/admin/users/edit/index.tsx`.
 
 ### Menor de idade e responsável
 
-- **Idade de corte:** menor de 16 anos (`GUARDIAN_REQUIRED_BELOW_AGE`), calculada a partir da data de nascimento.
+- **Idade de corte:** menor de 18 anos (`GUARDIAN_REQUIRED_BELOW_AGE`; era 16 até 13/10/2026), calculada a partir da data de nascimento.
 - Abaixo dessa idade, o formulário exibe a seção "Dados do responsável do menor" com **Nome do responsável** (obrigatório) e reaproveita o campo de contato de emergência como **Telefone do responsável** (o rótulo muda, o campo é o mesmo).
-- Em modo leitura, um cadastro salvo quando a pessoa era menor continua mostrando os dados do responsável mesmo que a idade calculada hoje já tenha passado dos 16 anos — o dado gravado não desaparece da tela.
+- Em modo leitura, um cadastro salvo quando a pessoa era menor continua mostrando os dados do responsável mesmo que a idade calculada hoje já tenha passado dos 18 anos — o dado gravado não desaparece da tela.
 
 ### Dados de saúde e religião (consentimento)
 

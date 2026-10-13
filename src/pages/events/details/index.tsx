@@ -346,7 +346,11 @@ function EventsDetails() {
         whiteSpace: 'nowrap',
       },
       botaoPrincipal: {
-        height: 50,
+        // altura mínima, e não fixa: na coluna estreita "Inscrições abrem
+        // 13/10 às 19:30" quebra em duas linhas, e com altura fixa o texto
+        // vazava do botão
+        minHeight: 50,
+        lineHeight: 1.25,
         px: 3.5,
         borderRadius: 1.5,
         textTransform: 'none',
@@ -527,10 +531,10 @@ function EventsDetails() {
       grade: {
         display: 'grid',
         gap: 1,
-        gridTemplateColumns: {
-          xs: '1fr',
-          sm: '1fr',
-        },
+        // `minmax(0, 1fr)`, e não `1fr`: o nome do grupo em `noWrap` dava à
+        // trilha a largura do texto inteiro, e os cartões passavam da coluna
+        // (ficavam mais largos que o botão embaixo deles)
+        gridTemplateColumns: 'minmax(0, 1fr)',
       },
       cartaoDeGrupo: {
         px: 1.5,
@@ -1074,7 +1078,9 @@ function EventsDetails() {
               <Button
                 fullWidth
                 startIcon={<ConfirmationNumber />}
-                sx={styles.botaoPrincipal}
+                // a coluna é estreita: o respiro lateral do botão de cima
+                // empurrava a data para uma segunda linha
+                sx={{ ...styles.botaoPrincipal, px: 2 }}
                 onClick={irParaInscricao}
                 disabled={semInscricaoAberta}
               >

@@ -143,7 +143,11 @@ passo atual com nome).
     ao apagar tudo) é dizer que o evento não exige termo algum.
   - **Termo de autorização de menores:** modelo em branco (PDF ou imagem, até
     5MB) que os pais baixam, assinam e reenviam — ver aprovação de menores em
-    `docs/admin-inscritos.md`.
+    `docs/admin-inscritos.md`. O switch **Exigir até os 18 anos** define até
+    que idade o termo é exigido (`data.minorAgeLimit`: 16 desligado, 18
+    ligado; o título do campo acompanha). Evento antigo abre com 16. Mudar
+    com inscritos já feitos reclassifica quem passou a precisar (ou deixou de
+    precisar) do termo — regra no servidor, `ic-backend/docs/inscricoes.md`.
 - **Configurações de inscrição (passo 7):** grupos, regras e janela de
   inscrição de cada grupo — documentado em `docs/inscricao-em-grupos.md`.
 - **Produtos (passo 8):** loja do evento e produtos vendidos junto com a
