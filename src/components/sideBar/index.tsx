@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { ReactNode, useState } from 'react';
 import {
   AccountBalanceWallet,
   ArrowBack,
@@ -6,6 +6,7 @@ import {
   ConfirmationNumber,
   Event,
   EventNote,
+  ExpandMore,
   History,
   Menu as MenuIcon,
   MenuOpen,
@@ -27,6 +28,7 @@ import { Link, useLocation } from 'react-router-dom';
 import {
   alpha,
   Box,
+  Collapse,
   Drawer,
   IconButton,
   lighten,
@@ -275,6 +277,8 @@ function ItemNav({
   onClick,
   filho = false,
   recolhida = false,
+  aberto,
+  onAlternar,
 }: {
   item: ItemMenu;
   ativo: boolean;
@@ -283,6 +287,13 @@ function ItemNav({
   filho?: boolean;
   /** Régua recolhida: só o ícone, com o nome na dica ao passar o mouse */
   recolhida?: boolean;
+  /** Grupo com filhos: está aberto? (a seta aponta para cima) */
+  aberto?: boolean;
+  /**
+   * Grupo com filhos: a linha abre e fecha o grupo em vez de navegar — o
+   * link do grupo só redirecionaria para o primeiro filho
+   */
+  onAlternar?: () => void;
 }) {
   const theme = useTheme();
   const destaque = corDestaque(theme);
@@ -292,7 +303,14 @@ function ItemNav({
       // "Em breve" ainda não tem tela: a linha aparece, mas não navega
       {...(item.emBreve
         ? { component: 'div', 'aria-disabled': true }
-        : { component: Link, to: item.link, onClick })}
+        : onAlternar
+          ? {
+              component: 'button',
+              type: 'button',
+              onClick: onAlternar,
+              'aria-expanded': aberto,
+            }
+          : { component: Link, to: item.link, onClick })}
       aria-label={recolhida ? item.title : undefined}
       direction="row"
       alignItems="center"
@@ -305,6 +323,14 @@ function ItemNav({
         mb: 0.5,
         borderRadius: 2,
         textDecoration: 'none',
+        // o grupo é um botão: sem a borda, a fonte e a largura do navegador
+        ...(onAlternar && {
+          width: '100%',
+          border: 0,
+          font: 'inherit',
+          textAlign: 'left',
+          cursor: 'pointer',
+        }),
         color: ativo ? destaque : theme.palette.text.secondary,
         backgroundColor: ativo ? alpha(destaque, 0.1) : 'transparent',
         transition: theme.transitions.create(['background-color', 'color'], {
@@ -348,23 +374,36 @@ function ItemNav({
             {item.title}
           </Typography>
 
-          {item.emBreve ? (
-            <Etiqueta
-              texto="Em breve"
-              de={LARANJA_VIVO}
-              ate={AMBAR_VIVO}
-              pequena={filho}
-            />
-          ) : (
-            item.novo && (
+          <Stack direction="row" alignItems="center" gap={0.5}>
+            {item.emBreve ? (
               <Etiqueta
-                texto="Novo!"
-                de={AZUL_VIVO}
-                ate={VIOLETA_VIVO}
+                texto="Em breve"
+                de={LARANJA_VIVO}
+                ate={AMBAR_VIVO}
                 pequena={filho}
               />
-            )
-          )}
+            ) : (
+              item.novo && (
+                <Etiqueta
+                  texto="Novo!"
+                  de={AZUL_VIVO}
+                  ate={VIOLETA_VIVO}
+                  pequena={filho}
+                />
+              )
+            )}
+            {onAlternar && (
+              <ExpandMore
+                sx={{
+                  fontSize: '18px !important',
+                  transform: aberto ? 'rotate(180deg)' : 'none',
+                  transition: theme.transitions.create('transform', {
+                    duration: theme.transitions.duration.shorter,
+                  }),
+                }}
+              />
+            )}
+          </Stack>
         </Stack>
       )}
     </Stack>
@@ -415,14 +454,26 @@ function ConteudoNav({
     pathname === link || pathname.startsWith(`${link}/`);
 
   /**
-   * Quem tem filho só se acende no encaixe exato.
-   *
-   * Pelo `startsWith` de sempre, abrir o WhatsApp acendia a linha dele **e** a
-   * de Disparadores, e duas faixas grudadas não dizem qual das duas é a tela
-   * aberta. O recuo já mostra a que grupo o filho pertence.
+   * Os grupos começam recolhidos — menos o da tela aberta, senão o item
+   * ativo ficaria escondido. Abrir e fechar à mão vale até a página recarregar.
+   */
+  const [abertos, setAbertos] = useState<Record<string, boolean>>({});
+  const dentroDoGrupo = (item: ItemMenu) =>
+    !!item.filhos?.some((filho) => estaAtivo(filho.link));
+  const estaAberto = (item: ItemMenu) =>
+    abertos[item.link] ?? dentroDoGrupo(item);
+  const alternar = (item: ItemMenu) =>
+    setAbertos((atual) => ({ ...atual, [item.link]: !estaAberto(item) }));
+
+  /**
+   * O grupo acende só fechado, com a tela aberta dentro dele: é o que diz onde
+   * a pessoa está. Aberto, quem acende é o filho — duas faixas grudadas não
+   * diriam qual das duas é a tela aberta.
    */
   const acendeu = (item: ItemMenu) =>
-    item.filhos?.length ? pathname === item.link : estaAtivo(item.link);
+    item.filhos?.length
+      ? !estaAberto(item) && dentroDoGrupo(item)
+      : estaAtivo(item.link);
 
   return (
     /**
@@ -458,36 +509,46 @@ function ConteudoNav({
                     ativo={acendeu(item)}
                     onClick={onNavigate}
                     recolhida={recolhida}
+                    {...(item.filhos?.length && {
+                      aberto: estaAberto(item),
+                      onAlternar: () => alternar(item),
+                    })}
                   />
 
                   {/* Fio à esquerda em vez de só recuo: com o recuo sozinho, uma
                 lista de dois ou três canais lia como itens soltos tortos. */}
                   {item.filhos?.length ? (
-                    <Box
-                      // recolhida, os canais ficam na coluna dos ícones, sem recuo
-                      sx={
-                        recolhida
-                          ? { mb: 0.5 }
-                          : {
-                              ml: 2.5,
-                              pl: 1.25,
-                              mb: 0.5,
-                              borderLeft: 1,
-                              borderColor: 'divider',
-                            }
-                      }
+                    <Collapse
+                      in={estaAberto(item)}
+                      timeout="auto"
+                      unmountOnExit
                     >
-                      {item.filhos.map((canal) => (
-                        <ItemNav
-                          key={canal.link}
-                          item={canal}
-                          ativo={estaAtivo(canal.link)}
-                          onClick={onNavigate}
-                          filho
-                          recolhida={recolhida}
-                        />
-                      ))}
-                    </Box>
+                      <Box
+                        // recolhida, os canais ficam na coluna dos ícones, sem recuo
+                        sx={
+                          recolhida
+                            ? { mb: 0.5 }
+                            : {
+                                ml: 2.5,
+                                pl: 1.25,
+                                mb: 0.5,
+                                borderLeft: 1,
+                                borderColor: 'divider',
+                              }
+                        }
+                      >
+                        {item.filhos.map((canal) => (
+                          <ItemNav
+                            key={canal.link}
+                            item={canal}
+                            ativo={estaAtivo(canal.link)}
+                            onClick={onNavigate}
+                            filho
+                            recolhida={recolhida}
+                          />
+                        ))}
+                      </Box>
+                    </Collapse>
                   ) : null}
                 </Box>
               ))}
@@ -604,7 +665,6 @@ const SideBar: React.FC<SideBarProps> = ({
           link: '/admin/inicio',
           icon: <SpaceDashboard />,
           title: 'Início',
-          novo: true,
         },
         // o plano da igreja e os outros, para comparar: de quem trabalha numa
         // igreja (o super admin cuida de todos, em Planos)
@@ -636,7 +696,6 @@ const SideBar: React.FC<SideBarProps> = ({
                 link: '/admin/igrejas',
                 icon: <Church />,
                 title: 'Igrejas',
-                novo: true,
               },
               // o que cada igreja pode usar: decisão de plataforma também
               {
@@ -775,7 +834,7 @@ const SideBar: React.FC<SideBarProps> = ({
                 link: '/admin/atividades',
                 icon: <History />,
                 title: 'Registro de Atividades',
-                novo: true,
+                
               },
             ]
           : []),
@@ -787,7 +846,7 @@ const SideBar: React.FC<SideBarProps> = ({
                 link: '/admin/logins',
                 icon: <Login />,
                 title: 'Registro de Login',
-                novo: true,
+                
               },
             ]
           : []),

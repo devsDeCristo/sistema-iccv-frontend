@@ -127,7 +127,8 @@ MUI.
 ## Régua lateral (`src/components/sideBar`)
 
 - Um só conteúdo de menu (`ConteudoNav`) para os dois formatos: fixa ao lado do conteúdo em telas `lg+`, dentro de uma gaveta (`Drawer`) nas menores.
-- O item ativo é o que corresponde exatamente à rota atual (ou prefixo dela); itens com sub-itens ("filhos", hoje só "Disparadores › WhatsApp") só acendem no encaixe exato, não pelo prefixo, para não acender duas linhas ao mesmo tempo.
+- O item ativo é o que corresponde exatamente à rota atual (ou prefixo dela).
+- **Grupos com filhos** (Tesouraria; Disparadores › WhatsApp nas configurações) **abrem e fecham**: a linha do grupo é um botão (`aria-expanded`) com uma seta à direita que gira ao abrir, e os filhos entram com `Collapse`. O clique no grupo não navega — a rota dele só redirecionaria para o primeiro filho — e, na gaveta do celular, não fecha a gaveta. **Começam recolhidos**, menos o da tela aberta (senão o item ativo ficaria escondido); abrir e fechar à mão vale até recarregar a página. O grupo só acende quando está **fechado** com a tela aberta dentro dele, para dizer onde a pessoa está; aberto, quem acende é o filho, e nunca as duas linhas juntas. Na régua recolhida (só ícones) não há seta: o ícone do grupo abre e fecha, e os filhos aparecem na mesma coluna.
 - A régua não tem "Sair": ele fica só no menu da conta (avatar) da barra do topo.
 
 ### Recolher a régua
