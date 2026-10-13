@@ -21,7 +21,8 @@ interface HeaderProps {
   /**
    * A ação fica ao lado do título também no celular, em vez de descer para
    * baixo dele. Para ação pequena que encolhe (o seletor de igreja): um botão
-   * largo, na mesma linha, espremeria o título.
+   * largo, na mesma linha, espremeria o título. No cabeçalho de módulo (`modulo`)
+   * não vale no celular: lá a ação sempre desce para baixo do bloco.
    */
   acaoAoLado?: boolean;
   /**
@@ -140,10 +141,12 @@ function Header({
         <Box
           sx={{
             display: 'flex',
-            alignItems: 'center',
+            // no celular a ação (o seletor de igreja) desce para baixo do
+            // bloco: ao lado dele a descrição quebrava em quatro linhas
+            flexDirection: { xs: 'column', sm: 'row' },
+            alignItems: { xs: 'flex-start', sm: 'center' },
             justifyContent: 'space-between',
-            flexWrap: acaoAoLado ? 'nowrap' : { xs: 'wrap', sm: 'nowrap' },
-            gap: 2,
+            gap: { xs: 1.5, sm: 2 },
             minWidth: 0,
           }}
         >

@@ -49,7 +49,8 @@ Arquivo: `src/components/appBar/index.tsx`.
   quadrado tingido na cor dele — o mesmo dos cards da home —, ao lado de
   título (24px, 700) e descrição num bloco fechado, a descrição colada no
   título, menor (14px) e na cor do módulo; a ação (o seletor de igreja) na
-  mesma linha, à direita. O ícone e a cor vêm de
+  mesma linha, à direita — no celular ela desce para baixo do bloco, porque
+  ao lado dele a descrição quebrava em quatro linhas. O ícone e a cor vêm de
   `src/constants/identidadeDosModulos.ts` (`ICONE_DO_MODULO`, `corDoModulo`),
   os mesmos dos cards da home. Eventos ganhou a descrição "Inscrições,
   equipes, quartos, check-in e pagamentos". As telas internas (uma tesouraria
@@ -232,8 +233,9 @@ alternador). É o mesmo lugar e o mesmo desenho em todas as telas, para
 ninguém procurar a igreja de um jeito em cada uma. Nunca se deduz "a primeira
 igreja" para super admin ou dev.
 
-- **No celular:** o seletor fica na mesma linha do título (`Header` com
-  `acaoAoLado`), e o rótulo "Igreja selecionada" some; o ícone de igreja e a
+- **No celular:** nas telas sem `modulo` o seletor fica na mesma linha do
+  título (`Header` com `acaoAoLado`); no cabeçalho de módulo ele desce para
+  baixo do bloco de título (ver "Cabeçalho das páginas"). O rótulo "Igreja selecionada" some; o ícone de igreja e a
   caixa já dizem o que é. Nome longo de igreja corta com reticências. Vale
   também para o seletor das Configurações, que é o mesmo `ChurchScopeBar`.
 
