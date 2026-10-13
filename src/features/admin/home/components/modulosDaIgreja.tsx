@@ -8,16 +8,14 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
-import {
-  AccountBalanceWallet,
-  ArrowOutward,
-  Campaign,
-  Diversity3,
-  Event,
-  LockOutlined,
-} from '@mui/icons-material';
+import { ArrowOutward, LockOutlined } from '@mui/icons-material';
 import { Role } from '../../../../constants/roles';
 import { ModuloDaIgreja } from '../../../../constants/modulos';
+import {
+  ChaveDoModulo,
+  ICONE_DO_MODULO,
+  corDoModulo,
+} from '../../../../constants/identidadeDosModulos';
 import { useRole } from '../../../../hooks/useRole';
 import { DashboardResumo } from '../types';
 
@@ -55,6 +53,11 @@ export function ModulosDaIgreja({
 }) {
   const theme = useTheme();
   const escuro = theme.palette.mode === 'dark';
+  // o ícone e a cor do módulo, os mesmos do cabeçalho da tela dele
+  const identidade = (chave: ChaveDoModulo) => {
+    const Icone = ICONE_DO_MODULO[chave];
+    return { icone: <Icone />, cor: corDoModulo(theme, chave) };
+  };
   const { isSuperAdmin, isAdmin, perfilNaIgreja } = useRole();
   // o plano se troca em Igrejas; Meus planos é a vitrine da própria igreja
   const ondeMudar = isSuperAdmin
@@ -76,15 +79,15 @@ export function ModulosDaIgreja({
     {
       nome: 'Membros',
       descricao: 'Quem é da igreja, organizado em famílias.',
-      icone: <Diversity3 />,
-      cor: theme.palette.chips.info,
+      icone: identidade('membros').icone,
+      cor: identidade('membros').cor,
       link: '/admin/membros',
     },
     {
       nome: 'Eventos',
       descricao: 'Inscrições, equipes, quartos, check-in e pagamentos.',
-      icone: <Event />,
-      cor: theme.palette.chips.success,
+      icone: identidade('eventos').icone,
+      cor: identidade('eventos').cor,
       link: '/admin/eventos',
       modulo: 'EVENTS',
     },
@@ -93,8 +96,8 @@ export function ModulosDaIgreja({
           {
             nome: 'Notícias',
             descricao: 'Mural dos inscritos e avisos pelo WhatsApp.',
-            icone: <Campaign />,
-            cor: theme.palette.chips.pending,
+            icone: identidade('noticias').icone,
+            cor: identidade('noticias').cor,
             link: '/admin/noticias',
             modulo: 'NEWS' as const,
           },
@@ -103,8 +106,8 @@ export function ModulosDaIgreja({
     {
       nome: 'Tesouraria',
       descricao: 'Dízimos, lançamentos e conciliação com o banco.',
-      icone: <AccountBalanceWallet />,
-      cor: theme.palette.chips.alert,
+      icone: identidade('tesouraria').icone,
+      cor: identidade('tesouraria').cor,
       link: '/admin/tesouraria',
       modulo: 'TREASURY',
     },

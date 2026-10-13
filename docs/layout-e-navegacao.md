@@ -43,6 +43,17 @@ Arquivo: `src/components/appBar/index.tsx`.
 
 ## Cabeçalho das páginas (`src/components/header`)
 
+- **Identidade do módulo (`modulo`):** nas telas principais de Membros,
+  Eventos, Notícias e Tesouraria (administrativa, eventos e congregações), o
+  `Header` recebe `modulo` e vira um cabeçalho próprio: o ícone do módulo num
+  quadrado tingido na cor dele — o mesmo dos cards da home —, ao lado de
+  título (24px, 700) e descrição num bloco fechado, a descrição colada no
+  título, menor (14px) e na cor do módulo; a ação (o seletor de igreja) na
+  mesma linha, à direita. O ícone e a cor vêm de
+  `src/constants/identidadeDosModulos.ts` (`ICONE_DO_MODULO`, `corDoModulo`),
+  os mesmos dos cards da home. Eventos ganhou a descrição "Inscrições,
+  equipes, quartos, check-in e pagamentos". As telas internas (uma tesouraria
+  de evento ou congregação, os não alocados) seguem com o cabeçalho comum.
 - **Linha do título:** seta de voltar (`buttonBack`), título e, à direita, a ação da página (`children`). No celular a ação desce para baixo do título.
 - **`description`:** texto embaixo do título (aceita elemento, não só texto).
 - **`acaoAoLado`:** a ação fica ao lado do título também no celular, em vez de descer. Para ação pequena que encolhe, como o seletor de igreja (Eventos, Usuários, Notícias).

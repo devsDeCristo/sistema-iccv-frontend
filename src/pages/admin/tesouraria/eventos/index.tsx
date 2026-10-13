@@ -89,6 +89,7 @@ function TesourariaDeEventos() {
     <PageStyle>
       <Header
         title="Tesouraria de eventos"
+        modulo="tesouraria"
         description="Cada evento com a sua tesouraria"
         acaoAoLado
       >

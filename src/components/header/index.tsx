@@ -1,5 +1,10 @@
 import { ArrowBack } from '@mui/icons-material';
-import { Box, IconButton, Typography, useTheme } from '@mui/material';
+import { alpha, Box, IconButton, Typography, useTheme } from '@mui/material';
+import {
+  ChaveDoModulo,
+  ICONE_DO_MODULO,
+  corDoModulo,
+} from '../../constants/identidadeDosModulos';
 import { useNavigate } from 'react-router-dom';
 
 interface HeaderProps {
@@ -19,6 +24,12 @@ interface HeaderProps {
    * largo, na mesma linha, espremeria o título.
    */
   acaoAoLado?: boolean;
+  /**
+   * Tela principal de um módulo: o ícone dele, num quadrado tingido, vai ao
+   * lado do título, e a descrição fica menor e na cor do módulo — a mesma
+   * identidade do card dele na home.
+   */
+  modulo?: ChaveDoModulo;
   children?: React.ReactNode;
 }
 
@@ -29,10 +40,13 @@ function Header({
   description,
   compacto = false,
   acaoAoLado = false,
+  modulo,
   children,
 }: HeaderProps) {
   const navigate = useNavigate();
   const theme = useTheme();
+  const corModulo = modulo ? corDoModulo(theme, modulo) : undefined;
+  const IconeDoModulo = modulo ? ICONE_DO_MODULO[modulo] : undefined;
   function GoPage() {
     if (pageBack) {
       navigate(pageBack);
@@ -101,25 +115,105 @@ function Header({
     },
   };
 
+  const voltar = buttonBack && (
+    <IconButton onClick={GoPage} size="small" sx={{ mt: compacto ? 0 : 0.25 }}>
+      <ArrowBack
+        sx={{
+          color:
+            theme.palette.mode === 'dark'
+              ? theme.palette.text.primary
+              : theme.palette.primary.main,
+        }}
+      />
+    </IconButton>
+  );
+
+  /**
+   * A tela principal de um módulo tem cabeçalho próprio: o ícone dele num
+   * quadrado tingido — o mesmo dos cards da home —, ao lado de título e
+   * descrição num bloco fechado, a descrição colada no título, menor e na cor
+   * do módulo. A ação (o seletor de igreja) fica na mesma linha, à direita.
+   */
+  if (IconeDoModulo && corModulo && !compacto) {
+    return (
+      <Box sx={style.boxContainer}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: acaoAoLado ? 'nowrap' : { xs: 'wrap', sm: 'nowrap' },
+            gap: 2,
+            minWidth: 0,
+          }}
+        >
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: { xs: 1.25, sm: 1.5 },
+              minWidth: 0,
+            }}
+          >
+            {voltar}
+            {/* o mesmo ícone dos cards da home: quadrado tingido na cor do
+                módulo, ao lado do bloco de título e descrição */}
+            <Box
+              aria-hidden
+              sx={{
+                display: 'grid',
+                placeItems: 'center',
+                flexShrink: 0,
+                width: { xs: 42, sm: 48 },
+                height: { xs: 42, sm: 48 },
+                borderRadius: 2.5,
+                color: corModulo,
+                bgcolor: alpha(corModulo, 0.16),
+                '& svg': { fontSize: { xs: 22, sm: 26 } },
+              }}
+            >
+              <IconeDoModulo />
+            </Box>
+            <Box sx={{ minWidth: 0 }}>
+              <Typography
+                component="h1"
+                sx={{
+                  fontSize: { xs: 21, sm: 24 },
+                  fontWeight: 700,
+                  letterSpacing: '-0.02em',
+                  lineHeight: 1.15,
+                  color: theme.palette.text.primary,
+                  wordBreak: 'break-word',
+                }}
+              >
+                {title}
+              </Typography>
+              {description ? (
+                <Typography
+                  component="div"
+                  sx={{
+                    mt: 0.25,
+                    fontSize: { xs: 13, sm: 14 },
+                    fontWeight: 500,
+                    lineHeight: 1.35,
+                    color: corModulo,
+                  }}
+                >
+                  {description}
+                </Typography>
+              ) : null}
+            </Box>
+          </Box>
+          {children}
+        </Box>
+      </Box>
+    );
+  }
+
   return (
     <Box sx={style.boxContainer}>
       <Box sx={style.boxInner}>
-        {buttonBack && (
-          <IconButton
-            onClick={GoPage}
-            size="small"
-            sx={{ mt: compacto ? 0 : 0.25 }}
-          >
-            <ArrowBack
-              sx={{
-                color:
-                  theme.palette.mode === 'dark'
-                    ? theme.palette.text.primary
-                    : theme.palette.primary.main,
-              }}
-            />
-          </IconButton>
-        )}
+        {voltar}
         {compacto ? (
           // título e descrição num bloco só, e a ação ao lado dele inteiro:
           // no celular ela desce para baixo do bloco, sem cair entre os dois

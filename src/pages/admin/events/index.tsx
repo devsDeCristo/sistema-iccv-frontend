@@ -82,7 +82,12 @@ function Events() {
   };
   return (
     <PageStyle>
-      <Header title="Eventos" acaoAoLado>
+      <Header
+        title="Eventos"
+        description="Inscrições, equipes, quartos, check-in e pagamentos"
+        modulo="eventos"
+        acaoAoLado
+      >
         <ChurchScopeBar escopo={escopo} oQueMuda="os eventos" />
       </Header>
       {!churchId ? (

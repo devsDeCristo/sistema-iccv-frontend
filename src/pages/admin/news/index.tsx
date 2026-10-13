@@ -71,6 +71,7 @@ function NewsAdmin() {
     <PageStyle>
       <Header
         title="Notícias"
+        modulo="noticias"
         description="Avisos que aparecem no mural dos inscritos"
         acaoAoLado
       >

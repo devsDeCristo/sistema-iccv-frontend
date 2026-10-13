@@ -92,6 +92,7 @@ function Dizimistas() {
     <PageStyle>
       <Header
         title="Tesouraria administrativa"
+        modulo="tesouraria"
         description="Dízimos, ofertas e as contas do dia a dia da igreja"
         acaoAoLado
       >

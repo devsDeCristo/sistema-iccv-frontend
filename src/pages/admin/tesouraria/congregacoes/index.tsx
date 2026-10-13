@@ -45,6 +45,7 @@ function TesourariaDeCongregacoes() {
     <PageStyle>
       <Header
         title="Tesouraria das congregações"
+        modulo="tesouraria"
         description="Cada congregação com a sua tesouraria"
         acaoAoLado
       >

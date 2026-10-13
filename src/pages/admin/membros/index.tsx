@@ -112,6 +112,7 @@ function Membros() {
     <PageStyle>
       <Header
         title="Membros"
+        modulo="membros"
         description="Quem é da igreja, em famílias"
         acaoAoLado
       >
