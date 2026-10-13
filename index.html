@@ -2,9 +2,32 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/*" href="/borboleta.png" />
+    <!-- o mesmo logo do sistema, em SVG; índigo no navegador claro e branco no
+         escuro (a aba escura engoliria o índigo) -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <title>ICCV Eventos</title>
+
+    <!-- cartão que WhatsApp, Telegram e afins montam ao colar o link. Sem estas
+         tags o robô escolhe sozinho uma imagem (era a borboleta antiga). Os
+         robôs não rodam JavaScript, então vale só o que está neste HTML, e a
+         imagem precisa de URL absoluta. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="ICCV Eventos" />
+    <meta property="og:title" content="ICCV Eventos" />
+    <meta
+      property="og:description"
+      content="Inscrições e eventos da Igreja de Cristo Cidade Verde."
+    />
+    <meta property="og:url" content="https://eventos.iccidadeverde.com/" />
+    <meta
+      property="og:image"
+      content="https://eventos.iccidadeverde.com/og-iccv-eventos.png"
+    />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
 
     <link
       rel="stylesheet"

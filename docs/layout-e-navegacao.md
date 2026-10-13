@@ -288,6 +288,20 @@ Cada grupo tem `shouldRevalidate` restrito a mudança de caminho, para o loader 
 
 - `src/pages/users/routes/index.tsx` está com todo o conteúdo comentado (rotas `/cadastrar-cursilho/:eventId` e `/cadastro-cursilho-work/participar`) — a função `RoutesUsers()` hoje não registra nenhuma rota. Como é código comentado (não removido), fica registrado aqui para quem for mexer: essas rotas estão desligadas em silêncio, não é um recurso ativo.
 
+## Ícone da aba e cartão do link compartilhado
+
+Ficam no `index.html`: o ícone da aba é `public/favicon.svg` (o mesmo `logo-ic.svg` do sistema, índigo no navegador claro e branco no escuro) e o cartão que
+WhatsApp, Telegram e afins montam ao colar o link vem das tags `og:*` (título,
+descrição e `og:image` com `https://eventos.iccidadeverde.com/og-iccv-eventos.png`: cartão
+1200×630, fundo índigo da marca (`#1C0F4D`), logo branco e "ICCV Eventos", como
+na barra do sistema).
+Os robôs não executam JavaScript e exigem URL absoluta na imagem — por isso
+isso não pode ser montado pelo React. Sem as tags o robô escolhia sozinho uma
+imagem, e saía a borboleta antiga (`public/borboleta.png`, hoje sem uso). Para
+trocar a imagem do cartão, troque `public/og-iccv-eventos.png` (mantenha
+1200×630) ou a URL no `index.html`. Quem já colou o link antes pode ver o cartão antigo por um tempo:
+o app de mensagens guarda o preview em cache.
+
 ## Servidor
 
 As permissões de verdade são cobradas no servidor: papéis, recorte por igreja
