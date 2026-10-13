@@ -5,6 +5,7 @@ import {
   Checkbox,
   FormControlLabel,
   Stack,
+  Switch,
   TextField,
   Typography,
 } from '@mui/material';
@@ -34,6 +35,9 @@ function ModalPlano({ open, plano, onClose }: Props) {
   const [descricao, setDescricao] = useState('');
   // em centavos, como o valor do dízimo: digita só números
   const [centavos, setCentavos] = useState(0);
+  // gratuito é escolha explícita: o valor zero não fica por esquecimento
+  const [gratuito, setGratuito] = useState(false);
+  const [erroDoValor, setErroDoValor] = useState('');
   const [modulos, setModulos] = useState<ModuloDaIgreja[]>([]);
   const [erroDoNome, setErroDoNome] = useState('');
 
@@ -42,6 +46,9 @@ function ModalPlano({ open, plano, onClose }: Props) {
     setNome(plano?.name ?? '');
     setDescricao(plano?.description ?? '');
     setCentavos(Math.round((plano?.price ?? 0) * 100));
+    // plano já salvo com valor zero é o gratuito; plano novo começa pago
+    setGratuito(!!plano && !plano.price);
+    setErroDoValor('');
     setModulos(plano?.modules ?? []);
     setErroDoNome('');
   }, [open, plano]);
@@ -58,12 +65,16 @@ function ModalPlano({ open, plano, onClose }: Props) {
       setErroDoNome('Dê um nome ao plano');
       return;
     }
+    if (!gratuito && !centavos) {
+      setErroDoValor('Informe o valor, ou marque o plano como gratuito');
+      return;
+    }
     salvar.mutate(
       {
         id: plano?.id,
         name: nome.trim(),
         description: descricao.trim() || null,
-        price: centavos / 100,
+        price: gratuito ? 0 : centavos / 100,
         // na ordem do menu, e não na ordem em que foram marcados
         modules: MODULOS.map((m) => m.value).filter((m) => modulos.includes(m)),
       },
@@ -111,22 +122,42 @@ function ModalPlano({ open, plano, onClose }: Props) {
           helperText={erroDoNome}
           inputProps={{ maxLength: 60 }}
         />
-        <TextField
-          size="small"
-          label="Valor mensal"
-          value={formatCurrency(centavos / 100)}
-          onChange={(e) =>
-            setCentavos(
-              Number(e.target.value.replace(/\D/g, '').slice(0, 10)) || 0
-            )
-          }
-          inputProps={{ inputMode: 'numeric' }}
-          helperText={
-            centavos
-              ? 'Quanto a igreja paga por mês neste plano'
-              : 'Zero: o plano aparece como gratuito'
-          }
-        />
+        <Stack direction="row" spacing={2} alignItems="flex-start">
+          <TextField
+            size="small"
+            label="Valor mensal"
+            sx={{ flex: 1 }}
+            disabled={gratuito}
+            value={gratuito ? 'Grátis' : formatCurrency(centavos / 100)}
+            onChange={(e) => {
+              setCentavos(
+                Number(e.target.value.replace(/\D/g, '').slice(0, 10)) || 0
+              );
+              setErroDoValor('');
+            }}
+            inputProps={{ inputMode: 'numeric' }}
+            error={!!erroDoValor}
+            helperText={
+              erroDoValor ||
+              (gratuito
+                ? 'A igreja não paga nada por este plano'
+                : 'Quanto a igreja paga por mês neste plano')
+            }
+          />
+          <FormControlLabel
+            sx={{ mr: 0, mt: 0.25, flexShrink: 0 }}
+            control={
+              <Switch
+                checked={gratuito}
+                onChange={(e) => {
+                  setGratuito(e.target.checked);
+                  setErroDoValor('');
+                }}
+              />
+            }
+            label="Gratuito"
+          />
+        </Stack>
         <TextField
           size="small"
           label="Descrição (opcional)"

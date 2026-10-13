@@ -15,7 +15,7 @@ Regras de servidor: `docs/planos.md` no `ic-backend`.
 
 ### O valor
 
-- **É o valor mensal, em reais.** Zero aparece como **Grátis**.
+- **É o valor mensal, em reais.** O plano gratuito (marcado no cadastro do plano) tem valor zero e aparece como **Grátis**.
 - **O sistema não cobra a igreja.** Não há assinatura nem fatura aqui dentro: o valor é vitrine, para a igreja saber quanto custa cada plano e comparar. A contratação e o pagamento acontecem fora do sistema, com quem o administra — é o que a tela "Meus planos" diz no rodapé.
 - **Não confundir** com o dinheiro que a igreja recebe dos inscritos (a cobrança online dos eventos, ver o módulo Eventos) nem com a tesouraria dela.
 
@@ -96,7 +96,7 @@ Só **dev e super admin** (`SUPER_ADMIN_ROLES`), como Igrejas. No menu, "Planos"
 - **Sem plano nenhum:** "Nenhum plano ainda. Crie o primeiro e escolha-o nas igrejas."
 - **Novo / editar** (`components/modalPlano.tsx`):
   - **nome:** obrigatório, de 2 a 60 letras; nome repetido, mesmo com outras maiúsculas, a API recusa;
-  - **valor mensal:** máscara de centavos, como o valor do dízimo — digita-se só números. Com zero, a ajuda diz que o plano aparece como gratuito;
+  - **valor mensal:** máscara de centavos, como o valor do dízimo — digita-se só números. Ao lado, o interruptor **Gratuito**: ligado, o valor fica travado em "Grátis" e o plano salva com valor zero. Desligado, o valor é obrigatório ("Informe o valor, ou marque o plano como gratuito"), para um plano pago não sair de graça por esquecimento. Plano novo começa pago; plano já salvo com valor zero abre com o interruptor ligado;
   - **descrição:** opcional, até 300 letras;
   - **módulos:** uma caixinha por módulo, com o que cada um abre. Os marcados são salvos na ordem do menu.
   - **Editando plano em uso,** o texto avisa que vale na hora para as N igrejas dele, que o que sai some do painel delas e que nada é apagado.
