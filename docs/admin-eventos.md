@@ -75,10 +75,18 @@ Arquivo: `src/features/admin/events/components/formGeneralInfo.tsx`.
 
 ## Cadastro (`/admin/eventos/cadastro`)
 
-Assistente em 8 passos, cada um com seu próprio `react-hook-form` e validação
+Assistente em 9 passos, cada um com seu próprio `react-hook-form` e validação
 Zod; só avança quem passa no `trigger()` do passo atual. Passos: Categoria do
 evento, Informações gerais, Data e Local, Módulos, Logo e capa, Termos,
-Configurações de inscrição, Produtos.
+Configurações de inscrição, Produtos, Equipe.
+
+**A régua dos passos (`StepProgress`, `src/components/step`):** no desktop, uma
+coluna de largura igual por passo, o ícone no centro e a linha ligando um ícone
+ao outro — todas do mesmo tamanho, qualquer que seja o rótulo; o rótulo fica
+centralizado embaixo e quebra em duas linhas se precisar ("Configurações de
+inscrição"). Até 13/10/2026 cada passo media o próprio rótulo, e com nove passos
+as linhas saíam de tamanhos diferentes. No celular segue a régua compacta (só o
+passo atual com nome).
 
 - **Categoria do evento (passo 1):** `RETIRO` ou `CURSILHO`. Define os grupos e
   regras padrão que vêm pré-preenchidos no passo de configurações de inscrição

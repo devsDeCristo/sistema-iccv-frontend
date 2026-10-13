@@ -374,31 +374,6 @@ function Register() {
     },
   ];
 
-  const canProceedToNextStep = () => {
-    switch (currentStep) {
-      case 1:
-        return methodsCategoryEvent.formState.isValid;
-      case 2:
-        return methodsGeneralInfo.formState.isValid;
-      case 3:
-        return methodsDateAndTime.formState.isValid;
-      case 4:
-        return methodsModules.formState.isValid;
-      case 5:
-        return methodsEventLogo.formState.isValid;
-      case 6:
-        return methodsTerms.formState.isValid;
-      case 7:
-        return methodsRegistrationSettings.formState.isValid;
-      case 8:
-        return methodsProducts.formState.isValid;
-      case 9:
-        return true;
-      default:
-        return false;
-    }
-  };
-
   return (
     <PageStyle>
       <Header title="Cadastrar evento" buttonBack />
@@ -445,7 +420,11 @@ function Register() {
                 variant="contained"
                 sx={{ marginTop: 2, width: '120px' }}
                 type="submit"
-                disabled={!canProceedToNextStep() || isCreatingEvent}
+                // sem trava pelo `isValid`: o react-hook-form só o calcula para
+                // formulário que já mudou, e o passo opcional sem nada preenchido
+                // (produtos, por exemplo) ficava travado. O clique já valida o
+                // passo e mostra os erros
+                disabled={isCreatingEvent}
                 endIcon={
                   isCreatingEvent ? (
                     <CircularProgress size={16} color="inherit" />

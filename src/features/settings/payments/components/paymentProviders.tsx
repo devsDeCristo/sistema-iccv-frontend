@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { Alert, Box, Skeleton, Stack, Typography } from '@mui/material';
 
+import { useRole } from '../../../../hooks/useRole';
 import { EscopoDeIgreja } from '../../shared/useIgrejaSelecionada';
+import { ModuloDePagamento } from './moduloDePagamento';
 import { useGetPaymentProviders } from '../api/getPaymentProviders';
 import { ProviderCard } from './providerCard';
 import { ProviderForm } from './providerForm';
@@ -24,6 +26,7 @@ interface Props {
  * mesma pergunta, e trocar a igreja num não mudaria o outro.
  */
 function PaymentProviders({ escopo }: Props) {
+  const { isSuperAdmin } = useRole();
   const [editando, setEditando] = useState<PaymentProviderIntegration | null>(
     null
   );
@@ -69,14 +72,22 @@ function PaymentProviders({ escopo }: Props) {
       ) : (
         <>
           {/*
-            A cobrança online é parte do módulo Eventos. O admin só chega aqui
-            com ele; dev e super admin veem todas as igrejas, e numa sem Eventos
-            a tela diz por que não há gateway.
+            A cobrança online é parte do módulo Eventos e, dentro dele, liga e
+            desliga por igreja: o interruptor é do dev e do super admin; o
+            admin só fica sabendo quando está desligada. Com ela desligada a
+            grade de gateways some — só ofereceria configurar o que não roda.
           */}
-          {data && !data.modulePayment && (
+          {data && !data.eventosNoPlano && (
             <Alert severity="info">
               O plano desta igreja não inclui Eventos: ela não recebe pelo site.
             </Alert>
+          )}
+          {data?.eventosNoPlano && (
+            <ModuloDePagamento
+              churchId={escopo.churchId as string}
+              ligado={data.cobrancaLigada}
+              podeAlternar={isSuperAdmin}
+            />
           )}
           {data?.modulePayment && (
             <>

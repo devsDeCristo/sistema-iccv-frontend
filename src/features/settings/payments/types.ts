@@ -64,7 +64,12 @@ export interface PaymentProvidersResponse {
    * cadastrada, certa e marcada como padrão. Quem liga e desliga é dev ou
    * super admin — substituiu uma variável de ambiente.
    */
+  /** A igreja cobra pelo site agora: Eventos no plano **e** cobrança ligada */
   modulePayment: boolean;
+  /** O plano da igreja tem Eventos (que inclui a cobrança online) */
+  eventosNoPlano: boolean;
+  /** A cobrança online está ligada nesta igreja (o dev/super admin alterna) */
+  cobrancaLigada: boolean;
   integracoes: PaymentProviderIntegration[];
 }
 

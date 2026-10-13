@@ -55,7 +55,7 @@ São três (`ModuloDaIgreja` em `src/constants/modulos.ts`, `ChurchModule` na AP
 
 - **Dar às igrejas o suporte a pagamentos é parte do que o módulo de eventos é.** A igreja com Eventos no plano cobra pelo site — desde que tenha um gateway cadastrado e ativo em Pagamentos.
 - **Sem uma das duas condições, não cobra.** Por isso a API manda junto do evento `chargesOnline`, que já junta as duas; a tela de inscrição usa essa bandeira para oferecer o pagamento ou confirmar direto, em vez de levar a pessoa a um checkout que daria erro.
-- **Histórico, para entender os nomes antigos:** a cobrança foi uma variável de ambiente global, depois `Church.modulePayment` por igreja, depois o módulo próprio `ONLINE_PAYMENTS`, e agora é parte de Eventos. As respostas da API ainda chamam a bandeira de `modulePayment` (calculada pelo plano), para a tela não precisar mudar.
+- **Histórico, para entender os nomes antigos:** a cobrança foi uma variável de ambiente global, depois `Church.modulePayment` por igreja, depois o módulo próprio `ONLINE_PAYMENTS`, e agora é parte de Eventos — com o interruptor por igreja de volta (dev e super admin, em Configurações › Pagamentos): cobra quem tem Eventos no plano **e** a cobrança ligada. As respostas da API ainda chamam a bandeira de `modulePayment` (já calculada), para a tela não precisar mudar.
 
 ### As configurações seguem o módulo a que servem
 

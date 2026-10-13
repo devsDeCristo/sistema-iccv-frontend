@@ -54,7 +54,6 @@ export const useSavePaymentProvider = ({
 
 // --------------------------------------------------------- módulo da igreja
 
-
 // --------------------------------------------------------------- padrão
 
 const setDefaultProvider = ({ churchId, provider }: AcaoBase) =>
@@ -150,6 +149,41 @@ export const useRemoveProvider = ({
 }: MutationOptions<unknown, unknown, AcaoBase> = {}) =>
   useMutation({
     mutationFn: removeProvider,
+    onSuccess: (...args) => {
+      invalidar();
+      onSuccess?.(...args);
+    },
+    ...options,
+  });
+
+interface ModuloArgs {
+  churchId: string;
+  enabled: boolean;
+}
+
+/**
+ * Liga e desliga a cobrança online de uma igreja (dentro do módulo Eventos do
+ * plano). Rota de dev e super admin. Não mexe em credencial nenhuma —
+ * desligar pausa, religar devolve tudo como estava.
+ */
+const setPaymentModule = ({ churchId, enabled }: ModuloArgs) =>
+  apiClient
+    .patch(`/churches/${churchId}/payment-providers/module`, { enabled })
+    .then((response) => {
+      handleResponseSuccess(
+        response.data,
+        enabled ? 'Cobrança online ligada' : 'Cobrança online desligada'
+      )();
+      return response.data;
+    })
+    .catch(handleResponseThrowError());
+
+export const useSetPaymentModule = ({
+  onSuccess,
+  ...options
+}: MutationOptions<unknown, unknown, ModuloArgs> = {}) =>
+  useMutation({
+    mutationFn: setPaymentModule,
     onSuccess: (...args) => {
       invalidar();
       onSuccess?.(...args);

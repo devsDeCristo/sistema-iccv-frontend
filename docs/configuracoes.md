@@ -46,7 +46,8 @@ mostra e permite configurar.
 
 ### Cobrança online (a igreja recebe pelo site?)
 
-- **Vem com o módulo Eventos do plano da igreja** (ver `docs/planos.md`): quem tem Eventos cobra pelo site, se tiver gateway. Antes era um interruptor nesta tela (`moduloDePagamento.tsx`, só para dev e super admin) e depois um módulo próprio; os dois saíram.
+- **Vem com o módulo Eventos do plano da igreja e liga e desliga por igreja** (ver `docs/planos.md`): a igreja cobra pelo site com Eventos no plano **e** a cobrança ligada, se tiver gateway.
+- **O interruptor (`moduloDePagamento.tsx`)**, no topo da tela: dev e super admin ligam e desligam a cobrança da igreja (`useSetPaymentModule` → `PATCH /churches/:churchId/payment-providers/module`). Ligado, fica neutro ("Cobrança online"); desligado, âmbar, explicando que os inscritos não veem pagamento e que as credenciais continuam guardadas. O admin da igreja não alterna: só vê o aviso quando está desligada ("Fale com o suporte para religar"). Com a cobrança desligada a grade de gateways some. Saiu junto com a chegada dos planos e voltou em 13/10/2026.
 - A tela **Pagamentos** só aparece no menu, e só oferece no seletor, as igrejas com Eventos no plano. Sem nenhuma, a rota mostra que está fora do plano. O super admin vê todas: numa sem Eventos, a tela avisa que ela não recebe pelo site e não mostra a grade de gateways.
 - Sem Eventos, os inscritos não veem nada de pagamento no site e cobranças em aberto não recebem baixa automática. As credenciais cadastradas continuam guardadas.
 
