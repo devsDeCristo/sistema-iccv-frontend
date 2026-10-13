@@ -17,7 +17,6 @@ import { Hero } from './components/hero';
 import { ModulosDaIgreja } from './components/modulosDaIgreja';
 import { NewsBoard } from './components/newsBoard';
 import { PendingActions } from './components/pendingActions';
-import { RecentRegistrations } from './components/recentRegistrations';
 import { SecaoDaHome } from './components/secao';
 import { SystemInsights } from './components/systemInsights';
 import { SystemKpis } from './components/systemKpis';
@@ -165,44 +164,41 @@ export function Home({ churchId }: HomeProps = {}) {
           traz os três estados do dinheiro, e "ganhos por evento" abaixo já
           abre o caixa evento a evento.
         */}
-        {data?.events && !data.treasury && (
-          <SecaoDaHome
-            // só o que acontece agora e o que vem a seguir (`EventsList`)
-            titulo="Eventos acontecendo e a caminho"
-          >
-            <EventsList events={data.events} />
-          </SecaoDaHome>
-        )}
-
-        {data?.treasury && data.events && (
-          <EventEarnings events={data.events} />
-        )}
-
         {/*
-          Movimento e mural lado a lado: são as duas listas curtas da página, e
-          empilhadas deixariam uma coluna estreita com muito branco à direita.
+          Eventos e mural lado a lado na tela larga, como o resto da página:
+          a lista à esquerda, mais larga, e o mural na coluna da direita.
+          Sem um dos dois (fora do plano, ou a tesouraria, que não tem lista
+          nem mural), o outro ocupa a largura toda.
         */}
-        {(data?.recentRegistrations || data?.news) && (
+        {((data?.events && !data.treasury) || data?.news) && (
           <Box
             sx={{
               display: 'grid',
               gap: 3,
-              gridTemplateColumns: {
-                xs: '1fr',
-                // fora do plano, um dos dois não vem
-                md:
-                  data.recentRegistrations && data.news
-                    ? 'repeat(2, 1fr)'
-                    : '1fr',
-              },
               alignItems: 'start',
+              gridTemplateColumns: {
+                xs: 'minmax(0, 1fr)',
+                lg:
+                  data.events && !data.treasury && data.news
+                    ? 'minmax(0, 2fr) minmax(0, 1fr)'
+                    : 'minmax(0, 1fr)',
+              },
             }}
           >
-            {data.recentRegistrations && (
-              <RecentRegistrations registrations={data.recentRegistrations} />
+            {data.events && !data.treasury && (
+              <SecaoDaHome
+                // só o que acontece agora e o que vem a seguir (`EventsList`)
+                titulo="Eventos acontecendo e a caminho"
+              >
+                <EventsList events={data.events} />
+              </SecaoDaHome>
             )}
             {data.news && <NewsBoard news={data.news} />}
           </Box>
+        )}
+
+        {data?.treasury && data.events && (
+          <EventEarnings events={data.events} />
         )}
 
         {data?.byChurch && <ChurchBreakdown churches={data.byChurch} />}

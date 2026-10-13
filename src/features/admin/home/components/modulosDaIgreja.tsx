@@ -10,7 +10,7 @@ import {
 } from '@mui/material';
 import {
   AccountBalanceWallet,
-  ArrowForward,
+  ArrowOutward,
   Campaign,
   Diversity3,
   Event,
@@ -19,35 +19,31 @@ import {
 import { Role } from '../../../../constants/roles';
 import { ModuloDaIgreja } from '../../../../constants/modulos';
 import { useRole } from '../../../../hooks/useRole';
-import { sombraSuperficie } from '../../../../themes';
-import { formatCurrency } from '../../../../utils';
 import { DashboardResumo } from '../types';
 
-interface Card {
-  titulo: string;
+interface Modulo {
+  nome: string;
+  descricao: string;
   icone: ReactElement;
-  link: string;
   cor: string;
-  /** Membros não é módulo: toda igreja tem */
+  link: string;
+  /** Membros não depende de plano: toda igreja tem */
   modulo?: ModuloDaIgreja;
-  valor: string;
-  legenda: string;
 }
 
-const plural = (n: number, um: string, varios: string) =>
-  `${n} ${n === 1 ? um : varios}`;
-
 /**
- * Os módulos do sistema logo abaixo da saudação, cada um com o número que
- * resume a igreja nele. É a porta de entrada da home: a igreja não é só os
- * eventos dela.
+ * A apresentação dos módulos do sistema, logo abaixo da saudação: o que existe
+ * e para que serve, um tile por módulo — sem números (eles estão dentro de
+ * cada módulo). É a porta de entrada da home: a igreja não é só os eventos.
  *
- * Módulo fora do plano aparece apagado, com cadeado, e leva a Meus planos —
- * a igreja vê o que existe e por onde conseguir. O plano vem da API
- * (`resumo.modulos`), e não do acesso de quem olha: o super admin, que alcança
- * todos os módulos, vê a igreja como ela é, e o card apagado o leva a Igrejas,
- * onde se troca o plano. Módulo que o perfil não alcança (Notícias para a
- * tesouraria) nem aparece.
+ * Cada tile tem a cor do módulo, o ícone grande em marca d'água, a palavra
+ * "Módulo", o nome e uma frase do que ele faz. Não é o card de números do
+ * sistema: sem anel nem sombra.
+ *
+ * Fora do plano, o tile fica listrado e sem cor, com cadeado, e leva a Meus
+ * planos (o super admin, a Igrejas, onde se troca o plano). O plano vem da API
+ * (`resumo.modulos`), também para quem alcança tudo. Módulo que o perfil não
+ * alcança (Notícias para a tesouraria) nem aparece.
  */
 export function ModulosDaIgreja({
   resumo,
@@ -58,8 +54,8 @@ export function ModulosDaIgreja({
   churchId?: string;
 }) {
   const theme = useTheme();
+  const escuro = theme.palette.mode === 'dark';
   const { isSuperAdmin, isAdmin, perfilNaIgreja } = useRole();
-  const noPlano = (modulo: ModuloDaIgreja) => resumo.modulos.includes(modulo);
   // o plano se troca em Igrejas; Meus planos é a vitrine da própria igreja
   const ondeMudar = isSuperAdmin
     ? {
@@ -76,61 +72,41 @@ export function ModulosDaIgreja({
     isSuperAdmin ||
     (churchId ? perfilNaIgreja(churchId) === Role.ADMIN : isAdmin);
 
-  const { membros, eventos, noticias, tesouraria } = resumo;
-
-  const cards: Card[] = [
+  const modulos: Modulo[] = [
     {
-      titulo: 'Membros',
+      nome: 'Membros',
+      descricao: 'Quem é da igreja, organizado em famílias.',
       icone: <Diversity3 />,
-      link: '/admin/membros',
       cor: theme.palette.chips.info,
-      valor: String(membros.total),
-      legenda:
-        [
-          plural(membros.familias, 'família', 'famílias'),
-          membros.pedidos ? plural(membros.pedidos, 'pedido', 'pedidos') : '',
-        ]
-          .filter(Boolean)
-          .join(' · ') || 'Nenhuma família ainda',
+      link: '/admin/membros',
     },
     {
-      titulo: 'Eventos',
+      nome: 'Eventos',
+      descricao: 'Inscrições, equipes, quartos, check-in e pagamentos.',
       icone: <Event />,
-      link: '/admin/eventos',
       cor: theme.palette.chips.success,
+      link: '/admin/eventos',
       modulo: 'EVENTS',
-      valor: eventos ? plural(eventos.ativos, 'ativo', 'ativos') : '—',
-      legenda: eventos
-        ? `${plural(eventos.inscricoes30d, 'inscrição', 'inscrições')} em 30 dias`
-        : '',
     },
     ...(adminAqui
       ? [
           {
-            titulo: 'Notícias',
+            nome: 'Notícias',
+            descricao: 'Mural dos inscritos e avisos pelo WhatsApp.',
             icone: <Campaign />,
-            link: '/admin/noticias',
             cor: theme.palette.chips.pending,
+            link: '/admin/noticias',
             modulo: 'NEWS' as const,
-            valor: noticias
-              ? plural(noticias.publicadas30d, 'publicada', 'publicadas')
-              : '—',
-            legenda: noticias
-              ? `em 30 dias · ${plural(noticias.rascunhos, 'rascunho', 'rascunhos')}`
-              : '',
           },
         ]
       : []),
     {
-      titulo: 'Tesouraria',
+      nome: 'Tesouraria',
+      descricao: 'Dízimos, lançamentos e conciliação com o banco.',
       icone: <AccountBalanceWallet />,
-      link: '/admin/tesouraria',
       cor: theme.palette.chips.alert,
+      link: '/admin/tesouraria',
       modulo: 'TREASURY',
-      valor: tesouraria ? formatCurrency(tesouraria.entradasNoMes) : '—',
-      legenda: tesouraria
-        ? `entradas no mês · saídas ${formatCurrency(tesouraria.saidasNoMes)}`
-        : '',
     },
   ];
 
@@ -140,146 +116,169 @@ export function ModulosDaIgreja({
       aria-label="Módulos da igreja"
       sx={{
         display: 'grid',
-        gap: { xs: 1, sm: 1.5 },
+        gap: 1.5,
         gridTemplateColumns: {
           xs: 'repeat(2, minmax(0, 1fr))',
-          md: `repeat(${cards.length}, minmax(0, 1fr))`,
+          lg: `repeat(${modulos.length}, minmax(0, 1fr))`,
         },
       }}
     >
-      {cards.map((card) => {
-        const bloqueado = !!card.modulo && !noPlano(card.modulo);
-        const cor = bloqueado ? theme.palette.text.disabled : card.cor;
+      {modulos.map((m) => {
+        const bloqueado = !!m.modulo && !resumo.modulos.includes(m.modulo);
+        const tom = bloqueado ? theme.palette.text.disabled : m.cor;
         return (
           <ButtonBase
-            key={card.titulo}
+            key={m.nome}
             component={Link}
-            to={bloqueado ? ondeMudar.link : card.link}
+            to={bloqueado ? ondeMudar.link : m.link}
             aria-label={
               bloqueado
-                ? `${card.titulo}: ${ondeMudar.fora.toLowerCase()}. ${ondeMudar.texto}`
-                : card.titulo
+                ? `Módulo ${m.nome}: ${ondeMudar.fora.toLowerCase()}. ${ondeMudar.texto}`
+                : `Abrir o módulo ${m.nome}`
             }
             sx={{
-              display: 'block',
+              position: 'relative',
+              overflow: 'hidden',
+              display: 'flex',
+              flexDirection: 'column',
+              // o ButtonBase centraliza por padrão: o texto desalinhava entre os tiles
+              justifyContent: 'flex-start',
+              alignItems: 'flex-start',
               textAlign: 'left',
-              borderRadius: 3,
-              p: { xs: 1.5, sm: 2 },
-              backgroundColor: theme.palette.background.paper,
+              minHeight: { xs: 132, sm: 148 },
+              p: { xs: 1.75, sm: 2.25 },
+              borderRadius: 4,
+              bgcolor: bloqueado
+                ? 'transparent'
+                : alpha(m.cor, escuro ? 0.11 : 0.07),
               backgroundImage: bloqueado
-                ? 'none'
-                : `linear-gradient(160deg, ${alpha(cor, 0.12)}, transparent 70%)`,
-              boxShadow: bloqueado
-                ? 'none'
-                : `0 0 0 1px ${alpha(cor, 0.26)}, ${sombraSuperficie(
-                    theme.palette.mode === 'dark'
-                  )}`,
-              border: bloqueado
-                ? `1px dashed ${theme.palette.divider}`
-                : '1px solid transparent',
-              transition: theme.transitions.create(
-                ['transform', 'box-shadow'],
-                { duration: theme.transitions.duration.shorter }
-              ),
-              '&:hover': {
-                transform: 'translateY(-2px)',
-                boxShadow: bloqueado
-                  ? 'none'
-                  : `0 0 0 1px ${alpha(cor, 0.4)}, 0 10px 24px -8px ${alpha(
-                      cor,
-                      0.35
-                    )}`,
+                ? `repeating-linear-gradient(135deg, ${alpha(
+                    theme.palette.text.primary,
+                    0.035
+                  )} 0 6px, transparent 6px 14px)`
+                : 'none',
+              border: `1px ${bloqueado ? 'dashed' : 'solid'} ${
+                bloqueado ? theme.palette.divider : alpha(m.cor, 0.2)
+              }`,
+              transition: theme.transitions.create([
+                'background-color',
+                'border-color',
+              ]),
+              '&:hover': bloqueado
+                ? { borderColor: theme.palette.text.disabled }
+                : {
+                    bgcolor: alpha(m.cor, escuro ? 0.17 : 0.12),
+                    borderColor: alpha(m.cor, 0.35),
+                  },
+              '&:hover .abrir': {
+                transform: 'translate(2px, -2px)',
+                opacity: 1,
               },
-              '&:hover .seta': { transform: 'translateX(3px)' },
               '&:focus-visible': {
                 outline: `2px solid ${theme.palette.primary.main}`,
                 outlineOffset: 2,
               },
             }}
           >
+            {/* o ícone do módulo, grande e quase apagado, assina o tile */}
+            <Box
+              aria-hidden
+              sx={{
+                position: 'absolute',
+                right: -16,
+                bottom: -20,
+                color: alpha(tom, bloqueado ? 0.06 : 0.09),
+                '& svg': { fontSize: 112 },
+                pointerEvents: 'none',
+              }}
+            >
+              {m.icone}
+            </Box>
+
             <Stack
               direction="row"
               alignItems="center"
               justifyContent="space-between"
+              sx={{ width: '100%', position: 'relative' }}
             >
               <Box
                 sx={{
                   display: 'grid',
                   placeItems: 'center',
-                  width: 36,
-                  height: 36,
+                  width: 34,
+                  height: 34,
                   borderRadius: 2,
-                  color: cor,
-                  backgroundColor: alpha(cor, bloqueado ? 0.08 : 0.14),
-                  '& svg': { fontSize: 20 },
+                  color: tom,
+                  bgcolor: alpha(tom, bloqueado ? 0.08 : 0.16),
+                  '& svg': { fontSize: 19 },
                 }}
               >
-                {card.icone}
+                {m.icone}
               </Box>
               {bloqueado ? (
-                <LockOutlined
-                  sx={{ fontSize: 18, color: theme.palette.text.disabled }}
-                />
+                <LockOutlined sx={{ fontSize: 17, color: 'text.disabled' }} />
               ) : (
-                <ArrowForward
-                  className="seta"
+                <ArrowOutward
+                  className="abrir"
                   sx={{
-                    fontSize: 18,
-                    color: theme.palette.text.secondary,
-                    transition: theme.transitions.create('transform'),
+                    fontSize: 17,
+                    color: tom,
+                    opacity: 0.6,
+                    transition: theme.transitions.create([
+                      'transform',
+                      'opacity',
+                    ]),
                   }}
                 />
               )}
             </Stack>
 
-            <Typography
-              sx={{
-                mt: 1.5,
-                fontSize: 12,
-                fontWeight: 700,
-                letterSpacing: '0.06em',
-                textTransform: 'uppercase',
-                color: bloqueado ? 'text.disabled' : 'text.secondary',
-              }}
-            >
-              {card.titulo}
-            </Typography>
-            {bloqueado ? (
-              <>
-                <Typography
-                  sx={{ fontSize: 15, fontWeight: 600, color: 'text.disabled' }}
-                >
-                  {ondeMudar.fora}
-                </Typography>
-                <Typography
-                  variant="caption"
-                  sx={{ color: 'primary.main', fontWeight: 600 }}
-                >
-                  {ondeMudar.texto}
-                </Typography>
-              </>
-            ) : (
-              <>
-                <Typography
-                  noWrap
-                  sx={{
-                    fontSize: { xs: 18, sm: 22 },
-                    fontWeight: 700,
-                    letterSpacing: '-0.02em',
-                  }}
-                >
-                  {card.valor}
-                </Typography>
-                <Typography
-                  variant="caption"
-                  color="text.secondary"
-                  noWrap
-                  component="div"
-                >
-                  {card.legenda}
-                </Typography>
-              </>
-            )}
+            <Box sx={{ mt: 2, position: 'relative' }}>
+              <Typography
+                sx={{
+                  fontSize: 11,
+                  fontWeight: 700,
+                  letterSpacing: '0.08em',
+                  textTransform: 'uppercase',
+                  color: bloqueado ? 'text.disabled' : tom,
+                }}
+              >
+                Módulo
+              </Typography>
+              <Typography
+                sx={{
+                  fontSize: { xs: 17, sm: 19 },
+                  fontWeight: 800,
+                  letterSpacing: '-0.02em',
+                  lineHeight: 1.15,
+                  color: bloqueado ? 'text.disabled' : 'text.primary',
+                }}
+              >
+                {m.nome}
+              </Typography>
+              <Typography
+                sx={{
+                  mt: 0.5,
+                  fontSize: 12.5,
+                  lineHeight: 1.35,
+                  color: bloqueado ? 'text.disabled' : 'text.secondary',
+                }}
+              >
+                {bloqueado ? (
+                  <>
+                    {ondeMudar.fora} ·{' '}
+                    <Box
+                      component="span"
+                      sx={{ color: 'primary.main', fontWeight: 600 }}
+                    >
+                      {ondeMudar.texto} →
+                    </Box>
+                  </>
+                ) : (
+                  m.descricao
+                )}
+              </Typography>
+            </Box>
           </ButtonBase>
         );
       })}

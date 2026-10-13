@@ -66,16 +66,6 @@ export interface DashboardEvent {
   checkin: { done: number; total: number } | null;
 }
 
-/** Alguém que acabou de se inscrever, com o evento em que entrou. */
-export interface RecentRegistration {
-  userId: string;
-  name: string;
-  photoUrl: string | null;
-  eventId: string;
-  eventName: string;
-  createdAt: string;
-}
-
 export interface NewsBoardItem {
   id: string;
   title: string;
@@ -201,10 +191,7 @@ export interface DashboardInsights {
   windowDays: number;
 }
 
-/**
- * Um número por módulo, para os cards do topo da home da igreja. Bloco `null`
- * é módulo fora do plano (ou que o perfil não alcança): o card sai sem número.
- */
+/** Os cards de apresentação dos módulos, no topo da home da igreja */
 export interface DashboardResumo {
   /**
    * Os módulos do plano das igrejas da tela — o plano de verdade, também para
@@ -212,12 +199,6 @@ export interface DashboardResumo {
    * quem olha
    */
   modulos: ModuloDaIgreja[];
-  /** `pedidos` é `null` para quem não é admin: aceitar pedido é do admin */
-  membros: { total: number; familias: number; pedidos: number | null };
-  eventos: { ativos: number; inscricoes30d: number } | null;
-  noticias: { publicadas30d: number; rascunhos: number } | null;
-  /** Lançamentos do mês corrente, entradas e saídas */
-  tesouraria: { entradasNoMes: number; saidasNoMes: number } | null;
 }
 
 /**
@@ -235,8 +216,6 @@ export interface Dashboard {
    */
   events: DashboardEvent[] | null;
   pending: DashboardPending[];
-  /** `null` no escopo de sistema — quem entrou é assunto de quem administra a igreja */
-  recentRegistrations: RecentRegistration[] | null;
   /** Só o admin: publicar notícia não é da tesouraria nem do super admin */
   news: NewsBoard | null;
   /** Os cards de módulo; `null` no escopo de sistema */

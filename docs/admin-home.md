@@ -16,7 +16,7 @@ que chegue sem seção.
 
 | Perfil | O que abre | Blocos exclusivos |
 | --- | --- | --- |
-| Admin de igreja | a home da igreja dele (`scope: 'church'`) | cards dos módulos (`ModulosDaIgreja`), lista de eventos, mural (`news`), últimas inscrições |
+| Admin de igreja | a home da igreja dele (`scope: 'church'`) | módulos (`ModulosDaIgreja`), lista de eventos, mural (`news`) |
 | Tesouraria | a home da igreja dele, mesmo layout | `TreasuryKpis` e `EventEarnings` no lugar dos números e da lista de eventos do admin |
 | Super admin | panorama do sistema (`scope: 'system'`) | `SystemKpis`, comparativo entre igrejas, lista de igrejas, base de usuários |
 | Dev | mesmo panorama do super admin | `SystemInsights` (indicadores de funcionamento), além dos blocos do super admin |
@@ -68,13 +68,16 @@ não há nenhum), e é deles que saem as pendências — comprovante a conferir 
 evento encerrado continua cobrado. A **lista** da tela, porém, mostra só os
 que estão acontecendo ou a caminho (ver abaixo).
 
-- **Cards dos módulos (`ModulosDaIgreja`)**, logo abaixo da saudação, para
-  admin e tesouraria: Membros, Eventos, Notícias (só para quem é admin da
-  igreja) e Tesouraria, cada um com o número que resume a igreja nele (o
-  `resumo` da API: membros, famílias e pedidos; eventos ativos e inscrições em
-  30 dias; notícias publicadas em 30 dias e rascunhos; entradas e saídas do
-  mês). O card leva ao módulo. **Fora do plano**, o card fica apagado, com
-  borda tracejada e cadeado, diz "Fora do seu plano · Ver planos" e leva a
+- **Módulos (`ModulosDaIgreja`)**, logo abaixo da saudação, para admin e
+  tesouraria: a **apresentação** de cada módulo, sem números — Membros,
+  Eventos, Notícias (só para quem é admin da igreja) e Tesouraria. Cada um é
+  um tile de fundo tingido na cor do módulo, com o ícone grande em marca
+  d'água, a palavra "Módulo", o nome e uma frase do que ele faz; não usa o
+  card de números do sistema. Dois por linha no celular, todos numa linha na
+  tela larga.
+
+  O tile inteiro leva ao módulo. **Fora do plano**, o tile fica listrado e
+  sem cor, com borda tracejada e cadeado, diz "Fora do seu plano · Ver planos" e leva a
   **Meus planos** (`/admin/meus-planos`). O plano vem da API (`resumo.modulos`) e não do acesso
   de quem olha: super admin e dev, que alcançam todos os módulos, veem a
   igreja como ela é, e o card apagado diz "Fora do plano da igreja · Mudar o
@@ -107,15 +110,17 @@ que estão acontecendo ou a caminho (ver abaixo).
   esperando conferência e listas de espera com vaga para chamar —, cada uma
   linkando direto para a aba do evento. A seção some quando não há nada; não
   mostra "tudo em dia" para não ensinar o olho a pular a região.
-- **Últimas inscrições e mural:** lado a lado quando há espaço. As inscrições
-  recentes são o pulso da tela; o mural (`news`) é só do admin — a tesouraria
-  e o super admin não publicam notícia, e por isso não recebem o bloco.
-- **O plano recorta os blocos:** sem Eventos no plano, a API manda `events`,
-  `recentRegistrations` e `treasury` nulos e a tela não os monta; sem
-  Notícias, o mural não vem. O mural aparece sozinho (largura inteira) quando
-  as inscrições não vêm.
+- **Eventos e mural lado a lado:** na tela larga, a lista de eventos ocupa
+  dois terços à esquerda e o mural a coluna da direita; abaixo disso, um
+  embaixo do outro. Sem um dos dois, o outro ocupa a largura toda.
+- **Mural (`news`):** só do admin — a tesouraria e o super admin não publicam
+  notícia, e por isso não recebem o bloco. Até 13/10/2026 ficava ao lado das
+  "Últimas inscrições", que saíram da home: os inscritos estão na lista de
+  cada evento.
+- **O plano recorta os blocos:** sem Eventos no plano, a API manda `events` e
+  `treasury` nulos e a tela não os monta; sem Notícias, o mural não vem.
 
-Arquivos: `src/features/admin/home/components/modulosDaIgreja.tsx`, `treasuryKpis.tsx`, `eventsList.tsx`, `eventEarnings.tsx`, `pendingActions.tsx`, `recentRegistrations.tsx`, `newsBoard.tsx`.
+Arquivos: `src/features/admin/home/components/modulosDaIgreja.tsx`, `treasuryKpis.tsx`, `eventsList.tsx`, `eventEarnings.tsx`, `pendingActions.tsx`, `newsBoard.tsx`.
 
 ## Panorama do super admin e do dev
 
@@ -173,7 +178,7 @@ Arquivos: `src/features/admin/churchHome/index.tsx`, `src/pages/admin/churches/r
 - **Formato da resposta (`Dashboard`):** o eixo é o evento, não o sistema —
   cada número mora dentro do evento a que pertence. Bloco `null` quer dizer
   "não é da alçada de quem pediu", nunca "zerado". Campos: `scope`, `role`,
-  `churches`, `events`, `pending`, `recentRegistrations`, `news`, `byChurch`,
+  `churches`, `events`, `pending`, `news`, `resumo`, `byChurch`,
   `treasury` (só tesouraria), `panorama` (só super admin) e `insights` (só
   dev).
 
