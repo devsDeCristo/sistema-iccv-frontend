@@ -29,6 +29,12 @@ import { EstadoDaLinha, Lancamento, LinhaDaConciliacao } from '../types';
 /** As duas tabelas só se alinham linha a linha com a mesma altura */
 const ALTURA = 60;
 
+/**
+ * As duas colunas, sempre da mesma largura: `1fr` sozinho cresce com o texto,
+ * e uma descrição comprida desalinhava a linha dela das outras
+ */
+const COLUNAS = 'minmax(0, 1fr) minmax(0, 1fr)';
+
 /** Uma cor chapada como imagem de fundo, para ir por cima do papel */
 const tinta = (cor: string) => `linear-gradient(${cor}, ${cor})`;
 
@@ -215,6 +221,7 @@ function DiffDaConciliacao({
         onClick={marcavel && l ? () => onMarcar(lado, l) : undefined}
         sx={{
           cursor: marcavel ? 'pointer' : undefined,
+          minWidth: 0,
           height: ALTURA,
           px: 1,
           borderBottom: `1px solid ${theme.palette.divider}`,
@@ -376,7 +383,7 @@ function DiffDaConciliacao({
       <Box
         sx={{
           display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
+          gridTemplateColumns: COLUNAS,
           columnGap: 1.5,
           // o mesmo vão da barra de rolagem do corpo: as colunas alinham
           overflowY: 'hidden',
@@ -408,7 +415,7 @@ function DiffDaConciliacao({
             sx={{
               ...linhaLeve,
               display: 'grid',
-              gridTemplateColumns: '1fr 1fr',
+              gridTemplateColumns: COLUNAS,
               columnGap: 1.5,
             }}
           >
