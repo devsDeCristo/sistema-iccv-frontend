@@ -77,7 +77,11 @@ export function useIgrejaSelecionada(
     if (!incluirTesoureiroDeEvento) return dosVinculos;
     // a igreja de cada evento dele, uma vez só
     const dosEventos = eventTreasurers
-      .filter((t) => !dosVinculos.some((igreja) => igreja.id === t.churchId))
+      .filter(
+        (t) =>
+          !dosVinculos.some((igreja) => igreja.id === t.churchId) &&
+          (!modulo || t.modulos?.includes(modulo))
+      )
       .map((t) => ({ id: t.churchId, name: t.churchName ?? 'Igreja' }))
       .filter(
         (igreja, i, todas) =>

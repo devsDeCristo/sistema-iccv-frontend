@@ -39,7 +39,7 @@ const invalidar = () =>
 /**
  * De qual igreja é a tesouraria na tela. A equipe da igreja escolhe no
  * seletor do topo; o tesoureiro(a) de evento não escolhe — é a igreja dos
- * eventos em que ele é completo.
+ * eventos em que ele é completo (com Tesouraria no plano).
  *
  * ponytail: o tesoureiro de eventos de mais de uma igreja fica com a
  * primeira; um seletor para ele, quando aparecer o caso.
@@ -48,7 +48,9 @@ export function useIgrejaDaTesouraria() {
   const escopo = useIgrejaSelecionada(true, 'TREASURY');
   const { soTesoureiroDeEvento, eventTreasurers } = useRole();
   const churchId = soTesoureiroDeEvento
-    ? (eventTreasurers.find((t) => t.kind === 'COMPLETO')?.churchId ?? null)
+    ? (eventTreasurers.find(
+        (t) => t.kind === 'COMPLETO' && t.modulos?.includes('TREASURY')
+      )?.churchId ?? null)
     : escopo.churchId;
   return { escopo, churchId, soTesoureiroDeEvento };
 }

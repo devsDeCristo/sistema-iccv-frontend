@@ -90,6 +90,10 @@ lista vira "Último evento encerrado" em vez de "Eventos ativos").
 - **Últimas inscrições e mural:** lado a lado quando há espaço. As inscrições
   recentes são o pulso da tela; o mural (`news`) é só do admin — a tesouraria
   e o super admin não publicam notícia, e por isso não recebem o bloco.
+- **O plano recorta os blocos:** sem Eventos no plano, a API manda `events`,
+  `recentRegistrations` e `treasury` nulos e a tela não os monta; sem
+  Notícias, o mural não vem. O mural aparece sozinho (largura inteira) quando
+  as inscrições não vêm.
 
 Arquivos: `src/features/admin/home/components/churchKpis.tsx`, `treasuryKpis.tsx`, `eventsList.tsx`, `eventEarnings.tsx`, `pendingActions.tsx`, `recentRegistrations.tsx`, `newsBoard.tsx`.
 

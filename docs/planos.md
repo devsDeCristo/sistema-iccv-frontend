@@ -21,13 +21,13 @@ Regras de servidor: `docs/planos.md` no `ic-backend`.
 
 ### Quem decide
 
-| Quem                                 | O que faz com planos                                                                                                                                                |
-| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Dev e super admin** (a plataforma) | Criam, editam e apagam planos (`/admin/planos`) e escolhem o plano de cada igreja (Igrejas). Para eles o plano não vale: veem todos os módulos de todas as igrejas. |
-| **Admin da igreja**                  | Vê o plano da sua igreja e compara com os outros (`/admin/meus-planos`). Usa os módulos do plano.                                                                   |
-| **Tesouraria da igreja**             | Igual ao admin em "Meus planos". Dos módulos do plano, usa o que o perfil já alcança (a tesouraria não publica notícia, por exemplo).                               |
-| **Tesoureiro(a) de evento**          | Não tem plano próprio: vale o da igreja do evento (Eventos). Quem confere é a API; o front não faz a conta para ele (ver `docs/tesouraria.md`).                     |
-| **Inscrito**                         | O plano não recorta a área do usuário. Ele só sente o plano na cobrança: igreja que não cobra online não oferece o botão de pagar.                                  |
+| Quem                                 | O que faz com planos                                                                                                                                                 |
+| ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Dev e super admin** (a plataforma) | Criam, editam e apagam planos (`/admin/planos`) e escolhem o plano de cada igreja (Igrejas). Para eles o plano não vale: veem todos os módulos de todas as igrejas.  |
+| **Admin da igreja**                  | Vê o plano da sua igreja e compara com os outros (`/admin/meus-planos`). Usa os módulos do plano.                                                                    |
+| **Tesouraria da igreja**             | Igual ao admin em "Meus planos". Dos módulos do plano, usa o que o perfil já alcança (a tesouraria não publica notícia, por exemplo).                                |
+| **Tesoureiro(a) de evento**          | Não tem plano próprio: vale o da igreja do evento. A sessão traz os módulos dela (`eventTreasurers[].modulos`), e menu e rotas fazem a mesma conta que para o admin. |
+| **Inscrito**                         | O plano não recorta a área do usuário. Ele só sente o plano na cobrança: igreja que não cobra online não oferece o botão de pagar.                                   |
 
 ### Mudar de plano
 
@@ -164,5 +164,4 @@ Para quem trabalha numa igreja (admin e tesouraria; `ADMIN_AREA_ROLES` na rota).
 
 ## Limites conhecidos
 
-- **Listas de várias igrejas:** Eventos e Notícias listam "Todas as igrejas". Uma igreja fora do plano ainda aparece nessas listas quando a pessoa tem outra igreja com o módulo; a ação sobre o item volta 403.
 - **Sessão aberta:** a mudança de plano chega na próxima navegação no painel, não no meio da tela.

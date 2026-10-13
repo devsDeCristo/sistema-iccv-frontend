@@ -793,16 +793,13 @@ const SideBar: React.FC<SideBarProps> = ({
       ]
     : [];
 
-  // módulo fora do plano de todas as igrejas da pessoa sai da régua. O
-  // tesoureiro(a) de evento não tem igreja para a conta: a API confere o plano
-  // da igreja do evento dele
+  // módulo fora do plano de todas as igrejas da pessoa sai da régua (para o
+  // tesoureiro(a) de evento, as igrejas dos eventos dele)
   const doPlano = (itens: ItemMenu[]) =>
-    soTesoureiroDeEvento
-      ? itens
-      : itens.filter(
-          (item) =>
-            !MODULO_DO_LINK[item.link] || temModulo(MODULO_DO_LINK[item.link])
-        );
+    itens.filter(
+      (item) =>
+        !MODULO_DO_LINK[item.link] || temModulo(MODULO_DO_LINK[item.link])
+    );
 
   const secoes: SecaoMenu[] =
     areaAtual === 'configuracoes'

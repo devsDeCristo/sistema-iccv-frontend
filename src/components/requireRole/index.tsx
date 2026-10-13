@@ -54,10 +54,10 @@ function RequireRole({
       aceitaTesoureiro === 'COMPLETO'
         ? temTesoureiroCompleto
         : aceitaTesoureiro === 'BASICO' && eventTreasurers.length > 0;
-    if (comoTesoureiro) return <>{children}</>;
-    return <Navigate to={redirectTo} replace />;
+    if (!comoTesoureiro) return <Navigate to={redirectTo} replace />;
   }
 
+  // o tesoureiro(a) de evento também: a sessão traz o plano da igreja do evento
   if (modulo && !temModulo(modulo)) return <ForaDoPlano modulo={modulo} />;
 
   return <>{children}</>;

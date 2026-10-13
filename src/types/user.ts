@@ -89,6 +89,8 @@ export interface TesoureiroDeEvento {
   churchId: string;
   /** opcional: as sessões abertas antes de o login mandar o nome não o têm */
   churchName?: string;
+  /** os módulos do plano da igreja do evento (o menu dele segue o plano) */
+  modulos?: ModuloDaIgreja[];
   kind: 'BASICO' | 'COMPLETO';
 }
 

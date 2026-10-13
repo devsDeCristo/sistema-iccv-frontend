@@ -174,19 +174,25 @@ export function Home({ churchId }: HomeProps = {}) {
           Movimento e mural lado a lado: são as duas listas curtas da página, e
           empilhadas deixariam uma coluna estreita com muito branco à direita.
         */}
-        {data?.recentRegistrations && (
+        {(data?.recentRegistrations || data?.news) && (
           <Box
             sx={{
               display: 'grid',
               gap: 3,
               gridTemplateColumns: {
                 xs: '1fr',
-                md: data.news ? 'repeat(2, 1fr)' : '1fr',
+                // fora do plano, um dos dois não vem
+                md:
+                  data.recentRegistrations && data.news
+                    ? 'repeat(2, 1fr)'
+                    : '1fr',
               },
               alignItems: 'start',
             }}
           >
-            <RecentRegistrations registrations={data.recentRegistrations} />
+            {data.recentRegistrations && (
+              <RecentRegistrations registrations={data.recentRegistrations} />
+            )}
             {data.news && <NewsBoard news={data.news} />}
           </Box>
         )}
