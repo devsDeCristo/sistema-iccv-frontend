@@ -63,9 +63,10 @@ Arquivos: `src/features/admin/home/components/hero.tsx`, `src/features/admin/hom
 
 ## Painel de quem administra a igreja (admin e tesouraria)
 
-Todos os números somam só os **eventos em jogo**: os ativos, ou o último
-encerrado quando não há nenhum aberto ou a caminho (nesse caso o título da
-lista vira "Último evento encerrado" em vez de "Eventos ativos").
+A API manda os **eventos em jogo** (os ativos, ou o último encerrado quando
+não há nenhum), e é deles que saem as pendências — comprovante a conferir de
+evento encerrado continua cobrado. A **lista** da tela, porém, mostra só os
+que estão acontecendo ou a caminho (ver abaixo).
 
 - **Cards dos módulos (`ModulosDaIgreja`)**, logo abaixo da saudação, para
   admin e tesouraria: Membros, Eventos, Notícias (só para quem é admin da
@@ -85,12 +86,19 @@ lista vira "Último evento encerrado" em vez de "Eventos ativos").
   quando a API manda `treasury` preenchido. Só dinheiro — recebido, a
   receber, a conferir e quantas pessoas devem. Vaga, ritmo e lista de espera
   saem, porque não são decisão dele.
-- **Lista de eventos (`EventsList`):** uma linha por evento (sem cartão
-  próprio), com fase (acontecendo/aberto/encerrado, com pulso animado no que
-  está rolando agora), vagas por evento e por grupo (com aviso de "lotado"),
-  caixa recebido, ritmo de inscrição (some no evento encerrado) e check-in
-  (só aparece se já começou). Some para a tesouraria — some no lugar entra
-  `EventEarnings`.
+- **Lista de eventos (`EventsList`, "Eventos acontecendo e a caminho"):**
+  só os eventos **acontecendo agora ou a caminho** — o encerrado não entra;
+  primeiro os que acontecem, depois do mais próximo ao mais longe. Uma
+  **linha compacta por evento**, como tabela (cabeçalho Evento · Vagas ·
+  Recebido na tela larga): ponto da fase (com pulso no que acontece agora),
+  nome, período, quanto falta e o check-in feito; vagas ocupadas/total com
+  barra fina ("lotado" em laranja) e o recebido com a porcentagem do
+  esperado. A linha inteira abre o evento; durante o evento há o atalho do
+  check-in. No celular as duas leituras descem para baixo do nome, lado a
+  lado. Sem nenhum, "Nenhum evento acontecendo ou a caminho" e "Criar
+  evento". Até 13/10/2026 era um bloco grande por evento, com grupos e
+  check-in em barra, e entrava o último encerrado — três eventos ocupavam a
+  tela inteira. Some para a tesouraria — no lugar entra `EventEarnings`.
 - **Ganhos por evento (`EventEarnings`):** só da tesouraria. Uma barra
   empilhada por evento (recebido / em análise / a receber), escalada pelo
   maior evento, para comparar uns com os outros. Eventos sem cobrança

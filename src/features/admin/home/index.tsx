@@ -88,15 +88,6 @@ export function Home({ churchId }: HomeProps = {}) {
   // e o dev na visão DEV
   const varias = data?.scope === 'system' || (data?.churches?.length ?? 0) > 1;
 
-  /**
-   * Sem nenhum evento ativo, a API manda o último encerrado no lugar para a
-   * igreja não abrir o painel vazia — e aí o bloco não pode se chamar
-   * "Eventos ativos".
-   */
-  const soEncerrado =
-    !!data?.events?.length &&
-    data.events.every((event) => event.status === 'INACTIVE');
-
   return (
     <PageStyle>
       <Stack gap={3}>
@@ -176,7 +167,8 @@ export function Home({ churchId }: HomeProps = {}) {
         */}
         {data?.events && !data.treasury && (
           <SecaoDaHome
-            titulo={soEncerrado ? 'Último evento encerrado' : 'Eventos ativos'}
+            // só o que acontece agora e o que vem a seguir (`EventsList`)
+            titulo="Eventos acontecendo e a caminho"
           >
             <EventsList events={data.events} />
           </SecaoDaHome>

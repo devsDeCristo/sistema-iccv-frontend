@@ -2,14 +2,16 @@ import {
   alpha,
   Box,
   Button,
+  ButtonBase,
   Card,
-  Divider,
+  IconButton,
   Skeleton,
   Stack,
+  Tooltip,
   Typography,
   useTheme,
 } from '@mui/material';
-import { ArrowForward, EventBusy, HowToRegOutlined } from '@mui/icons-material';
+import { ChevronRight, EventBusy, HowToRegOutlined } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { formatCurrency } from '../../../../utils';
 import { formatarPeriodo } from '../../../events/utils';
@@ -26,352 +28,270 @@ interface EventsListProps {
   events?: DashboardEvent[];
 }
 
-/** Uma das três leituras da linha: número em cima, barra fina embaixo. */
-function Medida({
-  titulo,
-  destaque,
+/** Nome | vagas | recebido | ações — a mesma grade no cabeçalho e nas linhas */
+const COLUNAS = {
+  xs: 'minmax(0, 1fr) auto',
+  md: 'minmax(0, 1fr) 150px 170px 76px',
+};
+
+/** Número em cima e uma barra fina embaixo, numa coluna estreita */
+function Leitura({
+  valor,
   legenda,
-  barra,
+  pct,
+  cor,
 }: {
-  titulo: string;
-  destaque: string;
+  valor: string;
   legenda: string;
-  barra?: { valor: number; cor: string };
+  /** Sem barra quando não há o todo (evento sem capacidade, sem cobrança) */
+  pct: number | null;
+  cor: string;
 }) {
   return (
-    <Box sx={{ flex: 1, minWidth: 128 }}>
-      <Typography
-        sx={{
-          fontSize: 10.5,
-          fontWeight: 700,
-          letterSpacing: '0.07em',
-          textTransform: 'uppercase',
-          color: 'text.secondary',
-        }}
-      >
-        {titulo}
-      </Typography>
-
-      <Typography
-        noWrap
-        sx={{
-          mt: 0.25,
-          fontSize: 17,
-          fontWeight: 700,
-          lineHeight: 1.2,
-          fontVariantNumeric: 'tabular-nums',
-        }}
-      >
-        {destaque}
-      </Typography>
-
-      {barra && (
+    <Box sx={{ minWidth: 0 }}>
+      <Stack direction="row" alignItems="baseline" gap={0.75}>
+        {/* o número não corta; a legenda cede quando falta espaço */}
+        <Typography sx={{ fontSize: 14, fontWeight: 600, flexShrink: 0 }}>
+          {valor}
+        </Typography>
+        <Typography
+          noWrap
+          sx={{ fontSize: 12, color: 'text.secondary', minWidth: 0 }}
+        >
+          {legenda}
+        </Typography>
+      </Stack>
+      {pct !== null && (
         <Box
           sx={{
-            mt: 0.6,
-            height: 6,
-            borderRadius: 3,
+            mt: 0.5,
+            height: 4,
+            borderRadius: 2,
+            bgcolor: alpha(cor, 0.16),
             overflow: 'hidden',
-            bgcolor: alpha(barra.cor, 0.16),
           }}
         >
           <Box
             sx={{
-              width: `${barra.valor}%`,
+              width: `${pct}%`,
               height: '100%',
-              bgcolor: barra.cor,
+              bgcolor: cor,
+              borderRadius: 2,
             }}
           />
         </Box>
       )}
-
-      <Typography sx={{ mt: 0.4, fontSize: 11.5, color: 'text.secondary' }}>
-        {legenda}
-      </Typography>
     </Box>
   );
 }
 
-/** A ocupação de um grupo, em texto — vira alerta quando fecha. */
-function Grupo({
-  nome,
-  taken,
-  capacity,
-}: {
-  nome: string;
-  taken: number;
-  capacity: number | null;
-}) {
-  const theme = useTheme();
-  const lotado = capacity !== null && taken >= capacity;
-
-  return (
-    <Typography
-      component="span"
-      sx={{
-        fontSize: 12,
-        color: lotado ? theme.palette.chips.alert : 'text.secondary',
-        fontWeight: lotado ? 600 : 400,
-      }}
-    >
-      {nome}{' '}
-      <Box component="span" sx={{ fontVariantNumeric: 'tabular-nums' }}>
-        {capacity === null ? taken : `${taken}/${capacity}`}
-      </Box>
-      {lotado && ' · lotado'}
-    </Typography>
-  );
-}
-
-/** Um evento: identificação, as três leituras e a quebra por grupo. */
 function LinhaDoEvento({ event }: { event: DashboardEvent }) {
   const theme = useTheme();
   const navigate = useNavigate();
 
-  const { cor, rotulo } = aparenciaDaFase(event.phase, theme);
+  const { cor } = aparenciaDaFase(event.phase, theme);
   const acontecendo = event.phase === 'ongoing';
-  const encerrado = event.phase === 'finished';
-
   const livres = vagasLivres(event);
-  const lotado = livres === 0;
   const temTeto = event.seats.total !== null;
   const caixa = percentual(event.finance.paid.amount, event.finance.expected);
+  const abrir = () => navigate(`/admin/eventos/${event.id}/detalhes/usuarios`);
+
+  const vagas = (
+    <Leitura
+      valor={
+        temTeto
+          ? `${event.seats.taken}/${event.seats.total}`
+          : `${event.seats.taken}`
+      }
+      legenda={livres === 0 ? 'lotado' : temTeto ? 'vagas' : 'inscritos'}
+      pct={temTeto ? percentual(event.seats.taken, event.seats.total) : null}
+      cor={
+        livres === 0 ? theme.palette.chips.alert : theme.palette.chips.success
+      }
+    />
+  );
+  const recebido = (
+    <Leitura
+      valor={formatCurrency(event.finance.paid.amount)}
+      legenda={event.finance.expected ? `${caixa}%` : ''}
+      pct={event.finance.expected ? caixa : null}
+      cor={theme.palette.chips.info}
+    />
+  );
 
   return (
-    <Box sx={{ p: { xs: 2, sm: 2.5 } }}>
-      <Stack
-        direction={{ xs: 'column', sm: 'row' }}
-        justifyContent="space-between"
-        alignItems={{ xs: 'flex-start', sm: 'center' }}
-        gap={1.5}
-      >
-        <Box sx={{ minWidth: 0 }}>
-          <Stack direction="row" alignItems="center" gap={1}>
-            <Box
-              sx={{
-                width: 8,
-                height: 8,
-                borderRadius: '50%',
-                flexShrink: 0,
-                bgcolor: cor,
-                boxShadow: `0 0 0 3px ${alpha(cor, 0.22)}`,
-                // o pulso é reservado para o que está vivo agora
-                ...(acontecendo && {
-                  '@keyframes pulsarEvento': {
-                    '0%': { boxShadow: `0 0 0 0 ${alpha(cor, 0.5)}` },
-                    '70%': { boxShadow: `0 0 0 8px ${alpha(cor, 0)}` },
-                    '100%': { boxShadow: `0 0 0 0 ${alpha(cor, 0)}` },
-                  },
-                  animation: 'pulsarEvento 2s ease-out infinite',
-                  '@media (prefers-reduced-motion: reduce)': {
-                    animation: 'none',
-                  },
-                }),
-              }}
-            />
-            <Typography sx={{ fontSize: 17, fontWeight: 700 }}>
-              {event.name}
-            </Typography>
-          </Stack>
-
-          <Typography sx={{ mt: 0.25, fontSize: 13, color: 'text.secondary' }}>
-            {rotulo}
-            {event.status === 'TEST' && ' · em teste'} ·{' '}
-            {formatarPeriodo(event.startDate, event.endDate)} ·{' '}
-            {quandoAcontece(event)}
-          </Typography>
-        </Box>
-
-        <Stack direction="row" gap={1} sx={{ flexShrink: 0 }}>
-          {/* o check-in só existe enquanto o evento acontece */}
-          {acontecendo && (
-            <Button
-              variant="contained"
-              size="small"
-              disableElevation
-              startIcon={<HowToRegOutlined />}
-              onClick={() => navigate(`/admin/eventos/${event.id}/checkin`)}
-              sx={{
-                textTransform: 'none',
-                borderRadius: 2,
-                whiteSpace: 'nowrap',
-              }}
-            >
-              Check-in
-            </Button>
-          )}
-          <Button
-            variant="outlined"
-            size="small"
-            endIcon={<ArrowForward />}
-            onClick={() =>
-              navigate(`/admin/eventos/${event.id}/detalhes/usuarios`)
-            }
+    <ButtonBase
+      onClick={abrir}
+      aria-label={`Abrir ${event.name}`}
+      sx={{
+        display: 'grid',
+        gridTemplateColumns: COLUNAS,
+        alignItems: 'center',
+        columnGap: 2,
+        width: '100%',
+        textAlign: 'left',
+        px: { xs: 1.5, sm: 2 },
+        py: 1.25,
+        borderTop: `1px solid ${alpha(theme.palette.divider, 0.7)}`,
+        transition: theme.transitions.create('background-color'),
+        '&:hover': { bgcolor: theme.palette.background.hover },
+        '&:hover .seta': { transform: 'translateX(2px)' },
+      }}
+    >
+      <Box sx={{ minWidth: 0 }}>
+        <Stack direction="row" alignItems="center" gap={1}>
+          <Box
             sx={{
-              textTransform: 'none',
-              borderRadius: 2,
-              whiteSpace: 'nowrap',
+              width: 8,
+              height: 8,
+              borderRadius: '50%',
+              flexShrink: 0,
+              bgcolor: cor,
+              boxShadow: `0 0 0 3px ${alpha(cor, 0.22)}`,
+              // o pulso é reservado para o que está vivo agora
+              ...(acontecendo && {
+                '@keyframes pulsarEvento': {
+                  '0%': { boxShadow: `0 0 0 0 ${alpha(cor, 0.5)}` },
+                  '70%': { boxShadow: `0 0 0 8px ${alpha(cor, 0)}` },
+                  '100%': { boxShadow: `0 0 0 0 ${alpha(cor, 0)}` },
+                },
+                animation: 'pulsarEvento 2s ease-out infinite',
+                '@media (prefers-reduced-motion: reduce)': {
+                  animation: 'none',
+                },
+              }),
             }}
-          >
-            Abrir evento
-          </Button>
+          />
+          <Typography noWrap sx={{ fontSize: 14.5, fontWeight: 600 }}>
+            {event.name}
+          </Typography>
         </Stack>
-      </Stack>
-
-      <Stack
-        direction="row"
-        gap={{ xs: 2, sm: 3.5 }}
-        flexWrap="wrap"
-        useFlexGap
-        sx={{ mt: 2 }}
-      >
-        <Medida
-          titulo="Vagas"
-          destaque={
-            temTeto
-              ? `${event.seats.taken} de ${event.seats.total}`
-              : `${event.seats.taken}`
-          }
-          barra={
-            temTeto
-              ? {
-                  valor: percentual(event.seats.taken, event.seats.total),
-                  cor: lotado
-                    ? theme.palette.chips.alert
-                    : theme.palette.chips.success,
-                }
-              : undefined
-          }
-          legenda={
-            temTeto
-              ? lotado
-                ? 'lotado'
-                : `${livres} em aberto · ${event.people} pessoa(s)`
-              : `${event.people} pessoa(s) · sem capacidade definida`
-          }
-        />
-
-        <Medida
-          titulo="Recebido"
-          destaque={formatCurrency(event.finance.paid.amount)}
-          barra={{ valor: caixa, cor: theme.palette.chips.success }}
-          legenda={`${caixa}% de ${formatCurrency(event.finance.expected)}`}
-        />
-
-        {/* ritmo some no encerrado: "0 inscrições" depois do fim não é notícia */}
-        {!encerrado && (
-          <Medida
-            titulo="Ritmo"
-            destaque={`${event.pace.last7} inscriç${
-              event.pace.last7 === 1 ? 'ão' : 'ões'
-            }`}
-            legenda={`em 7 dias · ${event.pace.previous7} na semana anterior`}
-          />
-        )}
-
-        {event.waitlist > 0 && (
-          <Medida
-            titulo="Lista de espera"
-            destaque={String(event.waitlist)}
-            legenda={
-              livres && livres > 0
-                ? `${livres} vaga(s) para chamar`
-                : 'sem vaga para chamar'
-            }
-          />
-        )}
-
-        {event.checkin && (
-          <Medida
-            titulo="Check-in"
-            destaque={`${event.checkin.done} de ${event.checkin.total}`}
-            barra={{
-              valor: percentual(event.checkin.done, event.checkin.total),
-              cor: theme.palette.chips.info,
-            }}
-            legenda="concluídos"
-          />
-        )}
-      </Stack>
-
-      {/*
-        A quebra por grupo é a leitura que o total esconde: 145/148 no evento
-        não diz que a equipe fechou em 78/78 enquanto os cursilhistas ainda têm
-        três lugares — e é isso que decide se dá para chamar alguém da espera.
-      */}
-      {event.groups.length > 0 && (
+        <Typography
+          noWrap
+          sx={{ pl: 2, mt: 0.25, fontSize: 12.5, color: 'text.secondary' }}
+        >
+          {formatarPeriodo(event.startDate, event.endDate)} ·{' '}
+          {quandoAcontece(event)}
+          {event.status === 'TEST' && ' · em teste'}
+          {event.checkin &&
+            ` · check-in ${event.checkin.done}/${event.checkin.total}`}
+        </Typography>
+        {/* no celular as leituras descem para baixo do nome, lado a lado */}
         <Stack
           direction="row"
-          gap={0.75}
-          flexWrap="wrap"
-          useFlexGap
-          divider={
-            <Typography
-              component="span"
-              sx={{ fontSize: 12, color: 'text.disabled' }}
-            >
-              ·
-            </Typography>
-          }
-          sx={{ mt: 1.5 }}
+          gap={2}
+          sx={{ display: { xs: 'flex', md: 'none' }, pl: 2, mt: 1 }}
         >
-          {event.groups.map((grupo) => (
-            <Grupo
-              key={grupo.id}
-              nome={grupo.name}
-              taken={grupo.taken}
-              capacity={grupo.capacity}
-            />
-          ))}
+          <Box sx={{ flex: 1, minWidth: 0 }}>{vagas}</Box>
+          <Box sx={{ flex: 1, minWidth: 0 }}>{recebido}</Box>
         </Stack>
-      )}
-    </Box>
+      </Box>
+
+      <Box sx={{ display: { xs: 'none', md: 'block' } }}>{vagas}</Box>
+      <Box sx={{ display: { xs: 'none', md: 'block' } }}>{recebido}</Box>
+
+      <Stack direction="row" alignItems="center" justifyContent="flex-end">
+        {/* o check-in só existe enquanto o evento acontece */}
+        {acontecendo && (
+          <Tooltip title="Check-in">
+            <IconButton
+              size="small"
+              color="primary"
+              aria-label={`Check-in de ${event.name}`}
+              onClick={(evento) => {
+                evento.stopPropagation();
+                navigate(`/admin/eventos/${event.id}/checkin`);
+              }}
+              onMouseDown={(evento) => evento.stopPropagation()}
+            >
+              <HowToRegOutlined fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        )}
+        <ChevronRight
+          className="seta"
+          sx={{
+            color: 'text.secondary',
+            transition: theme.transitions.create('transform'),
+          }}
+        />
+      </Stack>
+    </ButtonBase>
   );
 }
 
 /**
- * Os eventos da igreja, todos do mesmo tamanho.
+ * Os eventos da igreja que importam agora: os que estão acontecendo e os que
+ * vêm a seguir — o encerrado não entra (o dinheiro dele continua cobrado em
+ * "Precisa de você"). Uma linha por evento, como uma tabela: com o cartão de
+ * antes, três eventos já ocupavam a tela inteira.
  *
- * Nenhum ganha cartão próprio: com um evento só, o cartão gigante ocupava meia
- * tela para dizer o que cabe em três linhas; com dois, o segundo virava nota de
- * rodapé do primeiro. Aqui as mesmas leituras ficam numa linha por evento.
+ * Os que acontecem agora vêm primeiro; depois, do mais próximo ao mais longe.
  */
 export function EventsList({ events }: EventsListProps) {
   const theme = useTheme();
   const navigate = useNavigate();
 
   if (events === undefined) {
-    return <Skeleton variant="rounded" height={220} sx={{ borderRadius: 3 }} />;
+    return <Skeleton variant="rounded" height={160} sx={{ borderRadius: 3 }} />;
   }
+
+  const vigentes = events
+    .filter((event) => event.phase !== 'finished')
+    .sort(
+      (a, b) =>
+        Number(b.phase === 'ongoing') - Number(a.phase === 'ongoing') ||
+        a.startDate.localeCompare(b.startDate)
+    );
 
   return (
     <Card elevation={0} sx={{ borderRadius: 3, overflow: 'hidden' }}>
-      {events.length === 0 ? (
-        <Stack alignItems="center" gap={1} sx={{ py: 6, px: 2 }}>
-          <EventBusy sx={{ fontSize: 36, color: 'text.disabled' }} />
+      {vigentes.length === 0 ? (
+        <Stack alignItems="center" gap={1} sx={{ py: 4, px: 2 }}>
+          <EventBusy sx={{ fontSize: 32, color: 'text.disabled' }} />
           <Typography color="text.secondary" fontSize={14}>
-            Nenhum evento cadastrado ainda.
+            Nenhum evento acontecendo ou a caminho.
           </Typography>
           <Button
             variant="outlined"
             size="small"
             onClick={() => navigate('/admin/eventos/cadastro')}
-            sx={{ mt: 1, textTransform: 'none', borderRadius: 2 }}
+            sx={{ mt: 0.5, textTransform: 'none', borderRadius: 2 }}
           >
-            Criar o primeiro evento
+            Criar evento
           </Button>
         </Stack>
       ) : (
-        events.map((event, indice) => (
-          <Box key={event.id}>
-            {indice > 0 && (
-              <Divider
-                sx={{ borderColor: alpha(theme.palette.divider, 0.7) }}
-              />
-            )}
-            <LinhaDoEvento event={event} />
+        <>
+          {/* cabeçalho só na tela larga, onde as colunas existem */}
+          <Box
+            sx={{
+              display: { xs: 'none', md: 'grid' },
+              gridTemplateColumns: COLUNAS,
+              columnGap: 2,
+              px: 2,
+              py: 1,
+              bgcolor: alpha(theme.palette.text.primary, 0.03),
+              '& > *': {
+                fontSize: 11,
+                fontWeight: 700,
+                letterSpacing: '0.06em',
+                textTransform: 'uppercase',
+                color: 'text.secondary',
+              },
+            }}
+          >
+            <Box component="span" sx={{ pl: 2 }}>
+              Evento
+            </Box>
+            <Box component="span">Vagas</Box>
+            <Box component="span">Recebido</Box>
+            <span />
           </Box>
-        ))
+          {vigentes.map((event) => (
+            <LinhaDoEvento key={event.id} event={event} />
+          ))}
+        </>
       )}
     </Card>
   );
