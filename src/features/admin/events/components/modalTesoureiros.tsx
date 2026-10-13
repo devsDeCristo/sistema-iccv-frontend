@@ -70,8 +70,8 @@ interface Props {
 /**
  * Os tesoureiros(as) do evento: quem cuida da tesouraria dele sem ser admin
  * nem tesouraria da igreja. O admin da igreja do evento escolhe a pessoa (a
- * mesma busca de Membros: CPF completo ou dois nomes) e o tipo; a API recusa
- * quem já é admin ou tesouraria da igreja, que já vê tudo.
+ * mesma busca de Membros: CPF completo ou dois nomes) e o tipo. Qualquer
+ * perfil entra: o vínculo só soma, e vale o maior.
  */
 function ModalTesoureiros({ open, eventId, churchId, onClose }: Props) {
   const { data: tesoureiros = [], isLoading } = useGetTesoureiros(

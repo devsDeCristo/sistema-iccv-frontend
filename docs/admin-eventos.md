@@ -145,8 +145,8 @@ Configurações de inscrição, Produtos.
   cara (busca local, sem acento) e, com o CPF completo ou nome e sobrenome,
   busca os usuários do sistema (`useBuscarPessoas`, a busca de Membros). É
   **só aqui** (e na edição) que se dá e tira admin de evento; os tesoureiros
-  também se alocam pela Tesouraria. Quem já é admin da igreja (ou tesouraria,
-  como tesoureiro) a API recusa com o nome. `FormEquipe` e `equipeParaEnvio`
+  também se alocam pela Tesouraria. Qualquer perfil entra (o vínculo só soma,
+  e vale o maior), e a API não recusa por perfil. `FormEquipe` e `equipeParaEnvio`
   em `components/formEquipe.tsx`; vai em `adminIds` e `tesoureiros`.
 
 Ao finalizar, o formulário reúne os dados de todos os passos num único envio

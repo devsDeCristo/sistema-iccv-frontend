@@ -270,8 +270,8 @@ function Secao({
 /**
  * Quem cuida deste evento sem ser admin da igreja: os admins do evento e os
  * tesoureiros(as). É aqui, no cadastro e na edição do evento, que se dá e se
- * tira esse acesso (a Tesouraria também aloca tesoureiros). Quem já é admin
- * da igreja, ou tesouraria dela, já vê o evento todo: a API recusa.
+ * tira esse acesso (a Tesouraria também aloca tesoureiros). Qualquer perfil
+ * entra: o vínculo só soma, e vale o maior.
  */
 function FormEquipe({ churchId }: { churchId: string | null }) {
   const { watch, setValue } = useFormContext<EquipeFormType>();
