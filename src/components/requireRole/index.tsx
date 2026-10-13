@@ -97,8 +97,9 @@ function RequireEventRole({
   if (isError) return <Navigate to={redirectTo} replace />;
 
   // sem a igreja não dá para decidir, e chutar aqui é redirecionar quem tem
-  // permissão ou piscar a tela para quem não tem
-  if (!resolvido) return <Carregando />;
+  // permissão ou piscar a tela para quem não tem. O super admin sai
+  // "resolvido" antes de o evento chegar: o plano abaixo precisa dele
+  if (!resolvido || !event) return <Carregando />;
 
   if (!isAdminDoEvento) return <Navigate to={redirectTo} replace />;
 
