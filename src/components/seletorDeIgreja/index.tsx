@@ -4,63 +4,62 @@ import {
   TODAS_AS_IGREJAS,
 } from '../../features/settings/shared/churchScopeBar';
 import { useIgrejasDoSeletor } from '../../hooks/useIgrejasDoSeletor';
+import { useRole } from '../../hooks/useRole';
 
 interface SeletorDeIgrejaProps {
-  /** a igreja escolhida, ou `'all'` para "Todas as igrejas" */
+  /** a igreja escolhida, ou `'all'` para a visão DEV (sistema) */
   value: string;
   onChange: (churchId: string) => void;
-  /**
-   * Telas que a tesouraria também usa (home, eventos) oferecem as igrejas
-   * onde ele é tesouraria; as de admin (notícias, usuários), só as que a
-   * pessoa administra.
-   */
-  incluirTesouraria?: boolean;
 }
 
+/** O rótulo da visão sem igreja: o sistema, de quem cuida dele */
+const VISAO_DEV = 'DEV';
+
 /**
- * O seletor de igreja padrão das listagens — multitenant.
+ * O seletor de igreja da home do painel.
  *
- * Vai sempre no canto superior direito da página, como `children` do
- * `Header`, e tem o mesmo desenho do seletor das Configurações
- * (`ChurchScopeBar`): "Igreja selecionada" seguido do alternador. Um lugar e
- * um desenho só, para ninguém procurar a igreja em cada tela de um jeito.
+ * As telas dos módulos são sempre de **uma** igreja, a escolhida, e mostram
+ * exatamente o que o admin dela vê (`useIgrejaSelecionada` + `ChurchScopeBar`).
+ * A home é a exceção por ser também a do dev e do super admin: para eles há a
+ * opção **DEV**, a visão do sistema (`'all'`), que é o padrão deles. Quem
+ * trabalha em igreja escolhe uma das suas — com uma só, ela vem sozinha, e
+ * com várias a home pede a escolha.
  *
- * - Super admin e dev escolhem entre todas as igrejas; os demais, entre as
- *   suas (`useIgrejasDoSeletor`).
- * - "Todas as igrejas" (`'all'`) é a primeira opção e o padrão das listagens.
- * - Com uma igreja só não há o que escolher, e o seletor não aparece.
- * - Uma escolha que deixou de valer (igreja apagada, vínculo removido) volta
- *   para "Todas", em vez de esvaziar a lista sem explicação.
+ * Uma escolha que deixou de valer (igreja apagada, vínculo removido) volta
+ * para DEV, para quem tem, ou para nenhuma.
  */
-function SeletorDeIgreja({
-  value,
-  onChange,
-  incluirTesouraria = false,
-}: SeletorDeIgrejaProps) {
-  const { igrejas, mostraSeletor, carregando } = useIgrejasDoSeletor({
-    incluirTesouraria,
+function SeletorDeIgreja({ value, onChange }: SeletorDeIgrejaProps) {
+  const { isSuperAdmin } = useRole();
+  const { igrejas, carregando } = useIgrejasDoSeletor({
+    incluirTesouraria: true,
   });
 
   const valida =
-    value === TODAS_AS_IGREJAS || igrejas.some((igreja) => igreja.id === value);
+    (isSuperAdmin && value === TODAS_AS_IGREJAS) ||
+    igrejas.some((igreja) => igreja.id === value);
+  const padrao = isSuperAdmin
+    ? TODAS_AS_IGREJAS
+    : igrejas.length === 1
+      ? igrejas[0].id
+      : '';
 
   useEffect(() => {
-    // enquanto a lista do super admin carrega, a escolha salva é mantida —
-    // senão o seletor piscaria para "Todas" e voltaria
-    if (!carregando && !valida) onChange(TODAS_AS_IGREJAS);
-  }, [carregando, valida, onChange]);
+    // enquanto a lista do super admin carrega, a escolha salva é mantida
+    if (!carregando && !valida && value !== padrao) onChange(padrao);
+  }, [carregando, valida, value, padrao, onChange]);
 
-  if (!mostraSeletor && !carregando) return null;
+  // com uma igreja só e sem a visão DEV não há o que escolher
+  if (!isSuperAdmin && igrejas.length <= 1 && !carregando) return null;
 
   return (
     <ChurchScopeBar
-      todas
+      todas={isSuperAdmin ? VISAO_DEV : undefined}
       escopo={{
         igrejas,
-        churchId: valida ? value : TODAS_AS_IGREJAS,
+        churchId: valida ? value : null,
         escolher: onChange,
         carregando,
-        podeTrocar: mostraSeletor,
+        podeTrocar: true,
       }}
     />
   );

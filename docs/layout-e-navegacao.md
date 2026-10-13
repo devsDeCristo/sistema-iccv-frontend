@@ -226,12 +226,27 @@ igreja" para super admin ou dev.
   caixa já dizem o que é. Nome longo de igreja corta com reticências. Vale
   também para o seletor das Configurações, que é o mesmo `ChurchScopeBar`.
 
-- **Componente `SeletorDeIgreja`** (`src/components/seletorDeIgreja`): o
-  padrão das listagens (notícias, usuários, eventos, início). Por dentro usa o
-  `ChurchScopeBar` das Configurações com a opção **"Todas as igrejas"**
-  (`'all'`), que é o padrão. Esconde-se quando só há uma igreja e devolve
-  "Todas" quando a escolha deixou de valer. As telas só passam `value` e
-  `onChange`.
+- **Sempre uma igreja:** as telas dos módulos (Eventos, Notícias, Membros,
+  Tesouraria, Configurações) usam `useIgrejaSelecionada` + `ChurchScopeBar`.
+  Não há "Todas as igrejas": a tela é de uma igreja e mostra **exatamente o
+  que o admin dela vê** (sem coluna de igreja nas listas). Com uma igreja só,
+  ela vem sozinha; com várias e nenhuma escolhida, a tela pede a escolha. O
+  seletor lista todas as igrejas da pessoa, **com ou sem o módulo**: escolhida
+  uma que não tem o módulo da tela, o `RequireRole` (com `modulo`) mostra o
+  aviso `ForaDoPlano` — "<igreja> não tem o módulo <X>", com o seletor no
+  topo para trocar e o botão "Ver planos" (Meus planos) ou, para dev e super
+  admin, "Mudar o plano" (Igrejas). Vale para dev e super admin também: o
+  plano vem de `useModulos().planoDaIgreja`, que para eles lê a lista de
+  igrejas. Até 13/10/2026 Eventos e Notícias tinham "Todas as igrejas", e o
+  seletor das outras telas só oferecia as igrejas com o módulo.
+- **Componente `SeletorDeIgreja`** (`src/components/seletorDeIgreja`): só da
+  home. Por dentro é o mesmo `ChurchScopeBar`, com a opção **DEV** (`'all'`,
+  a visão do sistema) para dev e super admin — o `todas` do `ChurchScopeBar`
+  é o rótulo dessa opção.
+- **A escolha anda junto entre componentes:** o `useFiltroSalvo` avisa as
+  outras instâncias com a mesma chave quando grava (evento `filtro-salvo`), e
+  elas releem. É o que faz a troca de igreja no seletor da página valer na
+  hora para o guarda da rota, que também lê a escolha.
 - **Uma escolha só para o painel inteiro (`useIgrejaEscolhida`):** fica no
   `localStorage` (`useFiltroSalvo`, separada por usuário). Escolher a Filial
   em Notícias abre Usuários, Eventos, Início e Configurações já na Filial, e

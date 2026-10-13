@@ -10,7 +10,8 @@ const ehTexto = (valor: unknown): valor is string => typeof valor === 'string';
  * Fica no `localStorage` (via `useFiltroSalvo`, separada por usuário): quem
  * escolhe "ICCV Filial" em Notícias encontra Usuários, Eventos, Início e
  * Configurações já na Filial, sem reescolher a cada módulo, e continua nela
- * ao voltar outro dia. `'all'` é "Todas as igrejas", o padrão.
+ * ao voltar outro dia. As telas dos módulos exigem uma igreja; `'all'` é só a
+ * visão DEV da home (dev e super admin).
  */
 export function useIgrejaEscolhida() {
   return useFiltroSalvo('igreja', TODAS_AS_IGREJAS, ehTexto);

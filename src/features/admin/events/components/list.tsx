@@ -181,18 +181,9 @@ function List({
         />
       ),
     },
+    // sem coluna de igreja: a lista é sempre de uma igreja, a do seletor —
+    // e o super admin vê exatamente o que o admin dela vê
     { field: 'name', headerName: 'Nome', flex: 2, minWidth: 180 },
-    // a coluna só faz sentido para quem enxerga mais de uma igreja
-    ...(isSuperAdmin
-      ? [
-          {
-            field: 'church',
-            headerName: 'Igreja',
-            width: 170,
-            valueGetter: (params: any) => params.row.church?.name || '—',
-          },
-        ]
-      : []),
     {
       // início e fim numa coluna só. O valor é a data de início, e não o
       // texto: ordenar por "dd/mm/aaaa" poria 01/12 antes de 31/01. O texto

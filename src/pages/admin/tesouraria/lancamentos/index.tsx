@@ -70,7 +70,7 @@ const dia = (data: Date) => format(data, 'yyyy-MM-dd');
 function Lancamentos() {
   const theme = useTheme();
   // a tesouraria também usa: é a tela dela
-  const escopo = useIgrejaSelecionada(true, 'TREASURY');
+  const escopo = useIgrejaSelecionada(true);
   const churchId = escopo.churchId;
 
   // abre no mês corrente, até hoje

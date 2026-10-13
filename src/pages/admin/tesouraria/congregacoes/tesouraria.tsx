@@ -21,7 +21,7 @@ const LISTA = '/admin/tesouraria/congregacoes';
  */
 function TesourariaDaCongregacao() {
   const { id, aba } = useParams();
-  const escopo = useIgrejaSelecionada(true, 'TREASURY');
+  const escopo = useIgrejaSelecionada(true);
   const churchId = escopo.churchId;
   const { data: tesouraria, isLoading } = useTesouraria(churchId, id);
 

@@ -45,7 +45,7 @@ const invalidar = () =>
  * primeira; um seletor para ele, quando aparecer o caso.
  */
 export function useIgrejaDaTesouraria() {
-  const escopo = useIgrejaSelecionada(true, 'TREASURY');
+  const escopo = useIgrejaSelecionada(true);
   const { soTesoureiroDeEvento, eventTreasurers } = useRole();
   const churchId = soTesoureiroDeEvento
     ? (eventTreasurers.find(

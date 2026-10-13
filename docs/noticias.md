@@ -27,16 +27,16 @@ Arquivos: `src/features/news/components/newsFeed.tsx`,
 ## Administração (`/admin/noticias`)
 
 **Seletor de igreja (multitenant).** No canto superior direito, o seletor
-padrão (`SeletorDeIgreja`, ver `docs/layout-e-navegacao.md`), com a mesma
+padrão (`ChurchScopeBar`, ver `docs/layout-e-navegacao.md`), com a mesma
 escolha de igreja dos outros módulos:
 
 - super admin e dev escolhem entre todas as igrejas;
 - quem administra várias escolhe entre as suas;
 - com uma só, o seletor fica escondido.
 
-O padrão é **"Todas as igrejas"**, todas as que a pessoa alcança; escolher uma
-recorta a lista e o calendário. Na lista, a linha de baixo do título mostra a
-igreja de cada notícia.
+A tela é sempre de **uma** igreja (`useIgrejaSelecionada`, sem "Todas as
+igrejas"): sem escolha, ela pede uma; a lista e o calendário são dela, e a
+linha de baixo do título não repete a igreja.
 
 Lista em grade (`NewsAdminList`) com busca por título/chamada e botão "Nova
 notícia". São quatro colunas, só o necessário para decidir o que fazer com a

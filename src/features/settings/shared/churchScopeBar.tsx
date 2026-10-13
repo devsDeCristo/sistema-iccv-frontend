@@ -23,13 +23,14 @@ interface Props {
   /** O que está sendo configurado, para o aviso na hora de trocar */
   oQueMuda?: string;
   /**
-   * Oferece "Todas as igrejas" (valor `'all'`) — o padrão das listagens. As
-   * telas de configuração não têm: lá tudo é de uma igreja.
+   * Oferece, antes das igrejas, a visão sem igreja (valor `'all'`), com este
+   * rótulo. Só a home do super admin e do dev tem ("DEV", o sistema): as telas
+   * dos módulos são sempre de uma igreja.
    */
-  todas?: boolean;
+  todas?: string;
 }
 
-/** O valor de "Todas as igrejas" no seletor */
+/** O valor da visão sem igreja (a DEV, da home) no seletor */
 export const TODAS_AS_IGREJAS = 'all';
 
 /**
@@ -49,13 +50,13 @@ export const TODAS_AS_IGREJAS = 'all';
  * clique. Esconder a linha faria a tela do admin parecer "a configuração do
  * sistema", que é justamente a leitura errada.
  */
-function ChurchScopeBar({ escopo, oQueMuda, todas = false }: Props) {
+function ChurchScopeBar({ escopo, oQueMuda, todas }: Props) {
   const theme = useTheme();
   const [menu, setMenu] = useState<HTMLElement | null>(null);
   const { igrejas, churchId, escolher, carregando, podeTrocar } = escopo;
 
   const atual = igrejas.find((igreja) => igreja.id === churchId);
-  const emTodas = todas && churchId === TODAS_AS_IGREJAS;
+  const emTodas = !!todas && churchId === TODAS_AS_IGREJAS;
 
   const styles = {
     /**
@@ -144,7 +145,7 @@ function ChurchScopeBar({ escopo, oQueMuda, todas = false }: Props) {
       >
         {/* nenhuma escolhida ainda: com várias, a tela não escolhe sozinha */}
         {emTodas
-          ? 'Todas as igrejas'
+          ? todas
           : (atual?.name ?? (podeTrocar ? 'Escolha a igreja' : '—'))}
       </Box>
 
@@ -262,7 +263,7 @@ function ChurchScopeBar({ escopo, oQueMuda, todas = false }: Props) {
               {emTodas && <Check fontSize="small" color="primary" />}
             </ListItemIcon>
             <Typography noWrap fontSize={14} fontWeight={emTodas ? 600 : 400}>
-              Todas as igrejas
+              {todas}
             </Typography>
           </MenuItem>
         )}

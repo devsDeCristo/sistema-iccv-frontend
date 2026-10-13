@@ -14,11 +14,13 @@ inscrição por grupo também (`docs/inscricao-em-grupos.md`).
   da lista; numa igreja escolhida, o total diz "Nesta igreja".
 - **Filtros:** busca por nome e status (Ativos/Inativos/Em teste/Todos), salvos
   no navegador entre visitas.
-- **Igreja:** escolhida no seletor padrão, no canto superior direito
-  (`SeletorDeIgreja`), com a mesma escolha dos outros módulos. Ele aparece para
-  o super admin e para quem administra ou é tesouraria em mais de uma igreja.
-  Quem tem uma igreja só vê os eventos dela, sem seletor. Se a igreja escolhida
-  deixou de existir ou de pertencer à pessoa, volta para "Todas" em silêncio.
+- **Igreja:** sempre uma, escolhida no seletor do canto superior direito
+  (`useIgrejaSelecionada` + `ChurchScopeBar`), com a mesma escolha dos outros
+  módulos — entram as igrejas de admin, de tesouraria e as dos eventos de que
+  a pessoa é tesoureira ou admin. Com uma só ela vem sozinha; com várias e
+  nenhuma escolhida, a tela pede a escolha. A lista é exatamente a do admin
+  daquela igreja: sem coluna de igreja, também para o super admin. Igreja sem
+  Eventos no plano mostra o aviso de fora do plano (`docs/layout-e-navegacao.md`).
 - **Ordem das colunas:** Tipo (chip Cursilho/Retiro) vem antes do Nome, logo
   depois da caixa de seleção: é por ele que se bate o olho na lista.
 - **Período:** início e fim numa coluna só, em duas linhas ("04/02/2027" e,

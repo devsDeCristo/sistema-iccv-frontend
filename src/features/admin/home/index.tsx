@@ -1,19 +1,20 @@
-import { Box, Stack } from '@mui/material';
+import { Alert, Box, Stack } from '@mui/material';
 import {
   SeletorDeIgreja,
   TODAS_AS_IGREJAS,
 } from '../../../components/seletorDeIgreja';
 import { useIgrejaEscolhida } from '../../../hooks/useIgrejaEscolhida';
+import { useRole } from '../../../hooks/useRole';
 import { Header } from '../../../components/header';
 import { PageStyle } from '../../../components/pageStyle';
 import { useGetDashboard } from './api/getDashboard';
 import { ChurchBreakdown } from './components/churchBreakdown';
-import { ChurchKpis } from './components/churchKpis';
 import { ChurchRankings } from './components/churchRankings';
 import { EventEarnings } from './components/eventEarnings';
 import { EventsList } from './components/eventsList';
 //import { FinanceSummary } from './components/financeSummary';
 import { Hero } from './components/hero';
+import { ModulosDaIgreja } from './components/modulosDaIgreja';
 import { NewsBoard } from './components/newsBoard';
 import { PendingActions } from './components/pendingActions';
 import { RecentRegistrations } from './components/recentRegistrations';
@@ -59,16 +60,22 @@ interface HomeProps {
  */
 export function Home({ churchId }: HomeProps = {}) {
   /**
-   * Multitenant: no `/admin/inicio`, quem alcança mais de uma igreja escolhe
-   * qual ver — "Todas as igrejas" é o padrão. Aberta pela lista de igrejas, a
-   * home já vem com a igreja e não mostra o seletor.
+   * Multitenant: no `/admin/inicio`, a home é sempre de uma igreja, a
+   * escolhida — a mesma em todos os módulos (`useIgrejaEscolhida`) —, e
+   * mostra o que o admin dela vê. A exceção é a visão **DEV** (`'all'`), o
+   * sistema, que só dev e super admin têm (e é o padrão deles). Aberta pela
+   * lista de igrejas, a home já vem com a igreja e não mostra o seletor.
    */
-  // a mesma escolha de todos os módulos (`useIgrejaEscolhida`)
+  const { isSuperAdmin } = useRole();
   const [escolhida, setEscolhida] = useIgrejaEscolhida();
+  const visaoDev = isSuperAdmin && escolhida === TODAS_AS_IGREJAS;
   const igrejaDaTela =
-    churchId ?? (escolhida === TODAS_AS_IGREJAS ? undefined : escolhida);
+    churchId ??
+    (escolhida && escolhida !== TODAS_AS_IGREJAS ? escolhida : undefined);
+  // sem igreja e sem a visão DEV: a home pede a escolha, e não consulta nada
+  const escolheuAlgo = !!churchId || visaoDev || !!igrejaDaTela;
 
-  const { data } = useGetDashboard(igrejaDaTela);
+  const { data } = useGetDashboard(igrejaDaTela, { enabled: escolheuAlgo });
 
   /**
    * A igreja aberta vem da própria resposta, e não da lista de igrejas: assim
@@ -78,7 +85,7 @@ export function Home({ churchId }: HomeProps = {}) {
   const igreja = data?.churches?.[0];
 
   // quem vê várias igrejas precisa saber de qual é cada tarefa — o super admin
-  // no sistema e quem administra mais de uma em "Todas as igrejas"
+  // e o dev na visão DEV
   const varias = data?.scope === 'system' || (data?.churches?.length ?? 0) > 1;
 
   /**
@@ -117,18 +124,27 @@ export function Home({ churchId }: HomeProps = {}) {
                 '&:empty': { display: 'none' },
               }}
             >
-              <SeletorDeIgreja
-                value={escolhida}
-                onChange={setEscolhida}
-                incluirTesouraria
-              />
+              <SeletorDeIgreja value={escolhida} onChange={setEscolhida} />
             </Box>
-            <Hero churches={data?.churches} role={data?.role} />
+            {escolheuAlgo ? (
+              <Hero churches={data?.churches} role={data?.role} />
+            ) : (
+              <Alert severity="info">
+                Escolha no topo da página de qual igreja é o painel.
+              </Alert>
+            )}
           </>
         )}
 
-        {/* a igreja em números: só os eventos em jogo */}
-        {data?.events && !data.treasury && <ChurchKpis events={data.events} />}
+        {/*
+          Os módulos da igreja, cada um com o número que a resume nele: a home
+          não é só eventos. Fora do plano, o card fica apagado e leva a Meus
+          planos. (A régua de números dos eventos que ficava aqui saiu: o card
+          de Eventos e a lista logo abaixo já contam isso.)
+        */}
+        {data?.resumo && (
+          <ModulosDaIgreja resumo={data.resumo} churchId={igrejaDaTela} />
+        )}
 
         {/* a da tesouraria é só dinheiro — vaga e ritmo não são decisão dela */}
         {data?.events && data.treasury && (

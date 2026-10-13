@@ -16,7 +16,7 @@ que chegue sem seção.
 
 | Perfil | O que abre | Blocos exclusivos |
 | --- | --- | --- |
-| Admin de igreja | a home da igreja dele (`scope: 'church'`) | `ChurchKpis`, lista de eventos, mural (`news`), últimas inscrições |
+| Admin de igreja | a home da igreja dele (`scope: 'church'`) | cards dos módulos (`ModulosDaIgreja`), lista de eventos, mural (`news`), últimas inscrições |
 | Tesouraria | a home da igreja dele, mesmo layout | `TreasuryKpis` e `EventEarnings` no lugar dos números e da lista de eventos do admin |
 | Super admin | panorama do sistema (`scope: 'system'`) | `SystemKpis`, comparativo entre igrejas, lista de igrejas, base de usuários |
 | Dev | mesmo panorama do super admin | `SystemInsights` (indicadores de funcionamento), além dos blocos do super admin |
@@ -25,13 +25,16 @@ Arquivos: `src/pages/admin/home/routes/index.tsx`, `src/auth/functions/authLoade
 
 ## Seletor de igreja (multitenant)
 
-No `/admin/inicio`, quem alcança mais de uma igreja (super admin, dev, admin
-ou tesouraria de várias) tem o seletor padrão (`SeletorDeIgreja`) no canto
-superior direito, com a mesma escolha de igreja dos outros módulos. O padrão é
-**"Todas as igrejas"**, a home de sempre. Escolher uma abre a home daquela
-igreja (`GET /dashboard?churchId=…`), com o perfil que a pessoa tem **nela**:
-quem é tesouraria na igreja vê a home da tesouraria. O seletor recebe
-`incluirTesouraria`, porque a home também é da tesouraria. Na home aberta pela lista de igrejas (`churchHome`) o seletor não
+No `/admin/inicio` o seletor (`SeletorDeIgreja`, no canto superior direito)
+usa a mesma escolha de igreja dos outros módulos. A home é **sempre de uma
+igreja**, e mostra o que o admin dela vê (`GET /dashboard?churchId=…`), com o
+perfil que a pessoa tem **nela**: quem é tesouraria na igreja vê a home da
+tesouraria. A exceção é a opção **DEV** (`'all'`), a visão do sistema, que só
+dev e super admin têm — e é o padrão deles. Quem trabalha em igreja escolhe
+uma das suas (as de tesouraria também): com uma só ela vem sozinha e o
+seletor some; com várias e nenhuma escolhida, a home pede a escolha e não
+consulta a API. Até 13/10/2026 havia "Todas as igrejas", que somava as igrejas
+da pessoa. Na home aberta pela lista de igrejas (`churchHome`) o seletor não
 aparece, porque a igreja já veio na URL.
 
 - **De qual igreja é cada pendência:** aparece o nome da igreja sempre que a
@@ -64,11 +67,20 @@ Todos os números somam só os **eventos em jogo**: os ativos, ou o último
 encerrado quando não há nenhum aberto ou a caminho (nesse caso o título da
 lista vira "Último evento encerrado" em vez de "Eventos ativos").
 
-- **KPIs do admin (`ChurchKpis`):** eventos ativos (com a composição
-  acontecendo/a caminho/encerrados), inscritos de vagas, lista de espera e
-  comprovantes a conferir. Ocupação olha só o que não terminou; dinheiro olha
-  todos os eventos, porque cobrança em aberto não desaparece com o fim do
-  cursilho.
+- **Cards dos módulos (`ModulosDaIgreja`)**, logo abaixo da saudação, para
+  admin e tesouraria: Membros, Eventos, Notícias (só para quem é admin da
+  igreja) e Tesouraria, cada um com o número que resume a igreja nele (o
+  `resumo` da API: membros, famílias e pedidos; eventos ativos e inscrições em
+  30 dias; notícias publicadas em 30 dias e rascunhos; entradas e saídas do
+  mês). O card leva ao módulo. **Fora do plano**, o card fica apagado, com
+  borda tracejada e cadeado, diz "Fora do seu plano · Ver planos" e leva a
+  **Meus planos** (`/admin/meus-planos`). O plano vem da API (`resumo.modulos`) e não do acesso
+  de quem olha: super admin e dev, que alcançam todos os módulos, veem a
+  igreja como ela é, e o card apagado diz "Fora do plano da igreja · Mudar o
+  plano" e leva a Igrejas, onde se troca o plano. Até 13/10/2026 aqui ficavam os KPIs de evento
+  (`ChurchKpis`: eventos ativos, inscritos, lista de espera, a conferir); saíram
+  para a home não ser só eventos — o card de Eventos e a lista logo abaixo já
+  contam isso.
 - **KPIs da tesouraria (`TreasuryKpis`):** aparece no lugar do anterior
   quando a API manda `treasury` preenchido. Só dinheiro — recebido, a
   receber, a conferir e quantas pessoas devem. Vaga, ritmo e lista de espera
@@ -95,7 +107,7 @@ lista vira "Último evento encerrado" em vez de "Eventos ativos").
   Notícias, o mural não vem. O mural aparece sozinho (largura inteira) quando
   as inscrições não vêm.
 
-Arquivos: `src/features/admin/home/components/churchKpis.tsx`, `treasuryKpis.tsx`, `eventsList.tsx`, `eventEarnings.tsx`, `pendingActions.tsx`, `recentRegistrations.tsx`, `newsBoard.tsx`.
+Arquivos: `src/features/admin/home/components/modulosDaIgreja.tsx`, `treasuryKpis.tsx`, `eventsList.tsx`, `eventEarnings.tsx`, `pendingActions.tsx`, `recentRegistrations.tsx`, `newsBoard.tsx`.
 
 ## Panorama do super admin e do dev
 

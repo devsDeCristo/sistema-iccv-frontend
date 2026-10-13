@@ -6,6 +6,7 @@ import { useEventRole } from '../../hooks/useEventRole';
 import { useGetEvents } from '../../features/admin/events/api/getEvents';
 import { EventDetails } from '../../features/admin/events/types';
 import { useModulos } from '../../hooks/useModulos';
+import { useIgrejaEscolhida } from '../../hooks/useIgrejaEscolhida';
 import { ModuloDaIgreja } from '../../constants/modulos';
 import { ForaDoPlano } from '../foraDoPlano';
 
@@ -48,9 +49,17 @@ function RequireRole({
   aceitaTesoureiro,
   aceitaAdminDeEvento,
 }: RequireRoleProps) {
-  const { role, eventTreasurers, eventAdmins, temTesoureiroCompleto } =
-    useRole();
-  const { temModulo } = useModulos();
+  const {
+    role,
+    eventTreasurers,
+    eventAdmins,
+    temTesoureiroCompleto,
+    isSuperAdmin,
+    perfilNaIgreja,
+  } = useRole();
+  const { temModulo, planoDaIgreja } = useModulos();
+  // a igreja do seletor, a mesma em todas as telas
+  const [escolhida] = useIgrejaEscolhida();
 
   if (role === null || !allowedRoles.includes(role)) {
     const comoTesoureiro =
@@ -66,6 +75,21 @@ function RequireRole({
   // tesoureiro(a) e admin de evento também: a sessão traz o plano da igreja
   // do evento
   if (modulo && !temModulo(modulo)) return <ForaDoPlano modulo={modulo} />;
+
+  /**
+   * A igreja escolhida no seletor não tem o módulo: a tela diz isso, com o
+   * seletor para trocar — para o super admin também, que vê a igreja como
+   * ela é. Só conta igreja em que a pessoa tem o perfil da rota: uma
+   * escolhida em outra tela (onde ela é só tesouraria, por exemplo) nem
+   * entra na lista desta.
+   */
+  const perfilAqui = perfilNaIgreja(escolhida);
+  const escolhidaVale =
+    isSuperAdmin || (perfilAqui !== null && allowedRoles.includes(perfilAqui));
+  const plano = modulo && escolhidaVale ? planoDaIgreja(escolhida) : undefined;
+  if (modulo && plano && !plano.includes(modulo)) {
+    return <ForaDoPlano modulo={modulo} churchId={escolhida} />;
+  }
 
   return <>{children}</>;
 }

@@ -12,7 +12,7 @@ import { PluggyIntegrationCard } from '../../../features/settings/integrations/p
  */
 function IntegrationsSettings() {
   // a tesouraria também configura: a Pluggy alimenta o módulo dela
-  const escopo = useIgrejaSelecionada(true, 'TREASURY');
+  const escopo = useIgrejaSelecionada(true);
 
   return (
     <PageStyle>

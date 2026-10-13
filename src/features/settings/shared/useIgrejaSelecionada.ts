@@ -3,7 +3,6 @@ import { useIgrejaEscolhida } from '../../../hooks/useIgrejaEscolhida';
 import { useRole } from '../../../hooks/useRole';
 import { Role } from '../../../constants/roles';
 import { useGetChurches } from '../../admin/churches/api/getChurches';
-import { ModuloDaIgreja } from '../../../constants/modulos';
 
 export interface IgrejaDoPainel {
   id: string;
@@ -43,17 +42,15 @@ export interface EscopoDeIgreja {
  * ficam só com as igrejas em que a pessoa é admin, porque é o que a API delas
  * aceita.
  *
- * `modulo`: a tela é de um módulo do plano, e só as igrejas com ele no plano
- * entram na lista — as outras a API recusa. Sem nenhuma, quem avisa é a rota
- * (`RequireRole` com `modulo`). Dev e super admin veem todos os módulos de
- * todas as igrejas: para eles a lista não é recortada.
+ * O plano não recorta a lista: entram todas as igrejas da pessoa, e a igreja
+ * escolhida que não tem o módulo da tela aparece "fora do plano" — quem avisa
+ * é a rota (`RequireRole` com `modulo`), com este mesmo seletor para trocar.
  *
  * `incluirTesoureiroDeEvento`: a tela também é de quem é tesoureiro(a) de um
  * evento (ou admin de um) — entram as igrejas dos eventos dele (Membros).
  */
 export function useIgrejaSelecionada(
   incluirTesouraria = false,
-  modulo?: ModuloDaIgreja,
   incluirTesoureiroDeEvento = false
 ): EscopoDeIgreja {
   const { isSuperAdmin, churchRoles, eventTreasurers, eventAdmins } = useRole();
@@ -69,19 +66,14 @@ export function useIgrejaSelecionada(
     const dosVinculos = churchRoles
       .filter(
         (vinculo) =>
-          (vinculo.role === Role.ADMIN ||
-            (incluirTesouraria && vinculo.role === Role.TESOURARIA)) &&
-          (!modulo || vinculo.church.modulos?.includes(modulo))
+          vinculo.role === Role.ADMIN ||
+          (incluirTesouraria && vinculo.role === Role.TESOURARIA)
       )
       .map(({ church: { id, name } }) => ({ id, name }));
     if (!incluirTesoureiroDeEvento) return dosVinculos;
     // a igreja de cada evento dele, uma vez só
     const dosEventos = [...eventTreasurers, ...eventAdmins]
-      .filter(
-        (t) =>
-          !dosVinculos.some((igreja) => igreja.id === t.churchId) &&
-          (!modulo || t.modulos?.includes(modulo))
-      )
+      .filter((t) => !dosVinculos.some((igreja) => igreja.id === t.churchId))
       .map((t) => ({ id: t.churchId, name: t.churchName ?? 'Igreja' }))
       .filter(
         (igreja, i, todas) =>
@@ -96,12 +88,11 @@ export function useIgrejaSelecionada(
     eventAdmins,
     incluirTesouraria,
     incluirTesoureiroDeEvento,
-    modulo,
   ]);
 
   // A mesma escolha de todos os módulos (`useIgrejaEscolhida`, no
   // `localStorage`): quem escolheu a Filial em Notícias abre Pagamentos e
-  // WhatsApp já na Filial. "Todas as igrejas" não serve aqui — a configuração
+  // WhatsApp já na Filial. A visão DEV da home (`'all'`) não serve aqui — a tela
   // é sempre de uma —, e então a tela pede a escolha.
   const [escolhida, setEscolhida] = useIgrejaEscolhida();
 

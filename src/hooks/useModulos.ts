@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { ModuloDaIgreja } from '../constants/modulos';
 import { useRole } from './useRole';
+import { useGetChurches } from '../features/admin/churches/api/getChurches';
 
 /**
  * Os módulos das igrejas que a pessoa alcança, pelo plano de cada uma.
@@ -11,9 +12,14 @@ import { useRole } from './useRole';
  * os módulos de todas as igrejas.
  *
  * É só usabilidade: quem recusa de verdade é o `ModuloGuard` da API.
+ *
+ * `planoDaIgreja` é outra pergunta: não "a pessoa alcança?", e sim "a igreja
+ * tem?". Vale para o super admin também (o plano dele vem da lista de
+ * igrejas), porque a tela de uma igreja mostra a igreja como ela é.
  */
 export function useModulos() {
   const { isSuperAdmin, churchRoles, eventTreasurers, eventAdmins } = useRole();
+  const { data: todasAsIgrejas } = useGetChurches({ enabled: isSuperAdmin });
 
   // o tesoureiro(a) e o admin de evento alcançam a igreja do evento sem
   // vínculo nela
@@ -36,6 +42,21 @@ export function useModulos() {
     temModulo: (modulo: ModuloDaIgreja) =>
       isSuperAdmin ||
       [...porIgreja.values()].some((modulos) => modulos.includes(modulo)),
+    /**
+     * Os módulos do plano desta igreja, de verdade — também para o super
+     * admin. `undefined` é igreja que a pessoa não alcança (ou a lista do
+     * super admin ainda não chegou): não dá para dizer.
+     */
+    planoDaIgreja: (
+      churchId: string | null | undefined
+    ): ModuloDaIgreja[] | undefined => {
+      if (!churchId) return undefined;
+      if (isSuperAdmin) {
+        const igreja = todasAsIgrejas?.find((i) => i.id === churchId);
+        return igreja ? (igreja.plan?.modules ?? []) : undefined;
+      }
+      return porIgreja.get(churchId);
+    },
     /** Esta igreja tem o módulo no plano? */
     igrejaTem: (churchId: string | null | undefined, modulo: ModuloDaIgreja) =>
       isSuperAdmin ||

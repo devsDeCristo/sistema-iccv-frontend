@@ -1,3 +1,4 @@
+import { ModuloDaIgreja } from '../../../constants/modulos';
 import { EventStatus } from '../events/types';
 
 /**
@@ -201,6 +202,25 @@ export interface DashboardInsights {
 }
 
 /**
+ * Um número por módulo, para os cards do topo da home da igreja. Bloco `null`
+ * é módulo fora do plano (ou que o perfil não alcança): o card sai sem número.
+ */
+export interface DashboardResumo {
+  /**
+   * Os módulos do plano das igrejas da tela — o plano de verdade, também para
+   * super admin e dev: a home da igreja mostra a igreja, e não o acesso de
+   * quem olha
+   */
+  modulos: ModuloDaIgreja[];
+  /** `pedidos` é `null` para quem não é admin: aceitar pedido é do admin */
+  membros: { total: number; familias: number; pedidos: number | null };
+  eventos: { ativos: number; inscricoes30d: number } | null;
+  noticias: { publicadas30d: number; rascunhos: number } | null;
+  /** Lançamentos do mês corrente, entradas e saídas */
+  tesouraria: { entradasNoMes: number; saidasNoMes: number } | null;
+}
+
+/**
  * O eixo da resposta é o evento, e não o sistema: cada número mora dentro do
  * evento a que pertence. Bloco `null` é "não é da sua alçada", e não "zerado".
  */
@@ -219,6 +239,8 @@ export interface Dashboard {
   recentRegistrations: RecentRegistration[] | null;
   /** Só o admin: publicar notícia não é da tesouraria nem do super admin */
   news: NewsBoard | null;
+  /** Os cards de módulo; `null` no escopo de sistema */
+  resumo: DashboardResumo | null;
   byChurch: DashboardChurchRow[] | null;
   /** Só a tesouraria */
   treasury: DashboardTreasury | null;

@@ -31,7 +31,7 @@ import { ModalNovaCongregacao } from '../../../../features/admin/tesouraria/even
  */
 function TesourariaDeCongregacoes() {
   const navigate = useNavigate();
-  const escopo = useIgrejaSelecionada(true, 'TREASURY');
+  const escopo = useIgrejaSelecionada(true);
   const [criando, setCriando] = useState(false);
   const { data: tesourarias, isLoading } = useTesourarias(
     escopo.churchId,

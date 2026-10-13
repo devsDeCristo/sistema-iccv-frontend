@@ -160,14 +160,8 @@ function NewsAdminList({
                 noWrap
                 sx={{ fontSize: '0.8125rem', color: 'text.secondary' }}
               >
-                {/* a igreja na frente: na visão "Todas as igrejas" a lista
-                    mistura notícias de várias */}
-                {[
-                  news.church?.name,
-                  news.event ? `Só: ${news.event.name}` : 'Todos os usuários',
-                ]
-                  .filter(Boolean)
-                  .join(' · ')}
+                {/* sem a igreja: a lista é sempre de uma, a do seletor */}
+                {news.event ? `Só: ${news.event.name}` : 'Todos os usuários'}
               </Typography>
             </Stack>
           </Stack>

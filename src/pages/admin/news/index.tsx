@@ -1,4 +1,11 @@
-import { Box, Button, InputAdornment, Paper, TextField } from '@mui/material';
+import {
+  Alert,
+  Box,
+  Button,
+  InputAdornment,
+  Paper,
+  TextField,
+} from '@mui/material';
 import { Add, Close, Search } from '@mui/icons-material';
 import { useState } from 'react';
 import { PageStyle } from '../../../components/pageStyle';
@@ -11,8 +18,8 @@ import { CalendarioDeDisparos } from '../../../features/news/components/calendar
 import { NewsAdminList } from '../../../features/news/components/newsAdminList';
 import { NewsFormModal } from '../../../features/news/components/newsFormModal';
 import { News } from '../../../features/news/types';
-import { SeletorDeIgreja } from '../../../components/seletorDeIgreja';
-import { useIgrejaEscolhida } from '../../../hooks/useIgrejaEscolhida';
+import { ChurchScopeBar } from '../../../features/settings/shared/churchScopeBar';
+import { useIgrejaSelecionada } from '../../../features/settings/shared/useIgrejaSelecionada';
 import { WhatsappOfflineAlert } from '../../../features/settings/whatsapp/components/whatsappOfflineAlert';
 
 /** Mural de notícias: é daqui que sai o feed da tela de eventos. */
@@ -22,8 +29,9 @@ function NewsAdmin() {
   const [formAberto, setFormAberto] = useState(false);
 
   // Multitenant: a igreja do seletor padrão (canto superior direito), a mesma
-  // em todos os módulos — "Todas as igrejas" até a pessoa escolher uma
-  const [churchId, setChurchId] = useIgrejaEscolhida();
+  // em todos os módulos. Sempre uma: a tela é a do admin daquela igreja
+  const escopo = useIgrejaSelecionada(false);
+  const churchId = escopo.churchId;
 
   const abrirNova = () => {
     setEmEdicao(null);
@@ -66,67 +74,77 @@ function NewsAdmin() {
         description="Avisos que aparecem no mural dos inscritos"
         acaoAoLado
       >
-        <SeletorDeIgreja value={churchId} onChange={setChurchId} />
+        <ChurchScopeBar escopo={escopo} oQueMuda="as notícias" />
       </Header>
 
       <WhatsappOfflineAlert />
 
-      <Paper sx={styles.boxFiltro}>
-        <TextField
-          placeholder="Pesquisar por título ou chamada"
-          variant="outlined"
-          size="small"
-          value={busca}
-          sx={styles.campo}
-          onChange={(evento) => setBusca(evento.target.value)}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <Search sx={{ fontSize: 20, color: 'text.secondary' }} />
-              </InputAdornment>
-            ),
-            endAdornment: busca ? (
-              <InputAdornment position="end">
-                <Close
-                  sx={{ fontSize: 18, cursor: 'pointer' }}
-                  onClick={() => setBusca('')}
-                />
-              </InputAdornment>
-            ) : null,
-          }}
-        />
+      {!churchId ? (
+        <Alert severity="info">
+          {escopo.semIgreja
+            ? 'Você não administra nenhuma igreja. As notícias são por igreja.'
+            : 'Escolha no topo da página de qual igreja são as notícias.'}
+        </Alert>
+      ) : (
+        <>
+          <Paper sx={styles.boxFiltro}>
+            <TextField
+              placeholder="Pesquisar por título ou chamada"
+              variant="outlined"
+              size="small"
+              value={busca}
+              sx={styles.campo}
+              onChange={(evento) => setBusca(evento.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Search sx={{ fontSize: 20, color: 'text.secondary' }} />
+                  </InputAdornment>
+                ),
+                endAdornment: busca ? (
+                  <InputAdornment position="end">
+                    <Close
+                      sx={{ fontSize: 18, cursor: 'pointer' }}
+                      onClick={() => setBusca('')}
+                    />
+                  </InputAdornment>
+                ) : null,
+              }}
+            />
 
-        <Button
-          variant="contained"
-          startIcon={<Add />}
-          sx={styles.botao}
-          onClick={abrirNova}
-        >
-          Nova notícia
-        </Button>
-      </Paper>
+            <Button
+              variant="contained"
+              startIcon={<Add />}
+              sx={styles.botao}
+              onClick={abrirNova}
+            >
+              Nova notícia
+            </Button>
+          </Paper>
 
-      {/* lado a lado em tela larga: a lista ocupa o resto e o calendário fica
+          {/* lado a lado em tela larga: a lista ocupa o resto e o calendário fica
           na largura dele; em tela menor, o calendário desce para baixo */}
-      <Box
-        sx={{
-          display: 'flex',
-          flexDirection: { xs: 'column', lg: 'row' },
-          alignItems: 'flex-start',
-          gap: 2,
-        }}
-      >
-        <Box sx={{ flex: 1, minWidth: 0, width: '100%' }}>
-          <NewsAdminList
-            search={busca}
-            onEdit={abrirEdicao}
-            churchId={churchId}
-          />
-        </Box>
-        <Box sx={{ width: { xs: '100%', lg: 352 }, flexShrink: 0 }}>
-          <CalendarioDeDisparos churchId={churchId} />
-        </Box>
-      </Box>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: { xs: 'column', lg: 'row' },
+              alignItems: 'flex-start',
+              gap: 2,
+            }}
+          >
+            <Box sx={{ flex: 1, minWidth: 0, width: '100%' }}>
+              <NewsAdminList
+                search={busca}
+                onEdit={abrirEdicao}
+                churchId={churchId}
+              />
+            </Box>
+            <Box sx={{ width: { xs: '100%', lg: 352 }, flexShrink: 0 }}>
+              <CalendarioDeDisparos churchId={churchId} />
+            </Box>
+          </Box>
+        </>
+      )}
 
       <NewsFormModal
         open={formAberto}

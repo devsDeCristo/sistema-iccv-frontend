@@ -14,7 +14,7 @@ import { useIgrejaSelecionada } from '../../../features/settings/shared/useIgrej
  * painel é da tesouraria, que dá baixa mas não escolhe a conta que recebe.
  */
 function PaymentsSettings() {
-  const escopo = useIgrejaSelecionada(false, 'EVENTS');
+  const escopo = useIgrejaSelecionada(false);
 
   return (
     <PageStyle>

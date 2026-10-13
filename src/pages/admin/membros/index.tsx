@@ -66,7 +66,7 @@ function Membros() {
   const theme = useTheme();
   const { isSuperAdmin, perfilNaIgreja, eventAdmins } = useRole();
   // as igrejas que administra, e as que só consulta (tesouraria, tesoureiro)
-  const escopo = useIgrejaSelecionada(true, undefined, true);
+  const escopo = useIgrejaSelecionada(true, true);
   const churchId = escopo.churchId;
   const somenteLeitura =
     !isSuperAdmin && (!churchId || perfilNaIgreja(churchId) !== Role.ADMIN);
