@@ -235,13 +235,48 @@ function EventCard({
   const lado = (celular: string | number, largo: string | number) =>
     compacto ? celular : { xs: celular, sm: largo };
 
+  /**
+   * Os furos do picote são recortes de verdade, e não bolinhas pintadas na cor
+   * do fundo: cada metade do ingresso perde um quarto de círculo nos dois
+   * cantos do lado do picote, e os quartos das duas formam a meia-lua. Por ser
+   * transparente, a sombra (`drop-shadow`, que segue o desenho) contorna a
+   * curva — a sombra de caixa de antes passava reto por cima dela. Mesma
+   * técnica do `ModalIngresso`.
+   */
+  const recorte = (x: string, y: string) =>
+    `radial-gradient(circle at ${x} ${y}, transparent ${RAIO_DO_FURO}px, #000 ${RAIO_DO_FURO + 0.5}px)`;
+  const mascara = (
+    a: [string, string],
+    b: [string, string],
+    divisao: 'alto-baixo' | 'esquerda-direita'
+  ) => {
+    const [ladoA, ladoB, tamanho] =
+      divisao === 'alto-baixo'
+        ? ['top', 'bottom', '100% 51%']
+        : ['left', 'right', '51% 100%'];
+    return `${recorte(...a)} ${ladoA} / ${tamanho} no-repeat, ${recorte(...b)} ${ladoB} / ${tamanho} no-repeat`;
+  };
+  const comMascara = (celular: string, largo: string) => ({
+    WebkitMask: lado(celular, largo),
+    mask: lado(celular, largo),
+  });
+
   const styles = {
     ingresso: {
       display: 'flex',
       flexDirection: lado('column', 'row'),
       borderRadius: `${raio}px`,
-      // os furos do picote saem para fora do ingresso
       overflow: 'visible',
+      // quem tem fundo são as duas metades, recortadas nos furos; o papel
+      // fica transparente para os furos mostrarem a página
+      backgroundColor: 'transparent',
+      // a sombra das superfícies, em `drop-shadow`: ela segue o recorte e
+      // contorna os furos, onde a de caixa passava reto
+      boxShadow: 'none',
+      filter:
+        theme.palette.mode === 'dark'
+          ? 'drop-shadow(0 0 1px rgba(255,255,255,.16)) drop-shadow(0 6px 12px rgba(0,0,0,.45))'
+          : 'drop-shadow(0 1px 1px rgba(16,24,40,.06)) drop-shadow(0 6px 10px rgba(16,24,40,.08))',
       // o ingresso inteiro abre os detalhes: não há mais botões nele
       cursor: 'pointer',
       transition: theme.transitions.create(['transform', 'box-shadow'], {
@@ -257,6 +292,12 @@ function EventCard({
       // a capa acompanha o canto arredondado só do lado de fora
       overflow: 'hidden',
       borderRadius: lado(`${raio}px ${raio}px 0 0`, `${raio}px 0 0 ${raio}px`),
+      backgroundColor: theme.palette.background.paper,
+      // furos nos cantos de baixo (celular) ou nos da direita (tela larga)
+      ...comMascara(
+        mascara(['0', '100%'], ['100%', '100%'], 'esquerda-direita'),
+        mascara(['100%', '0'], ['100%', '100%'], 'alto-baixo')
+      ),
     },
     capa: {
       position: 'relative',
@@ -302,25 +343,13 @@ function EventCard({
       textAlign: 'center',
       borderLeft: lado('none', linhaDoPicote),
       borderTop: lado(linhaDoPicote, 'none'),
-      // os dois furos, na cor do fundo da página, em cima da linha do picote
-      '&::before, &::after': {
-        content: '""',
-        position: 'absolute',
-        width: RAIO_DO_FURO * 2,
-        height: RAIO_DO_FURO * 2,
-        borderRadius: '50%',
-        backgroundColor: theme.palette.background.default,
-      },
-      '&::before': {
-        top: lado(-RAIO_DO_FURO - 1, -RAIO_DO_FURO),
-        left: lado(-RAIO_DO_FURO, -RAIO_DO_FURO - 1),
-      },
-      '&::after': {
-        top: lado(-RAIO_DO_FURO - 1, 'auto'),
-        bottom: lado('auto', -RAIO_DO_FURO),
-        left: lado('auto', -RAIO_DO_FURO - 1),
-        right: lado(-RAIO_DO_FURO, 'auto'),
-      },
+      backgroundColor: theme.palette.background.paper,
+      borderRadius: lado(`0 0 ${raio}px ${raio}px`, `0 ${raio}px ${raio}px 0`),
+      // furos nos cantos de cima (celular) ou nos da esquerda (tela larga)
+      ...comMascara(
+        mascara(['0', '0'], ['100%', '0'], 'esquerda-direita'),
+        mascara(['0', '0'], ['0', '100%'], 'alto-baixo')
+      ),
     },
     selo: {
       width: compacto ? 28 : 48,

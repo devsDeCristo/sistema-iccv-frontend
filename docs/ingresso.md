@@ -25,7 +25,7 @@ modal de detalhes.
   - a data (quando vem `periodo`) ou o local;
   - os tipos de ingresso ("grupo · regra") em chips, com os da lista de espera marcados;
   - o chip de liberação de menor, quando houver.
-- **Picote:** linha tracejada com dois furos na cor do fundo da página.
+- **Picote:** linha tracejada com dois furos que são recortes de verdade (máscara CSS em cada metade, como no `ModalIngresso`): cada metade perde um quarto de círculo nos cantos do lado do picote, e os dois quartos formam a meia-lua. O papel do ingresso é transparente e a sombra é `drop-shadow`, que segue o recorte: ela contorna a curva dos furos (claro e escuro), onde a sombra de caixa das superfícies passava reto. Antes os furos eram círculos inteiros pintados na cor do fundo, que passavam da borda e apareciam como bolinha solta.
 - **Canhoto:**
   - um selo com ícone: inscrição confirmada, lista de espera ou compra na loja;
   - o status do pagamento: "Tudo pago" (verde, `chips.success`) ou "N pendente(s)" (laranja, `chips.alert`).
