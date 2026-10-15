@@ -21,6 +21,11 @@ export interface RegisteredRole {
     price: number;
     paymentStatus: string;
     paymentMethod: string;
+    /**
+     * O valor cobrado de fato neste pagamento (ingresso + produtos, com
+     * desconto). Nulo quando ainda não há pagamento; aí vale o `price`.
+     */
+    amount?: number | null;
     /** produtos comprados junto deste ingresso */
     products?: {
         id: string;

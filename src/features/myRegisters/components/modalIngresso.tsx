@@ -28,7 +28,12 @@ import { descreverItem } from '../../admin/events/products';
 import { ehCorHex } from '../../admin/events/eventColors';
 import { PaymentProductItem } from '../../admin/events/types';
 import { paymentsWithRoles } from '../types';
-import { pagamentosEmAberto } from '../utils';
+import { pagamentosEmAberto, valorEmAberto } from '../utils';
+import { formatCurrency } from '../../../utils';
+
+/** Valor em reais; zero é "Grátis", e não "R$ 0,00" */
+const valorEmReais = (valor?: number | null) =>
+  Number(valor) > 0 ? formatCurrency(Number(valor)) : 'Grátis';
 
 /** Raio dos furos do picote */
 const RAIO_DO_FURO = 14;
@@ -145,34 +150,114 @@ function Status({ status }: { status: string }) {
   );
 }
 
-/** Uma linha do ingresso: o que foi comprado e, embaixo, os produtos */
+/**
+ * Uma linha do ingresso, como numa nota: o que foi comprado, a linha
+ * pontilhada e o valor na outra ponta. Embaixo, o chip de situação (com o
+ * detalhe, se houver) e os produtos.
+ *
+ * No celular o nome quebra em várias linhas e sobrava pouco para os pontos:
+ * lá o nome ocupa a largura toda, e os pontos e o valor descem para a linha do
+ * chip — "Aguardando ······ R$ 350,00".
+ */
 function Item({
   icone,
   titulo,
+  valor,
+  cor,
   produtos,
-  direita,
+  status,
+  detalhe,
 }: {
   icone: ReactNode;
   titulo: string;
+  /** o valor da linha, à direita; ausente não mostra */
+  valor?: string;
+  /** a cor do valor: a mesma do chip de situação */
+  cor?: string;
   produtos?: PaymentProductItem[];
-  direita: ReactNode;
+  /** o chip de situação, embaixo do título */
+  status: ReactNode;
+  /** texto curto ao lado do chip (ex.: a data da compra) */
+  detalhe?: string;
 }) {
+  const theme = useTheme();
+
+  // os pontos e o valor; `display` diz em qual das duas linhas eles aparecem
+  const pontosEValor = (display: object) =>
+    valor ? (
+      <Stack
+        direction="row"
+        alignItems="flex-end"
+        gap={0.75}
+        sx={{ flex: 1, minWidth: 0, display }}
+      >
+        <Box
+          aria-hidden
+          sx={{
+            flex: 1,
+            minWidth: 16,
+            mb: '0.45em',
+            borderBottom: `2px dotted ${alpha(theme.palette.text.primary, 0.28)}`,
+          }}
+        />
+        {/* o valor é o que se procura na linha: em negrito e na cor da
+            situação (pendente, pago) — destaque pela cor, não pelo tamanho */}
+        <Typography
+          fontSize={14}
+          fontWeight={800}
+          sx={{
+            flexShrink: 0,
+            whiteSpace: 'nowrap',
+            color: cor ?? 'text.primary',
+          }}
+        >
+          {valor}
+        </Typography>
+      </Stack>
+    ) : null;
+
+  const textoDoDetalhe = detalhe && (
+    <Typography fontSize={12} color="text.secondary">
+      {detalhe}
+    </Typography>
+  );
+
   return (
     <Stack direction="row" gap={1.25} alignItems="flex-start">
       <Box sx={{ color: 'text.secondary', mt: 0.25, display: 'flex' }}>
         {icone}
       </Box>
       <Box sx={{ flex: 1, minWidth: 0 }}>
-        <Typography fontSize={14} fontWeight={600}>
-          {titulo}
-        </Typography>
+        {/* pelo pé: com o nome em duas linhas, os pontos seguem a última */}
+        <Stack direction="row" alignItems="flex-end" gap={0.75}>
+          <Typography fontSize={14} fontWeight={600} sx={{ minWidth: 0 }}>
+            {titulo}
+          </Typography>
+          {pontosEValor({ xs: 'none', sm: 'flex' })}
+        </Stack>
+        <Stack
+          direction="row"
+          alignItems="center"
+          gap={1}
+          sx={{ mt: 0.5, mb: 0.25 }}
+        >
+          <Box sx={{ flexShrink: 0, display: 'flex' }}>{status}</Box>
+          {pontosEValor({ xs: 'flex', sm: 'none' })}
+          <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
+            {textoDoDetalhe}
+          </Box>
+        </Stack>
+        {/* no celular a linha do chip é dos pontos: o detalhe desce */}
+        <Box sx={{ display: { xs: 'block', sm: 'none' } }}>
+          {textoDoDetalhe}
+        </Box>
         {(produtos ?? []).map((produto) => (
           <Typography key={produto.id} fontSize={13} color="text.secondary">
-            {descreverItem(produto)}
+            {descreverItem(produto)} ·{' '}
+            {formatCurrency(Number(produto.unitPrice) * produto.quantity)}
           </Typography>
         ))}
       </Box>
-      {direita}
     </Stack>
   );
 }
@@ -223,6 +308,7 @@ function ModalIngresso({
       : theme.palette.text.primary;
 
   const emAberto = pagamentosEmAberto(payment);
+  const quantoFalta = valorEmAberto(payment);
   const compras = payment.productPurchases ?? [];
   const podePagar = payment.modulePayment && emAberto > 0;
   const pendencias = pendenciasDa(payment, emAberto, onAnexarTermo);
@@ -246,6 +332,10 @@ function ModalIngresso({
       onClose={onClose}
       maxWidth="sm"
       fullWidth
+      // a página rola, e não o ingresso: no celular, com várias compras, ele
+      // passava da altura da tela, e o Dialog espremia a parte de cima — o fim
+      // da lista sumia debaixo do picote
+      scroll="body"
       // o papel do Dialog some: quem desenha o ingresso são as duas metades
       PaperProps={{
         sx: {
@@ -384,8 +474,13 @@ function ModalIngresso({
                     key={papel.roleId}
                     icone={<LocalActivity fontSize="small" />}
                     titulo={`${papel.group} · ${papel.description}`}
+                    valor={valorEmReais(papel.amount ?? papel.price)}
+                    cor={PAYMENT_STATUS_COLOR(
+                      (papel.paymentStatus || 'WAITING') as never,
+                      theme
+                    )}
                     produtos={papel.products as PaymentProductItem[]}
-                    direita={
+                    status={
                       <Status status={papel.paymentStatus || 'WAITING'} />
                     }
                   />
@@ -395,7 +490,9 @@ function ModalIngresso({
                     key={`espera:${papel.roleId}`}
                     icone={<HourglassBottom fontSize="small" />}
                     titulo={`${papel.group} · ${papel.description}`}
-                    direita={
+                    valor={valorEmReais(papel.price)}
+                    cor={theme.palette.chips.info}
+                    status={
                       <CustomChip
                         size="small"
                         label="Lista de espera"
@@ -412,15 +509,31 @@ function ModalIngresso({
             <Box>
               <Rotulo>COMPRAS NA LOJA</Rotulo>
               <Stack gap={1.5}>
-                {compras.map((compra) => (
-                  <Item
-                    key={compra.id}
-                    icone={<ShoppingBagOutlined fontSize="small" />}
-                    titulo={`Compra de ${new Date(compra.createdAt).toLocaleDateString('pt-BR')}`}
-                    produtos={compra.productItems as PaymentProductItem[]}
-                    direita={<Status status={compra.status || 'WAITING'} />}
-                  />
-                ))}
+                {compras.map((compra) => {
+                  const itens = compra.productItems as PaymentProductItem[];
+                  // o nome é o produto; com mais de um, a contagem no título
+                  // e cada um com o seu valor embaixo
+                  const umSo = itens.length === 1;
+                  return (
+                    <Item
+                      key={compra.id}
+                      icone={<ShoppingBagOutlined fontSize="small" />}
+                      titulo={
+                        umSo
+                          ? descreverItem(itens[0])
+                          : `${itens.length} produtos`
+                      }
+                      detalhe={`Comprado em ${new Date(compra.createdAt).toLocaleDateString('pt-BR')}`}
+                      valor={formatCurrency(Number(compra.amount))}
+                      cor={PAYMENT_STATUS_COLOR(
+                        (compra.status || 'WAITING') as never,
+                        theme
+                      )}
+                      produtos={umSo ? [] : itens}
+                      status={<Status status={compra.status || 'WAITING'} />}
+                    />
+                  );
+                })}
               </Stack>
             </Box>
           )}
@@ -447,9 +560,11 @@ function ModalIngresso({
             label={
               emAberto === 0
                 ? 'Tudo pago'
-                : emAberto === 1
-                  ? '1 pagamento pendente'
-                  : `${emAberto} pagamentos pendentes`
+                : `${
+                    emAberto === 1
+                      ? '1 pagamento pendente'
+                      : `${emAberto} pagamentos pendentes`
+                  } · ${formatCurrency(quantoFalta)}`
             }
             customColor={
               emAberto === 0

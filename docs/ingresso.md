@@ -7,7 +7,7 @@ modal de detalhes.
 ## Dados
 
 - **Fonte:** `useGetPayments` → `/users/:id/payments` (`paymentsWithRoles`). Cada item é um evento com:
-  - `registeredRoles` (inscrições confirmadas);
+  - `registeredRoles` (inscrições confirmadas), cada uma com `price` (preço do ingresso) e `amount` (o valor cobrado de fato no pagamento dela: ingresso + produtos, com desconto; nulo sem pagamento);
   - `waitlistRoles` (lista de espera);
   - `productPurchases` (compras avulsas na loja);
   - a liberação de menor (`minorApprovalStatus`, `signedTermUrl`, `minorApprovalRejectionReason`);
@@ -44,6 +44,11 @@ Modal informativo, também em formato de ingresso. Os furos do picote são
 transparentes de verdade, feitos com máscara CSS, porque atrás do modal está o
 fundo escurecido.
 
+O modal usa `scroll="body"`: quem rola é a página, e o ingresso inteiro desce
+junto. Antes, no celular, com várias compras o ingresso passava da altura da
+tela, o Dialog espremia a parte de cima e o fim da lista sumia debaixo do
+picote.
+
 - **Topo:** capa, nome do evento e data ou local.
 - **Pendências:** o que ainda trava a inscrição, com o que fazer.
   - Termo do responsável não enviado → botão "Anexar termo".
@@ -51,9 +56,10 @@ fundo escurecido.
   - Termo recusado, com o motivo → botão "Reenviar termo".
   - Lista de espera, dizendo em quais grupos a vaga ainda não está garantida.
   - Pagamento em aberto. Se a igreja não recebe pelo site, orienta a acertar com a organização.
-- **Inscrições:** cada grupo · regra com o status do pagamento e os produtos comprados junto.
-- **Compras na loja:** cada compra com a data, os produtos e o status.
-- **Canhoto:** o status geral e os botões "Ver evento" e "Pagar".
+- **Cada linha:** como numa nota — o título, uma linha pontilhada e o **valor na outra ponta** (com o título em duas linhas, os pontos seguem a última); embaixo, o chip de status (com a data, nas compras) e os produtos. **No celular** o nome ocupa a largura toda e os pontos e o valor descem para a linha do chip ("Aguardando ······ R$ 350,00"), com a data embaixo — ao lado de um nome quebrado em várias linhas sobrava pouco para os pontos. O valor fica em negrito no tamanho do texto e na cor do status (laranja pendente, verde pago — a mesma do chip; azul na lista de espera). O destaque é pela cor, não pelo tamanho.
+- **Inscrições:** cada grupo · regra com o valor (o cobrado, `amount`; sem pagamento, o `price`; zero aparece como "Grátis") e os produtos comprados junto, cada um com o valor (preço unitário × quantidade). Lista de espera mostra o preço do ingresso.
+- **Compras na loja:** o título é o produto ("Camiseta Oficial do Retiro 2027 (Normal (GG)) ×1"), e não mais "Compra de 27/09/2026"; a data vai ao lado do chip ("Comprado em 27/09/2026"). Compra com mais de um produto tem "N produtos" no título e cada produto embaixo, com o seu valor. O valor da linha é o da compra (`amount`).
+- **Canhoto:** o status geral — "Tudo pago" ou "N pagamentos pendentes · R$ X", com a soma do que falta (`valorEmAberto`, em `utils.ts`, a mesma régua de `pagamentosEmAberto`) — e os botões "Ver evento" e "Pagar".
 
 ### Pagar
 

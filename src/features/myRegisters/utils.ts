@@ -23,3 +23,21 @@ export function pagamentosEmAberto(evento?: paymentsWithRoles | null): number {
     ...(evento?.productPurchases ?? []).map((compra) => compra.status),
   ].filter((status) => !STATUS_RESOLVIDOS.includes(status ?? '')).length;
 }
+
+/**
+ * Quanto falta pagar no evento, somando os mesmos pagamentos que
+ * `pagamentosEmAberto` conta. A inscrição vale o que foi cobrado (`amount`,
+ * com produtos e desconto); sem pagamento ainda, o preço do ingresso.
+ */
+export function valorEmAberto(evento?: paymentsWithRoles | null): number {
+  const emAberto = (status?: string | null) =>
+    !STATUS_RESOLVIDOS.includes(status ?? '');
+  return [
+    ...(evento?.registeredRoles ?? [])
+      .filter((papel) => emAberto(papel.paymentStatus))
+      .map((papel) => papel.amount ?? papel.price),
+    ...(evento?.productPurchases ?? [])
+      .filter((compra) => emAberto(compra.status))
+      .map((compra) => compra.amount),
+  ].reduce((soma, valor) => soma + (Number(valor) || 0), 0);
+}
