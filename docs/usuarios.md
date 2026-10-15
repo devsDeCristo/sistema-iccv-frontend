@@ -23,7 +23,8 @@ para essas outras telas; aqui o foco é o que muda no uso pelo admin.
   - **Bloquear:** explica o efeito (não entra mais, quem estiver logado cai na hora, inscrições e pagamentos ficam) e pede o **motivo**, obrigatório (3 a 500 caracteres), com o aviso de que só o painel vê — a pessoa lê apenas "Sua conta está bloqueada. Fale com a organização.".
   - **Desbloquear:** mostra o motivo, quem bloqueou e quando, e confirma.
   - **Na tabela:** conta bloqueada ganha o chip vermelho "Bloqueada" acima do nome, com o motivo no tooltip.
-  - Chamadas: `PUT /users/:id/block` e `DELETE /users/:id/block` (`api/bloqueioDeConta.ts`). Regras completas no backend, `docs/autenticacao.md`.
+  - Chamadas: `PUT /users/:id/block` e `DELETE /users/:id/block` (`api/acoesDaConta.ts`). Regras completas no backend, `docs/autenticacao.md`.
+- **Excluir conta** (menu da linha, só **dev**, nunca na própria conta): abre o `ModalExcluirConta`, no mesmo desenho do "Apagar evento" — diz o que vai junto (permissões, contas Google, aceites de termo), que não há como desfazer, e pede que se digite EXCLUIR. Conta com histórico (inscrição, pagamento, check-in, quarto, equipe, notícia) o servidor recusa, e a recusa aparece no próprio diálogo com o que a conta tem; o texto lembra que, nesse caso, o caminho é bloquear. Chama `DELETE /users/:id` (`api/acoesDaConta.ts`); regras no backend, `docs/usuarios.md`.
 
 Arquivos: `src/pages/admin/users/index.tsx`, `src/features/admin/users/components/list.tsx`, `src/features/admin/users/components/cardsStatus.tsx`.
 

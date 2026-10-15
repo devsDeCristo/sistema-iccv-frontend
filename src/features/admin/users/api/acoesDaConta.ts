@@ -20,3 +20,13 @@ export const useDesbloquearConta = () =>
     mutationFn: (userId: string) => apiClient.delete(`/users/${userId}/block`),
     onSuccess: () => queryClient.invalidateQueries(GET_USERS),
   });
+
+/**
+ * Exclui a conta de vez (`DELETE /users/:id`). Só dev, nunca a própria, e só
+ * conta sem histórico — com histórico o servidor recusa e diz o que ela tem.
+ */
+export const useExcluirConta = () =>
+  useMutation({
+    mutationFn: (userId: string) => apiClient.delete(`/users/${userId}`),
+    onSuccess: () => queryClient.invalidateQueries(GET_USERS),
+  });

@@ -15,7 +15,7 @@ import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import { User } from '../../../../types/user';
 import { formatDateTime } from '../../../../utils';
-import { useBloquearConta, useDesbloquearConta } from '../api/bloqueioDeConta';
+import { useBloquearConta, useDesbloquearConta } from '../api/acoesDaConta';
 
 const MOTIVO_MAXIMO = 500;
 

@@ -40,6 +40,7 @@ import {
   BlockOutlined,
   Key,
   LockOpenOutlined,
+  PersonRemoveOutlined,
   MailOutline,
   MoreVert,
   SmartphoneOutlined,
@@ -56,6 +57,7 @@ import { useNavigate } from 'react-router-dom';
 import { UserAvatar } from '../../../../components/userAvatar';
 import { cardTabelaSx, dataGridSx } from '../../../../components/listPageStyles';
 import { ModalBloqueio } from './modalBloqueio';
+import { ModalExcluirConta } from './modalExcluirConta';
 import { getStoredUser } from '../../../../auth/session';
 /**
  * Exporta a seleção quando existe e, sem seleção, tudo o que o filtro deixou na
@@ -134,6 +136,11 @@ function List({ search }: { search: string }) {
   const [emMassaAberto, setEmMassaAberto] = useState(false);
   /** a pessoa do diálogo de bloquear/desbloquear */
   const [paraBloqueio, setParaBloqueio] = useState<User | null>(null);
+  /** a conta do diálogo de exclusão */
+  const [paraExcluir, setParaExcluir] = useState<User | null>(null);
+  /** excluir conta é só do dev, e nunca a própria — a mesma regra do servidor */
+  const podeExcluir =
+    isDev && !!rowSelected && rowSelected.id !== getStoredUser()?.id;
   /**
    * Bloquear é do super admin e do dev, e as mesmas travas do servidor: nunca
    * a própria conta, e conta de super admin ou dev só um dev bloqueia.
@@ -564,6 +571,10 @@ function List({ search }: { search: string }) {
         user={paraBloqueio}
         onFechar={() => setParaBloqueio(null)}
       />
+      <ModalExcluirConta
+        user={paraExcluir}
+        onFechar={() => setParaExcluir(null)}
+      />
       <ModalEditRole
         open={openModalEditRole}
         user={selectedUser}
@@ -609,6 +620,20 @@ function List({ search }: { search: string }) {
             <ListItemText>
               {rowSelected?.block ? 'Desbloquear conta' : 'Bloquear conta'}
             </ListItemText>
+          </MenuItem>
+        )}
+        {podeExcluir && (
+          <MenuItem
+            onClick={(event) => {
+              event.stopPropagation();
+              setParaExcluir(rowSelected);
+              handleClose();
+            }}
+          >
+            <ListItemIcon>
+              <PersonRemoveOutlined fontSize="small" color="error" />
+            </ListItemIcon>
+            <ListItemText>Excluir conta</ListItemText>
           </MenuItem>
         )}
         {devRowBlocked && (
