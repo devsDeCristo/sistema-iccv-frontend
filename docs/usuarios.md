@@ -19,6 +19,11 @@ para essas outras telas; aqui o foco é o que muda no uso pelo admin.
   - **Resultado:** tudo certo vira toast e a seleção limpa. Se o servidor recusar alguém (a própria conta, super admin, gente fora do alcance), a janela mostra quantos foram atualizados e a lista de quem ficou de fora com o motivo; ao fechar, só esses continuam marcados na tabela.
   - A exportação e a impressão da tabela também respeitam a seleção (exportam só os marcados, quando há).
 - **Menu de ações (por linha):** "Ver detalhes do usuário" (abre a edição) e "Editar Permissões" (abre o modal de papéis). Os dois ficam desabilitados quando a linha é uma conta Dev e quem está olhando não é Dev — o servidor recusa a alteração com 403, e o menu evita a pessoa esbarrar nesse erro.
+- **Bloquear / Desbloquear conta** (menu da linha, só super admin e dev): some na própria conta e, para o super admin, nas contas de super admin e dev (só um dev bloqueia essas — a mesma regra do servidor). Abre o `ModalBloqueio`:
+  - **Bloquear:** explica o efeito (não entra mais, quem estiver logado cai na hora, inscrições e pagamentos ficam) e pede o **motivo**, obrigatório (3 a 500 caracteres), com o aviso de que só o painel vê — a pessoa lê apenas "Sua conta está bloqueada. Fale com a organização.".
+  - **Desbloquear:** mostra o motivo, quem bloqueou e quando, e confirma.
+  - **Na tabela:** conta bloqueada ganha o chip vermelho "Bloqueada" acima do nome, com o motivo no tooltip.
+  - Chamadas: `PUT /users/:id/block` e `DELETE /users/:id/block` (`api/bloqueioDeConta.ts`). Regras completas no backend, `docs/autenticacao.md`.
 
 Arquivos: `src/pages/admin/users/index.tsx`, `src/features/admin/users/components/list.tsx`, `src/features/admin/users/components/cardsStatus.tsx`.
 

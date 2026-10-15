@@ -13,6 +13,7 @@ const SESSION_KEYS = ['access_token', 'user', 'cpf'];
 
 const REDIRECT_KEY = 'post_login_redirect';
 const EXPIRED_KEY = 'session_expired';
+const BLOQUEADA_KEY = 'conta_bloqueada';
 
 /** telas de quem não está logado: não são destino de volta depois do login */
 const PUBLIC_PATHS = ['/login', '/usuario/cadastrar'];
@@ -97,6 +98,22 @@ export function takeSessionExpired() {
   sessionStorage.removeItem(EXPIRED_KEY);
 
   return expired === '1';
+}
+
+/**
+ * A sessão caiu porque a conta foi bloqueada (o servidor manda o código
+ * `CONTA_BLOQUEADA` no 401). O login lê isso para dizer o motivo certo, e não
+ * "sua sessão expirou".
+ */
+export function marcarContaBloqueada() {
+  sessionStorage.setItem(BLOQUEADA_KEY, '1');
+}
+
+export function takeContaBloqueada() {
+  const bloqueada = sessionStorage.getItem(BLOQUEADA_KEY);
+  sessionStorage.removeItem(BLOQUEADA_KEY);
+
+  return bloqueada === '1';
 }
 
 let ending = false;

@@ -37,7 +37,8 @@ import {
 import { useRole } from '../../../../hooks/useRole';
 import { Role } from '../../../../constants/roles';
 import CustomChip from '../../../../components/customChip';
-import { EventStatus, EventStatusFilter } from '../types';
+import { EventPeriodFilter, EventStatus, EventStatusFilter } from '../types';
+import { faseDoEvento } from '../utils/eventStatus';
 import { EVENT_STATUS_LABELS } from '../constants';
 import { ModuloDoEvento, moduloAtivo } from '../eventModules';
 import {
@@ -117,11 +118,8 @@ const getSelectedRowsToExport = ({
 
   return gridFilteredSortedRowIdsSelector(apiRef);
 };
-/** Cada aba do filtro olha para um status só; 'all' não passa por aqui. */
-const STATUS_DO_FILTRO: Record<
-  Exclude<EventStatusFilter, 'all'>,
-  EventStatus
-> = {
+/** O status que cada opção do filtro quer */
+const STATUS_DO_FILTRO: Record<EventStatusFilter, EventStatus> = {
   active: 'ACTIVE',
   inactive: 'INACTIVE',
   test: 'TEST',
@@ -137,11 +135,15 @@ const modulosDaLinha = (row: any) =>
 
 function List({
   search,
-  status = 'active',
+  status = [],
+  period = [],
   churchId = 'all',
 }: {
   search: string;
-  status?: EventStatusFilter;
+  /** Os status marcados; vazio é todos */
+  status?: EventStatusFilter[];
+  /** Os períodos marcados (já passou, acontecendo, futuro); vazio é todos */
+  period?: EventPeriodFilter[];
   /** 'all' = todas. Só o super admin recebe evento de mais de uma igreja */
   churchId?: string;
 }) {
@@ -160,10 +162,13 @@ function List({
     const searchLower = search.toLowerCase();
     const matchesSearch = event.name.toLowerCase().includes(searchLower);
     const matchesStatus =
-      status === 'all' ? true : event.status === STATUS_DO_FILTRO[status];
+      !status.length ||
+      status.some((opcao) => event.status === STATUS_DO_FILTRO[opcao]);
+    const matchesPeriod =
+      !period.length || period.includes(faseDoEvento(event));
     const matchesChurch = churchId === 'all' || event.church?.id === churchId;
 
-    return matchesSearch && matchesStatus && matchesChurch;
+    return matchesSearch && matchesStatus && matchesPeriod && matchesChurch;
   });
   const columns: GridColDef[] = [
     // o tipo primeiro: é por ele que se bate o olho na lista (cursilho, retiro)

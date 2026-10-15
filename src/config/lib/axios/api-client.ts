@@ -1,6 +1,10 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { API_URL } from '../../env';
-import { endSession, hasSession } from '../../../auth/session';
+import {
+  endSession,
+  hasSession,
+  marcarContaBloqueada,
+} from '../../../auth/session';
 
 const token = (): string | null => localStorage.getItem('access_token');
 
@@ -40,6 +44,16 @@ apiClient.interceptors.response.use(
     const status = error.response?.status;
     const url = error.config?.url ?? '';
     const decidedByLoader = VALIDATE_PATHS.some((path) => url.includes(path));
+
+    // conta bloqueada no meio da sessão: o login explica o motivo, venha o
+    // 401 de uma tela ou de um loader de rota
+    if (
+      status === 401 &&
+      (error.response?.data as { code?: string } | undefined)?.code ===
+        'CONTA_BLOQUEADA'
+    ) {
+      marcarContaBloqueada();
+    }
 
     // sem token não há sessão para encerrar: o 401 aí é resposta de negócio
     // (credencial errada, ticket vencido) e quem trata é a própria tela

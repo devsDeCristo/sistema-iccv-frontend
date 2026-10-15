@@ -359,6 +359,8 @@ function ListLoginAttempts() {
             ? '—'
             : row.reason === 'WRONG_PASSWORD'
               ? 'Senha incorreta'
+              : row.reason === 'BLOCKED'
+                ? 'Conta bloqueada'
               : row.method === 'GOOGLE'
                 ? 'Conta Google sem cadastro vinculado'
                 : 'Documento não encontrado'}

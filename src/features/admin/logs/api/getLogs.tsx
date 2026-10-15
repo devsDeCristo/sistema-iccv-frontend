@@ -136,7 +136,7 @@ export type LoginAttempt = {
   id: string;
   document: string;
   success: boolean;
-  reason: 'USER_NOT_FOUND' | 'WRONG_PASSWORD' | null;
+  reason: 'USER_NOT_FOUND' | 'WRONG_PASSWORD' | 'BLOCKED' | null;
   /** no Google, `document` é o e-mail da conta Google */
   method: 'PASSWORD' | 'GOOGLE';
   ip: string | null;

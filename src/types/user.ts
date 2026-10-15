@@ -155,6 +155,16 @@ export interface User {
   eventId?: string;
   /** data/hora do cadastro do usuário no sistema (User.createdAt) */
   createdAt?: string;
+  /**
+   * Bloqueio da conta. Só vem na lista de usuários do super admin; ausente ou
+   * `null` é conta liberada.
+   */
+  block?: {
+    /** interno: a pessoa bloqueada não vê */
+    reason: string;
+    blockedAt: string;
+    blockedBy: { id: string; fullName: string } | null;
+  } | null;
   /** data/hora da inscrição no evento (EventOnUsers.createdAt) */
   registeredAt?: string;
   /** data/hora de entrada na lista de espera (Waitlist.createdAt) */

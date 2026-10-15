@@ -39,6 +39,7 @@ export const MODEL_OPTIONS = [
   { value: 'UserToken', label: 'Código de redefinição' },
   { value: 'FinancialEntry', label: 'Lançamento da tesouraria' },
   { value: 'Family', label: 'Família' },
+  { value: 'UserBlock', label: 'Bloqueio de conta' },
 ];
 
 /** Cor do chip por família de ação: criar, alterar e remover */

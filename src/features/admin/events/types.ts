@@ -22,7 +22,12 @@ export type EventType = 'CURSILHO' | 'RETIRO';
  */
 export type EventStatus = 'ACTIVE' | 'INACTIVE' | 'TEST';
 
-export type EventStatusFilter = 'active' | 'inactive' | 'test' | 'all';
+/** Um valor de cada opção do filtro de status; a lista vazia é "todos" */
+export type EventStatusFilter = 'active' | 'inactive' | 'test';
+
+/** O filtro de período: encerrados, em andamento, futuros; vazio é "todos" */
+export type EventPeriodFilter = 'finished' | 'ongoing' | 'upcoming';
+
 export interface EventDetails extends EquipeDoEventoApi {
   id: string;
   name: string;

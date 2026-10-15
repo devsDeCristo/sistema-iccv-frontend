@@ -17,3 +17,18 @@ export function emAndamento(event: {
   fim.setHours(23, 59, 59, 999);
   return agora >= inicio && agora <= fim;
 }
+
+/** Onde o evento está no tempo: já passou, está acontecendo ou ainda vem */
+export type FaseDoEvento = 'finished' | 'ongoing' | 'upcoming';
+
+/**
+ * A mesma conta de `emAndamento` (dia inteiro nas duas pontas), estendida para
+ * os dois lados: antes do primeiro dia é futuro, depois do último é encerrado.
+ */
+export function faseDoEvento(event: {
+  startDate: Date | string;
+  endDate: Date | string;
+}): FaseDoEvento {
+  if (emAndamento(event)) return 'ongoing';
+  return new Date(event.startDate) > new Date() ? 'upcoming' : 'finished';
+}

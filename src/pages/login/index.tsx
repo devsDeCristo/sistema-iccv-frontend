@@ -22,6 +22,7 @@ import { usePermission } from '../../hooks/usePermission';
 import {
   isAdminPath,
   takeRememberedRoute,
+  takeContaBloqueada,
   takeSessionExpired,
 } from '../../auth/session';
 import { usePostLogin } from '../../features/login/api/postLogin';
@@ -132,7 +133,12 @@ function Login() {
   useEffect(() => {
     // quem chegou aqui por sessão vencida merece saber o motivo: o redirect
     // recarrega a aplicação, então o aviso viaja pelo sessionStorage
-    if (takeSessionExpired()) {
+    // as duas chaves são lidas sempre, para nenhuma sobrar para o próximo login
+    const bloqueada = takeContaBloqueada();
+    const expirou = takeSessionExpired();
+    if (bloqueada) {
+      toast.error('Sua conta está bloqueada. Fale com a organização.');
+    } else if (expirou) {
       toast.info('Sua sessão expirou. Entre novamente para continuar.');
     }
   }, []);

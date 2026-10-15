@@ -37,7 +37,9 @@ import {
 // import { useNavigate } from 'react-router-dom';
 import {
   AdminPanelSettingsOutlined,
+  BlockOutlined,
   Key,
+  LockOpenOutlined,
   MailOutline,
   MoreVert,
   SmartphoneOutlined,
@@ -53,6 +55,8 @@ import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import { UserAvatar } from '../../../../components/userAvatar';
 import { cardTabelaSx, dataGridSx } from '../../../../components/listPageStyles';
+import { ModalBloqueio } from './modalBloqueio';
+import { getStoredUser } from '../../../../auth/session';
 /**
  * Exporta a seleção quando existe e, sem seleção, tudo o que o filtro deixou na
  * tela — mesma regra das listas de evento.
@@ -128,6 +132,18 @@ function List({ search }: { search: string }) {
   /** marcados na tabela: alimentam a barra flutuante e a exportação */
   const [selecionados, setSelecionados] = useState<GridRowSelectionModel>([]);
   const [emMassaAberto, setEmMassaAberto] = useState(false);
+  /** a pessoa do diálogo de bloquear/desbloquear */
+  const [paraBloqueio, setParaBloqueio] = useState<User | null>(null);
+  /**
+   * Bloquear é do super admin e do dev, e as mesmas travas do servidor: nunca
+   * a própria conta, e conta de super admin ou dev só um dev bloqueia.
+   */
+  const podeBloquear =
+    isSuperAdmin &&
+    !!rowSelected &&
+    rowSelected.id !== getStoredUser()?.id &&
+    (isDev ||
+      (rowSelected.role !== Role.SUPER_ADMIN && rowSelected.role !== Role.DEV));
 
   /** Cor de cada perfil de acesso, na paleta de chips do tema */
   const ROLE_CHIP_COLOR: Record<number, string> = {
@@ -187,6 +203,18 @@ function List({ search }: { search: string }) {
       // o nome do crachá embaixo, como na lista de inscritos do evento
       renderCell: (params) => (
         <Box>
+          {/* só o super admin recebe o bloqueio; o motivo fica no tooltip */}
+          {params.row.block && (
+            <Tooltip title={`Motivo: ${params.row.block.reason}`}>
+              <Box component="span" sx={{ display: 'inline-flex', mb: 0.5 }}>
+                <CustomChip
+                  label="Bloqueada"
+                  size="small"
+                  customColor={theme.palette.error.main}
+                />
+              </Box>
+            </Tooltip>
+          )}
           {renderCellWithCopy(params.row.fullName)}
           {params.row.badgeName && (
             <Typography
@@ -532,6 +560,10 @@ function List({ search }: { search: string }) {
           setSelecionados(recusados);
         }}
       />
+      <ModalBloqueio
+        user={paraBloqueio}
+        onFechar={() => setParaBloqueio(null)}
+      />
       <ModalEditRole
         open={openModalEditRole}
         user={selectedUser}
@@ -559,6 +591,26 @@ function List({ search }: { search: string }) {
           </ListItemIcon>
           <ListItemText>Editar Permissões</ListItemText>
         </MenuItem>
+        {podeBloquear && (
+          <MenuItem
+            onClick={(event) => {
+              event.stopPropagation();
+              setParaBloqueio(rowSelected);
+              handleClose();
+            }}
+          >
+            <ListItemIcon>
+              {rowSelected?.block ? (
+                <LockOpenOutlined fontSize="small" color="success" />
+              ) : (
+                <BlockOutlined fontSize="small" color="error" />
+              )}
+            </ListItemIcon>
+            <ListItemText>
+              {rowSelected?.block ? 'Desbloquear conta' : 'Bloquear conta'}
+            </ListItemText>
+          </MenuItem>
+        )}
         {devRowBlocked && (
           <Typography
             fontSize={12}

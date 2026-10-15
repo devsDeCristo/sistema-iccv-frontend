@@ -12,8 +12,21 @@ inscrição por grupo também (`docs/inscricao-em-grupos.md`).
   mesma consulta da tabela, sem chamada extra.
   Seguem a igreja do seletor (canto superior direito), com o mesmo recorte
   da lista; numa igreja escolhida, o total diz "Nesta igreja".
-- **Filtros:** busca por nome e status (Ativos/Inativos/Em teste/Todos), salvos
-  no navegador entre visitas.
+- **Filtros:** busca por nome e dois filtros de **várias opções** (componente
+  `FiltroMultiplo`), salvos no navegador entre visitas. Não existe a opção
+  "Todos": nada marcado é o mesmo que todos, e todos marcados também — nos dois casos o
+  campo mostra "Todos"; com opções
+  marcadas ele mostra uma **chip pequena** (22px, fonte 12) para cada uma, na
+  ordem das opções. O campo cresce com os chips (largura mínima, não fixa) e,
+  se não couberem, os chips quebram para a linha de baixo. O de **Status** (Ativos,
+  Inativos, Em teste) abre com Ativos marcado; o de **Período** (Em andamento,
+  Próximos, Encerrados) abre sem nada marcado. O período usa
+  `faseDoEvento` (`utils/eventStatus.ts`), a mesma conta de "em andamento" —
+  o dia inteiro, do primeiro ao último, conta como acontecendo. Os dois se
+  combinam (E entre os filtros, OU entre as opções de um mesmo filtro). O
+  status antigo, salvo como texto de uma opção só, é descartado e o filtro
+  volta ao padrão (chave nova: `eventos:status:multiplo`). Os cards do topo
+  não seguem estes filtros.
 - **Igreja:** sempre uma, escolhida no seletor do canto superior direito
   (`useIgrejaSelecionada` + `ChurchScopeBar`), com a mesma escolha dos outros
   módulos — entram as igrejas de admin, de tesouraria e as dos eventos de que
