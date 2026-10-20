@@ -1,11 +1,18 @@
-import { Alert, Button, Paper, Stack, TextField } from '@mui/material';
+import {
+  Alert,
+  Button,
+  InputAdornment,
+  Paper,
+  Stack,
+  TextField,
+} from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { PageStyle } from '../../../components/pageStyle';
 import { Header } from '../../../components/header';
 import { List } from '../../../features/admin/events/components/list';
 import { CardsStatus } from '../../../features/admin/events/components/cardsStatus';
 import { useFiltroSalvo } from '../../../hooks/useFiltroSalvo';
-import { Add } from '@mui/icons-material';
+import { Add, Search } from '@mui/icons-material';
 import {
   EventPeriodFilter,
   EventStatusFilter,
@@ -126,12 +133,19 @@ function Events() {
             <Paper component="div" sx={styles.boxFilterAndPdf}>
               <Stack sx={styles.filters}>
                 <TextField
-                  label="Pesquisar evento por nome"
+                  placeholder="Pesquisar evento por nome"
                   variant="outlined"
                   size="small"
                   value={search}
                   sx={styles.textField}
                   onChange={(e) => setSearch(e.target.value)}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Search />
+                      </InputAdornment>
+                    ),
+                  }}
                 />
                 <FiltroMultiplo
                   label="Status"

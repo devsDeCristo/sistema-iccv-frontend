@@ -1,17 +1,19 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Alert,
   alpha,
   Box,
   Button,
   Card,
   IconButton,
+  InputAdornment,
   ListItemIcon,
   ListItemText,
   Menu,
   MenuItem,
+  Paper,
   Stack,
+  TextField,
   Tooltip,
   Typography,
   useMediaQuery,
@@ -25,15 +27,17 @@ import {
   ptBR,
 } from '@mui/x-data-grid';
 import {
-  FactCheckOutlined,
   MoreVert,
+  Search,
   WorkspacePremiumOutlined,
 } from '@mui/icons-material';
 import CustomChip from '../../../../components/customChip';
 import { BarraDeSelecao } from '../../../../components/barraDeSelecao';
 import {
+  barraLarguraCheiaNoCelularSx,
   cardTabelaSx,
   dataGridSx,
+  superficieSx,
 } from '../../../../components/listPageStyles';
 import { baixarPdfNaFila } from '../../../../utils/pdfNaFila';
 import {
@@ -91,8 +95,90 @@ function AcoesDaLinha({
 }
 
 /**
- * A aba "Presença e certificados" do evento: todos os inscritos, com o grupo e
- * a hora de chegada de quem fez check-in.
+ * A situação do certificado, na barra de busca: um selo discreto, e não um
+ * alerta — desligado é uma escolha do evento, não um problema. Ligado, diz a
+ * carga horária e onde baixar; desligado, leva para a edição do evento.
+ */
+function SituacaoDoCertificado({
+  ligado,
+  cargaHoraria,
+  onLigar,
+}: {
+  ligado: boolean;
+  cargaHoraria: string | null;
+  onLigar: () => void;
+}) {
+  const theme = useTheme();
+  const cor = ligado ? theme.palette.chips.info : theme.palette.text.disabled;
+
+  return (
+    <Stack
+      direction="row"
+      alignItems="center"
+      gap={1.25}
+      sx={{
+        ml: { sm: 'auto' },
+        width: { xs: '100%', sm: 'auto' },
+        minWidth: 0,
+        // a altura dos campos `small` da barra, para os três alinharem
+        height: 40,
+        pl: 0.75,
+        pr: ligado ? 2 : 0.75,
+        borderRadius: 2.5,
+        border: `1px ${ligado ? 'solid' : 'dashed'} ${
+          ligado ? alpha(cor, 0.35) : theme.palette.divider
+        }`,
+        bgcolor: ligado ? alpha(cor, 0.06) : 'transparent',
+      }}
+    >
+      <Box
+        sx={{
+          width: 28,
+          height: 28,
+          flexShrink: 0,
+          borderRadius: 1.5,
+          display: 'grid',
+          placeItems: 'center',
+          color: cor,
+          bgcolor: alpha(cor, ligado ? 0.14 : 0.08),
+        }}
+      >
+        <WorkspacePremiumOutlined sx={{ fontSize: 17 }} />
+      </Box>
+      <Box sx={{ minWidth: 0, flex: 1 }}>
+        <Typography fontSize={13} fontWeight={600} lineHeight={1.25} noWrap>
+          {ligado
+            ? `Certificado ligado${cargaHoraria ? ` · ${cargaHoraria}` : ''}`
+            : 'Certificado desligado'}
+        </Typography>
+        <Typography
+          fontSize={12}
+          color="text.secondary"
+          lineHeight={1.25}
+          noWrap
+        >
+          {ligado
+            ? 'Baixe nos três pontinhos ou marque vários'
+            : 'Este evento não emite certificado'}
+        </Typography>
+      </Box>
+      {!ligado && (
+        <Button
+          size="small"
+          onClick={onLigar}
+          sx={{ flexShrink: 0, textTransform: 'none', fontWeight: 600 }}
+        >
+          Ligar
+        </Button>
+      )}
+    </Stack>
+  );
+}
+
+/**
+ * A aba "Presença e certificados" do evento, no formato das outras abas com
+ * lista: barra de busca e a tabela — todos os inscritos, com o grupo e a hora
+ * de chegada de quem fez check-in.
  *
  * Cada presente tem nos três pontinhos o certificado dele, e as caixas marcam
  * vários para gerar de uma vez — como na lista de usuários, a barra flutuante
@@ -110,11 +196,18 @@ export function ListaDePresenca({ eventId }: { eventId: string }) {
   const { data: certificado } = useGetCertificado(eventId);
   const ligado = !!certificado?.enabled;
   const linhas = data ?? [];
+  const [busca, setBusca] = useState('');
+  const [presenca, setPresenca] = useState<'' | 'presentes' | 'ausentes'>('');
   const [selecionados, setSelecionados] = useState<GridRowSelectionModel>([]);
   /** o `userId` que está gerando, ou "marcados" */
   const [gerando, setGerando] = useState<string | null>(null);
 
-  const presentes = linhas.filter((l) => l.chegada).length;
+  const termo = busca.trim().toLowerCase();
+  const visiveis = linhas.filter(
+    (l) =>
+      (!termo || l.nome.toLowerCase().includes(termo)) &&
+      (!presenca || (presenca === 'presentes') === !!l.chegada)
+  );
 
   const gerar = async (userIds: string[], quem: string) => {
     setGerando(quem);
@@ -174,70 +267,68 @@ export function ListaDePresenca({ eventId }: { eventId: string }) {
   ];
 
   return (
-    <Card
+    <Stack
+      gap={2}
       sx={{
-        ...cardTabelaSx,
-        // o respiro abaixo das abas é do conteúdo, como nas outras abas
         mt: 2,
         // o lugar da barra flutuante no fim da página — ver a lista de eventos
         mb: selecionados.length ? { xs: 5.5, sm: 6.5 } : 0,
       }}
     >
-      <Stack
-        direction="row"
-        gap={1.5}
-        alignItems="center"
-        sx={{ p: { xs: 2, sm: 2.5 }, pb: { xs: 0.5, sm: 0.5 } }}
+      {/* a barra de busca das outras abas; a situação do certificado divide
+          a linha com ela, à direita, e desce para baixo no celular */}
+      <Paper
+        component="div"
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: 2,
+          p: 2,
+          ...superficieSx,
+          ...barraLarguraCheiaNoCelularSx,
+        }}
       >
-        <Box
-          sx={{
-            width: 40,
-            height: 40,
-            flexShrink: 0,
-            borderRadius: 1.5,
-            display: 'grid',
-            placeItems: 'center',
-            color: theme.palette.chips.success,
-            bgcolor: alpha(theme.palette.chips.success, 0.12),
+        <TextField
+          placeholder="Pesquisar inscrito por nome"
+          variant="outlined"
+          size="small"
+          value={busca}
+          sx={{ width: { xs: '100%', sm: '350px' } }}
+          onChange={(e) => setBusca(e.target.value)}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <Search />
+              </InputAdornment>
+            ),
           }}
+        />
+        <TextField
+          select
+          size="small"
+          label="Presença"
+          value={presenca}
+          sx={{ width: { xs: '100%', sm: 210 } }}
+          onChange={(e) => setPresenca(e.target.value as typeof presenca)}
         >
-          <FactCheckOutlined />
-        </Box>
-        <Box>
-          <Typography variant="h6" fontSize={18}>
-            Lista de presença
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            {isLoading
-              ? 'Carregando…'
-              : `${presentes} de ${linhas.length} inscritos fizeram check-in.`}
-          </Typography>
-        </Box>
-      </Stack>
-
-      {certificado && !ligado && (
-        <Alert
-          severity="info"
-          sx={{ mx: { xs: 2, sm: 2.5 }, mt: 1.5, borderRadius: 2 }}
-          action={
-            <Button
-              color="inherit"
-              size="small"
-              onClick={() => navigate(`/admin/eventos/${eventId}/editar`)}
-            >
-              Editar evento
-            </Button>
-          }
-        >
-          Este evento não emite certificado. Para ligar, e definir quem assina,
-          edite o evento na etapa Módulos.
-        </Alert>
-      )}
+          <MenuItem value="">Todos os inscritos</MenuItem>
+          <MenuItem value="presentes">Presentes</MenuItem>
+          <MenuItem value="ausentes">Ausentes</MenuItem>
+        </TextField>
+        {certificado && (
+          <SituacaoDoCertificado
+            ligado={ligado}
+            cargaHoraria={certificado.workload}
+            onLigar={() => navigate(`/admin/eventos/${eventId}/editar`)}
+          />
+        )}
+      </Paper>
 
       <BarraDeSelecao
         quantos={selecionados.length}
         rotuloDaRegiao="Inscritos selecionados"
-        // desligado, a barra só conta e limpa: o aviso acima diz o porquê
+        // desligado, a barra só conta e limpa: a barra de busca diz o porquê
         acao={
           ligado
             ? {
@@ -256,31 +347,33 @@ export function ListaDePresenca({ eventId }: { eventId: string }) {
         }
         onLimpar={() => setSelecionados([])}
       />
-      <DataGrid
-        loading={isLoading}
-        rows={linhas}
-        getRowId={(linha) => linha.userId}
-        columns={columns}
-        checkboxSelection
-        isRowSelectable={(params) => !!params.row.chegada}
-        disableRowSelectionOnClick
-        rowSelectionModel={selecionados}
-        onRowSelectionModelChange={setSelecionados}
-        // busca e filtro escondem linhas, mas não desmarcam quem foi marcado
-        keepNonExistentRowsSelected
-        hideFooterSelectedRowCount
-        autoHeight
-        pageSizeOptions={[25, 50, 100]}
-        initialState={{
-          pagination: { paginationModel: { pageSize: 50 } },
-          // no celular o grupo sai, para a presença caber sem rolar de lado
-          columns: { columnVisibilityModel: { grupo: !celular } },
-        }}
-        slots={{ toolbar: GridToolbar }}
-        columnHeaderHeight={44}
-        sx={dataGridSx(theme)}
-        localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
-      />
-    </Card>
+      <Card sx={cardTabelaSx}>
+        <DataGrid
+          loading={isLoading}
+          rows={visiveis}
+          getRowId={(linha) => linha.userId}
+          columns={columns}
+          checkboxSelection
+          isRowSelectable={(params) => !!params.row.chegada}
+          disableRowSelectionOnClick
+          rowSelectionModel={selecionados}
+          onRowSelectionModelChange={setSelecionados}
+          // busca e filtro escondem linhas, mas não desmarcam quem foi marcado
+          keepNonExistentRowsSelected
+          hideFooterSelectedRowCount
+          autoHeight
+          pageSizeOptions={[25, 50, 100]}
+          initialState={{
+            pagination: { paginationModel: { pageSize: 50 } },
+            // no celular o grupo sai, para a presença caber sem rolar de lado
+            columns: { columnVisibilityModel: { grupo: !celular } },
+          }}
+          slots={{ toolbar: GridToolbar }}
+          columnHeaderHeight={44}
+          sx={dataGridSx(theme)}
+          localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
+        />
+      </Card>
+    </Stack>
   );
 }

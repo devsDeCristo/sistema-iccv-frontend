@@ -97,11 +97,19 @@ export interface Event {
   church?: { id: string; name: string; status?: ChurchStatus } | null;
   data: EventDataJson;
 }
+/** O filtro dos inscritos — ver `utils/filtroDeInscritos.ts` */
 export interface filterUsers {
-  birthday: { startDate: string | null; endDate: string | null };
-  city: string | null;
-  neighborhood: string | null;
-  worker?: boolean;
+  /** quem faz aniversário entre o primeiro e o último dia do evento */
+  aniversariantes: boolean;
+  /** idade no primeiro dia do evento, a mesma da coluna */
+  idadeMin: number | null;
+  idadeMax: number | null;
+  /** liberação de menor; `NOT_REQUIRED` é maior de idade */
+  liberacao: '' | 'NOT_REQUIRED' | 'PENDING' | 'APPROVED' | 'REJECTED';
+  /** só quem marcou "sim" em cada um */
+  saude: ('hipertenso' | 'diabetico')[];
+  city: string;
+  neighborhood: string;
 }
 
 /**

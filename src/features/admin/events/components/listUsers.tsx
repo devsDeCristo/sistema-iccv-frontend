@@ -14,7 +14,6 @@ import {
   useTheme,
 } from '@mui/material';
 import {
-  calculateAge,
   formatCPF,
   formatDate,
   formatDateTime,
@@ -52,7 +51,10 @@ import { ModalEditWork } from './modalEditWork';
 import { useEventRole } from '../../../../hooks/useEventRole';
 import { useGetUsers } from '../api/getUsers';
 import { filterUsers } from '../types';
-import dayjs from 'dayjs';
+import {
+  filtrarInscritos,
+  idadeNoEvento,
+} from '../utils/filtroDeInscritos';
 import CustomChip from '../../../../components/customChip';
 import { GET_EVENT_USERS } from '../constants';
 import { queryClient } from '../../../../config/lib/react-query/query-client';
@@ -96,32 +98,6 @@ const renderCellWithCopy = (value: string | number) => {
     </Tooltip>
   );
 };
-/**
- * Só a parte da data ("2009-03-14"), sem hora nem fuso: o nascimento vem como
- * meia-noite UTC, e lido no horário de Brasília cairia no dia anterior — a
- * idade sairia um ano a menos justo no dia do aniversário.
- */
-const diaLocal = (valor?: string | Date | null) => {
-  if (!valor) return null;
-  const [ano, mes, dia] = String(
-    valor instanceof Date ? valor.toISOString() : valor
-  )
-    .slice(0, 10)
-    .split('-')
-    .map(Number);
-  return ano && mes && dia ? new Date(ano, mes - 1, dia) : null;
-};
-
-/** Idade no primeiro dia do evento (ou hoje, se o evento não chegou) */
-const idadeNoEvento = (
-  nascimento?: string | Date | null,
-  inicioDoEvento?: string | Date | null
-) => {
-  const nasceu = diaLocal(nascimento);
-  if (!nasceu) return null;
-  return calculateAge(nasceu, diaLocal(inicioDoEvento) ?? new Date());
-};
-
 function ListUsers({
   search,
   apiRef,
@@ -574,43 +550,9 @@ function ListUsers({
         // id exato: é o que a bipagem do QR do crachá joga no campo de busca
         user.id?.toLowerCase() === search.toLowerCase()
     );
-    filtered = filterUsers(filtered, filters);
+    filtered = filtrarInscritos(filtered, filters, event);
     filtered = filteredByGroup(filtered);
     return filtered;
-  };
-  const normalize = (str: string) => str?.trim().normalize('NFC').toLowerCase();
-  const filterUsers = (users: User[], filters: filterUsers) => {
-    return users.filter((user) => {
-      const { birthday, city, neighborhood } = filters;
-      let isBirthdayMatch = true;
-      if (birthday.startDate && birthday.endDate) {
-        const userBD = dayjs(user.birthday);
-        const start = dayjs(birthday.startDate);
-        const end = dayjs(birthday.endDate);
-        // Transformar em número "MMDD" para comparar intervalos
-        const userNum = userBD.month() * 100 + userBD.date();
-        const startNum = start.month() * 100 + start.date();
-        const endNum = end.month() * 100 + end.date();
-        if (startNum <= endNum) {
-          // intervalo normal
-          isBirthdayMatch = userNum >= startNum && userNum <= endNum;
-        } else {
-          // intervalo cruzando o ano (ex.: 20/12 até 10/01)
-          isBirthdayMatch = userNum >= startNum || userNum <= endNum;
-        }
-      }
-      const isCityMatch = city
-        ? normalize(user.city) === normalize(city)
-        : true;
-      const isNeighborhoodMatch = neighborhood
-        ? normalize(user.neighborhood) === normalize(neighborhood)
-        : true;
-      const isWorkerMatch =
-        filters.worker !== undefined ? user.worker === filters.worker : true;
-      return (
-        isBirthdayMatch && isCityMatch && isNeighborhoodMatch && isWorkerMatch
-      );
-    });
   };
   // const handleClickEditWork = (event: React.MouseEvent) => {
   //   event.stopPropagation();

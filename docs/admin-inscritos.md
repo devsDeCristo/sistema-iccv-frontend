@@ -45,16 +45,22 @@ Só para quem administra o evento. Regras no backend, `docs/certificados.md`.
 Se o evento emite certificado, e quem assina, é do cadastro e da edição do
 evento, na etapa Módulos (`docs/admin-eventos.md`).
 
+- No formato das outras abas com lista: a **barra de busca** — busca por nome
+  e o filtro **Presença** (Todos os inscritos, Presentes, Ausentes) — e a
+  tabela.
 - A lista de presença na tela, sem PDF: todos os inscritos com nome, grupo e o
-  chip "Presente · 05/02 às 08:12" ou "Ausente"; "X de Y inscritos fizeram
-  check-in" no topo. No celular o grupo sai e o chip fica só "Presente", para a
-  linha caber.
+  chip "Presente · 05/02 às 08:12" ou "Ausente". No celular o grupo sai e o
+  chip fica só "Presente", para a linha caber.
 - Cada presente tem nos **três pontinhos** da linha "Baixar certificado".
 - As **caixas** marcam vários, como na lista de usuários, e a barra flutuante
   (`BarraDeSelecao`) gera os marcados num PDF só. Ausente não tem caixa nem
   menu.
-- Certificado desligado: um aviso no topo leva para a edição do evento; as
-  caixas seguem, mas a barra só conta e limpa, e o item do menu fica apagado.
+- **Situação do certificado** (`SituacaoDoCertificado`), na barra de busca,
+  à direita (embaixo do campo no celular): um selo discreto, não um alerta.
+  Ligado, "Certificado ligado · 20 horas" e onde baixar; desligado,
+  "Certificado desligado" com o botão **Ligar**, que leva para a edição do
+  evento. Desligado, as caixas seguem, mas a barra só conta e limpa, e o item
+  do menu fica apagado.
 - Os PDFs saem do servidor, na fila do quadrante e dos crachás
   (`baixarPdfNaFila`, em `src/utils/pdfNaFila.ts`, que manda por POST quando
   há corpo e lê a mensagem de recusa do servidor).
@@ -77,10 +83,24 @@ evento, na etapa Módulos (`docs/admin-eventos.md`).
   uma aba; a grade filtra só os inscritos daquele grupo.
 - **Busca:** por nome, CPF ou nome do crachá, mais busca exata por id — é o que
   a leitura do QR do crachá joga no campo, para achar a inscrição bipada.
-- **Filtros** (modal `FilterModal`): período de aniversário (dia/mês, aceita
-  intervalo que cruza o fim do ano), cidade, bairro (comparação exata,
-  normalizada) e "Servindo" (sim/não/todos). O selo com o número de filtros
-  ativos fica sobre o botão "Filtros".
+- **Filtros** (modal `FilterModal`, regras em
+  `src/features/admin/events/utils/filtroDeInscritos.ts`), nesta ordem:
+  - **Aniversariantes:** um interruptor — só quem faz aniversário entre o
+    primeiro e o último dia do evento (ano à parte; evento de 30/12 a 02/01
+    atravessa o ano). Mostra o período e quantos são.
+  - **Idade:** de/até, em anos — a idade no primeiro dia do evento, a mesma
+    da coluna (`idadeNoEvento`).
+  - **Liberação:** todos, maiores de idade, ou menores aguardando,
+    autorizados ou recusados.
+  - **Saúde:** hipertensos e/ou diabéticos — só quem informou "sim" (o dado
+    depende do consentimento).
+  - **Localidade:** cidade e bairro escolhidos entre os que existem nos
+    inscritos, com quantos há em cada um; grafias diferentes do mesmo nome
+    contam juntas. O bairro se limita à cidade escolhida, e trocar a cidade
+    solta o bairro.
+
+  O modal abre com os filtros aplicados (cancelar não deixa rascunho). O selo
+  sobre o botão "Filtros" conta os de pé — idade e localidade contam um cada.
 - **Exportar:** CSV, XLSX ou PDF, com escopo (selecionados na grade / filtrados
   na tela / todos os inscritos do evento), agrupamento (nenhum, por equipe, por
   quarto, por grupo de inscrição), ordenação (alfabética ou ordem de
@@ -104,7 +124,8 @@ evento, na etapa Módulos (`docs/admin-eventos.md`).
   (hoje, se o evento não tem data) — é essa idade que decide se a pessoa é
   menor e precisa de liberação. A conta usa só a parte da data, sem fuso: o
   nascimento vem como meia-noite UTC, e no horário de Brasília cairia no dia
-  anterior, tirando um ano de quem faz aniversário no dia (`idadeNoEvento`).
+  anterior, tirando um ano de quem faz aniversário no dia (`idadeNoEvento`, em
+  `utils/filtroDeInscritos.ts`).
 - **Data da inscrição:** a data e, embaixo, a hora (horário local). A
   ordenação segue pela data e hora; a exportação sai com as duas juntas.
 - **Liberação de menor** (coluna "Liberação"): selo colorido que responde

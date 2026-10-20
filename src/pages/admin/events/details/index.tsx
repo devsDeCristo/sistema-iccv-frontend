@@ -97,6 +97,10 @@ import { usePostReconcilePayments } from '../../../../features/admin/events/api/
 import { CardsProductOrders } from '../../../../features/admin/events/components/cardsProductOrders';
 import { useRole } from '../../../../hooks/useRole';
 import FilterModal from '../../../../features/admin/events/components/filtersUserModal';
+import {
+  FILTROS_VAZIOS,
+  quantosFiltros,
+} from '../../../../features/admin/events/utils/filtroDeInscritos';
 import PdfTeams from '../../../../components/pdfTeams';
 
 import ModalQrCode from '../../../../features/admin/events/components/modalQrCode';
@@ -201,13 +205,8 @@ function Details() {
   const [openModalFilter, setOpenModalFilter] = useState(false);
   const [loadingPdfTeams, setLoadingPdfTeams] = useState(false);
   const [loadingPdfRooms, setLoadingPdfRooms] = useState(false);
-  const [filtersUsers, setFiltersUsers] = useState<filterUsers>({
-    birthday: { startDate: '', endDate: '' },
-    city: '',
-    neighborhood: '',
-    worker: undefined,
-  });
-  const [filtersUsersSelected, setFiltersUsersSelected] = useState<number>(0);
+  const [filtersUsers, setFiltersUsers] = useState<filterUsers>(FILTROS_VAZIOS);
+  const filtersUsersSelected = quantosFiltros(filtersUsers);
   const { id: eventId = '' } = useParams();
   // exportação e PDFs: escolha do dropdown + fotografia da grade no clique
   const [anchorElExport, setAnchorElExport] = useState<null | HTMLElement>(
@@ -395,15 +394,6 @@ function Details() {
       width: { xs: '100%', sm: 210 },
     },
   };
-
-  useEffect(() => {
-    let cont = 0;
-    if (filtersUsers.birthday.startDate || filtersUsers.birthday.endDate)
-      cont++;
-    if (filtersUsers.city) cont++;
-    if (filtersUsers.neighborhood) cont++;
-    setFiltersUsersSelected(cont);
-  }, [filtersUsers]);
 
   async function generatePdfRooms() {
     setLoadingPdfRooms(true);
@@ -1082,12 +1072,19 @@ function Details() {
         <Stack gap={2} sx={{ mt: 2 }}>
           <Paper sx={styles.boxFilterAndPdf} component="div">
             <TextField
-              label="Pesquisar quarto"
+              placeholder="Pesquisar quarto"
               variant="outlined"
               size="small"
               value={searchBedroom}
               sx={styles.textField}
               onChange={(e) => setSearchBedroom(e.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Search />
+                  </InputAdornment>
+                ),
+              }}
             />
             {/* <Typography color="#000">Quartos</Typography> */}
             <Stack sx={styles.stackButtons}>
@@ -1126,12 +1123,19 @@ function Details() {
         <Stack gap={2} sx={{ mt: 2 }}>
           <Paper component="div" sx={styles.boxFilterAndPdf}>
             <TextField
-              label="Pesquisar equipe"
+              placeholder="Pesquisar equipe"
               variant="outlined"
               size="small"
               value={searchTeam}
               sx={styles.textField}
               onChange={(e) => setSearchTeam(e.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Search />
+                  </InputAdornment>
+                ),
+              }}
             />
             {/* <Typography color="#000">Times</Typography> */}
             <Stack sx={styles.stackButtons}>
@@ -1187,12 +1191,19 @@ function Details() {
         <Stack gap={2} sx={{ mt: 2 }}>
           <Paper component="div" sx={styles.boxFilterAndPdf}>
             <TextField
-              label="Pesquisar transporte"
+              placeholder="Pesquisar transporte"
               variant="outlined"
               size="small"
               value={searchTransport}
               sx={styles.textField}
               onChange={(e) => setSearchTransport(e.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Search />
+                  </InputAdornment>
+                ),
+              }}
             />
 
             <Stack sx={styles.stackButtons}>
@@ -1217,6 +1228,9 @@ function Details() {
 
       <FilterModal
         open={openModalFilter}
+        filtros={filtersUsers}
+        inscritos={users ?? []}
+        evento={event}
         onClose={() => setOpenModalFilter(false)}
         onApply={(filters) => {
           setFiltersUsers(filters);

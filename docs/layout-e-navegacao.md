@@ -79,6 +79,8 @@ O cartão de busca das listagens (Eventos, Usuários, Notícias, Igrejas, Regist
 
 Antes, o campo pedia `width: 100%` de uma caixa que, na barra em linha com quebra, encolhia até o tamanho do conteúdo: no celular a busca, o select de status e o botão de criar ficavam estreitos, cada um de um tamanho. A regra força os filhos (`&&`, especificidade dobrada) porque cada tela dá larguras próprias para a tela grande; da tela média para cima, nada muda. Barra nova de listagem entra com `...barraLarguraCheiaNoCelularSx` no `sx` do `Paper`.
 
+O campo de busca dessas barras tem sempre a **lupa** no começo (`InputAdornment` com `<Search />`) e o texto como `placeholder`, não como `label` flutuante — na lista de Eventos e nas abas Quartos, Equipes e Transporte do evento era rótulo, sem lupa, e destoava das outras.
+
 ## Barra de seleção (`src/components/barraDeSelecao`)
 
 Barra dos itens marcados numa tabela, usada em Usuários (editar permissão) e Eventos (mudar status). Flutua no pé da tela enquanto há algo marcado: a quantidade, uma ação (`acao`: `rotulo`, `rotuloCurto` para o celular, `icone`, `onClick`) e o X que limpa a seleção. Sem `acao`, para quem não pode agir, ela só conta e limpa.
