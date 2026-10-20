@@ -22,6 +22,7 @@ contexto para quem (pessoa ou IA) for mexer nessas telas.
 | **Acesso** | | |
 | Login e cadastro | `/login`, `/usuario/cadastrar` | [login-e-cadastro.md](login-e-cadastro.md) |
 | Termos de Uso | `/termos` | [termos-de-uso.md](termos-de-uso.md) |
+| Verificação de certificado | `/certificado/:codigo` (pública) | [admin-inscritos.md](admin-inscritos.md) (aba Presença e certificados); regras no backend, `certificados.md` |
 | Layout e navegação | menu, rotas e perfis | [layout-e-navegacao.md](layout-e-navegacao.md) |
 | Deploy | CI, imagem e variáveis `VITE_*` | [deploy.md](deploy.md) |
 | **Painel do admin** | | |

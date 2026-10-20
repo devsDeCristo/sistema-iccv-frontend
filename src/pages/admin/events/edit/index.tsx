@@ -50,6 +50,11 @@ import { moduloAtivo } from '../../../../features/admin/events/eventModules';
 import { coresParaSalvar } from '../../../../features/admin/events/eventColors';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useGetEvents } from '../../../../features/admin/events/api/getEvents';
+import {
+  SEM_CERTIFICADO,
+  certificadoParaEnvio,
+  useGetCertificado,
+} from '../../../../features/admin/events/api/certificado';
 import { usePutUpdateEvent } from '../../../../features/admin/events/api/putEvent';
 import React, { useEffect, useMemo, useState } from 'react';
 import { FormGeneralInfo } from '../../../../features/admin/events/components/formGeneralInfo';
@@ -77,6 +82,8 @@ function Edit() {
     }
   );
   const event = eventData as EventDetails;
+  // o certificado vem à parte: tem a assinatura de gente, e não vai no evento
+  const { data: certificado } = useGetCertificado(id || '');
   // a equipe do evento é do admin da igreja; o admin de evento não a vê aqui
   const { isSuperAdmin, perfilNaIgreja } = useRole();
   const defineEquipe =
@@ -163,6 +170,7 @@ function Edit() {
     moduleTeams: moduloAtivo(event?.data, 'teams'),
     moduleTransport: moduloAtivo(event?.data, 'transport'),
     showQuadrante: event?.data?.showQuadrante === true,
+    certificate: certificado ?? SEM_CERTIFICADO,
   });
   const getDefaultTermsValues = (event?: EventDetails): TermsFormType => ({
     minorTermUrl: event?.data?.minorTermUrl
@@ -238,6 +246,10 @@ function Edit() {
       methodsEquipe.reset(getDefaultEquipeValues(event));
     }
   }, [event]);
+  // chega quando chegar, antes ou depois do evento
+  useEffect(() => {
+    if (certificado) methodsModules.setValue('certificate', certificado);
+  }, [certificado]);
   const { mutate: mutatePutUpdateEvent, isLoading: isLoadingEdit } =
     usePutUpdateEvent({
       onSuccess: () => {
@@ -318,6 +330,14 @@ function Edit() {
             groupRoles: registrationSettingsData.groupRoles,
             products: produtosParaEnvio(methodsProducts.getValues().products),
             ...(defineEquipe ? equipeParaEnvio(methodsEquipe.getValues()) : {}),
+            // sem a configuração carregada, não manda: o servidor não mexe
+            ...(certificado
+              ? {
+                  certificate: certificadoParaEnvio(
+                    methodsModules.getValues().certificate
+                  ),
+                }
+              : {}),
             data: {
               description: generalInfoData.description,
               shortDescription: generalInfoData.shortDescription,

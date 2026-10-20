@@ -47,6 +47,10 @@ const putUpdateEvent = ({ data, id, files }: PutUpdateEventProps) => {
   if (data.tesoureiros !== undefined) {
     formData.append('tesoureiros', JSON.stringify(data.tesoureiros));
   }
+  // o certificado fica fora de `data`, que é público: tem a assinatura de gente
+  if (data.certificate !== undefined) {
+    formData.append('certificate', JSON.stringify(data.certificate));
+  }
   if (data.groupLink) formData.append('groupLink', data.groupLink);
   // mudar a igreja do evento é do super admin; dos outros perfis o campo nem
   // sai da tela, e o backend ignora se vier

@@ -46,6 +46,10 @@ import { queryClient } from '../../../../config/lib/react-query/query-client';
 import { useRole } from '../../../../hooks/useRole';
 import { FormProducts } from '../../../../features/admin/events/components/formProducts';
 import { produtosParaEnvio } from '../../../../features/admin/events/products';
+import {
+  SEM_CERTIFICADO,
+  certificadoParaEnvio,
+} from '../../../../features/admin/events/api/certificado';
 import { coresParaSalvar } from '../../../../features/admin/events/eventColors';
 import { textoDoTermo } from '../../../../features/admin/events/terms';
 import {
@@ -90,6 +94,7 @@ function Register() {
       moduleTeams: true,
       moduleTransport: true,
       showQuadrante: false,
+      certificate: SEM_CERTIFICADO,
     },
     mode: 'onChange',
   });
@@ -248,6 +253,7 @@ function Register() {
             groupRoles: registrationSettingsData.groupRoles,
             products: produtosParaEnvio(methodsProducts.getValues().products),
             ...equipeParaEnvio(methodsEquipe.getValues()),
+            certificate: certificadoParaEnvio(modulesData.certificate),
             data: {
               description: generalInfoData.description,
               shortDescription: generalInfoData.shortDescription,

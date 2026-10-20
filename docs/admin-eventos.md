@@ -134,6 +134,16 @@ passo atual com nome).
   e-mail e aniversário.
   - Espelha `src/event/event-modules.ts` e `src/event/event-quadrante.ts` no
     backend.
+  - **Certificado de participação** (`CartaoCertificado`), o último cartão:
+    nasce desligado. Ligado, abre a carga horária (opcional) e **quem assina**
+    — até duas pessoas, com nome, cargo e a imagem da assinatura (opcional, PNG
+    ou JPG, reduzida no navegador para no máximo 600×200; aparece sobre fundo
+    branco, como no papel). Desligado, quem assina nem aparece, e não trava o
+    envio. Vai no campo `certificate` do envio do evento (JSON, como produtos
+    e equipe), fora de `data`, que é público. Na edição a configuração vem de
+    `GET /events/:id/certificate`; sem ela carregada, o campo nem vai, e o
+    servidor não mexe. Os certificados saem na aba Presença e certificados
+    (`docs/admin-inscritos.md`).
 - **Logo e capa (passo 5):**
   - Uma prévia simula o cabeçalho real da página do evento (capa com o mesmo
     filtro e véu, logo, nome e selo de categoria), nas proporções de tela cheia

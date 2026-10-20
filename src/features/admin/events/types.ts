@@ -1,4 +1,5 @@
 import { User, UserTeam } from '../../../types/user';
+import { ConfigDoCertificado } from './api/certificado';
 import { z } from 'zod';
 import { ChurchStatus } from '../churches/constants';
 import {
@@ -264,6 +265,8 @@ export interface CreateEventPayload {
   /** a equipe do evento (admins e tesoureiros); ausente, nada muda */
   adminIds?: string[];
   tesoureiros?: { userId: string; kind: 'BASICO' | 'COMPLETO' }[];
+  /** o certificado de participação; ausente, nada muda */
+  certificate?: ConfigDoCertificado;
   data: EventDataJson;
   type: EventType;
 }

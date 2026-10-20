@@ -66,8 +66,10 @@ import {
   EmailOutlined,
   ExpandMore,
   CalendarMonthOutlined,
+  EditOutlined,
   FilterAltOutlined,
   DirectionsBusOutlined,
+  WorkspacePremiumOutlined,
   GroupsOutlined,
   HourglassEmptyOutlined,
   HowToReg,
@@ -105,6 +107,7 @@ import {
   superficieSx,
 } from '../../../../components/listPageStyles';
 import { NavTabs } from '../../../../components/navTabs';
+import { ListaDePresenca } from '../../../../features/admin/events/components/listaDePresenca';
 import { PaymentResponse, User } from '../../../../types/user';
 import { ListUsersWaitList } from '../../../../features/admin/events/components/listUsersWaitList';
 import { ListPayments } from '../../../../features/admin/events/components/listPayments';
@@ -163,6 +166,11 @@ const EVENT_TABS = [
     label: 'Transporte',
     value: 'transporte',
     icon: <DirectionsBusOutlined fontSize="small" />,
+  },
+  {
+    label: 'Presença e certificados',
+    value: 'certificados',
+    icon: <WorkspacePremiumOutlined fontSize="small" />,
   },
 ];
 
@@ -715,6 +723,22 @@ function Details() {
         }
         buttonBack
         pageBack="/admin/eventos"
+        // a mesma regra do "Editar" da lista de eventos: admin da igreja,
+        // admin deste evento ou super admin
+        aoLadoDoTitulo={
+          isAdminDoEvento && (
+            <Tooltip title="Editar evento">
+              <IconButton
+                size="small"
+                aria-label="Editar evento"
+                onClick={() => navigate(`/admin/eventos/${eventId}/editar`)}
+                sx={{ color: 'text.secondary', p: 0.5 }}
+              >
+                <EditOutlined sx={{ fontSize: 18 }} />
+              </IconButton>
+            </Tooltip>
+          )
+        }
       />
 
       {/* sem `mb`: o Paper de filtros logo abaixo já traz `mt: 2`. O check-in
@@ -1188,6 +1212,8 @@ function Details() {
           />
         </Stack>
       )}
+
+      {pageValue === 'certificados' && <ListaDePresenca eventId={id || ''} />}
 
       <FilterModal
         open={openModalFilter}

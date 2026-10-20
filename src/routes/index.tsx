@@ -7,6 +7,7 @@ import {
 import { RoutesLogin } from '../pages/login/routes';
 import { RegisterUser } from '../pages/users/register';
 import { Terms } from '../pages/terms';
+import { VerificarCertificado } from '../pages/certificado';
 import { Profile } from '../pages/profile';
 
 import { RoutesHomeAdmin } from '../pages/admin/home/routes';
@@ -36,6 +37,8 @@ const routers = (): ReturnType<typeof createBrowserRouter> => {
         <Route path="/usuario/cadastrar" element={<RegisterUser />} />
         {/* pública: o link sai do login e do cadastro, antes de haver conta */}
         <Route path="/termos" element={<Terms />} />
+        {/* pública: o QR do certificado abre aqui, para quem for conferir */}
+        <Route path="/certificado/:codigo" element={<VerificarCertificado />} />
 
         <Route
           loader={authLoaderAdmin}

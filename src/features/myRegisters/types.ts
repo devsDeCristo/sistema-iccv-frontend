@@ -3,6 +3,8 @@ export interface paymentsWithRoles{
     eventName: string;
     /** A igreja dona deste evento cobra online? Ver `Church.modulePayment`. */
     modulePayment: boolean;
+    /** Dá para baixar o certificado: ligado no evento, fez check-in e o evento terminou */
+    certificateAvailable?: boolean;
     data: object
     registeredRoles: RegisteredRole[];
     waitlistRoles: RegisteredRole[];

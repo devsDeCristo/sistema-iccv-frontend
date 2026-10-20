@@ -61,6 +61,15 @@ picote.
 - **Compras na loja:** o título é o produto ("Camiseta Oficial do Retiro 2027 (Normal (GG)) ×1"), e não mais "Compra de 27/09/2026"; a data vai ao lado do chip ("Comprado em 27/09/2026"). Compra com mais de um produto tem "N produtos" no título e cada produto embaixo, com o seu valor. O valor da linha é o da compra (`amount`).
 - **Canhoto:** o status geral — "Tudo pago" ou "N pagamentos pendentes · R$ X", com a soma do que falta (`valorEmAberto`, em `utils.ts`, a mesma régua de `pagamentosEmAberto`) — e os botões "Ver evento" e "Pagar".
 
+### Certificado
+
+- Botão **Certificado** no canhoto, antes de "Ver evento", quando
+  `certificateAvailable` (certificado ligado no evento, a pessoa fez check-in e
+  o evento terminou). Baixa `GET /events/:id/certificates/me/pdf` pela fila de
+  PDF. O certificado traz um QR e um código que abrem a página pública
+  `/certificado/:codigo`, que confirma nome, evento, igreja, período e carga
+  horária, sem login e sem CPF.
+
 ### Pagar
 
 - O botão só aparece quando há pagamento em aberto **e** a igreja recebe pelo site (`modulePayment`).

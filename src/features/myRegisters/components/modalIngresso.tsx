@@ -1,4 +1,5 @@
-import { ReactNode } from 'react';
+import { ReactNode, useState } from 'react';
+import { baixarPdfNaFila } from '../../../utils/pdfNaFila';
 import {
   alpha,
   Box,
@@ -17,6 +18,7 @@ import {
   LocalActivity,
   PaymentsOutlined,
   ShoppingBagOutlined,
+  WorkspacePremiumOutlined,
 } from '@mui/icons-material';
 import CustomChip from '../../../components/customChip';
 import CapaLogin from '../../../assets/capaLogin2.jpg';
@@ -309,6 +311,7 @@ function ModalIngresso({
 
   const emAberto = pagamentosEmAberto(payment);
   const quantoFalta = valorEmAberto(payment);
+  const [baixandoCertificado, setBaixandoCertificado] = useState(false);
   const compras = payment.productPurchases ?? [];
   const podePagar = payment.modulePayment && emAberto > 0;
   const pendencias = pendenciasDa(payment, emAberto, onAnexarTermo);
@@ -574,6 +577,22 @@ function ModalIngresso({
           />
         </Box>
         <Stack direction="row" gap={1} justifyContent="flex-end">
+          {payment.certificateAvailable && (
+            <Button
+              startIcon={<WorkspacePremiumOutlined />}
+              disabled={baixandoCertificado}
+              onClick={async () => {
+                setBaixandoCertificado(true);
+                await baixarPdfNaFila(
+                  `/events/${payment.eventId}/certificates/me/pdf`,
+                  'certificado.pdf'
+                );
+                setBaixandoCertificado(false);
+              }}
+            >
+              {baixandoCertificado ? 'Gerando…' : 'Certificado'}
+            </Button>
+          )}
           <Button onClick={onVerEvento}>Ver evento</Button>
           {podePagar && (
             <Button variant="contained" color="success" onClick={onPagar}>

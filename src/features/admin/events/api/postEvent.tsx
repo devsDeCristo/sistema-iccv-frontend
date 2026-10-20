@@ -43,6 +43,10 @@ const postCreateEvent = ({ data, files }: PostCreateEventProps) => {
   if (data.tesoureiros !== undefined) {
     formData.append('tesoureiros', JSON.stringify(data.tesoureiros));
   }
+  // o certificado fica fora de `data`, que é público: tem a assinatura de gente
+  if (data.certificate !== undefined) {
+    formData.append('certificate', JSON.stringify(data.certificate));
+  }
   if (data.groupLink) formData.append('groupLink', data.groupLink);
   // vazio para admin e tesouraria: o backend usa a igreja do perfil deles
   if (data.churchId) formData.append('churchId', data.churchId);

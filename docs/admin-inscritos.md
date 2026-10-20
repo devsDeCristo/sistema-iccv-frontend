@@ -9,10 +9,11 @@ equipes e transporte também (`docs/admin-quartos-equipes-transporte.md`).
 
 - **Inscritos** (`usuarios`), **Lista de Espera** (`lista-espera`),
   **Tesouraria** (`pagamentos`), **Pedidos de Produtos** (`produtos`),
-  **Quartos**, **Equipes**, **Transporte**.
+  **Quartos**, **Equipes**, **Transporte**, **Presença e certificados**
+  (`certificados`).
 - **Quem vê o quê:**
   - Quem administra a igreja do evento (`isAdminDoEvento`, via `useEventRole`)
-    vê as sete. É o perfil **efetivo no evento**, não o perfil geral da pessoa —
+    vê as oito. É o perfil **efetivo no evento**, não o perfil geral da pessoa —
     quem é admin numa igreja pode ser só tesouraria na igreja de outro evento, e
     aí só enxerga Inscritos e Tesouraria.
   - Quem não administra (perfil tesouraria, ou enquanto o evento ainda carrega)
@@ -30,8 +31,35 @@ equipes e transporte também (`docs/admin-quartos-equipes-transporte.md`).
 - **Cabeçalho compacto:** nome do evento em 18px e, embaixo, o período com
   ícone de calendário; menos respiro no topo da página. Ver
   `docs/layout-e-navegacao.md` (`Header` `compacto`).
+- **Editar evento:** um lápis colado no fim do nome (`aoLadoDoTitulo` do
+  `Header`, na linha da última palavra), com a dica "Editar evento"; leva para
+  a edição. Só para quem pode editar — a mesma regra do "Editar" da
+  lista de eventos: admin da igreja, admin deste evento ou super admin
+  (`isAdminDoEvento`).
 
 Arquivo: `src/pages/admin/events/details/index.tsx`.
+
+## Aba Presença e certificados (`ListaDePresenca`)
+
+Só para quem administra o evento. Regras no backend, `docs/certificados.md`.
+Se o evento emite certificado, e quem assina, é do cadastro e da edição do
+evento, na etapa Módulos (`docs/admin-eventos.md`).
+
+- A lista de presença na tela, sem PDF: todos os inscritos com nome, grupo e o
+  chip "Presente · 05/02 às 08:12" ou "Ausente"; "X de Y inscritos fizeram
+  check-in" no topo. No celular o grupo sai e o chip fica só "Presente", para a
+  linha caber.
+- Cada presente tem nos **três pontinhos** da linha "Baixar certificado".
+- As **caixas** marcam vários, como na lista de usuários, e a barra flutuante
+  (`BarraDeSelecao`) gera os marcados num PDF só. Ausente não tem caixa nem
+  menu.
+- Certificado desligado: um aviso no topo leva para a edição do evento; as
+  caixas seguem, mas a barra só conta e limpa, e o item do menu fica apagado.
+- Os PDFs saem do servidor, na fila do quadrante e dos crachás
+  (`baixarPdfNaFila`, em `src/utils/pdfNaFila.ts`, que manda por POST quando
+  há corpo e lê a mensagem de recusa do servidor).
+- O participante baixa o dele no ingresso, em Minhas Inscrições, depois que o
+  evento termina (`docs/ingresso.md`).
 
 ## Aba Inscritos
 

@@ -31,6 +31,11 @@ interface HeaderProps {
    * identidade do card dele na home.
    */
   modulo?: ChaveDoModulo;
+  /**
+   * Colado no fim do nome, na mesma linha da última palavra (o lápis de
+   * editar o evento). Só no `compacto`.
+   */
+  aoLadoDoTitulo?: React.ReactNode;
   children?: React.ReactNode;
 }
 
@@ -42,6 +47,7 @@ function Header({
   compacto = false,
   acaoAoLado = false,
   modulo,
+  aoLadoDoTitulo,
   children,
 }: HeaderProps) {
   const navigate = useNavigate();
@@ -222,7 +228,21 @@ function Header({
           // no celular ela desce para baixo do bloco, sem cair entre os dois
           <>
             <Box sx={style.boxColumn}>
-              <Typography sx={style.title}>{title}</Typography>
+              <Typography sx={style.title}>
+                {title}
+                {aoLadoDoTitulo && (
+                  <Box
+                    component="span"
+                    sx={{
+                      display: 'inline-flex',
+                      verticalAlign: 'middle',
+                      ml: 0.5,
+                    }}
+                  >
+                    {aoLadoDoTitulo}
+                  </Box>
+                )}
+              </Typography>
               {description ? (
                 <Typography component="div" sx={style.description}>
                   {description}

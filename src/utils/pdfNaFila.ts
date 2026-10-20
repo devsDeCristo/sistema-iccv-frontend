@@ -1,4 +1,5 @@
 import { Id, toast } from 'react-toastify';
+import FileSaver from 'file-saver';
 import { apiClient } from '../config/lib/axios/api-client';
 
 /** O que o servidor diz do pedido — ver `src/pdf/fila.ts` no backend */
@@ -76,5 +77,41 @@ export async function pedirPdfNaFila<T>(
   } finally {
     ativo = false;
     if (aviso !== null) toast.dismiss(aviso);
+  }
+}
+
+/**
+ * Baixa um PDF que o servidor gera na fila e salva com o nome que ele mandou.
+ * Com `corpo`, o pedido vai por POST (ex.: os marcados numa lista). A recusa
+ * vem como Blob (o pedido é `blob`): a mensagem do servidor é lida dele, para
+ * a tela dizer o motivo — "ninguém fez check-in", e não "erro".
+ */
+export async function baixarPdfNaFila(
+  url: string,
+  nomePadrao: string,
+  corpo?: unknown
+) {
+  try {
+    const resposta = await pedirPdfNaFila((headers) =>
+      corpo === undefined
+        ? apiClient.get<Blob>(url, { responseType: 'blob', headers })
+        : apiClient.post<Blob>(url, corpo, { responseType: 'blob', headers })
+    );
+    const nome =
+      /filename="(.+)"/.exec(
+        resposta.headers['content-disposition'] ?? ''
+      )?.[1] ?? nomePadrao;
+    FileSaver.saveAs(resposta.data, nome);
+  } catch (erro: any) {
+    let mensagem = 'Não foi possível gerar o PDF.';
+    const corpo = erro?.response?.data;
+    if (corpo instanceof Blob) {
+      try {
+        mensagem = JSON.parse(await corpo.text())?.message || mensagem;
+      } catch {
+        // corpo que não é JSON: fica a mensagem genérica
+      }
+    }
+    toast.error(mensagem);
   }
 }

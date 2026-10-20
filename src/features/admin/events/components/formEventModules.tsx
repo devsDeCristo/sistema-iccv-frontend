@@ -21,6 +21,7 @@ import { ModulesFormType } from '../types';
 import { useGetBedrooms } from '../api/getBedrooms';
 import { useGetTeams } from '../api/getTeams';
 import { useGetTransports } from '../api/getTransports';
+import { CartaoCertificado } from './cartaoCertificado';
 
 type CampoDeModulo = 'moduleBedrooms' | 'moduleTeams' | 'moduleTransport';
 
@@ -296,6 +297,8 @@ function FormEventModules() {
           }}
         />
       ))}
+
+      <CartaoCertificado cartaoSx={styles.cartao} />
     </Stack>
   );
 }

@@ -270,6 +270,26 @@ export const MODULES_SCHEMA = z.object({
   moduleTransport: z.boolean(),
   /** inscritos podem abrir o quadrante; nasce desligado */
   showQuadrante: z.boolean(),
+  /** certificado de participação; nasce desligado */
+  certificate: z
+    .object({
+      enabled: z.boolean(),
+      workload: z.string().max(40).nullable(),
+      signers: z
+        .array(
+          z.object({
+            name: z.string(),
+            role: z.string().max(80),
+            signature: z.string().nullable(),
+          })
+        )
+        .max(2),
+    })
+    // desligado, quem assina nem aparece na tela: não pode travar o envio
+    .refine(
+      (c) => !c.enabled || c.signers.every((s) => s.name.trim().length >= 2),
+      { message: 'Informe o nome de quem assina', path: ['signers'] }
+    ),
 });
 
 export const TERMS_SCHEMA = z.object({

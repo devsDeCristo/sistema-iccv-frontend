@@ -59,6 +59,7 @@ Arquivo: `src/components/appBar/index.tsx`.
 - **`description`:** texto embaixo do título (aceita elemento, não só texto).
 - **`acaoAoLado`:** a ação fica ao lado do título também no celular, em vez de descer. Para ação pequena que encolhe, como o seletor de igreja (Eventos, Usuários, Notícias).
 - **`compacto`:** cabeçalho baixo, para página com abas e tabela embaixo, onde cada pixel do topo sai da tabela. Título em 18px (600), descrição em 13px colada nele, seta centralizada na altura do bloco, 20px de margem embaixo. Título e descrição formam um bloco só, e a ação vai ao lado dele inteiro; no celular o bloco ocupa a linha e a ação desce. Usado na página do evento (`/admin/eventos/:id/detalhes/...`): nome do evento e, embaixo, o período com ícone de calendário ("31/10/26 – 01/11/26").
+- **`aoLadoDoTitulo`** (só no `compacto`): colado no fim do nome, na linha da última palavra — o lápis de editar na página do evento.
 
 ### Respiro da página (`src/components/pageStyle`)
 
