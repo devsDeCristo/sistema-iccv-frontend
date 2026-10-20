@@ -64,11 +64,12 @@ inscrição por grupo também (`docs/inscricao-em-grupos.md`).
     que a pessoa não administra volta listado com o motivo; ao fechar, só
     esses continuam marcados.
 - **Ações por linha**, num menu de três pontos:
-  - **Abrir página do evento:** em nova aba.
-  - **Detalhes:** vai para o painel de inscritos do evento.
-  - **Editar:** só aparece para quem administra a igreja do evento ou é super
-    admin (`perfilNaIgreja(...) === Role.ADMIN`).
-  - **Apagar evento:** só aparece para o perfil de desenvolvimento (`isDev`).
+  - **Acessar:** vai para o painel de inscritos do evento.
+  - **Editar:** só aparece para quem administra a igreja do evento, administra
+    este evento ou é super admin.
+  - **Página oficial:** a página pública do evento, em nova aba.
+  - **Excluir:** só aparece para o perfil de desenvolvimento (`isDev`); por
+    último, longe das outras.
 - **Novo evento:** botão "Novo Evento", visível para admin, leva ao cadastro.
 
 Arquivos: `src/pages/admin/events/index.tsx`, `src/features/admin/events/components/list.tsx`, `src/features/admin/events/components/cardsStatus.tsx`, `src/features/admin/events/utils/eventStatus.ts`, `src/features/admin/events/components/modalStatusEmMassa.tsx`, `src/features/admin/events/api/putStatusEmMassa.ts`.

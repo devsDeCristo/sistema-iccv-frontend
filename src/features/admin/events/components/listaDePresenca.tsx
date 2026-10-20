@@ -177,6 +177,8 @@ export function ListaDePresenca({ eventId }: { eventId: string }) {
     <Card
       sx={{
         ...cardTabelaSx,
+        // o respiro abaixo das abas é do conteúdo, como nas outras abas
+        mt: 2,
         // o lugar da barra flutuante no fim da página — ver a lista de eventos
         mb: selecionados.length ? { xs: 5.5, sm: 6.5 } : 0,
       }}

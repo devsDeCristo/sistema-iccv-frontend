@@ -137,6 +137,19 @@ Não repita esse estilo no `sx` de cada tela: campo novo já nasce assim. Até
 buscas das listas do admin. O resto do sistema ficava com o contorno padrão do
 MUI.
 
+## Menus e listas flutuantes (tema)
+
+`MuiPopover` em `src/themes/index.tsx`: o que flutua sobre a página — menu de
+três pontos, opções do select — é uma camada acima dos cards. No tema claro
+ganha fundo branco, contorno fino e sombra funda; com o Paper padrão (#F8F8F8
+e a sombra leve de superfície) ele se confundia com o fundo (#F0F1F4). No
+escuro fica como estava: o tom do Paper já destaca.
+
+`MuiMenuItem`: ao passar o mouse, o ícone do item (`ListItemIcon`) cresce,
+inclina de leve e brilha na própria cor (`drop-shadow` em `currentColor`, a
+cor que cada ação dá a ele), em 0,2s. Com "reduzir movimento" ligado no
+sistema, fica só o brilho.
+
 ## Régua lateral (`src/components/sideBar`)
 
 - Um só conteúdo de menu (`ConteudoNav`) para os dois formatos: fixa ao lado do conteúdo em telas `lg+`, dentro de uma gaveta (`Drawer`) nas menores.

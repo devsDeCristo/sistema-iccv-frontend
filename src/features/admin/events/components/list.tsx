@@ -31,7 +31,7 @@ import {
   EditNoteOutlined,
   PublishedWithChangesOutlined,
   MoreVert,
-  VisibilityOutlined,
+  LoginOutlined,
   WebOutlined,
 } from '@mui/icons-material';
 import { useRole } from '../../../../hooks/useRole';
@@ -333,21 +333,8 @@ function List({
           <AcoesDoEvento
             acoes={[
               {
-                rotulo: 'Abrir página do evento',
-                icone: <WebOutlined fontSize="small" />,
-                cor: theme.palette.chips.info,
-                // em outra aba: o admin volta para a lista onde parou, em vez
-                // de refazer busca e filtros no caminho de volta
-                aoClicar: () =>
-                  window.open(
-                    `/eventos/${params.row.id}`,
-                    '_blank',
-                    'noopener'
-                  ),
-              },
-              {
-                rotulo: 'Detalhes',
-                icone: <VisibilityOutlined fontSize="small" />,
+                rotulo: 'Acessar',
+                icone: <LoginOutlined fontSize="small" />,
                 cor: theme.palette.primary.main,
                 aoClicar: () =>
                   navigate(`/admin/eventos/${params.row.id}/detalhes/usuarios`),
@@ -363,12 +350,25 @@ function List({
                     },
                   ]
                 : []),
+              {
+                rotulo: 'Página oficial',
+                icone: <WebOutlined fontSize="small" />,
+                cor: theme.palette.chips.info,
+                // em outra aba: o admin volta para a lista onde parou, em vez
+                // de refazer busca e filtros no caminho de volta
+                aoClicar: () =>
+                  window.open(
+                    `/eventos/${params.row.id}`,
+                    '_blank',
+                    'noopener'
+                  ),
+              },
               // apagar evento é decisão de negócio, e por ora só o perfil de
               // desenvolvimento a toma; a rota no servidor confere o mesmo
               ...(isDev
                 ? [
                     {
-                      rotulo: 'Apagar evento',
+                      rotulo: 'Excluir',
                       icone: <DeleteOutline fontSize="small" />,
                       cor: theme.palette.error.main,
                       aoClicar: () =>

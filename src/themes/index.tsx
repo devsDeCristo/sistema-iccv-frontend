@@ -207,6 +207,45 @@ export const myTheme = (colorMode: boolean) =>
         },
       },
       /**
+       * O que flutua sobre a página — menu de três pontos, opções do select —
+       * é uma camada acima dos cards. Com o Paper padrão (#F8F8F8 e a sombra
+       * leve de superfície) o menu se confundia com o fundo (#F0F1F4) no tema
+       * claro; ganha branco, contorno fino e sombra funda. No escuro o tom do
+       * Paper já destacava, e fica como estava.
+       */
+      MuiPopover: {
+        styleOverrides: {
+          paper: colorMode
+            ? {}
+            : {
+                backgroundColor: '#FFFFFF',
+                boxShadow:
+                  '0 0 0 1px rgba(16,24,40,.08), 0 4px 8px -2px rgba(16,24,40,.08), 0 16px 32px -8px rgba(16,24,40,.24)',
+              },
+        },
+      },
+      /**
+       * O ícone do item de menu reage ao passar o mouse: cresce, inclina de
+       * leve e brilha na própria cor (`currentColor`, a cor que cada ação dá
+       * ao ícone). Para quem pede menos movimento no sistema, só o brilho.
+       */
+      MuiMenuItem: {
+        styleOverrides: {
+          root: {
+            '& .MuiListItemIcon-root svg': {
+              transition: 'transform .2s ease, filter .2s ease',
+            },
+            '&:hover .MuiListItemIcon-root svg': {
+              transform: 'scale(1.18) rotate(-8deg)',
+              filter: 'drop-shadow(0 0 5px currentColor)',
+            },
+            '@media (prefers-reduced-motion: reduce)': {
+              '&:hover .MuiListItemIcon-root svg': { transform: 'none' },
+            },
+          },
+        },
+      },
+      /**
        * Todo campo com contorno do sistema (TextField, Select, Autocomplete,
        * datas) segue o campo de busca das listas: destaca do Paper por tom
        * (`background.input`), não por sombra, e o foco pinta a borda na cor
