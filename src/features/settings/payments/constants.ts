@@ -35,11 +35,11 @@ export const PROVIDER_SLUG: Record<string, string> = {
  */
 export const PROVIDER_PRICING: Record<string, ProviderPricing> = {
   PAGBANK: {
-    checkedAt: 'set/2026',
+    checkedAt: 'out/2026',
     sourceUrl: 'https://pagbank.com.br/para-seu-negocio/online/checkout',
+    note: 'O débito é aceito, mas a página não publica a taxa.',
     fees: [
       { label: 'Pix', rate: '1,89%', settlement: 'na hora' },
-      { label: 'Débito', rate: '2,39%', settlement: 'em 1 dia' },
       {
         label: 'Crédito à vista',
         rate: '4,99% + R$ 0,40',
@@ -55,49 +55,59 @@ export const PROVIDER_PRICING: Record<string, ProviderPricing> = {
         rate: '2,99% ao mês',
         settlement: 'juros do inscrito',
       },
-      { label: 'Boleto', rate: null },
-    ],
-  },
-
-  MERCADO_PAGO: {
-    checkedAt: 'set/2026',
-    sourceUrl: 'https://www.mercadopago.com.br/ajuda/33399',
-    fees: [
-      { label: 'Pix', rate: '0%', settlement: 'na hora' },
-      { label: 'Crédito à vista', rate: '4,98%', settlement: 'na hora' },
-      { label: 'Crédito à vista', rate: '3,98%', settlement: 'em 30 dias' },
+      { label: 'Boleto', rate: '4,99% + R$ 0,40', settlement: 'em 14 dias' },
+      { label: 'Boleto', rate: '3,99% + R$ 0,40', settlement: 'em 30 dias' },
       { label: 'Débito', rate: null },
-      { label: 'Boleto', rate: null },
     ],
   },
 
-  INFINITEPAY: {
-    checkedAt: 'set/2026',
-    sourceUrl: 'https://www.infinitepay.io/taxas',
-    note: 'A taxa cai conforme o faturamento do mês.',
+  // a tabela é a do link de pagamento, que roda no mesmo Checkout Pro que o
+  // sistema usa; a página de custos geral (ajuda/33399) bloqueia leitura
+  MERCADO_PAGO: {
+    checkedAt: 'out/2026',
+    sourceUrl:
+      'https://www.mercadopago.com.br/ferramentas-para-vender/link-de-pagamento',
+    note: 'Parcelado: de 2,53% (2x) a 24,28% (18x). Conta nova pode receber só em 7 dias até o Mercado Pago liberar o recebimento na hora.',
     fees: [
-      { label: 'Pix', rate: '0%', settlement: 'em 1 dia útil' },
+      { label: 'Pix', rate: '0,99%', settlement: 'na hora' },
+      { label: 'Crédito à vista', rate: '4,98%', settlement: 'na hora' },
+      { label: 'Crédito à vista', rate: '4,48%', settlement: 'em 14 dias' },
+      { label: 'Crédito à vista', rate: '3,99%', settlement: 'em 30 dias' },
+      { label: 'Crédito em 12x', rate: '17,28%' },
       {
-        label: 'Crédito à vista',
-        rate: 'a partir de 2,29%',
-        settlement: 'em 1 dia útil',
+        label: 'Débito',
+        rate: '3,99%',
+        settlement: 'só Débito Virtual CAIXA',
       },
-      {
-        label: 'Crédito em 12x',
-        rate: 'a partir de 5,39%',
-        settlement: 'em 1 dia útil',
-      },
+      { label: 'Boleto', rate: '3,99%', settlement: 'em até 3 dias' },
     ],
   },
 
-  TON: {
-    checkedAt: 'set/2026',
-    sourceUrl: 'https://www.ton.com.br/link-de-pagamento',
-    note: 'O Ton só publica a tabela do link no app, em Minhas taxas e prazos.',
+  // a página mistura maquininha e link: os números aqui são só os do link
+  // ("crédito a partir de 2,69%" do topo dela é maquininha)
+  INFINITEPAY: {
+    checkedAt: 'out/2026',
+    sourceUrl: 'https://www.infinitepay.io/taxas',
+    note: 'Com faturamento acima de R$ 20 mil no mês, a taxa em 1 dia útil cai: crédito à vista de 2,89% a 2,29%, 7x a 12x de 5,89% a 5,39%.',
     fees: [
       { label: 'Pix', rate: '0%' },
-      { label: 'Crédito à vista', rate: null },
-      { label: 'Crédito em 12x', rate: '18,99%' },
+      { label: 'Crédito à vista', rate: '4,20%', settlement: 'em 1 dia útil' },
+      { label: 'Crédito à vista', rate: '5,49%', settlement: 'na hora' },
+      { label: 'Crédito em 12x', rate: '16,66%', settlement: 'em 1 dia útil' },
+      { label: 'Crédito em 12x', rate: '18,29%', settlement: 'na hora' },
+    ],
+  },
+
+  // a página da oferta do Ton (ton.com.br/oferta-ton) é a da maquininha, com
+  // outra tabela (crédito a partir de 0,57%): não vale para o link
+  TON: {
+    checkedAt: 'out/2026',
+    sourceUrl: 'https://www.ton.com.br/link-de-pagamento',
+    note: 'Cobrança mínima de R$ 10,00 por link. A tabela completa (de 2x a 11x, prazos) fica no app, em Minhas taxas e prazos.',
+    fees: [
+      { label: 'Pix', rate: '0%' },
+      { label: 'Crédito à vista', rate: 'a partir de 3,19%' },
+      { label: 'Crédito em 12x', rate: 'a partir de 18,99%' },
       { label: 'Boleto', rate: null },
     ],
   },

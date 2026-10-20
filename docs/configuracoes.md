@@ -91,6 +91,7 @@ Arquivo: `src/features/settings/payments/components/webhookUrls.tsx`.
 - **Exibição:** recolhida por padrão dentro de cada cartão (accordion), com forma de pagamento, taxa (ou "não divulgada" quando o gateway aceita a forma mas não publica preço) e prazo de liquidação quando conhecido.
 - **Rodapé de cada tabela:** mês da consulta, uma nota específica do gateway quando houver, aviso de que todo gateway negocia taxa por faturamento, e link para a fonte.
 - Vale só para checkout/link de pagamento — não para maquininha, que tem outra tabela.
+- **Última consulta: out/2026**, nas páginas públicas de link/checkout de cada gateway. Mudanças em relação a set/2026: Mercado Pago passou a cobrar Pix (0,99%) e publica crédito em 14 dias (4,48%), 12x (17,28%), débito só no Débito Virtual CAIXA (3,99%) e boleto (3,99%); PagBank publica boleto (4,99% + R$ 0,40 em 14 dias, 3,99% + R$ 0,40 em 30) e deixou de publicar o débito; InfinitePay mostra a taxa geral do link (crédito à vista 4,20% em 1 dia útil, 5,49% na hora; 12x 16,66% e 18,29%), com as reduzidas por faturamento na nota; Ton publica crédito à vista a partir de 3,19% e a cobrança mínima de R$ 10,00. Páginas de oferta de maquininha (ex.: ton.com.br/oferta-ton) não servem de fonte.
 
 Arquivo: `src/features/settings/payments/constants.ts` (`PROVIDER_PRICING`), `src/features/settings/payments/components/providerFees.tsx`.
 
