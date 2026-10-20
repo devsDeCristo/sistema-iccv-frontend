@@ -48,9 +48,12 @@ evento, na etapa Módulos (`docs/admin-eventos.md`).
 - No formato das outras abas com lista: a **barra de busca** — busca por nome
   e o filtro **Presença** (Todos os inscritos, Presentes, Ausentes) — e a
   tabela.
-- A lista de presença na tela, sem PDF: todos os inscritos com nome, grupo e o
-  chip "Presente · 05/02 às 08:12" ou "Ausente". No celular o grupo sai e o
-  chip fica só "Presente", para a linha caber.
+- A lista de presença na tela, sem PDF: todos os inscritos com a **foto**, **Nome/Crachá**
+  (o nome e, embaixo, o do crachá — o padrão da lista de inscritos),
+  **inscrição** (o tipo — "Lote 1" — e, embaixo, o grupo; quem tem mais de uma
+  mostra todas) e o chip "Presente · 05/02 às 08:12" ou "Ausente". A busca acha
+  pelo nome ou pelo nome no crachá. No celular a inscrição sai e o chip fica só
+  "Presente", para a linha caber.
 - Cada presente tem nos **três pontinhos** da linha "Baixar certificado".
 - As **caixas** marcam vários, como na lista de usuários, e a barra flutuante
   (`BarraDeSelecao`) gera os marcados num PDF só. Ausente não tem caixa nem

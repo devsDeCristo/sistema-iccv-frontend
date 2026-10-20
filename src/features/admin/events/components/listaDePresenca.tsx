@@ -33,6 +33,7 @@ import {
 } from '@mui/icons-material';
 import CustomChip from '../../../../components/customChip';
 import { BarraDeSelecao } from '../../../../components/barraDeSelecao';
+import { UserAvatar } from '../../../../components/userAvatar';
 import {
   barraLarguraCheiaNoCelularSx,
   cardTabelaSx,
@@ -206,7 +207,9 @@ export function ListaDePresenca({ eventId }: { eventId: string }) {
   const termo = busca.trim().toLowerCase();
   const visiveis = linhas.filter(
     (l) =>
-      (!termo || l.nome.toLowerCase().includes(termo)) &&
+      (!termo ||
+        l.nome.toLowerCase().includes(termo) ||
+        !!l.nomeNoCracha?.toLowerCase().includes(termo)) &&
       (!presenca || (presenca === 'presentes') === !!l.chegada)
   );
 
@@ -222,16 +225,65 @@ export function ListaDePresenca({ eventId }: { eventId: string }) {
 
   const columns: GridColDef<LinhaDaPresenca>[] = [
     {
-      field: 'nome',
-      headerName: 'Nome',
-      flex: 2,
-      minWidth: celular ? 130 : 200,
+      // a foto, como na lista de inscritos
+      field: 'foto',
+      headerName: '',
+      // no celular as colunas apertam para a linha caber sem rolar de lado
+      width: celular ? 48 : 60,
+      sortable: false,
+      filterable: false,
+      disableColumnMenu: true,
+      disableExport: true,
+      renderCell: (params) => (
+        <UserAvatar
+          name={params.row.nome}
+          photoUrl={params.row.foto}
+          sx={{ width: '30px', height: '30px' }}
+        />
+      ),
     },
-    { field: 'grupo', headerName: 'Grupo', flex: 1, minWidth: 140 },
+    {
+      // o padrão da lista de inscritos: o nome e, embaixo, o do crachá
+      field: 'nome',
+      headerName: 'Nome/Crachá',
+      flex: 2,
+      minWidth: celular ? 110 : 200,
+      renderCell: (params) => (
+        <Stack sx={{ py: 1, minWidth: 0 }}>
+          <Typography variant="body2" noWrap>
+            {params.row.nome}
+          </Typography>
+          {params.row.nomeNoCracha && (
+            <Typography variant="caption" color="text.secondary" noWrap>
+              {params.row.nomeNoCracha}
+            </Typography>
+          )}
+        </Stack>
+      ),
+    },
+    {
+      // o tipo em cima e o grupo embaixo, como nascimento e idade na lista de
+      // inscritos; a exportação leva os dois juntos
+      field: 'tipo',
+      headerName: 'Inscrição',
+      flex: 1,
+      minWidth: 160,
+      valueGetter: (params) => `${params.row.tipo} (${params.row.grupo})`,
+      renderCell: (params) => (
+        <Stack sx={{ py: 1, minWidth: 0 }}>
+          <Typography variant="body2" noWrap>
+            {params.row.tipo}
+          </Typography>
+          <Typography variant="caption" color="text.secondary" noWrap>
+            {params.row.grupo}
+          </Typography>
+        </Stack>
+      ),
+    },
     {
       field: 'chegada',
       headerName: 'Presença',
-      width: celular ? 100 : 210,
+      width: celular ? 90 : 210,
       valueGetter: (params) =>
         params.row.chegada ? `Presente · ${params.row.chegada}` : 'Ausente',
       renderCell: (params) => (
@@ -291,7 +343,7 @@ export function ListaDePresenca({ eventId }: { eventId: string }) {
         }}
       >
         <TextField
-          placeholder="Pesquisar inscrito por nome"
+          placeholder="Pesquisar por nome ou crachá"
           variant="outlined"
           size="small"
           value={busca}
@@ -364,11 +416,15 @@ export function ListaDePresenca({ eventId }: { eventId: string }) {
           keepNonExistentRowsSelected
           hideFooterSelectedRowCount
           autoHeight
+          // altura pelo conteúdo: a inscrição tem o tipo e o grupo embaixo
+          getRowHeight={() => 'auto'}
           pageSizeOptions={[25, 50, 100]}
           initialState={{
             pagination: { paginationModel: { pageSize: 50 } },
-            // no celular o grupo sai, para a presença caber sem rolar de lado
-            columns: { columnVisibilityModel: { grupo: !celular } },
+            // no celular a inscrição sai, para a presença caber sem rolar de lado
+            columns: {
+              columnVisibilityModel: { tipo: !celular },
+            },
           }}
           slots={{ toolbar: GridToolbar }}
           columnHeaderHeight={44}

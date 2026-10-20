@@ -21,7 +21,13 @@ export type ConfigDoCertificado = {
 export type LinhaDaPresenca = {
   userId: string;
   nome: string;
-  /** o primeiro grupo em ordem alfabética, ou "Sem grupo" */
+  /** o nome que sai no crachá; nulo quando a pessoa não definiu */
+  nomeNoCracha: string | null;
+  /** a foto de perfil; nula para quem não tem */
+  foto: string | null;
+  /** o tipo de inscrição ("Lote 1"); com mais de uma, separados por vírgula */
+  tipo: string;
+  /** o grupo de cada inscrição, na mesma ordem do `tipo` */
   grupo: string;
   /** "05/02 às 08:12", ou nula para quem não fez check-in */
   chegada: string | null;
