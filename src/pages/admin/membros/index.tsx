@@ -46,6 +46,7 @@ import { Familia, Membro } from '../../../features/admin/membros/types';
 import { ModalPermissaoEmMassa } from '../../../features/admin/users/components/modalPermissaoEmMassa';
 import { useRole } from '../../../hooks/useRole';
 import { Role } from '../../../constants/roles';
+import { propsDeSelectDeFiltro } from '../../../components/filtroDeLista';
 
 type Confirmacao =
   { tipo: 'remover'; membro: Membro } | { tipo: 'desfazer'; familia: Familia };
@@ -229,6 +230,7 @@ function Membros() {
                   />
                   <TextField
                     select
+                    {...propsDeSelectDeFiltro}
                     size="small"
                     label="Família"
                     value={filtroFamilia}

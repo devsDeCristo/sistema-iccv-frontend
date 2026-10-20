@@ -58,6 +58,7 @@ import {
   OrigemDoLancamento,
   TipoDeLancamento,
 } from '../../../../features/admin/tesouraria/types';
+import { propsDeSelectDeFiltro } from '../../../../components/filtroDeLista';
 
 const dia = (data: Date) => format(data, 'yyyy-MM-dd');
 
@@ -234,6 +235,7 @@ function Lancamentos() {
               />
               <TextField
                 select
+                {...propsDeSelectDeFiltro}
                 size="small"
                 label="Tipo"
                 value={tipo}
@@ -249,6 +251,7 @@ function Lancamentos() {
               </TextField>
               <TextField
                 select
+                {...propsDeSelectDeFiltro}
                 size="small"
                 label="Categoria"
                 value={categoria}
@@ -269,6 +272,7 @@ function Lancamentos() {
               </TextField>
               <TextField
                 select
+                {...propsDeSelectDeFiltro}
                 size="small"
                 label="Origem"
                 value={origem}
@@ -288,6 +292,7 @@ function Lancamentos() {
               </TextField>
               <TextField
                 select
+                {...propsDeSelectDeFiltro}
                 size="small"
                 label="Conciliação"
                 value={conciliacao}

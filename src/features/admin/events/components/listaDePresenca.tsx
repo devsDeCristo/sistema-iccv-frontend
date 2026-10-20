@@ -45,6 +45,7 @@ import {
   useGetCertificado,
   useGetPresenca,
 } from '../api/certificado';
+import { propsDeSelectDeFiltro } from '../../../../components/filtroDeLista';
 
 /** Os três pontinhos da linha, como na lista de eventos */
 function AcoesDaLinha({
@@ -306,6 +307,7 @@ export function ListaDePresenca({ eventId }: { eventId: string }) {
         />
         <TextField
           select
+          {...propsDeSelectDeFiltro}
           size="small"
           label="Presença"
           value={presenca}

@@ -37,6 +37,7 @@ import { ModalPlanilhaDeDizimos } from '../../../../features/admin/tesouraria/co
 import { Dizimista } from '../../../../features/admin/tesouraria/types';
 import { Role } from '../../../../constants/roles';
 import { useRole } from '../../../../hooks/useRole';
+import { propsDeSelectDeFiltro } from '../../../../components/filtroDeLista';
 
 const ANO_ATUAL = new Date().getFullYear();
 /** O ano corrente e os quatro anteriores */
@@ -179,6 +180,7 @@ function Dizimistas() {
               />
               <TextField
                 select
+                {...propsDeSelectDeFiltro}
                 size="small"
                 label={`Dízimo em ${ano}`}
                 value={noAno}
@@ -191,6 +193,7 @@ function Dizimistas() {
               </TextField>
               <TextField
                 select
+                {...propsDeSelectDeFiltro}
                 size="small"
                 label="Ano"
                 value={ano}

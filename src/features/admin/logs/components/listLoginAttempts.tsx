@@ -45,6 +45,7 @@ import {
   DEFAULT_PERIOD_HOURS,
 } from '../constants';
 import { LoginAttempt, useGetLoginAttempts } from '../api/getLogs';
+import { propsDeSelectDeFiltro } from '../../../../components/filtroDeLista';
 
 const PAGE_SIZE = 25;
 
@@ -412,6 +413,7 @@ function ListLoginAttempts() {
           />
           <TextField
             select
+            {...propsDeSelectDeFiltro}
             size="small"
             label="Resultado"
             value={success}

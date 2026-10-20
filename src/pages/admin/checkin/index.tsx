@@ -38,6 +38,7 @@ import {
   filtrarPorGrupo,
   gruposDosInscritos,
 } from '../../../features/admin/checkin/utils';
+import { iconeDeFiltro } from '../../../components/filtroDeLista';
 
 type Posto = 'recepcao' | 'foto';
 
@@ -161,6 +162,7 @@ function Checkin() {
             <InputSelect
               label="Grupo"
               size="small"
+              startAdornment={iconeDeFiltro}
               value={grupo}
               onChange={(event) => setGrupo(String(event.target.value))}
               menuOptions={[

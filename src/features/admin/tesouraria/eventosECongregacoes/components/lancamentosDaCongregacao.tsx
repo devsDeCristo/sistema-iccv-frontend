@@ -7,6 +7,7 @@ import {
 } from '../../../../../components/listPageStyles';
 import { useLancamentosDaTesouraria } from '../api';
 import { LancamentosDaTesouraria } from './lancamentosDaTesouraria';
+import { propsDeSelectDeFiltro } from '../../../../../components/filtroDeLista';
 
 const ANO = 'ANO';
 
@@ -51,6 +52,7 @@ function LancamentosDaCongregacao({
       >
         <TextField
           select
+          {...propsDeSelectDeFiltro}
           size="small"
           label="Período"
           value={periodo}

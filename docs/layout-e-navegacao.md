@@ -81,6 +81,8 @@ Antes, o campo pedia `width: 100%` de uma caixa que, na barra em linha com quebr
 
 O campo de busca dessas barras tem sempre a **lupa** no começo (`InputAdornment` com `<Search />`) e o texto como `placeholder`, não como `label` flutuante — na lista de Eventos e nas abas Quartos, Equipes e Transporte do evento era rótulo, sem lupa, e destoava das outras.
 
+Os **selects de filtro** dessas barras levam o **funil** no começo — o mesmo ícone do botão "Filtros" —, de `src/components/filtroDeLista`: `{...propsDeSelectDeFiltro}` no `TextField select` (o funil e `displayEmpty`: com o ícone o rótulo fica sempre no alto, e a opção vazia, "Todos os produtos", aparece em vez de um campo em branco), `startAdornment={iconeDeFiltro}` no `InputSelect`, e o `FiltroMultiplo` já vem com ele. Estão em: Eventos (Status, Período), aba Pedidos do evento (Produto, Status do pagamento), aba Presença, check-in (Grupo, Situação), Registro de Atividades (Tabela, Ação), Registro de Login (Resultado), Membros (Família), Dizimistas (Dízimo no ano, Ano), Lançamentos (Tipo, Categoria, Origem, Conciliação) e Tesouraria da congregação (Período). Select de formulário (dentro de modal ou cadastro) não leva: lá ele escolhe um valor, não filtra a lista.
+
 ## Barra de seleção (`src/components/barraDeSelecao`)
 
 Barra dos itens marcados numa tabela, usada em Usuários (editar permissão) e Eventos (mudar status). Flutua no pé da tela enquanto há algo marcado: a quantidade, uma ação (`acao`: `rotulo`, `rotuloCurto` para o celular, `icone`, `onClick`) e o X que limpa a seleção. Sem `acao`, para quem não pode agir, ela só conta e limpa.

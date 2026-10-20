@@ -7,6 +7,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
+import { iconeDeFiltro } from '../../../../components/filtroDeLista';
 
 interface FiltroMultiploProps<T extends string> {
   label: string;
@@ -43,6 +44,8 @@ export function FiltroMultiplo<T extends string>({
       }}
       // o rótulo fica sempre no alto: com o campo vazio ele cobriria o "Todos"
       InputLabelProps={{ shrink: true }}
+      // o funil dos selects de filtro das barras de lista
+      InputProps={{ startAdornment: iconeDeFiltro }}
       SelectProps={{
         multiple: true,
         displayEmpty: true,

@@ -129,6 +129,7 @@ import { CardsRegistrations } from '../../../../features/admin/events/components
 import { toast } from 'react-toastify';
 import { useEventRole } from '../../../../hooks/useEventRole';
 import { TESOURARIA_EVENT_TABS } from '../../../../constants/roles';
+import { propsDeSelectDeFiltro } from '../../../../components/filtroDeLista';
 
 /**
  * Ícones em `small` (20px), o mesmo tamanho dos cards de status: em tamanho
@@ -1012,6 +1013,7 @@ function Details() {
             <Stack sx={styles.stackButtons}>
               <TextField
                 select
+                {...propsDeSelectDeFiltro}
                 size="small"
                 label="Produto"
                 value={produtoFiltro}
@@ -1028,6 +1030,7 @@ function Details() {
 
               <TextField
                 select
+                {...propsDeSelectDeFiltro}
                 size="small"
                 label="Status do pagamento"
                 value={statusProdutoFiltro}

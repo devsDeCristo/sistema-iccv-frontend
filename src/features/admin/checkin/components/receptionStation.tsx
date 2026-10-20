@@ -42,6 +42,7 @@ import {
 } from '../utils';
 import { CheckinParticipant } from '../types';
 import { cardTabelaSx, dataGridSx } from '../../../../components/listPageStyles';
+import { iconeDeFiltro } from '../../../../components/filtroDeLista';
 
 interface ReceptionStationProps {
   eventId: string;
@@ -334,6 +335,7 @@ function ReceptionStation({ eventId, grupo }: ReceptionStationProps) {
             <InputSelect
               label="Situação"
               size="small"
+              startAdornment={iconeDeFiltro}
               value={situacao}
               onChange={(event) => setSituacao(String(event.target.value))}
               menuOptions={[

@@ -53,6 +53,7 @@ import {
   DEFAULT_PERIOD_HOURS,
   MODEL_OPTIONS,
 } from '../constants';
+import { propsDeSelectDeFiltro } from '../../../../components/filtroDeLista';
 
 const PAGE_SIZE = 25;
 
@@ -446,6 +447,7 @@ function ListLogs() {
 
           <TextField
             select
+            {...propsDeSelectDeFiltro}
             size="small"
             label="Tabela"
             value={model}
@@ -465,6 +467,7 @@ function ListLogs() {
 
           <TextField
             select
+            {...propsDeSelectDeFiltro}
             size="small"
             label="Ação"
             value={action}
