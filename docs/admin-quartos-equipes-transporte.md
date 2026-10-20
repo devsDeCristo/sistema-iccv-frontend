@@ -70,7 +70,10 @@ Mesma ideia de capacidade, mas com dois papéis em vez de tags de restrição:
   de líderes, e vice-versa.
 - **Capacidade é somada** entre líderes e membros; atingi-la bloqueia novas
   seleções nos dois campos.
-- **Obrigatório ter ao menos um líder e um membro** para salvar.
+- **Líderes e participantes são opcionais:** a equipe pode ser criada vazia e
+  montada depois, como quartos e transportes (que também não exigem
+  participante). Sem líder, o cartão da equipe e o PDF não mostram o bloco
+  "Líderes"; equipe sem ninguém aparece como "Sem participantes".
 - **PDF de equipes:** botão próprio na aba, gerado no navegador (`@react-pdf`,
   `PdfTeams`), separando líderes de membros por equipe — distinto do PDF de
   crachás/envelopes do servidor (ver `admin-pdfs.md`).

@@ -236,21 +236,26 @@ function ListTeams({ search }: { search: string }) {
                 </Stack>
               ) : (
                 <Stack direction="column" gap={1}>
-                  <Typography variant="body2" fontWeight={500}>
-                    Liders:
-                  </Typography>
-                  <Stack direction="row" gap={1} flexWrap="wrap">
-                    {team.users
-                      .filter((user) => user.roleTeam === 'LEADER')
-                      .map((user) => (
-                        <UserAvatar
-                          key={user.id}
-                          name={user.fullName}
-                          photoUrl={user.profilePhotoUrl}
-                          sx={styles.avatar}
-                        />
-                      ))}
-                  </Stack>
+                  {/* líder é opcional: equipe sem líder não mostra o bloco */}
+                  {team.users.some((user) => user.roleTeam === 'LEADER') && (
+                    <>
+                      <Typography variant="body2" fontWeight={500}>
+                        Líderes:
+                      </Typography>
+                      <Stack direction="row" gap={1} flexWrap="wrap">
+                        {team.users
+                          .filter((user) => user.roleTeam === 'LEADER')
+                          .map((user) => (
+                            <UserAvatar
+                              key={user.id}
+                              name={user.fullName}
+                              photoUrl={user.profilePhotoUrl}
+                              sx={styles.avatar}
+                            />
+                          ))}
+                      </Stack>
+                    </>
+                  )}
                   <Typography variant="body2" fontWeight={500}>
                     Participantes:
                   </Typography>

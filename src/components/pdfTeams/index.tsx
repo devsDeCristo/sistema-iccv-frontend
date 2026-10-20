@@ -29,7 +29,10 @@ function PdfTeams({ data, event }: PdfTeamsProps) {
 
           <View style={stylesPdfRooms.containerRow}>
             {' '}
-            <Text style={stylesPdfRooms.textNameBold}>{`Líderes:`}</Text>
+            {/* líder é opcional: sem líder, sem o título */}
+            {!!usersLeaders?.length && (
+              <Text style={stylesPdfRooms.textNameBold}>{`Líderes:`}</Text>
+            )}
             {usersLeaders?.map((user, idx) => (
               <View
                 key={'quartos-pdf' + idx}

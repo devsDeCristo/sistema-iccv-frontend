@@ -380,11 +380,7 @@ function ModalTeam({ open, handleClose, team, eventId }: ModalTeamProps) {
                   <Controller
                     control={control}
                     name="usersLeadersId"
-                    rules={{
-                      validate: (value) =>
-                        (value || []).length > 0 ||
-                        'Selecione ao menos um líder para a equipe',
-                    }}
+                    // líder é opcional: há equipe que não tem
                     render={({ field: { onChange, value }, fieldState }) => {
                       const selecionados: UserOption[] = value || [];
                       const idsMembros = members.map(
@@ -394,7 +390,7 @@ function ModalTeam({ open, handleClose, team, eventId }: ModalTeamProps) {
                       return (
                         <>
                           <Title
-                            title="Líderes *"
+                            title="Líderes"
                             hint={
                               semCapacidade
                                 ? undefined
@@ -508,11 +504,8 @@ function ModalTeam({ open, handleClose, team, eventId }: ModalTeamProps) {
                   <Controller
                     control={control}
                     name="usersId"
-                    rules={{
-                      validate: (value) =>
-                        (value || []).length > 0 ||
-                        'Selecione ao menos um participante para a equipe',
-                    }}
+                    // participante também é opcional: a equipe pode ser criada
+                    // vazia e montada depois, como quartos e transportes
                     render={({ field: { onChange, value }, fieldState }) => {
                       const selecionados: UserOption[] = value || [];
                       const idsLideres = leaders.map(
@@ -522,7 +515,7 @@ function ModalTeam({ open, handleClose, team, eventId }: ModalTeamProps) {
                       return (
                         <>
                           <Title
-                            title="Participantes *"
+                            title="Participantes"
                             hint={
                               semCapacidade
                                 ? undefined
