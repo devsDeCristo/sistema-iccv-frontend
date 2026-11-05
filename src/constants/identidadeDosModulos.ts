@@ -74,6 +74,20 @@ export const CORES_DO_MODULO: Record<
   },
 };
 
+/** Onde começa cada módulo no painel */
+const ROTA_DO_MODULO: [string, ChaveDoModulo][] = [
+  ['/admin/membros', 'membros'],
+  ['/admin/eventos', 'eventos'],
+  ['/admin/noticias', 'noticias'],
+  ['/admin/tesouraria', 'tesouraria'],
+];
+
+/** O módulo da tela aberta, pelo caminho; fora dos módulos, `undefined` */
+export const moduloDaRota = (caminho: string) =>
+  ROTA_DO_MODULO.find(
+    ([rota]) => caminho === rota || caminho.startsWith(`${rota}/`)
+  )?.[1];
+
 /** A cor que identifica o módulo (a secundária dele), no tema aberto */
 export const corDoModulo = (theme: Theme, chave: ChaveDoModulo) =>
   CORES_DO_MODULO[chave][theme.palette.mode === 'dark' ? 'escuro' : 'claro']

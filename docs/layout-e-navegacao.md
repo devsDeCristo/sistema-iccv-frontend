@@ -64,8 +64,10 @@ Arquivo: `src/components/appBar/index.tsx`.
   espaçamento são os de sempre. Primária: botões cheio e de contorno, foco
   dos campos, links. Secundária: a cor do módulo (`corDoModulo`), no quadrado
   do ícone, no card da home e na descrição do cabeçalho. Terciária
-  (`palette.tertiary`): pontos, selos e gráficos, nunca texto. A barra
-  lateral, o topo, a home, o perfil, as configurações e a área do participante
+  (`palette.tertiary`): pontos, selos e gráficos, nunca texto. Na barra
+  lateral, o item aceso usa a primária do módulo aberto (`moduloDaRota` acha o
+  módulo pelo caminho), para a pessoa ver em que módulo está; o resto da
+  barra, o topo, a home, o perfil, as configurações e a área do participante
   seguem com as cores da plataforma, assim como as cores de estado (erro,
   aviso, sucesso e os chips). Os nomes dos módulos não mudaram.
 - **Linha do título:** seta de voltar (`buttonBack`), título e, à direita, a ação da página (`children`). No celular a ação desce para baixo do título.

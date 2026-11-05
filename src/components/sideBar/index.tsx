@@ -44,6 +44,10 @@ import { useModulos } from '../../hooks/useModulos';
 import { ModuloDaIgreja } from '../../constants/modulos';
 import { useFiltroSalvo } from '../../hooks/useFiltroSalvo';
 import { AZUL_VIVO, VIOLETA_VIVO } from '../../themes';
+import {
+  CORES_DO_MODULO,
+  moduloDaRota,
+} from '../../constants/identidadeDosModulos';
 
 /** Largura da régua lateral, a mesma nos dois modos (fixa e gaveta) */
 const LARGURA = 260;
@@ -109,11 +113,17 @@ type SideBarProps = {
  *
  * No escuro entra a variante clara da primária: o azul cheio sobre o quase-preto
  * do papel fica em 3,4:1 de contraste, baixo demais para texto de 14px.
+ *
+ * Dentro de um módulo, a primária dele (`CORES_DO_MODULO`): o item aceso já diz
+ * em que módulo a pessoa está. A do escuro já é clara o bastante (8:1).
  */
-const corDestaque = (theme: Theme) =>
-  theme.palette.mode === 'dark'
-    ? theme.palette.primary.light
-    : theme.palette.primary.main;
+const corDestaque = (theme: Theme, caminho: string) => {
+  const escuro = theme.palette.mode === 'dark';
+  const modulo = moduloDaRota(caminho);
+  if (modulo)
+    return CORES_DO_MODULO[modulo][escuro ? 'escuro' : 'claro'].primaria;
+  return escuro ? theme.palette.primary.light : theme.palette.primary.main;
+};
 
 /** Rótulo da seção: só tipografia, sem faixa nem fundo */
 function TituloSecao({
@@ -296,7 +306,7 @@ function ItemNav({
   onAlternar?: () => void;
 }) {
   const theme = useTheme();
-  const destaque = corDestaque(theme);
+  const destaque = corDestaque(theme, useLocation().pathname);
 
   const linha = (
     <Stack
