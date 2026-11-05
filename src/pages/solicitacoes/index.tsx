@@ -17,18 +17,8 @@ import { getStoredUser } from '../../auth/session';
 import { useMinhasSolicitacoes } from '../../features/solicitacoes/api';
 import { ModalNovaSolicitacao } from '../../features/solicitacoes/components/modalNovaSolicitacao';
 import { CardDaSolicitacao } from '../../features/solicitacoes/components/cardDaSolicitacao';
-import {
-  MinhaSolicitacao,
-  StatusDaSolicitacao,
-} from '../../features/solicitacoes/types';
-
-/** Aceita ou recusada: a igreja já deu a resposta */
-const RESPONDIDA: Record<StatusDaSolicitacao, boolean> = {
-  REQUESTED: false,
-  IN_REVIEW: false,
-  ACCEPTED: true,
-  REJECTED: true,
-};
+import { MinhaSolicitacao } from '../../features/solicitacoes/types';
+import { RESPONDIDA } from '../../features/solicitacoes/constants';
 
 /** Uma divisão da lista: o título, a quantidade num chip e a grade de cards */
 function Secao({

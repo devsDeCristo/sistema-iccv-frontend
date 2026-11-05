@@ -1,13 +1,24 @@
 export type StatusDaSolicitacao =
-  'REQUESTED' | 'IN_REVIEW' | 'REJECTED' | 'ACCEPTED';
+  'REQUESTED' | 'IN_REVIEW' | 'REJECTED' | 'ACCEPTED' | 'PARTIALLY_ACCEPTED';
+
+/** Um produto do pedido, com a decisão do admin sobre ele */
+export interface ProdutoDaSolicitacao {
+  id: string;
+  name: string;
+  quantity: number;
+  /** onde ver o produto; só http(s) */
+  link: string | null;
+  /** `null`: ainda sem decisão (solicitado, em análise) */
+  accepted: boolean | null;
+}
 
 export interface Solicitacao {
   id: string;
   ministry: string;
   title: string;
   description: string;
-  /** onde ver o produto pedido; só http(s) */
-  link: string | null;
+  /** os produtos, na ordem em que a pessoa listou */
+  items: ProdutoDaSolicitacao[];
   status: StatusDaSolicitacao;
   /** o que o admin respondeu (o motivo, o prazo) */
   response: string | null;

@@ -16,7 +16,6 @@ import { UserAvatar } from '../../../components/userAvatar';
 import { cardTabelaSx, dataGridSx } from '../../../components/listPageStyles';
 import { corDoStatus, ROTULO_DO_STATUS } from '../constants';
 import { SolicitacaoDaIgreja } from '../types';
-import { LinkDoProduto } from './linkDoProduto';
 
 interface Props {
   solicitacoes: SolicitacaoDaIgreja[];
@@ -80,7 +79,12 @@ function ListaDaIgreja({ solicitacoes, carregando, onAbrir }: Props) {
           >
             {row.description}
           </Typography>
-          {row.link && <LinkDoProduto link={row.link} />}
+          <Typography
+            variant="caption"
+            sx={{ display: 'block', fontWeight: 600, mt: 0.25 }}
+          >
+            {row.items.length} {row.items.length === 1 ? 'produto' : 'produtos'}
+          </Typography>
         </Box>
       ),
     },
@@ -94,7 +98,8 @@ function ListaDaIgreja({ solicitacoes, carregando, onAbrir }: Props) {
     {
       field: 'status',
       headerName: 'Situação',
-      width: 130,
+      // cabe o chip mais longo, "Aceito parcialmente"
+      width: 180,
       valueGetter: ({ row }) => ROTULO_DO_STATUS[row.status],
       renderCell: ({ row }) => (
         <CustomChip

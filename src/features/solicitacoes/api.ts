@@ -28,7 +28,7 @@ export const useCriarSolicitacao = () =>
       ministerio: string;
       titulo: string;
       descricao: string;
-      link?: string;
+      produtos: { nome: string; quantidade: number; link?: string }[];
     }) =>
       apiClient
         .post('/solicitacoes', dados)
@@ -60,6 +60,8 @@ export const useMudarStatus = () =>
       id: string;
       status: StatusDaSolicitacao;
       resposta: string;
+      /** só na parcial: os ids dos produtos aceitos */
+      produtosAceitos?: string[];
     }) =>
       apiClient
         .patch(`/churches/${churchId}/solicitacoes/${id}/status`, dados)

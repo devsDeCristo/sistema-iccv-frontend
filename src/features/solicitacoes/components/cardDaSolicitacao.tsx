@@ -15,7 +15,7 @@ import { superficieSx } from '../../../components/listPageStyles';
 import { corDoStatus, ROTULO_DO_STATUS } from '../constants';
 import { iconeDoMinisterio } from '../ministerios';
 import { MinhaSolicitacao } from '../types';
-import { LinkDoProduto } from './linkDoProduto';
+import { ListaDeProdutos } from './listaDeProdutos';
 
 const data = (iso: string) => new Date(iso).toLocaleDateString('pt-BR');
 
@@ -60,7 +60,7 @@ function Info({
  * A etiqueta é a cor da situação, chapada e escurecida: na cor cheia, o texto
  * branco não dá contraste no laranja de "Em análise".
  *
- * Recusada, o card apaga: fundo, pontinhos, chip, textos e link em cinza, e
+ * Recusada, o card apaga: fundo, pontinhos, chip, textos e links em cinza, e
  * só a etiqueta "Recusado" fica em vermelho.
  */
 function CardDaSolicitacao({
@@ -185,7 +185,7 @@ function CardDaSolicitacao({
       <Typography variant="body2" color="text.secondary" sx={cortar(3)}>
         {s.description}
       </Typography>
-      {s.link && <LinkDoProduto link={s.link} />}
+      <ListaDeProdutos produtos={s.items} limite={3} />
 
       {/* a resposta presa ao rodapé, como os alertas dos mapas */}
       <Divider sx={{ mt: 'auto' }} />
