@@ -1,5 +1,7 @@
 import { ReactElement } from 'react';
 import {
+  alpha,
+  Box,
   Paper,
   SxProps,
   Tab,
@@ -14,6 +16,8 @@ export interface NavTabOption<T> {
   label: string;
   /** Ícone à esquerda do rótulo; o Tab do MUI só aceita elemento ou string */
   icon?: ReactElement;
+  /** Número num chip depois do rótulo (quantos itens a aba tem) */
+  contagem?: number;
 }
 
 interface NavTabsProps<T> {
@@ -92,7 +96,43 @@ export function NavTabs<T extends string | number>({
         <Tab
           key={String(option.value)}
           value={option.value}
-          label={option.label}
+          label={
+            option.contagem === undefined ? (
+              option.label
+            ) : (
+              <Box
+                component="span"
+                sx={{ display: 'inline-flex', alignItems: 'center', gap: 1 }}
+              >
+                {option.label}
+                <Box
+                  component="span"
+                  sx={{
+                    minWidth: 22,
+                    px: 0.75,
+                    borderRadius: 999,
+                    fontSize: 12,
+                    fontWeight: 700,
+                    lineHeight: '20px',
+                    textAlign: 'center',
+                    fontVariantNumeric: 'tabular-nums',
+                    // na aba ativa, a cor da primária (a do módulo aberto)
+                    ...(option.value === value
+                      ? {
+                          color: theme.palette.primary.main,
+                          bgcolor: alpha(theme.palette.primary.main, 0.14),
+                        }
+                      : {
+                          color: theme.palette.text.secondary,
+                          bgcolor: alpha(theme.palette.text.primary, 0.07),
+                        }),
+                  }}
+                >
+                  {option.contagem}
+                </Box>
+              </Box>
+            )
+          }
           icon={option.icon}
           iconPosition={option.icon ? 'start' : undefined}
         />

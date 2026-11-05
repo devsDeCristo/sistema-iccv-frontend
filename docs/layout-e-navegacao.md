@@ -58,7 +58,8 @@ Arquivo: `src/components/appBar/index.tsx`.
 - **Cores do módulo:** cada módulo tem três cores, no claro e no escuro
   (`CORES_DO_MODULO` em `src/constants/identidadeDosModulos.ts`): Membros
   "Tabernáculo" (púrpura), Eventos "Águas tranquilas" (verde-água), Notícias
-  "Céus" (azul-céu) e Tesouraria "Trigo" (dourado). As rotas de cada módulo
+  "Céus" (azul-céu), Tesouraria "Trigo" (dourado) e Solicitações "Videira"
+  (framboesa). As rotas de cada módulo
   passam por `TemaDoModulo` (`src/components/temaDoModulo`), que troca só as
   cores do tema (`myTheme(colorMode, cores)`); raio, sombra, fonte e
   espaçamento são os de sempre. Primária: botões cheio e de contorno, foco
@@ -79,6 +80,15 @@ Arquivo: `src/components/appBar/index.tsx`.
 ### Respiro da página (`src/components/pageStyle`)
 
 `PageStyle` tem 32px de respiro em volta e aceita `sx` por cima. A página do evento usa `pt: 2` (16px no topo), para cabeçalho e abas subirem.
+
+## Abas (`src/components/navTabs`)
+
+As réguas de abas do sistema são todas o `NavTabs` (pílula: a aba ativa é
+marcada pelo fundo, sem sublinhado). Cada opção tem `value`, `label` e,
+opcionais, `icon` (à esquerda do rótulo) e `contagem`: um número num chip
+depois do rótulo, na cor da primária na aba ativa (a do módulo aberto) e
+discreto nas outras. Usado com ícone e contagem em Solicitações; Membros ainda
+põe o número no rótulo ("Pedidos (3)").
 
 ## Cards de resumo (`src/components/statusCards`)
 

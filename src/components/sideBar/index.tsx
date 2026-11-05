@@ -2,6 +2,7 @@ import { ReactNode, useState } from 'react';
 import {
   AccountBalanceWallet,
   ArrowBack,
+  Assignment,
   Campaign,
   ConfirmationNumber,
   Event,
@@ -43,6 +44,7 @@ import { useRole } from '../../hooks/useRole';
 import { useModulos } from '../../hooks/useModulos';
 import { ModuloDaIgreja } from '../../constants/modulos';
 import { useFiltroSalvo } from '../../hooks/useFiltroSalvo';
+import { getStoredUser } from '../../auth/session';
 import { AZUL_VIVO, VIOLETA_VIVO } from '../../themes';
 import {
   CORES_DO_MODULO,
@@ -57,6 +59,7 @@ const MODULO_DO_LINK: Record<string, ModuloDaIgreja> = {
   '/admin/eventos': 'EVENTS',
   '/admin/noticias': 'NEWS',
   '/admin/tesouraria': 'TREASURY',
+  '/admin/solicitacoes': 'REQUESTS',
   // as configurações seguem o módulo a que servem
   '/configuracoes/pagamentos': 'EVENTS',
   '/configuracoes/disparadores': 'NEWS',
@@ -733,6 +736,16 @@ const SideBar: React.FC<SideBarProps> = ({
           icon: <EventNote />,
           title: 'Eventos',
         },
+        // só para quem é membro de uma igreja que usa o módulo
+        ...(getStoredUser()?.memberChurch?.modulos.includes('REQUESTS')
+          ? [
+              {
+                link: '/solicitacoes',
+                icon: <Assignment />,
+                title: 'Solicitações',
+              },
+            ]
+          : []),
       ];
 
   /**
@@ -808,6 +821,17 @@ const SideBar: React.FC<SideBarProps> = ({
                         },
                       ]),
                 ],
+              },
+            ]
+          : []),
+        // o que os membros pedem à igreja: quem responde é o admin dela
+        ...(isAdminRole
+          ? [
+              {
+                link: '/admin/solicitacoes',
+                icon: <Assignment />,
+                title: 'Solicitações',
+                novo: true,
               },
             ]
           : []),

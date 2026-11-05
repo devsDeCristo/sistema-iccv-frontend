@@ -111,6 +111,18 @@ export function ModulosDaIgreja({
       link: '/admin/tesouraria',
       modulo: 'TREASURY',
     },
+    ...(adminAqui
+      ? [
+          {
+            nome: 'Solicitações',
+            descricao: 'O que os ministérios pedem à igreja.',
+            icone: identidade('solicitacoes').icone,
+            cor: identidade('solicitacoes').cor,
+            link: '/admin/solicitacoes',
+            modulo: 'REQUESTS' as const,
+          },
+        ]
+      : []),
   ];
 
   return (

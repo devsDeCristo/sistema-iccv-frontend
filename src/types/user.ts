@@ -139,6 +139,11 @@ export interface User {
   /** Os eventos em que ela é tesoureira; não muda o `role` */
   eventTreasurers?: TesoureiroDeEvento[];
   eventAdmins?: AdminDeEvento[];
+  /**
+   * A igreja de que é membro, com os módulos do plano dela (`null`: não é
+   * membro de nenhuma). A área do participante mostra Solicitações por aqui.
+   */
+  memberChurch?: { id: string; name: string; modulos: ModuloDaIgreja[] } | null;
   emergencyContact?: string;
   indicatedBy?: string;
   leadershipPosition?: string;

@@ -3,13 +3,15 @@ import { Theme } from '@mui/material';
 import type { CoresDoTema } from '../themes';
 import {
   AccountBalanceWallet,
+  Assignment,
   Campaign,
   Diversity3,
   Event,
 } from '@mui/icons-material';
 
 /** Os módulos que a home apresenta e cujas telas levam a identidade deles */
-export type ChaveDoModulo = 'membros' | 'eventos' | 'noticias' | 'tesouraria';
+export type ChaveDoModulo =
+  'membros' | 'eventos' | 'noticias' | 'tesouraria' | 'solicitacoes';
 
 /**
  * O ícone de cada módulo — o mesmo no card da home e no cabeçalho da tela
@@ -20,6 +22,7 @@ export const ICONE_DO_MODULO: Record<ChaveDoModulo, ElementType> = {
   eventos: Event,
   noticias: Campaign,
   tesouraria: AccountBalanceWallet,
+  solicitacoes: Assignment,
 };
 
 /**
@@ -72,6 +75,15 @@ export const CORES_DO_MODULO: Record<
       terciaria: '#C18220',
     },
   },
+  // Videira (Jo 15:5)
+  solicitacoes: {
+    claro: { primaria: '#9A294A', secundaria: '#C82A74', terciaria: '#C461D3' },
+    escuro: {
+      primaria: '#E997A5',
+      secundaria: '#FF7AAC',
+      terciaria: '#CA67DA',
+    },
+  },
 };
 
 /** Onde começa cada módulo no painel */
@@ -80,6 +92,9 @@ const ROTA_DO_MODULO: [string, ChaveDoModulo][] = [
   ['/admin/eventos', 'eventos'],
   ['/admin/noticias', 'noticias'],
   ['/admin/tesouraria', 'tesouraria'],
+  ['/admin/solicitacoes', 'solicitacoes'],
+  // a tela do membro, na área do participante
+  ['/solicitacoes', 'solicitacoes'],
 ];
 
 /** O módulo da tela aberta, pelo caminho; fora dos módulos, `undefined` */

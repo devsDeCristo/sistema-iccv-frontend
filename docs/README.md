@@ -37,6 +37,7 @@ contexto para quem (pessoa ou IA) for mexer nessas telas.
 | Planos | painel | [planos.md](planos.md) |
 | Usuários | painel | [usuarios.md](usuarios.md) |
 | Membros e famílias | `/admin/membros` | [membros.md](membros.md) |
+| Solicitações (pedidos dos membros à igreja) | `/admin/solicitacoes`, `/solicitacoes` | [solicitacoes.md](solicitacoes.md) |
 | Logs e registro de login | painel | [logs-e-logins.md](logs-e-logins.md) |
 | Tesouraria (administrativa, eventos e tesoureiros de evento) | `/admin/tesouraria` | [tesouraria.md](tesouraria.md) |
 | Tesouraria das congregações (MVP) | `/admin/tesouraria/congregacoes` | [tesouraria-congregacoes.md](tesouraria-congregacoes.md) |
