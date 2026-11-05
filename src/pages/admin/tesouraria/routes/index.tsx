@@ -10,6 +10,7 @@ import { TesourariaDoEvento } from '../eventos/tesouraria';
 import { TesourariaDeCongregacoes } from '../congregacoes';
 import { TesourariaDaCongregacao } from '../congregacoes/tesouraria';
 import { NaoAlocados } from '../naoAlocados';
+import { TemaDoModulo } from '../../../../components/temaDoModulo';
 
 /**
  * A tesouraria da igreja (o módulo de tesouraria): a administrativa, com
@@ -50,7 +51,7 @@ function RoutesTesourariaAdmin() {
   );
 
   return (
-    <>
+    <Route element={<TemaDoModulo modulo="tesouraria" />}>
       {/* os grupos e as tesourarias abrem na primeira aba */}
       <Route path="/admin/tesouraria" element={<EntradaDaTesouraria />} />
       <Route
@@ -108,7 +109,7 @@ function RoutesTesourariaAdmin() {
         path="/admin/tesouraria/congregacoes/:id/:aba"
         element={comPerfil(<TesourariaDaCongregacao />)}
       />
-    </>
+    </Route>
   );
 }
 

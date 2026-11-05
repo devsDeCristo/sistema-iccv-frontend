@@ -55,6 +55,19 @@ Arquivo: `src/components/appBar/index.tsx`.
   os mesmos dos cards da home. Eventos ganhou a descrição "Inscrições,
   equipes, quartos, check-in e pagamentos". As telas internas (uma tesouraria
   de evento ou congregação, os não alocados) seguem com o cabeçalho comum.
+- **Cores do módulo:** cada módulo tem três cores, no claro e no escuro
+  (`CORES_DO_MODULO` em `src/constants/identidadeDosModulos.ts`): Membros
+  "Tabernáculo" (púrpura), Eventos "Águas tranquilas" (verde-água), Notícias
+  "Céus" (azul-céu) e Tesouraria "Trigo" (dourado). As rotas de cada módulo
+  passam por `TemaDoModulo` (`src/components/temaDoModulo`), que troca só as
+  cores do tema (`myTheme(colorMode, cores)`); raio, sombra, fonte e
+  espaçamento são os de sempre. Primária: botões cheio e de contorno, foco
+  dos campos, links. Secundária: a cor do módulo (`corDoModulo`), no quadrado
+  do ícone, no card da home e na descrição do cabeçalho. Terciária
+  (`palette.tertiary`): pontos, selos e gráficos, nunca texto. A barra
+  lateral, o topo, a home, o perfil, as configurações e a área do participante
+  seguem com as cores da plataforma, assim como as cores de estado (erro,
+  aviso, sucesso e os chips). Os nomes dos módulos não mudaram.
 - **Linha do título:** seta de voltar (`buttonBack`), título e, à direita, a ação da página (`children`). No celular a ação desce para baixo do título.
 - **`description`:** texto embaixo do título (aceita elemento, não só texto).
 - **`acaoAoLado`:** a ação fica ao lado do título também no celular, em vez de descer. Para ação pequena que encolhe, como o seletor de igreja (Eventos, Usuários, Notícias).

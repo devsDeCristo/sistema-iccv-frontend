@@ -10,10 +10,11 @@ import {
 import { ADMIN_AREA_ROLES, ADMIN_ROLES } from '../../../../constants/roles';
 import { Checkin } from '../../checkin';
 import { Quadrante } from '../quadrante';
+import { TemaDoModulo } from '../../../../components/temaDoModulo';
 
 function RoutesEventsAdmin() {
   return (
-    <>
+    <Route element={<TemaDoModulo modulo="eventos" />}>
       {/* Eventos é módulo do plano: fora dele, a tela diz isso */}
       <Route
         path="/admin/eventos"
@@ -78,7 +79,7 @@ function RoutesEventsAdmin() {
           </RequireEventRole>
         }
       />
-    </>
+    </Route>
   );
 }
 

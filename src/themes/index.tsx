@@ -64,6 +64,8 @@ declare module '@mui/material/styles' {
 
   interface Palette {
     border: string;
+    /** a terceira cor do módulo aberto (ver `CORES_DO_MODULO`); fora dele, o violeta */
+    tertiary: { main: string };
     chips: {
       default: string;
       pending: string;
@@ -76,6 +78,7 @@ declare module '@mui/material/styles' {
 
   interface PaletteOptions {
     border?: string;
+    tertiary?: { main: string };
     chips?: {
       default: string;
       pending: string;
@@ -87,16 +90,35 @@ declare module '@mui/material/styles' {
   }
 }
 
-export const myTheme = (colorMode: boolean) =>
-  createTheme({
+export type CoresDoTema = {
+  primaria: string;
+  secundaria: string;
+  terciaria: string;
+};
+
+/**
+ * O tema do sistema. Com `modulo`, o mesmo tema com as três cores do módulo
+ * (`CORES_DO_MODULO`): só a cor muda — raio, sombra, fonte e espaçamento são
+ * os de sempre. Os botões cheio e de contorno, que aqui têm cor fixa, passam
+ * a usar a primária do módulo.
+ */
+export const myTheme = (
+  colorMode: boolean,
+  modulo?: { claro: CoresDoTema; escuro: CoresDoTema }
+) => {
+  const cores = modulo?.[colorMode ? 'escuro' : 'claro'];
+  const botao = cores?.primaria ?? (colorMode ? '#EBEBEB' : '#1C0F4D');
+
+  return createTheme({
     palette: {
       mode: colorMode ? 'dark' : 'light',
       primary: {
-        main: colorMode ? '#2563EB' : '#1C0F4D',
+        main: cores?.primaria ?? (colorMode ? '#2563EB' : '#1C0F4D'),
       },
       secondary: {
-        main: colorMode ? '#28363F' : '#111B21',
+        main: cores?.secundaria ?? (colorMode ? '#28363F' : '#111B21'),
       },
+      tertiary: { main: cores?.terciaria ?? VIOLETA_VIVO },
       divider: colorMode ? '#27303b' : '#DCDEE1',
       background: {
         default: colorMode ? '#030617' : '#F0F1F4',
@@ -176,18 +198,18 @@ export const myTheme = (colorMode: boolean) =>
             },
           },
           contained: {
-            backgroundColor: colorMode ? '#EBEBEB' : '#1C0F4D',
+            backgroundColor: botao,
             '&:hover': {
-              backgroundColor: alpha(colorMode ? '#EBEBEB' : '#1C0F4D', 0.8),
+              backgroundColor: alpha(botao, 0.8),
             },
             color: !colorMode ? '#EBEBEB' : '#111B21',
           },
           outlined: {
-            borderColor: colorMode ? '#EBEBEB' : '#1C0F4D',
-            color: colorMode ? '#EBEBEB' : '#1C0F4D',
+            borderColor: botao,
+            color: botao,
             '&:hover': {
-              borderColor: alpha(colorMode ? '#EBEBEB' : '#1C0F4D', 0.8),
-              backgroundColor: alpha(colorMode ? '#EBEBEB' : '#1C0F4D', 0.04),
+              borderColor: alpha(botao, 0.8),
+              backgroundColor: alpha(botao, 0.04),
             },
           },
         },
@@ -289,3 +311,4 @@ export const myTheme = (colorMode: boolean) =>
       },
     },
   });
+};
