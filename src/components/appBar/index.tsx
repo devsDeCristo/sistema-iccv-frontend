@@ -32,6 +32,7 @@ import Logo from '../../assets/logo-ic.svg?react';
 import { useThemeContext } from '../../contexts/themeContext';
 import { useRole } from '../../hooks/useRole';
 import { UserAvatar } from '../userAvatar';
+import { Sininho } from '../sininho';
 
 export default function MenuAppBar({
   setOpenDrawer,
@@ -163,6 +164,7 @@ export default function MenuAppBar({
           <Box sx={{ flexGrow: 1 }} />
 
           <Stack direction="row" sx={styles.acoes}>
+            <Sininho />
             <IconButton
               size="small"
               aria-label={colorMode ? 'Usar tema claro' : 'Usar tema escuro'}

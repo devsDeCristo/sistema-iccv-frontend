@@ -31,6 +31,7 @@ Uma só para o sistema inteiro, no tema (`MuiCssBaseline` em `src/themes/index.t
 
 - **Marca** (logo + "ICCV Eventos"): clicável, leva para `/admin/inicio` (em rota de admin) ou `/home`.
 - **Botão de menu** (☰): só aparece em telas menores que `lg`, abre a gaveta da régua lateral.
+- **Sininho** de notificações, com o número de não lidas — ver [notificacoes.md](notificacoes.md).
 - **Alternância de tema** claro/escuro.
 - **Menu da conta** (avatar): nome, e-mail, e:
   - **Meu perfil** → `/perfil`.

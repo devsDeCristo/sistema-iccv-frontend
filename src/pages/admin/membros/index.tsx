@@ -73,11 +73,12 @@ function Membros() {
   const somenteLeitura =
     !isSuperAdmin && (!churchId || perfilNaIgreja(churchId) !== Role.ADMIN);
 
-  // `?aba=pedidos` abre nos pedidos: é por onde a home leva
-  const [params] = useSearchParams();
-  const [aba, setAba] = useState<'membros' | 'pedidos'>(
-    params.get('aba') === 'pedidos' ? 'pedidos' : 'membros'
-  );
+  // a aba mora na URL: a notificação de pedido abre direto em `?aba=pedidos`
+  const [params, setParams] = useSearchParams();
+  const aba: 'membros' | 'pedidos' =
+    !somenteLeitura && params.get('aba') === 'pedidos' ? 'pedidos' : 'membros';
+  const setAba = (nova: 'membros' | 'pedidos') =>
+    setParams(nova === 'pedidos' ? { aba: nova } : {}, { replace: true });
   const [busca, setBusca] = useState('');
   const [filtroFamilia, setFiltroFamilia] = useState<'todos' | 'com' | 'sem'>(
     'todos'
