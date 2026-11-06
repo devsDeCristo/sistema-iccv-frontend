@@ -24,6 +24,7 @@ contexto para quem (pessoa ou IA) for mexer nessas telas.
 | Termos de Uso | `/termos` | [termos-de-uso.md](termos-de-uso.md) |
 | Verificação de certificado | `/certificado/:codigo` (pública) | [admin-inscritos.md](admin-inscritos.md) (aba Presença e certificados); regras no backend, `certificados.md` |
 | Layout e navegação | menu, rotas e perfis | [layout-e-navegacao.md](layout-e-navegacao.md) |
+| Notificações (sininho) | barra do topo | [notificacoes.md](notificacoes.md) |
 | Deploy | CI, imagem e variáveis `VITE_*` | [deploy.md](deploy.md) |
 | **Painel do admin** | | |
 | Início do painel | `/admin/inicio` | [admin-home.md](admin-home.md) |
