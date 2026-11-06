@@ -39,6 +39,16 @@ Uma só para o sistema inteiro, no tema (`MuiCssBaseline` em `src/themes/index.t
   - **Área do Usuário** → `/home`, só quando `canAccessAdminArea` é verdadeiro e a pessoa está dentro de rota `/admin` (permite alternar entre as duas áreas sem duas contas).
   - **Configurações** → `/configuracoes` (que redireciona para a primeira tela liberada), só para `isAdminRole` (admin, super admin ou dev).
   - **Sair**.
+- Sininho, tema e avatar ficam numa pastilha de vidro: fundo e fio brancos bem
+  leves (8% e 14%), para a moldura não pesar mais que os ícones. O avatar
+  encosta na ponta direita e a ponta esquerda tem mais folga. Os vãos entre os
+  três são iguais (o avatar tem menos respiro e uma margem que compensa), e os
+  ícones têm 22px.
+- **Movimento:** o sino balança no hover e quando chega aviso novo (o número de
+  não lidas sobe — não a cada consulta); o ícone de tema inclina no hover e, ao
+  trocar, o novo entra girando (no carregamento da página, não); o avatar cresce
+  um pouco no hover. Com "reduzir movimento" ligado no sistema
+  (`prefers-reduced-motion`), nada disso acontece.
 
 Arquivo: `src/components/appBar/index.tsx`.
 

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   alpha,
   Badge,
@@ -77,6 +77,14 @@ export function Sininho() {
   const theme = useTheme();
   const tom = theme.palette.mode === 'dark' ? 'escuro' : 'claro';
 
+  // o sino balança quando chega aviso novo (o número sobe), não a cada consulta
+  const antes = useRef(naoLidas);
+  const [tocando, setTocando] = useState(false);
+  useEffect(() => {
+    if (naoLidas > antes.current) setTocando(true);
+    antes.current = naoLidas;
+  }, [naoLidas]);
+
   const fechar = () => setAnchorEl(null);
   const ir = (n: Notificacao) => {
     const destino = DESTINO[n.tipo];
@@ -99,10 +107,31 @@ export function Sininho() {
         sx={{
           color: '#fff',
           '&:hover': { backgroundColor: alpha('#fff', 0.16) },
+          // preso no alto, como um sino de verdade
+          '@keyframes balancarSino': {
+            '0%, 100%': { transform: 'rotate(0)' },
+            '15%': { transform: 'rotate(14deg)' },
+            '30%': { transform: 'rotate(-12deg)' },
+            '45%': { transform: 'rotate(8deg)' },
+            '60%': { transform: 'rotate(-5deg)' },
+            '75%': { transform: 'rotate(2deg)' },
+          },
+          '&:hover .sino': { animation: 'balancarSino .7s ease-in-out' },
+          '@media (prefers-reduced-motion: reduce)': {
+            '& .sino, &:hover .sino': { animation: 'none' },
+          },
         }}
       >
         <Badge badgeContent={naoLidas} color="error" max={99}>
-          <NotificationsNone fontSize="small" />
+          <NotificationsNone
+            className="sino"
+            onAnimationEnd={() => setTocando(false)}
+            sx={{
+              fontSize: 22,
+              transformOrigin: '50% 8%',
+              ...(tocando && { animation: 'balancarSino .9s ease-in-out' }),
+            }}
+          />
         </Badge>
       </IconButton>
 

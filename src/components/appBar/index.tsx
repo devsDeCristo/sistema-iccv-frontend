@@ -45,6 +45,7 @@ export default function MenuAppBar({
   const { user, logout } = useUser();
   const { canAccessAdminArea } = useRole();
   const { colorMode, toggleColorMode } = useThemeContext();
+  const trocouTema = React.useRef(false);
   const navigate = useNavigate();
   const [isAdminRoute, setIsAdminRoute] = React.useState(false);
 
@@ -115,20 +116,52 @@ export default function MenuAppBar({
       color: '#fff',
       whiteSpace: 'nowrap',
     },
-    /** tema e conta moram na mesma pastilha de vidro, como os selos do cartaz */
+    /**
+     * Sininho, tema e conta moram na mesma pastilha de vidro, como os selos do
+     * cartaz. Fio e fundo bem leves, para a moldura não pesar mais que os
+     * ícones; o avatar encosta na ponta direita (o raio da pastilha é o dele),
+     * e a ponta esquerda tem um pouco mais de folga para o sininho não ficar
+     * espremido na curva.
+     */
     acoes: {
       display: 'flex',
       alignItems: 'center',
       gap: 0.25,
-      p: 0.4,
+      p: '3px',
+      pl: '6px',
       borderRadius: 999,
-      backgroundColor: alpha('#fff', 0.12),
-      border: `1px solid ${alpha('#fff', 0.2)}`,
-      backdropFilter: 'blur(6px)',
+      backgroundColor: alpha('#fff', 0.08),
+      border: `1px solid ${alpha('#fff', 0.14)}`,
     },
+    /**
+     * O ícone inclina no hover e, ao trocar de tema, o novo entra girando. A
+     * entrada não tem quadro final: termina onde o ícone deve estar (inclinado,
+     * se o mouse ainda está em cima), sem pulo.
+     */
     botaoDeTema: {
       color: '#fff',
       '&:hover': { backgroundColor: alpha('#fff', 0.16) },
+      '@keyframes girarTema': {
+        from: { transform: 'rotate(-120deg) scale(.5)', opacity: 0 },
+      },
+      '& svg': { transition: 'transform .3s ease' },
+      '&:hover svg': { transform: 'rotate(-20deg)' },
+      '@media (prefers-reduced-motion: reduce)': {
+        '& svg': { animation: 'none !important', transition: 'none' },
+        '&:hover svg': { transform: 'none' },
+      },
+    },
+    /** o avatar cresce um pouco no hover, como quem chama para o menu */
+    botaoDaConta: {
+      p: '2px',
+      // a margem devolve os 3px de respiro que o avatar não tem, para o vão
+      // até o tema igualar o do sininho ao tema
+      ml: '3px',
+      '& .MuiAvatar-root': { transition: 'transform .2s ease' },
+      '&:hover .MuiAvatar-root': { transform: 'scale(1.08)' },
+      '@media (prefers-reduced-motion: reduce)': {
+        '&:hover .MuiAvatar-root': { transform: 'none' },
+      },
     },
   };
   return (
@@ -168,13 +201,25 @@ export default function MenuAppBar({
             <IconButton
               size="small"
               aria-label={colorMode ? 'Usar tema claro' : 'Usar tema escuro'}
-              onClick={toggleColorMode}
-              sx={styles.botaoDeTema}
+              onClick={() => {
+                trocouTema.current = true;
+                toggleColorMode();
+              }}
+              sx={{
+                ...styles.botaoDeTema,
+                // só na troca: no carregamento da página o ícone já está lá
+                ...(trocouTema.current && {
+                  '& svg': {
+                    transition: 'transform .3s ease',
+                    animation: 'girarTema .4s ease-out',
+                  },
+                }),
+              }}
             >
               {colorMode ? (
-                <LightMode fontSize="small" />
+                <LightMode sx={{ fontSize: 22 }} />
               ) : (
-                <DarkMode fontSize="small" />
+                <DarkMode sx={{ fontSize: 22 }} />
               )}
             </IconButton>
             <IconButton
@@ -183,7 +228,7 @@ export default function MenuAppBar({
               aria-controls="menu-appbar"
               aria-haspopup="true"
               onClick={handleMenu}
-              sx={{ p: 0.25 }}
+              sx={styles.botaoDaConta}
             >
               <UserAvatar
                 name={nomeCompleto}
