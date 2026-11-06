@@ -98,7 +98,7 @@ export function Home({ churchId }: HomeProps = {}) {
         {churchId ? (
           <Header
             title={igreja?.name ?? 'Home da igreja'}
-            description="Eventos, inscrições e caixa desta igreja — a mesma tela que o admin dela abre ao entrar"
+            description="Membros, solicitações, eventos e caixa desta igreja — a mesma tela que o admin dela abre ao entrar"
             buttonBack
             pageBack="/admin/igrejas"
           />

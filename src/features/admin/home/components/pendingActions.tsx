@@ -5,6 +5,11 @@ import {
   PendingActionsOutlined,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
+import {
+  corDoModulo,
+  ICONE_DO_MODULO,
+} from '../../../../constants/identidadeDosModulos';
+import { useIgrejaEscolhida } from '../../../../hooks/useIgrejaEscolhida';
 import { formatCurrency } from '../../../../utils';
 import { DashboardPending } from '../types';
 import { SecaoDaHome } from './secao';
@@ -29,10 +34,33 @@ interface PendingActionsProps {
 export function PendingActions({ pending, showChurch }: PendingActionsProps) {
   const theme = useTheme();
   const navigate = useNavigate();
+  const [, setEscolhida] = useIgrejaEscolhida();
 
   if (!pending.length) return null;
 
   const conteudo = (tarefa: DashboardPending) => {
+    if (tarefa.kind === 'members') {
+      const Icone = ICONE_DO_MODULO.membros;
+      return {
+        cor: corDoModulo(theme, 'membros'),
+        icone: <Icone sx={{ fontSize: 20 }} />,
+        titulo: `${tarefa.count} pessoa(s) pedindo para ser membro`,
+        detalhe: 'aceite ou recuse na aba Pedidos',
+        destino: '/admin/membros?aba=pedidos',
+      };
+    }
+
+    if (tarefa.kind === 'requests') {
+      const Icone = ICONE_DO_MODULO.solicitacoes;
+      return {
+        cor: corDoModulo(theme, 'solicitacoes'),
+        icone: <Icone sx={{ fontSize: 20 }} />,
+        titulo: `${tarefa.count} solicitação(ões) esperando resposta`,
+        detalhe: 'pedidos dos ministérios solicitados ou em análise',
+        destino: '/admin/solicitacoes',
+      };
+    }
+
     if (tarefa.kind === 'receipts') {
       return {
         cor: theme.palette.chips.pending,
@@ -60,11 +88,15 @@ export function PendingActions({ pending, showChurch }: PendingActionsProps) {
 
           return (
             <Card
-              key={`${tarefa.kind}-${tarefa.eventId}`}
+              key={`${tarefa.kind}-${tarefa.eventId ?? tarefa.churchId}`}
               elevation={0}
               component="button"
               type="button"
-              onClick={() => navigate(destino)}
+              onClick={() => {
+                // Membros e Solicitações abrem na igreja escolhida: a da tarefa
+                if (tarefa.churchId) setEscolhida(tarefa.churchId);
+                navigate(destino);
+              }}
               sx={{
                 display: 'flex',
                 alignItems: 'center',
@@ -121,8 +153,13 @@ export function PendingActions({ pending, showChurch }: PendingActionsProps) {
                   noWrap
                   sx={{ fontSize: 12.5, color: 'text.secondary' }}
                 >
-                  {tarefa.eventName}
-                  {showChurch ? ` · ${tarefa.churchName}` : ''} — {detalhe}
+                  {[
+                    tarefa.eventName,
+                    (showChurch || !tarefa.eventName) && tarefa.churchName,
+                  ]
+                    .filter(Boolean)
+                    .join(' · ')}{' '}
+                  — {detalhe}
                 </Typography>
               </Box>
 

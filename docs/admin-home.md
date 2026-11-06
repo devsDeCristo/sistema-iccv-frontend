@@ -106,9 +106,12 @@ que estão acontecendo ou a caminho (ver abaixo).
   empilhada por evento (recebido / em análise / a receber), escalada pelo
   maior evento, para comparar uns com os outros. Eventos sem cobrança
   (`finance.expected === 0`) não entram.
-- **Precisa de você (`PendingActions`):** tarefas com endereço — comprovantes
-  esperando conferência e listas de espera com vaga para chamar —, cada uma
-  linkando direto para a aba do evento. A seção some quando não há nada; não
+- **Precisa de você (`PendingActions`):** tarefas com endereço — pedidos
+  para ser membro (levam a Membros já na aba Pedidos, `?aba=pedidos`),
+  solicitações esperando resposta (levam a Solicitações), comprovantes
+  esperando conferência e listas de espera com vaga para chamar (levam à aba
+  do evento). As da igreja vêm primeiro, com o ícone e a cor do módulo, e
+  ao clicar escolhem a igreja da tarefa no seletor do painel. A seção some quando não há nada; não
   mostra "tudo em dia" para não ensinar o olho a pular a região.
 - **Eventos e mural lado a lado:** na tela larga, a lista de eventos ocupa
   dois terços à esquerda e o mural a coluna da direita; abaixo disso, um

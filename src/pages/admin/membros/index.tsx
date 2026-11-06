@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   Alert,
   Box,
@@ -72,7 +73,11 @@ function Membros() {
   const somenteLeitura =
     !isSuperAdmin && (!churchId || perfilNaIgreja(churchId) !== Role.ADMIN);
 
-  const [aba, setAba] = useState<'membros' | 'pedidos'>('membros');
+  // `?aba=pedidos` abre nos pedidos: é por onde a home leva
+  const [params] = useSearchParams();
+  const [aba, setAba] = useState<'membros' | 'pedidos'>(
+    params.get('aba') === 'pedidos' ? 'pedidos' : 'membros'
+  );
   const [busca, setBusca] = useState('');
   const [filtroFamilia, setFiltroFamilia] = useState<'todos' | 'com' | 'sem'>(
     'todos'

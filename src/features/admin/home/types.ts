@@ -82,9 +82,16 @@ export interface NewsBoard {
 
 /** Uma tarefa, sempre com o endereço do evento em que ela apareceu. */
 export interface DashboardPending {
-  kind: 'receipts' | 'waitlist';
-  eventId: string;
-  eventName: string;
+  /**
+   * `receipts` e `waitlist` são de um evento; `members` (pedidos para entrar
+   * como membro) e `requests` (solicitações sem resposta), da igreja
+   */
+  kind: 'receipts' | 'waitlist' | 'members' | 'requests';
+  /** Só nas tarefas de evento */
+  eventId?: string;
+  eventName?: string;
+  /** Só nas tarefas da igreja */
+  churchId?: string;
   churchName: string;
   count: number;
   /** Só em `receipts`: quanto está parado esperando conferência */
