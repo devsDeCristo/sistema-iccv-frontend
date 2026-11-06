@@ -12,7 +12,7 @@ import {
   Groups,
 } from '@mui/icons-material';
 import { z } from 'zod';
-import { GroupRole } from './types';
+import { EventType, GroupRole } from './types';
 import {
   PaymentMethod,
   PaymentReceived,
@@ -32,7 +32,7 @@ export const GET_DISCOUNTS = 'GET_DISCOUNTS';
 
 const DEFAULT_MESSAGE = 'Campo obrigatório';
 
-export const EVENT_TYPE_SCHEMA = z.enum(['RETIRO', 'CURSILHO']);
+export const EVENT_TYPE_SCHEMA = z.enum(['RETIRO', 'CURSILHO', 'OUTRO']);
 
 export const EVENT_STATUS_SCHEMA = z.enum(['ACTIVE', 'INACTIVE', 'TEST']);
 
@@ -333,7 +333,15 @@ export const EVENT_STATUS_LABELS: Record<string, string> = {
 export const OPTIONS_EVENT_TYPE = [
   { value: 'RETIRO', name: 'Retiro' },
   { value: 'CURSILHO', name: 'Cursilho' },
+  { value: 'OUTRO', name: 'Outro' },
 ];
+
+/** O nome de cada tipo na tela (o chip da lista do admin) */
+export const EVENT_TYPE_LABELS: Record<string, string> = {
+  CURSILHO: 'Cursilho',
+  RETIRO: 'Retiro',
+  OUTRO: 'Outro',
+};
 export const STEPS = [
   {
     id: 1,
@@ -499,6 +507,13 @@ export const GROUP_ROLE_RETIRO: GroupRole[] = [
     ],
   },
 ];
+
+/** O que cada tipo traz pronto no passo de grupos; Outro começa sem nenhum */
+export const GRUPOS_DO_TIPO: Record<EventType, GroupRole[]> = {
+  CURSILHO: GROUP_ROLE_CURSILHO,
+  RETIRO: GROUP_ROLE_RETIRO,
+  OUTRO: [],
+};
 
 export const PAYMENT_METHODS = (payment: PaymentMethod): string => {
   const map: Record<PaymentMethod, string> = {

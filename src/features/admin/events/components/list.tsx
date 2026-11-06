@@ -39,7 +39,7 @@ import { Role } from '../../../../constants/roles';
 import CustomChip from '../../../../components/customChip';
 import { EventPeriodFilter, EventStatus, EventStatusFilter } from '../types';
 import { faseDoEvento } from '../utils/eventStatus';
-import { EVENT_STATUS_LABELS } from '../constants';
+import { EVENT_STATUS_LABELS, EVENT_TYPE_LABELS } from '../constants';
 import { ModuloDoEvento, moduloAtivo } from '../eventModules';
 import {
   cardTabelaSx,
@@ -180,7 +180,7 @@ function List({
       headerAlign: 'center',
       renderCell: (params) => (
         <CustomChip
-          label={params.value || 'Cursilho'}
+          label={EVENT_TYPE_LABELS[params.value] ?? 'Cursilho'}
           size="small"
           customColor={theme.palette.chips.default}
         />

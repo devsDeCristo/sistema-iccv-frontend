@@ -343,7 +343,8 @@ function CartazDoEvento({
 
         <Box sx={styles.colunaDoTexto}>
           <Stack direction="row" gap={0.75} sx={{ mb: 0.75, flexWrap: 'wrap' }}>
-            {event.type && <Selo>{event.type}</Selo>}
+            {/* "Outro" não diz nada sobre o evento: sem selo */}
+            {event.type && event.type !== 'OUTRO' && <Selo>{event.type}</Selo>}
             {contagem && <Selo>{contagem}</Selo>}
             {event.status === 'TEST' && (
               <Selo cor={theme.palette.chips.alert}>Teste</Selo>

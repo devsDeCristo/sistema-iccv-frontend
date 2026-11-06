@@ -1,11 +1,65 @@
-import { alpha, Box, Grid, Radio, Typography, useTheme } from '@mui/material';
-import { Controller, useFormContext, useWatch } from 'react-hook-form';
-import { CategoryEventFormType, EventType } from '../types';
-import { Backpack, Class } from '@mui/icons-material';
+import {
+  alpha,
+  Box,
+  ButtonBase,
+  Chip,
+  Grid,
+  Stack,
+  Typography,
+  useTheme,
+} from '@mui/material';
+import {
+  Backpack,
+  CategoryOutlined,
+  CheckCircle,
+  Class,
+  RadioButtonUnchecked,
+  SvgIconComponent,
+} from '@mui/icons-material';
 import { useEffect } from 'react';
+import { Controller, useFormContext, useWatch } from 'react-hook-form';
+import { GRUPOS_DO_TIPO } from '../constants';
+import { CategoryEventFormType, EventType } from '../types';
+
+const TIPOS: {
+  valor: EventType;
+  nome: string;
+  descricao: string;
+  Icone: SvgIconComponent;
+}[] = [
+  {
+    valor: 'CURSILHO',
+    nome: 'Cursilho',
+    descricao:
+      'Inscrições separadas entre quem vai participar pela primeira vez e quem já fez e vai trabalhar.',
+    Icone: Class,
+  },
+  {
+    valor: 'RETIRO',
+    nome: 'Retiro',
+    descricao:
+      'Inscrição completa ou por diária, com o preço separado por faixa de idade.',
+    Icone: Backpack,
+  },
+  {
+    valor: 'OUTRO',
+    nome: 'Outro',
+    descricao:
+      'Qualquer outro evento. Sem pré-configuração: você cria os grupos de inscrição do zero.',
+    Icone: CategoryOutlined,
+  },
+];
+
 interface SelectCategoryEventProps {
   selectEventType: (eventType: EventType) => void;
 }
+
+/**
+ * Passo 1 do cadastro: o tipo do evento. O tipo só decide os grupos de
+ * inscrição que já vêm prontos (`GRUPOS_DO_TIPO`) — e o cartão mostra quais,
+ * lidos da mesma constante, para a tela não prometer o que o passo de grupos
+ * não traz.
+ */
 function SelectCategoryEvent({ selectEventType }: SelectCategoryEventProps) {
   const {
     control,
@@ -20,145 +74,159 @@ function SelectCategoryEvent({ selectEventType }: SelectCategoryEventProps) {
   }, [eventSelected]);
 
   const theme = useTheme();
+  const destaque = theme.palette.primary.main;
+  const escuro = theme.palette.mode === 'dark';
+
   return (
     <Controller
       name="eventType"
       control={control}
       rules={{ required: 'Selecione o tipo de evento' }}
       render={({ field }) => (
-        <Grid container spacing={2}>
-          <Grid item xs={12} md={12}>
-            <Typography variant="h6">
-              Selecione qual tipo de evento deseja criar
+        <Stack gap={2}>
+          <Box>
+            <Typography variant="h6" fontSize={18}>
+              Que tipo de evento é?
             </Typography>
+            <Typography variant="body2" color="text.secondary">
+              O tipo define os grupos de inscrição que já vêm prontos. No passo
+              de grupos dá para mudar tudo.
+            </Typography>
+          </Box>
+
+          <Grid
+            container
+            spacing={2}
+            role="radiogroup"
+            aria-label="Tipo do evento"
+          >
+            {TIPOS.map(({ valor, nome, descricao, Icone }) => {
+              const marcado = field.value === valor;
+              const grupos = GRUPOS_DO_TIPO[valor];
+
+              return (
+                <Grid item xs={12} md={4} key={valor}>
+                  <ButtonBase
+                    role="radio"
+                    aria-checked={marcado}
+                    onClick={() => field.onChange(valor)}
+                    sx={{
+                      width: '100%',
+                      height: '100%',
+                      p: 2,
+                      borderRadius: 3,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'stretch',
+                      textAlign: 'left',
+                      // o contorno é sombra por dentro: engrossar ao marcar
+                      // não empurra o conteúdo
+                      boxShadow: marcado
+                        ? `inset 0 0 0 2px ${destaque}`
+                        : `inset 0 0 0 1px ${theme.palette.divider}`,
+                      bgcolor: marcado
+                        ? alpha(destaque, escuro ? 0.14 : 0.06)
+                        : 'background.paper',
+                      transition: theme.transitions.create([
+                        'box-shadow',
+                        'background-color',
+                        'transform',
+                      ]),
+                      '&:hover': {
+                        transform: 'translateY(-2px)',
+                        ...(!marcado && {
+                          boxShadow: `inset 0 0 0 1px ${alpha(destaque, 0.5)}, ${theme.shadows[3]}`,
+                        }),
+                      },
+                      '&.Mui-focusVisible': {
+                        outline: `2px solid ${destaque}`,
+                        outlineOffset: 2,
+                      },
+                      '@media (prefers-reduced-motion: reduce)': {
+                        '&:hover': { transform: 'none' },
+                      },
+                    }}
+                  >
+                    <Stack
+                      direction="row"
+                      alignItems="flex-start"
+                      justifyContent="space-between"
+                      sx={{ mb: 1.5 }}
+                    >
+                      <Box
+                        sx={{
+                          width: 44,
+                          height: 44,
+                          borderRadius: 2,
+                          display: 'grid',
+                          placeItems: 'center',
+                          color: marcado ? '#fff' : destaque,
+                          bgcolor: marcado ? destaque : alpha(destaque, 0.12),
+                          transition: theme.transitions.create([
+                            'background-color',
+                            'color',
+                          ]),
+                        }}
+                      >
+                        <Icone />
+                      </Box>
+                      {marcado ? (
+                        <CheckCircle sx={{ color: destaque }} />
+                      ) : (
+                        <RadioButtonUnchecked sx={{ color: 'text.disabled' }} />
+                      )}
+                    </Stack>
+
+                    <Typography fontWeight={700} fontSize={17}>
+                      {nome}
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{ mt: 0.5, mb: 2 }}
+                    >
+                      {descricao}
+                    </Typography>
+
+                    <Box
+                      sx={{
+                        mt: 'auto',
+                        pt: 1.5,
+                        borderTop: `1px dashed ${theme.palette.divider}`,
+                      }}
+                    >
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        sx={{ display: 'block', mb: 0.75 }}
+                      >
+                        {grupos.length ? 'Já vem com' : 'Nenhum grupo pronto'}
+                      </Typography>
+                      {grupos.length > 0 && (
+                        <Stack direction="row" gap={0.75} flexWrap="wrap">
+                          {grupos.map((grupo) => (
+                            <Chip
+                              key={grupo.name}
+                              label={grupo.name}
+                              size="small"
+                              variant="outlined"
+                            />
+                          ))}
+                        </Stack>
+                      )}
+                    </Box>
+                  </ButtonBase>
+                </Grid>
+              );
+            })}
           </Grid>
-          <Grid item xs={12} md={6}>
-            <Box
-              onClick={() => field.onChange('CURSILHO')}
-              sx={{
-                border:
-                  field.value === 'CURSILHO'
-                    ? `1px solid ${theme.palette.primary.main}`
-                    : `1px solid ${theme.palette.divider}`,
-                backgroundColor:
-                  field.value === 'CURSILHO'
-                    ? alpha(theme.palette.primary.main, 0.08)
-                    : alpha(theme.palette.text.primary, 0.02),
-                padding: '16px',
-                borderRadius: 2,
-                cursor: 'pointer',
-                '&:hover': {
-                  ...(field.value !== 'CURSILHO'
-                    ? {
-                        backgroundColor: alpha(
-                          theme.palette.text.primary,
-                          0.08
-                        ),
-                      }
-                    : {}),
-                },
-                display: 'flex',
-                alignItems: 'start',
-                justifyContent: 'space-between',
-                gap: 2,
-              }}
-            >
-              {field.value === 'CURSILHO' ? (
-                <Class sx={{ mt: 0.5, ml: 0.5 }} />
-              ) : (
-                <Class sx={{ mt: 0.5, ml: 0.5 }} />
-              )}
-              <Box>
-                <Typography
-                  sx={{
-                    fontWeight: 'bold',
-                    fontSize: '20px',
-                  }}
-                >
-                  Cursilho
-                </Typography>
-                <Typography>
-                  Esse evento separa as inscrições por grupos de participantes
-                  cursilhistas e cursilheios. Gera quadrantes do evento
-                  automaticamente.
-                </Typography>
-              </Box>{' '}
-              <Radio
-                sx={{ p: 0.5 }}
-                value={'CURSILHO'}
-                checked={field.value === 'CURSILHO'}
-                onChange={() => field.onChange('CURSILHO')}
-                inputProps={{ 'aria-label': 'CURSILHO' }}
-              />
-            </Box>
-          </Grid>{' '}
-          <Grid item xs={12} md={6}>
-            <Box
-              onClick={() => field.onChange('RETIRO')}
-              sx={{
-                border:
-                  field.value === 'RETIRO'
-                    ? `1px solid ${theme.palette.primary.main}`
-                    : `1px solid ${theme.palette.divider}`,
-                backgroundColor:
-                  field.value === 'RETIRO'
-                    ? alpha(theme.palette.primary.main, 0.08)
-                    : alpha(theme.palette.text.primary, 0.02),
-                padding: '16px',
-                borderRadius: 2,
-                cursor: 'pointer',
-                '&:hover': {
-                  ...(field.value !== 'RETIRO'
-                    ? {
-                        backgroundColor: alpha(
-                          theme.palette.text.primary,
-                          0.08
-                        ),
-                      }
-                    : {}),
-                },
-                display: 'flex',
-                alignItems: 'start',
-                justifyContent: 'space-between',
-                gap: 2,
-              }}
-            >
-              {field.value === 'RETIRO' ? (
-                <Backpack sx={{ mt: 0.5, ml: 0.5 }} />
-              ) : (
-                <Backpack sx={{ mt: 0.5, ml: 0.5 }} />
-              )}
-              <Box>
-                <Typography
-                  sx={{
-                    fontWeight: 'bold',
-                    fontSize: '20px',
-                  }}
-                >
-                  Retiro
-                </Typography>
-                <Typography>
-                  Esse evento conta com inscrições completas e por diárias,
-                  separando também os valores por faixa etária de idade.
-                </Typography>
-              </Box>
-              <Radio
-                sx={{ p: 0.5 }}
-                value={'RETIRO'}
-                checked={field.value === 'RETIRO'}
-                onChange={() => field.onChange('RETIRO')}
-                inputProps={{ 'aria-label': 'RETIRO' }}
-              />
-            </Box>
-          </Grid>
+
           {errors.eventType ? (
-            <Grid item xs={12}>
-              <Typography color="error" variant="caption">
-                {errors.eventType.message as string}
-              </Typography>
-            </Grid>
+            <Typography color="error" variant="caption">
+              {errors.eventType.message as string}
+            </Typography>
           ) : null}
-        </Grid>
+        </Stack>
       )}
     />
   );

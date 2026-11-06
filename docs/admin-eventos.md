@@ -34,7 +34,8 @@ inscrição por grupo também (`docs/inscricao-em-grupos.md`).
   nenhuma escolhida, a tela pede a escolha. A lista é exatamente a do admin
   daquela igreja: sem coluna de igreja, também para o super admin. Igreja sem
   Eventos no plano mostra o aviso de fora do plano (`docs/layout-e-navegacao.md`).
-- **Ordem das colunas:** Tipo (chip Cursilho/Retiro) vem antes do Nome, logo
+- **Ordem das colunas:** Tipo (chip Cursilho/Retiro/Outro, rótulo de
+  `EVENT_TYPE_LABELS`) vem antes do Nome, logo
   depois da caixa de seleção: é por ele que se bate o olho na lista.
 - **Período:** início e fim numa coluna só, em duas linhas ("04/02/2027" e,
   embaixo, "até 07/02/2027"); evento de um dia mostra só a data. O valor da
@@ -102,11 +103,21 @@ inscrição"). Até 13/10/2026 cada passo media o próprio rótulo, e com nove p
 as linhas saíam de tamanhos diferentes. No celular segue a régua compacta (só o
 passo atual com nome).
 
-- **Categoria do evento (passo 1):** `RETIRO` ou `CURSILHO`. Define os grupos e
-  regras padrão que vêm pré-preenchidos no passo de configurações de inscrição
-  (ex.: Retiro nasce com "Completo" e diárias por dia; Cursilho nasce com
-  "Cursilhista" e "Cursilheiro(a)"). Trocar a categoria depois de escolhida
-  reseta esses padrões.
+- **Categoria do evento (passo 1):** `CURSILHO`, `RETIRO` ou `OUTRO`. Define os
+  grupos e regras padrão que vêm pré-preenchidos no passo de configurações de
+  inscrição (`GRUPOS_DO_TIPO`): Cursilho nasce com "Cursilhista" e
+  "Cursilheiro(a)"; Retiro com "Completo" e diárias por dia; Outro sem grupo
+  nenhum — o admin cria do zero. Trocar a categoria depois de escolhida reseta
+  esses padrões.
+  - **Cartões:** três lado a lado (um embaixo do outro no celular), cada um com
+    ícone, nome, descrição e, no rodapé, "Já vem com" e os nomes dos grupos —
+    lidos de `GRUPOS_DO_TIPO`, a mesma constante do passo de grupos, para o
+    cartão não prometer o que o passo não traz ("Nenhum grupo pronto" no
+    Outro). O marcado ganha contorno de 2px e fundo na cor do módulo, ícone
+    cheio e o check; o contorno é sombra por dentro, e marcar não empurra o
+    conteúdo. No hover o cartão sobe 2px (menos com "reduzir movimento").
+  - **Acessibilidade:** é um `radiogroup`; cada cartão é um `radio` com
+    `aria-checked`, alcançável pelo Tab, com contorno visível no foco.
 - **Informações gerais (passo 2):**
   - **Igreja do evento:** só aparece para quem tem escolha — super admin (que
     não tem igreja própria) ou quem administra mais de uma. Quem administra uma

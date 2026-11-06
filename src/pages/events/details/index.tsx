@@ -797,7 +797,10 @@ function EventsDetails() {
           )}
 
           <Stack direction="row" gap={1} flexWrap="wrap" sx={{ mb: 1.5 }}>
-            {event?.type && <Box sx={styles.selo}>{event.type}</Box>}
+            {/* "Outro" não diz nada sobre o evento: sem selo */}
+            {event?.type && event.type !== 'OUTRO' && (
+              <Box sx={styles.selo}>{event.type}</Box>
+            )}
             {contagem && <Box sx={styles.selo}>{contagem}</Box>}
             {event?.status === 'TEST' && (
               <Box sx={styles.selo}>Evento de teste</Box>

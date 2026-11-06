@@ -15,7 +15,7 @@ import {
   MODULES_SCHEMA,
   TERMS_SCHEMA,
 } from './constants';
-export type EventType = 'CURSILHO' | 'RETIRO';
+export type EventType = 'CURSILHO' | 'RETIRO' | 'OUTRO';
 
 /**
  * Estado de publicação do evento (espelha `EventStatus` no backend).

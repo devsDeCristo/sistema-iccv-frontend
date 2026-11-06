@@ -6,7 +6,7 @@ A vitrine pública de um evento: cartaz com a arte cadastrada, fichas de resumo 
 
 - **Capa:** `event.data.coverUrl`, ou a capa padrão do sistema quando o evento não tem uma. Filtro preto de 38% por cima e um véu que escurece progressivamente até o fundo da página, no rodapé.
 - **Logo:** `event.data.logoUrl`, opcional. Muda o alinhamento do bloco de texto (encostado no rodapé com logo; centralizado sem ela).
-- **Selos:** tipo do evento (`event.type`), contagem regressiva (`contagemRegressiva`) e "Evento de teste" quando `event.status === 'TEST'`.
+- **Selos:** tipo do evento (`event.type`; o tipo Outro não ganha selo, porque não diz nada sobre o evento — vale também para o cartão da home), contagem regressiva (`contagemRegressiva`) e "Evento de teste" quando `event.status === 'TEST'`.
 - **Botão Voltar:** sempre visível, leva a `/home`.
 - **Atalhos do admin:** "Editar evento" e "Ver no painel", só para quem `podeAdministrar` (super admin, dev, ou admin da igreja dona do evento). Ficam no canto oposto ao botão Voltar.
 - **Cores do evento (`event.data.colors`):** quando o evento tem paleta válida (`ehCorHex`), a cor primária pinta o botão de inscrição da faixa do cartaz e o risco de cada seção; as três cores (primária, secundária, terciária) se dividem entre as fichas, uma para cada. Sem paleta cadastrada, tudo usa o azul-violeta padrão do sistema.

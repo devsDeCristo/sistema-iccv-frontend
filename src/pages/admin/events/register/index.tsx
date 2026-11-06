@@ -27,8 +27,7 @@ import {
   STEPS,
   MODULES_SCHEMA,
   TERMS_SCHEMA,
-  GROUP_ROLE_RETIRO,
-  GROUP_ROLE_CURSILHO,
+  GRUPOS_DO_TIPO,
 } from '../../../../features/admin/events/constants';
 import { usePostCreateEvent } from '../../../../features/admin/events/api/postEvent';
 import { useNavigate } from 'react-router-dom';
@@ -101,9 +100,8 @@ function Register() {
   const [eventTypeSelected, setEventTypeSelected] = useState<
     EventType | undefined
   >(undefined);
-  const getDefaultGroupRoles = (eventType: EventType): GroupRole[] => {
-    return eventType === 'RETIRO' ? GROUP_ROLE_RETIRO : GROUP_ROLE_CURSILHO;
-  };
+  const getDefaultGroupRoles = (eventType: EventType): GroupRole[] =>
+    GRUPOS_DO_TIPO[eventType];
   const methodsRegistrationSettings = useForm<RegistrationSettingsFormType>({
     resolver: zodResolver(REGISTRATION_SETTINGS_SCHEMA),
     defaultValues: {
@@ -114,11 +112,8 @@ function Register() {
   });
   useEffect(() => {
     if (!eventTypeSelected) return;
-    const defaultGroupRoles: GroupRole[] =
-      eventTypeSelected === 'RETIRO' ? GROUP_ROLE_RETIRO : GROUP_ROLE_CURSILHO;
-
     methodsRegistrationSettings.reset({
-      groupRoles: defaultGroupRoles,
+      groupRoles: getDefaultGroupRoles(eventTypeSelected),
     });
   }, [eventTypeSelected]);
   const methodsProducts = useForm<ProductsFormType>({
