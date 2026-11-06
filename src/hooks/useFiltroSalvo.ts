@@ -1,4 +1,10 @@
-import { useEffect, useState } from 'react';
+import {
+  SetStateAction,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { getStoredUser } from '../auth/session';
 
 /**
@@ -39,18 +45,33 @@ export function useFiltroSalvo<T>(
     }
   });
 
-  useEffect(() => {
-    try {
-      const texto = JSON.stringify(valor);
-      // só avisa quando mudou de fato: quem relê grava o mesmo texto, e o
-      // aviso não volta — sem isto as duas telas se avisariam sem fim
-      if (localStorage.getItem(chaveCompleta) === texto) return;
-      localStorage.setItem(chaveCompleta, texto);
-      window.dispatchEvent(new CustomEvent(EVENTO, { detail: chaveCompleta }));
-    } catch {
-      // sem armazenamento, o filtro só não é lembrado
-    }
-  }, [chaveCompleta, valor]);
+  /**
+   * Grava na hora, e não num efeito depois de renderizar: quem troca e navega
+   * no mesmo clique (o sininho, as pendências da home) monta a tela de destino
+   * — e o guarda dela — lendo daqui. Gravando só no efeito, ela nascia com a
+   * igreja antiga e às vezes perdia o aviso, que saía antes de ela ouvir.
+   */
+  const atual = useRef(valor);
+  atual.current = valor;
+  const definir = useCallback(
+    (acao: SetStateAction<T>) => {
+      const novo = acao instanceof Function ? acao(atual.current) : acao;
+      atual.current = novo;
+      setValor(novo);
+      try {
+        const texto = JSON.stringify(novo);
+        // só avisa quando mudou de fato: sem isto as telas se avisariam sem fim
+        if (localStorage.getItem(chaveCompleta) === texto) return;
+        localStorage.setItem(chaveCompleta, texto);
+        window.dispatchEvent(
+          new CustomEvent(EVENTO, { detail: chaveCompleta })
+        );
+      } catch {
+        // sem armazenamento, o filtro só não é lembrado
+      }
+    },
+    [chaveCompleta]
+  );
 
   useEffect(() => {
     const aoMudar = (evento: Event) => {
@@ -68,5 +89,5 @@ export function useFiltroSalvo<T>(
     return () => window.removeEventListener(EVENTO, aoMudar);
   }, [chaveCompleta, valido]);
 
-  return [valor, setValor] as const;
+  return [valor, definir] as const;
 }

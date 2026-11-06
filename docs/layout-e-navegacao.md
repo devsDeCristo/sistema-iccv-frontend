@@ -303,7 +303,10 @@ igreja" para super admin ou dev.
 - **A escolha anda junto entre componentes:** o `useFiltroSalvo` avisa as
   outras instâncias com a mesma chave quando grava (evento `filtro-salvo`), e
   elas releem. É o que faz a troca de igreja no seletor da página valer na
-  hora para o guarda da rota, que também lê a escolha.
+  hora para o guarda da rota, que também lê a escolha. A gravação é no próprio
+  setter, não num efeito: quem troca a igreja e navega no mesmo clique (o
+  sininho, as pendências da home) monta a tela de destino já lendo a igreja
+  nova — gravando depois da renderização, ela nascia na antiga.
 - **Uma escolha só para o painel inteiro (`useIgrejaEscolhida`):** fica no
   `localStorage` (`useFiltroSalvo`, separada por usuário). Escolher a Filial
   em Notícias abre Usuários, Eventos, Início e Configurações já na Filial, e

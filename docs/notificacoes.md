@@ -16,6 +16,8 @@ duas áreas (usuário e painel). Quem recebe cada aviso é decidido no backend
   completa no `title`). Vazia: "Nenhum aviso por aqui."
 - **Abrir não lê nada.** Clicar num aviso marca só ele como lido, troca a
   igreja do painel para a do aviso (só nos avisos de admin) e abre o destino.
+  A tela de destino já nasce na igreja do aviso: a troca grava antes de
+  navegar (ver `useFiltroSalvo` em [layout-e-navegacao.md](layout-e-navegacao.md)).
   **Marcar todas como lidas** lê todas as não lidas, inclusive as que não
   couberam na lista.
 
