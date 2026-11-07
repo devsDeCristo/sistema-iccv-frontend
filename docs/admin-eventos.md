@@ -34,8 +34,9 @@ inscrição por grupo também (`docs/inscricao-em-grupos.md`).
   nenhuma escolhida, a tela pede a escolha. A lista é exatamente a do admin
   daquela igreja: sem coluna de igreja, também para o super admin. Igreja sem
   Eventos no plano mostra o aviso de fora do plano (`docs/layout-e-navegacao.md`).
-- **Ordem das colunas:** Tipo (chip Cursilho/Retiro/Outro, rótulo de
-  `EVENT_TYPE_LABELS`) vem antes do Nome, logo
+- **Ordem das colunas:** Tipo (chip Cursilho/Retiro/Outro preenchido na
+  secundária do módulo, com o ícone do tipo — `ICONE_DO_TIPO`, o mesmo do
+  cartão do passo 1 — e o rótulo de `EVENT_TYPE_LABELS`) vem antes do Nome, logo
   depois da caixa de seleção: é por ele que se bate o olho na lista.
 - **Período:** início e fim numa coluna só, em duas linhas ("04/02/2027" e,
   embaixo, "até 07/02/2027"); evento de um dia mostra só a data. O valor da
@@ -100,8 +101,12 @@ coluna de largura igual por passo, o ícone no centro e a linha ligando um ícon
 ao outro — todas do mesmo tamanho, qualquer que seja o rótulo; o rótulo fica
 centralizado embaixo e quebra em duas linhas se precisar ("Configurações de
 inscrição"). Até 13/10/2026 cada passo media o próprio rótulo, e com nove passos
-as linhas saíam de tamanhos diferentes. No celular segue a régua compacta (só o
-passo atual com nome).
+as linhas saíam de tamanhos diferentes. Abaixo de 810px (celular e tablet em
+pé; `COMPACTA` no componente) não há círculos: com nove passos eles não cabiam
+(a régua compacta antiga somava ~470px e cortava do passo 5 em diante). Fica
+"Passo 1 de 9" com o nome do passo (reticências se não couber) e uma barra em
+segmentos, um por passo, feitos e atual na cor do módulo. Cada segmento é um
+botão que leva ao passo, com área de toque maior que a barra.
 
 - **Categoria do evento (passo 1):** `CURSILHO`, `RETIRO` ou `OUTRO`. Define os
   grupos e regras padrão que vêm pré-preenchidos no passo de configurações de
@@ -110,7 +115,8 @@ passo atual com nome).
   nenhum — o admin cria do zero. Trocar a categoria depois de escolhida reseta
   esses padrões.
   - **Cartões:** três lado a lado (um embaixo do outro no celular), cada um com
-    ícone, nome, descrição e, no rodapé, "Já vem com" e os nomes dos grupos —
+    ícone, nome, descrição e, no rodapé, "Já vem com" e os nomes dos grupos
+    (chips preenchidos na cor secundária do módulo) —
     lidos de `GRUPOS_DO_TIPO`, a mesma constante do passo de grupos, para o
     cartão não prometer o que o passo não traz ("Nenhum grupo pronto" no
     Outro). O marcado ganha contorno de 2px e fundo na cor do módulo, ícone

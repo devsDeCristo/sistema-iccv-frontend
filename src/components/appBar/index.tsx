@@ -27,7 +27,7 @@ import {
   useTheme,
 } from '@mui/material';
 import { useUser } from '../../contexts/userContext';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import Logo from '../../assets/logo-ic.svg?react';
 import { useThemeContext } from '../../contexts/themeContext';
 import { useRole } from '../../hooks/useRole';
@@ -47,13 +47,21 @@ export default function MenuAppBar({
   const { colorMode, toggleColorMode } = useThemeContext();
   const trocouTema = React.useRef(false);
   const navigate = useNavigate();
-  const [isAdminRoute, setIsAdminRoute] = React.useState(false);
+  const { pathname } = useLocation();
 
-  //verifica se a rota url é de admin
-  React.useEffect(() => {
-    const isAdminRoute = window.location.pathname.includes('/admin');
-    setIsAdminRoute(isAdminRoute);
-  }, [window.location.pathname]);
+  /**
+   * Em qual das três áreas a pessoa está — o menu da conta oferece as outras
+   * duas. Lida da rota a cada navegação: antes um efeito olhava
+   * `window.location` e as Configurações (fora de `/admin`) ficavam sem volta
+   * para o painel.
+   */
+  const area = pathname.startsWith('/configuracoes')
+    ? 'configuracoes'
+    : pathname.startsWith('/admin')
+      ? 'admin'
+      : 'usuario';
+  // as Configurações também são do painel: a marca leva ao início dele
+  const isAdminRoute = area !== 'usuario';
 
   const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -290,20 +298,7 @@ export default function MenuAppBar({
                 </ListItemIcon>
                 Meu perfil
               </MenuItem>
-              {canAccessAdminArea && !isAdminRoute && (
-                <MenuItem
-                  onClick={() => {
-                    navigate('/admin/inicio');
-                    handleClose();
-                  }}
-                >
-                  <ListItemIcon>
-                    <AdminPanelSettings fontSize="small" />
-                  </ListItemIcon>
-                  Área do Administrador
-                </MenuItem>
-              )}
-              {canAccessAdminArea && isAdminRoute && (
+              {canAccessAdminArea && area !== 'usuario' && (
                 <MenuItem
                   onClick={() => {
                     navigate('/home');
@@ -314,6 +309,19 @@ export default function MenuAppBar({
                     <Person fontSize="small" />
                   </ListItemIcon>
                   Área do Usuário
+                </MenuItem>
+              )}
+              {canAccessAdminArea && area !== 'admin' && (
+                <MenuItem
+                  onClick={() => {
+                    navigate('/admin/inicio');
+                    handleClose();
+                  }}
+                >
+                  <ListItemIcon>
+                    <AdminPanelSettings fontSize="small" />
+                  </ListItemIcon>
+                  Área do Administrador
                 </MenuItem>
               )}
 
@@ -331,7 +339,7 @@ export default function MenuAppBar({
                 A tesouraria também entra: só em Integrações, que é para onde
                 o redirecionamento o leva.
               */}
-              {canAccessAdminArea && (
+              {canAccessAdminArea && area !== 'configuracoes' && (
                 <MenuItem
                   onClick={() => {
                     navigate('/configuracoes');

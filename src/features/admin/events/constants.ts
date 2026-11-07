@@ -1,7 +1,10 @@
 import { MAXIMO_DE_FOTOS } from './products';
 import {
   Assignment,
+  Backpack,
   Category,
+  CategoryOutlined,
+  Class,
   Check,
   Event,
   Gavel,
@@ -10,6 +13,7 @@ import {
   Settings,
   ShoppingBag,
   Groups,
+  SvgIconComponent,
 } from '@mui/icons-material';
 import { z } from 'zod';
 import { EventType, GroupRole } from './types';
@@ -341,6 +345,13 @@ export const EVENT_TYPE_LABELS: Record<string, string> = {
   CURSILHO: 'Cursilho',
   RETIRO: 'Retiro',
   OUTRO: 'Outro',
+};
+
+/** O ícone de cada tipo — o mesmo no chip da lista e no cartão do passo 1 */
+export const ICONE_DO_TIPO: Record<EventType, SvgIconComponent> = {
+  CURSILHO: Class,
+  RETIRO: Backpack,
+  OUTRO: CategoryOutlined,
 };
 export const STEPS = [
   {

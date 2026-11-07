@@ -8,45 +8,34 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
-import {
-  Backpack,
-  CategoryOutlined,
-  CheckCircle,
-  Class,
-  RadioButtonUnchecked,
-  SvgIconComponent,
-} from '@mui/icons-material';
+import { CheckCircle, RadioButtonUnchecked } from '@mui/icons-material';
 import { useEffect } from 'react';
 import { Controller, useFormContext, useWatch } from 'react-hook-form';
-import { GRUPOS_DO_TIPO } from '../constants';
+import { GRUPOS_DO_TIPO, ICONE_DO_TIPO } from '../constants';
 import { CategoryEventFormType, EventType } from '../types';
 
 const TIPOS: {
   valor: EventType;
   nome: string;
   descricao: string;
-  Icone: SvgIconComponent;
 }[] = [
   {
     valor: 'CURSILHO',
     nome: 'Cursilho',
     descricao:
       'Inscrições separadas entre quem vai participar pela primeira vez e quem já fez e vai trabalhar.',
-    Icone: Class,
   },
   {
     valor: 'RETIRO',
     nome: 'Retiro',
     descricao:
       'Inscrição completa ou por diária, com o preço separado por faixa de idade.',
-    Icone: Backpack,
   },
   {
     valor: 'OUTRO',
     nome: 'Outro',
     descricao:
       'Qualquer outro evento. Sem pré-configuração: você cria os grupos de inscrição do zero.',
-    Icone: CategoryOutlined,
   },
 ];
 
@@ -100,7 +89,8 @@ function SelectCategoryEvent({ selectEventType }: SelectCategoryEventProps) {
             role="radiogroup"
             aria-label="Tipo do evento"
           >
-            {TIPOS.map(({ valor, nome, descricao, Icone }) => {
+            {TIPOS.map(({ valor, nome, descricao }) => {
+              const Icone = ICONE_DO_TIPO[valor];
               const marcado = field.value === valor;
               const grupos = GRUPOS_DO_TIPO[valor];
 
@@ -209,7 +199,7 @@ function SelectCategoryEvent({ selectEventType }: SelectCategoryEventProps) {
                               key={grupo.name}
                               label={grupo.name}
                               size="small"
-                              variant="outlined"
+                              color="secondary"
                             />
                           ))}
                         </Stack>

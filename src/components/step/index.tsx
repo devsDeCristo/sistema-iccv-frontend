@@ -15,6 +15,13 @@ interface StepProgressProps {
   setCurrentStep: (step: number) => void;
 }
 
+/**
+ * Abaixo de 810px os círculos com rótulo não cabem: os nove passos do cadastro
+ * de evento espremem os nomes já num tablet em pé. Daí para baixo, a régua
+ * compacta.
+ */
+const COMPACTA = '@media (max-width: 809.95px)';
+
 export const StepProgress: React.FC<StepProgressProps> = ({
   steps,
   currentStep,
@@ -38,7 +45,8 @@ export const StepProgress: React.FC<StepProgressProps> = ({
   const desktop = (
     <Box
       sx={{
-        display: { xs: 'none', sm: 'grid' },
+        display: 'grid',
+        [COMPACTA]: { display: 'none' },
         gridTemplateColumns: `repeat(${steps.length}, minmax(0, 1fr))`,
         width: '100%',
       }}
@@ -128,114 +136,95 @@ export const StepProgress: React.FC<StepProgressProps> = ({
     </Box>
   );
 
+  /**
+   * Compacta: os círculos não cabem (nove passos mais o rótulo davam ~470px numa
+   * tela de 300 e cortavam a régua). Fica "Passo 1 de 9" com o nome do passo
+   * (reticências se não couber) e uma barra em segmentos, um por passo — feito
+   * e atual na cor do módulo. O segmento leva ao passo, como o círculo levava.
+   */
+  const atual = steps.findIndex((step) => step.id === currentStep);
+  const compacta = (
+    <Box
+      sx={{ display: 'none', [COMPACTA]: { display: 'block' }, width: '100%' }}
+      className={className}
+    >
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'baseline',
+          gap: 1,
+          minWidth: 0,
+          mb: 1,
+        }}
+      >
+        <Box
+          component="span"
+          sx={{
+            flexShrink: 0,
+            fontSize: '12px',
+            fontWeight: 600,
+            color: theme.palette.text.secondary,
+          }}
+        >
+          Passo {atual + 1} de {steps.length}
+        </Box>
+        <Box
+          component="span"
+          sx={{
+            minWidth: 0,
+            fontSize: '14px',
+            fontWeight: 600,
+            color: theme.palette.primary.main,
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+          }}
+        >
+          {steps[atual]?.label}
+        </Box>
+      </Box>
+      <Box sx={{ display: 'flex', gap: '4px' }}>
+        {steps.map((step, index) => (
+          <Box
+            key={step.id}
+            component="button"
+            type="button"
+            aria-label={`Ir para o passo ${index + 1}: ${step.label ?? ''}`}
+            aria-current={step.id === currentStep ? 'step' : undefined}
+            onClick={() => onStepClick(index)}
+            sx={{
+              flex: 1,
+              minWidth: 0,
+              // a área de toque é mais alta que a barra que se vê
+              py: '8px',
+              px: 0,
+              border: 0,
+              background: 'none',
+              cursor: 'pointer',
+              '&::before': {
+                content: '""',
+                display: 'block',
+                height: '4px',
+                borderRadius: '2px',
+                backgroundColor: corDaLinha(currentStep >= step.id),
+                transition: 'background-color 0.3s',
+              },
+              '&:focus-visible': {
+                outline: `2px solid ${theme.palette.primary.main}`,
+                outlineOffset: 2,
+                borderRadius: '2px',
+              },
+            }}
+          />
+        ))}
+      </Box>
+    </Box>
+  );
+
   return (
     <>
       {desktop}
-      <Box
-        sx={{
-          display: { xs: 'flex', sm: 'none' },
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          width: '100%',
-          margin: '0 auto',
-        }}
-        className={className}
-      >
-        {steps.map((step, index) => {
-          const isLast = index === steps.length - 1;
-          const isActive = currentStep === step.id;
-          const isCompleted = currentStep > step.id;
-
-          return (
-            <React.Fragment key={step.id}>
-              {/* Versão Mobile */}
-              <Box
-                sx={{
-                  display: { xs: 'flex', sm: 'none' },
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  width: isActive ? '100%' : 'fit-content',
-                  marginRight: !isLast && !isActive ? '16px' : '0',
-                }}
-              >
-                <Box
-                  sx={{
-                    display: 'flex',
-                    gap: '4px',
-                    width: 'fit-content',
-                    alignItems: 'center',
-                    cursor: 'pointer',
-                  }}
-                  onClick={() => onStepClick(index)}
-                >
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      height: '24px',
-                      width: '24px',
-                      flexShrink: 0,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      borderRadius: '50%',
-                      border: '2px solid',
-                      borderColor:
-                        isActive || isCompleted
-                          ? theme.palette.primary.main
-                          : '#E0E0E0',
-                      backgroundColor: isActive
-                        ? theme.palette.primary.main
-                        : isCompleted
-                          ? alpha(theme.palette.primary.main, 0.2)
-                          : 'transparent',
-                      color: isActive
-                        ? '#FFFFFF'
-                        : isCompleted
-                          ? theme.palette.primary.main
-                          : theme.palette.text.primary,
-                      transition: 'all 0.3s',
-                    }}
-                  >
-                    {isCompleted ? (
-                      <Check style={{ height: '20px', width: '20px' }} />
-                    ) : (
-                      <span>{index + 1}</span>
-                    )}
-                  </Box>
-                  {isActive && (
-                    <span
-                      style={{
-                        fontSize: '14px',
-                        fontWeight: 500,
-                        whiteSpace: 'nowrap',
-                        textOverflow: 'ellipsis',
-                        color: isActive
-                          ? theme.palette.primary.main
-                          : isCompleted
-                            ? theme.palette.primary.main
-                            : theme.palette.text.primary,
-                      }}
-                    >
-                      {step.label}
-                    </span>
-                  )}
-                  {index < steps.length - 1 && (
-                    <Box
-                      sx={{
-                        width: '100%',
-                        height: '2px',
-                        backgroundColor:
-                          currentStep > step.id
-                            ? theme.palette.primary.main
-                            : '#E0E0E0',
-                      }}
-                    />
-                  )}
-                </Box>
-              </Box>
-            </React.Fragment>
-          );
-        })}
-      </Box>
+      {compacta}
     </>
   );
 };

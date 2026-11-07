@@ -1,6 +1,7 @@
 import {
   Box,
   Card,
+  Chip,
   IconButton,
   ListItemIcon,
   ListItemText,
@@ -37,9 +38,18 @@ import {
 import { useRole } from '../../../../hooks/useRole';
 import { Role } from '../../../../constants/roles';
 import CustomChip from '../../../../components/customChip';
-import { EventPeriodFilter, EventStatus, EventStatusFilter } from '../types';
+import {
+  EventPeriodFilter,
+  EventStatus,
+  EventStatusFilter,
+  EventType,
+} from '../types';
 import { faseDoEvento } from '../utils/eventStatus';
-import { EVENT_STATUS_LABELS, EVENT_TYPE_LABELS } from '../constants';
+import {
+  EVENT_STATUS_LABELS,
+  EVENT_TYPE_LABELS,
+  ICONE_DO_TIPO,
+} from '../constants';
 import { ModuloDoEvento, moduloAtivo } from '../eventModules';
 import {
   cardTabelaSx,
@@ -175,16 +185,25 @@ function List({
     {
       field: 'type',
       headerName: 'Tipo',
-      width: 100,
+      // o ícone ocupa espaço: com 100px "Cursilho" cortava
+      width: 124,
       align: 'center',
       headerAlign: 'center',
-      renderCell: (params) => (
-        <CustomChip
-          label={EVENT_TYPE_LABELS[params.value] ?? 'Cursilho'}
-          size="small"
-          customColor={theme.palette.chips.default}
-        />
-      ),
+      renderCell: (params) => {
+        // sem tipo (eventos antigos) vale o Cursilho
+        const tipo: EventType = params.value ?? 'CURSILHO';
+        const Icone = ICONE_DO_TIPO[tipo] ?? ICONE_DO_TIPO.CURSILHO;
+        return (
+          <Chip
+            icon={<Icone />}
+            label={EVENT_TYPE_LABELS[tipo] ?? 'Cursilho'}
+            size="small"
+            color="secondary"
+            // o small encosta o ícone na borda (4px); 8px dá respiro
+            sx={{ fontWeight: 600, '& .MuiChip-icon': { ml: 1 } }}
+          />
+        );
+      },
     },
     // sem coluna de igreja: a lista é sempre de uma igreja, a do seletor —
     // e o super admin vê exatamente o que o admin dela vê

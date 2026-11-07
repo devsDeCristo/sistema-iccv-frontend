@@ -35,9 +35,8 @@ Uma só para o sistema inteiro, no tema (`MuiCssBaseline` em `src/themes/index.t
 - **Alternância de tema** claro/escuro.
 - **Menu da conta** (avatar): nome, e-mail, e:
   - **Meu perfil** → `/perfil`.
-  - **Área do Administrador** → `/admin/inicio`, só quando `canAccessAdminArea` é verdadeiro e a pessoa está fora de rota `/admin`.
-  - **Área do Usuário** → `/home`, só quando `canAccessAdminArea` é verdadeiro e a pessoa está dentro de rota `/admin` (permite alternar entre as duas áreas sem duas contas).
-  - **Configurações** → `/configuracoes` (que redireciona para a primeira tela liberada), só para `isAdminRole` (admin, super admin ou dev).
+  - **Troca de área:** são três — Usuário (`/home`), Administrador (`/admin/inicio`) e Configurações (`/configuracoes`, que redireciona para a primeira tela liberada) — e o menu mostra sempre as duas em que a pessoa não está. A área sai da rota (`useLocation`): `/configuracoes…` é Configurações, `/admin…` é Administrador, o resto é Usuário. Só para quem tem `canAccessAdminArea`; os outros não trocam de área. Antes um efeito lia `window.location`, e nas Configurações (fora de `/admin`) o menu não oferecia a volta para o painel.
+  - A marca leva ao início do painel também nas Configurações.
   - **Sair**.
 - Sininho, tema e avatar ficam numa pastilha de vidro: fundo e fio brancos bem
   leves (8% e 14%), para a moldura não pesar mais que os ícones. O avatar
