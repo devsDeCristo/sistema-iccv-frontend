@@ -8,35 +8,32 @@ import { Header } from '../../../components/header';
 import { ChurchScopeBar } from '../../../features/settings/shared/churchScopeBar';
 import { useIgrejaSelecionada } from '../../../features/settings/shared/useIgrejaSelecionada';
 import { useSolicitacoesDaIgreja } from '../../../features/solicitacoes/api';
-import {
-  ICONE_DO_STATUS,
-  ROTULO_DO_STATUS,
-  STATUS,
-} from '../../../features/solicitacoes/constants';
+import { ETAPAS } from '../../../features/solicitacoes/constants';
 import { ListaDaIgreja } from '../../../features/solicitacoes/components/listaDaIgreja';
 import { ModalDaSolicitacao } from '../../../features/solicitacoes/components/modalDaSolicitacao';
-import {
-  SolicitacaoDaIgreja,
-  StatusDaSolicitacao,
-} from '../../../features/solicitacoes/types';
+import { SolicitacaoDaIgreja } from '../../../features/solicitacoes/types';
 
 /**
- * O que os membros pedem à igreja (módulo Solicitações). O admin dela vê tudo,
- * filtra pela situação e abre cada uma para ler inteira e responder.
+ * O que os membros pedem à igreja (módulo Solicitações). O painel dela vê
+ * tudo, filtra pela etapa do trâmite (`ETAPAS`) e abre cada uma para ler
+ * inteira, decidir (pastor e tesouraria) e responder.
  */
 function SolicitacoesAdmin() {
   // a tesouraria da igreja também responde as solicitações
   const escopo = useIgrejaSelecionada(true);
   const churchId = escopo.churchId;
-  const [aba, setAba] = useState<'todas' | StatusDaSolicitacao>('todas');
+  const [aba, setAba] = useState('todas');
   const [aberta, setAberta] = useState<SolicitacaoDaIgreja | null>(null);
 
   const { data, isFetching } = useSolicitacoesDaIgreja(churchId);
   const todas = useMemo(() => data ?? [], [data]);
-  const visiveis =
-    aba === 'todas' ? todas : todas.filter((s) => s.status === aba);
-  const quantas = (status: StatusDaSolicitacao) =>
-    todas.filter((s) => s.status === status).length;
+  const daEtapa = (valor: string) =>
+    todas.filter((s) =>
+      ETAPAS.find((etapa) => etapa.valor === valor)?.situacoes.includes(
+        s.status
+      )
+    );
+  const visiveis = aba === 'todas' ? todas : daEtapa(aba);
 
   return (
     <PageStyle>
@@ -73,15 +70,12 @@ function SolicitacoesAdmin() {
                 icon: <AllInbox fontSize="small" />,
                 contagem: todas.length,
               },
-              ...STATUS.map((s) => {
-                const Icone = ICONE_DO_STATUS[s];
-                return {
-                  value: s,
-                  label: ROTULO_DO_STATUS[s],
-                  icon: <Icone fontSize="small" />,
-                  contagem: quantas(s),
-                };
-              }),
+              ...ETAPAS.map(({ valor, rotulo, Icone }) => ({
+                value: valor,
+                label: rotulo,
+                icon: <Icone fontSize="small" />,
+                contagem: daEtapa(valor).length,
+              })),
             ]}
           />
           <ListaDaIgreja

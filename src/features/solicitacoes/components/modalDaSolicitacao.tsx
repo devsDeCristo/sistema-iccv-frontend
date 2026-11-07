@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
+  Alert,
+  alpha,
   Box,
   Button,
   darken,
@@ -10,24 +12,90 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
-import { CalendarTodayOutlined, PhoneOutlined } from '@mui/icons-material';
+import {
+  AccountBalanceWalletOutlined,
+  CalendarTodayOutlined,
+  Church,
+  PhoneOutlined,
+} from '@mui/icons-material';
 
 import CustomChip from '../../../components/customChip';
 import { ResponsiveModal } from '../../../components/responsiveModal';
 import { UserAvatar } from '../../../components/userAvatar';
 import { formatPhoneNumber } from '../../../utils';
-import { useMudarStatus } from '../api';
+import { useDecidir, useMudarStatus, usePapelNasSolicitacoes } from '../api';
 import {
   corDoStatus,
   ICONE_DO_STATUS,
+  RESPONDIDA,
   ROTULO_DO_STATUS,
-  STATUS,
 } from '../constants';
 import { iconeDoMinisterio } from '../ministerios';
 import { SolicitacaoDaIgreja, StatusDaSolicitacao } from '../types';
-import { ListaDeProdutos } from './listaDeProdutos';
 
 const data = (iso: string) => new Date(iso).toLocaleDateString('pt-BR');
+
+/** As situações que se põem à mão, antes de qualquer decisão */
+const ANTES_DA_DECISAO = ['REQUESTED', 'IN_REVIEW'] as const;
+type SituacaoAMao = (typeof ANTES_DA_DECISAO)[number];
+const aMao = (status: StatusDaSolicitacao): status is SituacaoAMao =>
+  (ANTES_DA_DECISAO as readonly string[]).includes(status);
+
+/** Uma das duas confirmações: "Pastor · Aprovou · Maria, 07/11" */
+function Confirmacao({
+  rotulo,
+  Icone,
+  decisao,
+  quem,
+  quando,
+}: {
+  rotulo: string;
+  Icone: typeof Church;
+  decisao: boolean | null;
+  quem: string | undefined;
+  quando: string | null;
+}) {
+  const theme = useTheme();
+  const cor =
+    decisao === true
+      ? theme.palette.chips.success
+      : decisao === false
+        ? theme.palette.chips.canceled
+        : theme.palette.chips.pending;
+  return (
+    <Stack
+      direction="row"
+      alignItems="center"
+      gap={1.25}
+      sx={{
+        flex: 1,
+        minWidth: 0,
+        p: 1.25,
+        borderRadius: 2,
+        border: `1px solid ${alpha(cor, 0.35)}`,
+        bgcolor: alpha(cor, 0.06),
+      }}
+    >
+      <Icone sx={{ color: cor, fontSize: 22 }} />
+      <Box sx={{ minWidth: 0 }}>
+        <Typography sx={{ fontSize: 13, fontWeight: 700 }}>
+          {rotulo} ·{' '}
+          {decisao === true
+            ? 'Aprovou'
+            : decisao === false
+              ? 'Recusou'
+              : 'Aguardando'}
+        </Typography>
+        <Typography variant="caption" color="text.secondary" noWrap>
+          {decisao === null
+            ? 'Ainda não decidiu'
+            : `${quem ?? 'Conta excluída'}${quando ? `, ${data(quando)}` : ''}`}
+        </Typography>
+      </Box>
+    </Stack>
+  );
+}
+import { ListaDeProdutos } from './listaDeProdutos';
 
 interface Props {
   churchId: string;
@@ -37,64 +105,71 @@ interface Props {
 }
 
 /**
- * A solicitação inteira, para o admin ler e responder: no topo, quem pediu
- * (e como falar com ela), o ministério, a situação e a data; depois o pedido sem corte e os
- * produtos; embaixo, a situação (select) e a resposta.
- * Salvar grava as duas juntas (o membro lê as duas); Cancelar fecha sem mudar.
+ * A solicitação inteira, para quem está no painel: no topo, quem pediu (e como
+ * falar com ela), o ministério, a situação e a data; depois o pedido sem corte
+ * e os produtos; as duas confirmações; e embaixo a situação e a resposta.
  *
- * Os produtos vêm sempre com uma caixa, e as caixas e o select andam juntos:
- * - marcar decide a situação: alguns marcados, aceita parcialmente; todos,
- *   aceita; nenhum, volta à situação de antes da decisão (a que a solicitação
- *   tinha, se era solicitada ou em análise; senão, em análise). Recusar é uma
- *   escolha do select, e não o efeito de desmarcar.
- * - o select manda nas caixas: aceita marca todas; recusada, solicitada e em
- *   análise desmarcam todas; aceita parcialmente mantém as marcadas.
- * A parcial exige alguns marcados (nem nenhum, nem todos — a API recusa os
- * dois). Com um produto só, ela não faz sentido e some do select.
+ * Aprovar pede o pastor (líder espiritual da igreja) e uma tesouraria, em
+ * qualquer ordem; recusar basta um. Quem é um dos dois e ainda não decidiu
+ * marca os produtos que aprova — vindo depois do outro, a lista já abre com o
+ * que o outro aprovou e mostra, em cada produto, o que ele liberou ou recusou
+ * — e escolhe Aprovar ou Recusar. Entra só o que os dois aprovaram.
+ *
+ * Os demais (o admin, dev e super admin) acompanham: põem em análise antes de
+ * qualquer decisão e escrevem a resposta ao membro (Salvar). Recusar encerra a
+ * solicitação para todos, então pede confirmação ali mesmo — o SweetAlert do
+ * resto do sistema abriria por baixo desta janela.
  */
 function ModalDaSolicitacao({ churchId, solicitacao: s, onClose }: Props) {
   const theme = useTheme();
   const [status, setStatus] = useState<StatusDaSolicitacao>('REQUESTED');
   const [resposta, setResposta] = useState('');
   const [aceitos, setAceitos] = useState<Set<string>>(new Set());
+  const [confirmandoRecusa, setConfirmandoRecusa] = useState(false);
   const mudar = useMudarStatus();
+  const decidir = useDecidir();
+  const { data: papel } = usePapelNasSolicitacoes(s ? churchId : null);
+  const lado = papel?.lado ?? null;
 
-  // abre com a situação, a resposta e os produtos aceitos que já estavam
+  const minha =
+    lado === 'PASTOR'
+      ? s?.pastorDecision
+      : lado === 'TESOURARIA'
+        ? s?.treasuryDecision
+        : undefined;
+  const outra =
+    lado === 'PASTOR'
+      ? s?.treasuryDecision
+      : lado === 'TESOURARIA'
+        ? s?.pastorDecision
+        : undefined;
+  const possoDecidir = !!s && !!lado && !RESPONDIDA[s.status] && minha === null;
+
+  // abre com a situação e a resposta que já estavam; quem vai decidir começa
+  // com o que o outro lado aprovou (ou com tudo, se é o primeiro)
   useEffect(() => {
     if (!s) return;
     setStatus(s.status);
     setResposta(s.response ?? '');
+    setConfirmandoRecusa(false);
+    const doOutro = (p: SolicitacaoDaIgreja['items'][number]) =>
+      lado === 'PASTOR' ? p.treasuryAccepted : p.pastorAccepted;
     setAceitos(
-      new Set(s.items.filter((p) => p.accepted === true).map((p) => p.id))
+      new Set(
+        s.items
+          .filter((p) => (outra === true ? doOutro(p) === true : true))
+          .map((p) => p.id)
+      )
     );
-  }, [s]);
+  }, [s, lado, outra]);
 
-  const parcial = status === 'PARTIALLY_ACCEPTED';
   const total = s?.items.length ?? 0;
-  const parcialValida = aceitos.size > 0 && aceitos.size < total;
-
-  /** Para onde a situação volta quando o admin desmarca tudo */
-  const semDecisao: StatusDaSolicitacao =
-    s?.status === 'REQUESTED' ? 'REQUESTED' : 'IN_REVIEW';
 
   const alternar = (id: string) => {
     const novo = new Set(aceitos);
     if (novo.has(id)) novo.delete(id);
     else novo.add(id);
     setAceitos(novo);
-    setStatus(
-      novo.size === 0
-        ? semDecisao
-        : novo.size === total
-          ? 'ACCEPTED'
-          : 'PARTIALLY_ACCEPTED'
-    );
-  };
-
-  const escolherStatus = (novo: StatusDaSolicitacao) => {
-    setStatus(novo);
-    if (novo === 'ACCEPTED') setAceitos(new Set(s?.items.map((p) => p.id)));
-    else if (novo !== 'PARTIALLY_ACCEPTED') setAceitos(new Set());
   };
 
   const salvar = () =>
@@ -103,25 +178,29 @@ function ModalDaSolicitacao({ churchId, solicitacao: s, onClose }: Props) {
       {
         churchId,
         id: s.id,
-        status,
+        ...(aMao(status) && status !== s.status && { status }),
         resposta,
-        ...(parcial && { produtosAceitos: [...aceitos] }),
+      },
+      { onSuccess: onClose }
+    );
+
+  const enviarDecisao = (aprova: boolean) =>
+    s &&
+    decidir.mutate(
+      {
+        churchId,
+        id: s.id,
+        aprova,
+        ...(aprova && { produtosAceitos: [...aceitos] }),
+        resposta,
       },
       { onSuccess: onClose }
     );
 
   const cor = s ? corDoStatus(theme, s.status) : theme.palette.text.secondary;
-  const ocupado = mudar.isLoading;
-  const aceitosAntes = s
-    ? s.items.filter((p) => p.accepted === true).map((p) => p.id)
-    : [];
-  const mudou =
-    !!s &&
-    (status !== s.status ||
-      resposta !== (s.response ?? '') ||
-      (parcial &&
-        (aceitos.size !== aceitosAntes.length ||
-          aceitosAntes.some((id) => !aceitos.has(id)))));
+  const ocupado = mudar.isLoading || decidir.isLoading;
+  const mudou = !!s && (status !== s.status || resposta !== (s.response ?? ''));
+  const rotuloDoLado = lado === 'PASTOR' ? 'pastor' : 'tesouraria';
 
   return (
     <ResponsiveModal
@@ -137,8 +216,8 @@ function ModalDaSolicitacao({ churchId, solicitacao: s, onClose }: Props) {
             Cancelar
           </Button>
           <Button
-            variant="contained"
-            disabled={ocupado || !mudou || (parcial && !parcialValida)}
+            variant={possoDecidir ? 'outlined' : 'contained'}
+            disabled={ocupado || !mudou}
             onClick={salvar}
           >
             {ocupado ? 'Salvando…' : 'Salvar'}
@@ -259,52 +338,162 @@ function ModalDaSolicitacao({ churchId, solicitacao: s, onClose }: Props) {
               </Typography>
               <Typography
                 variant="caption"
-                color={parcial && !parcialValida ? 'error' : 'text.secondary'}
+                color={
+                  possoDecidir && !aceitos.size ? 'error' : 'text.secondary'
+                }
               >
-                {aceitos.size} de {total} aceitos
-                {parcial && !parcialValida
-                  ? ' · em parte é alguns, não todos'
-                  : ' · marque os aceitos'}
+                {possoDecidir
+                  ? `${aceitos.size} de ${total} aprovados por você · marque os que aprova`
+                  : RESPONDIDA[s.status]
+                    ? 'Entra o que o pastor e a tesouraria aprovaram'
+                    : 'O resultado sai quando os dois decidirem'}
               </Typography>
             </Stack>
             <ListaDeProdutos
               produtos={s.items}
-              marcar={{ marcados: aceitos, onAlternar: alternar }}
+              marcar={{
+                marcados: possoDecidir
+                  ? aceitos
+                  : new Set(s.items.filter((p) => p.accepted).map((p) => p.id)),
+                ...(possoDecidir && { onAlternar: alternar }),
+                etiquetas: [
+                  { rotulo: 'Pastor', de: (p) => p.pastorAccepted },
+                  { rotulo: 'Tesouraria', de: (p) => p.treasuryAccepted },
+                ],
+              }}
             />
           </Stack>
 
+          {/* as duas confirmações: quem já decidiu, quem falta */}
+          <Stack spacing={1}>
+            <Typography sx={{ fontSize: 14, fontWeight: 600 }}>
+              Aprovação
+            </Typography>
+            <Stack direction={{ xs: 'column', sm: 'row' }} gap={1}>
+              <Confirmacao
+                rotulo="Pastor"
+                Icone={Church}
+                decisao={s.pastorDecision}
+                quem={s.pastor?.fullName}
+                quando={s.pastorAt}
+              />
+              <Confirmacao
+                rotulo="Tesouraria"
+                Icone={AccountBalanceWalletOutlined}
+                decisao={s.treasuryDecision}
+                quem={s.treasurer?.fullName}
+                quando={s.treasuryAt}
+              />
+            </Stack>
+            {papel && !papel.temPastor && !RESPONDIDA[s.status] && (
+              <Alert severity="warning">
+                Esta igreja não tem pastor cadastrado: sem ele, nenhuma
+                solicitação é aprovada. Cadastre o líder espiritual em Igrejas.
+              </Alert>
+            )}
+          </Stack>
+
+          {/* a decisão de quem pode decidir: aprovar os marcados ou recusar */}
+          {possoDecidir &&
+            (confirmandoRecusa ? (
+              <Alert
+                severity="error"
+                action={
+                  <Stack direction="row" gap={1}>
+                    <Button
+                      color="inherit"
+                      size="small"
+                      disabled={ocupado}
+                      onClick={() => setConfirmandoRecusa(false)}
+                    >
+                      Voltar
+                    </Button>
+                    <Button
+                      color="error"
+                      size="small"
+                      variant="contained"
+                      disabled={ocupado}
+                      onClick={() => enviarDecisao(false)}
+                    >
+                      Sim, recusar
+                    </Button>
+                  </Stack>
+                }
+              >
+                Recusar encerra a solicitação, mesmo que{' '}
+                {lado === 'PASTOR' ? 'a tesouraria' : 'o pastor'}{' '}
+                {outra ? 'já tenha aprovado' : 'aprove depois'}.
+              </Alert>
+            ) : (
+              <Stack
+                direction={{ xs: 'column', sm: 'row' }}
+                alignItems={{ sm: 'center' }}
+                gap={1.5}
+                sx={{
+                  p: 1.5,
+                  borderRadius: 2,
+                  bgcolor: alpha(theme.palette.primary.main, 0.06),
+                }}
+              >
+                <Typography variant="body2" sx={{ flex: 1 }}>
+                  Sua decisão como <strong>{rotuloDoLado}</strong>
+                  {outra
+                    ? `: ${lado === 'PASTOR' ? 'a tesouraria' : 'o pastor'} já aprovou, e entra só o que os dois aprovarem.`
+                    : `: depois falta ${lado === 'PASTOR' ? 'a tesouraria' : 'o pastor'}.`}
+                </Typography>
+                <Stack direction="row" gap={1}>
+                  <Button
+                    color="error"
+                    disabled={ocupado}
+                    onClick={() => setConfirmandoRecusa(true)}
+                  >
+                    Recusar
+                  </Button>
+                  <Button
+                    variant="contained"
+                    disabled={ocupado || !aceitos.size}
+                    onClick={() => enviarDecisao(true)}
+                  >
+                    {decidir.isLoading
+                      ? 'Enviando…'
+                      : aceitos.size === total
+                        ? 'Aprovar tudo'
+                        : `Aprovar ${aceitos.size} de ${total}`}
+                  </Button>
+                </Stack>
+              </Stack>
+            ))}
+
           <Divider />
 
-          <TextField
-            select
-            label="Situação"
-            helperText="Acompanha os produtos marcados; dá para mudar à mão"
-            value={status}
-            onChange={(e) =>
-              escolherStatus(e.target.value as StatusDaSolicitacao)
-            }
-          >
-            {/* com um produto só, aceitar em parte não existe */}
-            {STATUS.filter(
-              (opcao) => opcao !== 'PARTIALLY_ACCEPTED' || total > 1
-            ).map((opcao) => {
-              const Icone = ICONE_DO_STATUS[opcao];
-              return (
-                <MenuItem key={opcao} value={opcao}>
-                  <Stack direction="row" alignItems="center" gap={1}>
-                    <Icone
-                      sx={{ fontSize: 18, color: corDoStatus(theme, opcao) }}
-                    />
-                    {ROTULO_DO_STATUS[opcao]}
-                  </Stack>
-                </MenuItem>
-              );
-            })}
-          </TextField>
+          {/* à mão, só antes de qualquer decisão */}
+          {aMao(s.status) && (
+            <TextField
+              select
+              label="Situação"
+              helperText="Aprovar e recusar são do pastor e da tesouraria"
+              value={status}
+              onChange={(e) => setStatus(e.target.value as StatusDaSolicitacao)}
+            >
+              {ANTES_DA_DECISAO.map((opcao) => {
+                const Icone = ICONE_DO_STATUS[opcao];
+                return (
+                  <MenuItem key={opcao} value={opcao}>
+                    <Stack direction="row" alignItems="center" gap={1}>
+                      <Icone
+                        sx={{ fontSize: 18, color: corDoStatus(theme, opcao) }}
+                      />
+                      {ROTULO_DO_STATUS[opcao]}
+                    </Stack>
+                  </MenuItem>
+                );
+              })}
+            </TextField>
+          )}
           <TextField
             label="Resposta para quem pediu"
             placeholder="O motivo de recusar, o prazo da compra, o próximo passo"
-            helperText="Quem pediu lê a resposta junto da situação. Opcional."
+            helperText="Quem pediu lê a resposta junto da situação; vai junto da sua decisão, ou em Salvar. Opcional."
             value={resposta}
             onChange={(e) => setResposta(e.target.value)}
             inputProps={{ maxLength: 1000 }}

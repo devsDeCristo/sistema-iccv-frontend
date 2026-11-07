@@ -2,17 +2,21 @@
 
 Módulo do plano (`REQUESTS`) em que os membros pedem à igreja equipamentos e
 melhorias: o louvor pede um pedestal, a mídia pede um cabo. O admin responde
-mudando a situação, e o membro acompanha. Regras e rotas da API em
+mudando a situação, e o membro acompanha. Aprovar pede duas confirmações, em
+qualquer ordem: a do pastor (o líder espiritual da igreja) e a de uma
+tesouraria; recusar basta um. Regras e rotas da API em
 `ic-backend/docs/solicitacoes.md`.
 
-Um pedido tem um ou mais produtos, e o admin pode aceitar só parte deles
-(**Aceito parcialmente**).
+Um pedido tem um ou mais produtos, e pode ser aceito só em parte (**Aceito
+parcialmente**): entra o que o pastor e a tesouraria aprovaram em comum.
 
-**Situações** (`STATUS` em `constants.ts`, com rótulo, ícone e cor): Solicitado
-(relógio, azul), Em análise (ampulheta, laranja), Aceito (✓, verde), Aceito
+**Situações** (`ROTULO_DO_STATUS`, `ICONE_DO_STATUS` e `corDoStatus` em
+`constants.ts`): Solicitado (relógio, azul), Em análise (ampulheta, laranja),
+Aguardando tesouraria (carteira) e Aguardando pastor (igreja), as duas no roxo
+de pendente, Aceito (✓, verde), Aceito
 parcialmente (`Rule`, verde-azulado: `#0E7C74` no claro, `#2DD4BF` no
 escuro, fora das cores do tema) e Recusado (✕, vermelho). `RESPONDIDA` diz quais já
-têm resposta: as três últimas.
+têm resposta: aceita, em parte e recusada; as de "aguardando" ainda não.
 
 ## Tela do membro (`/solicitacoes`)
 
@@ -62,9 +66,12 @@ têm resposta: as três últimas.
   dois. O seletor de igreja do topo escolhe de qual igreja são as solicitações,
   e para a tesouraria traz as igrejas em que ela é tesouraria
   (`useIgrejaSelecionada(true)`).
-- **Abas** (`NavTabs`): Todas e uma por situação, cada uma com ícone
-  (`ICONE_DO_STATUS` em `constants.ts`: relógio, ampulheta, ✓ e ✕) e a
-  quantidade num chip depois do rótulo (`contagem`).
+- **Abas** (`NavTabs`): Todas e uma por etapa do trâmite (`ETAPAS` em
+  `constants.ts`) — **Novas** (solicitado e em análise), **Em aprovação** (as
+  duas de aguardando), **Aceitas** (aceito e em parte) e **Recusadas** —, cada
+  uma com ícone e a quantidade num chip depois do rótulo (`contagem`). Uma aba
+  por situação davam oito, e os rótulos longos quebravam em duas linhas; a
+  situação exata segue no chip de cada linha da lista.
 - **Lista:** quem pediu e o ministério, o pedido (com quantos produtos tem),
   a data e a situação.
   Clicar na linha (ou no botão redondo de olho, no fim dela, com a dica
@@ -74,24 +81,29 @@ têm resposta: as três últimas.
   direita, o ministério em chip e a situação atual (na mesma etiqueta do card
   do membro) lado a lado, com a data do pedido embaixo; no celular, essa
   coluna desce para baixo de quem pediu. Depois, o título e a descrição sem
-  corte, e os produtos: uma
-  caixa com uma linha por produto, clicável inteira para marcar (a linha é o
-  `label` da caixa), a quantidade num destaque, o nome inteiro, o botão "Ver"
-  da loja (abre sem marcar a linha) e o aceito tingido de verde
-  (`ProdutosParaMarcar`, em `listaDeProdutos.tsx`). Embaixo, a situação
-  num select (com o ícone de cada uma) e a resposta, já preenchida com a que
-  existia; **Salvar** grava tudo junto e só acende quando algo mudou;
-  **Cancelar** fecha sem mudar.
-- **Produtos e situação andam juntos:** os produtos vêm sempre com uma
-  caixa, e o título mostra "X de N aceitos". Marcar decide a situação:
-  alguns marcados, **Aceito parcialmente**; todos, **Aceito**; nenhum, volta à
-  situação de antes da decisão (Solicitado, se era; senão, Em análise).
-  Recusar é escolha do select, não efeito de desmarcar. O select também manda
-  nas caixas: Aceito marca todas; Recusado, Solicitado e Em análise desmarcam
-  todas; Aceito parcialmente mantém as marcadas. Na parcial, Salvar só acende
-  com alguns marcados (nem nenhum, nem todos: a API recusa os dois) e manda os
-  ids (`produtosAceitos`). A janela abre com os já aceitos marcados. Com um
-  produto só, a parcial some do select.
+  corte, os produtos, a **Aprovação**, a decisão (para quem decide), a
+  situação e a resposta.
+  - **Produtos** (`ProdutosParaMarcar`, em `listaDeProdutos.tsx`): uma linha
+    por produto, com a quantidade num destaque, o nome inteiro, as etiquetas
+    do que cada lado já decidiu ("Pastor ✓", "Tesouraria ✗") e o botão "Ver"
+    da loja. Para quem está decidindo, cada linha tem uma caixa e é clicável
+    inteira (o `label` da caixa; o "Ver" abre sem marcar); para os outros, no
+    lugar da caixa vem o resultado (✓, ✗, ou um ponto enquanto não há).
+  - **Aprovação:** dois quadros lado a lado, Pastor e Tesouraria, cada um com
+    "Aprovou", "Recusou" ou "Aguardando", quem decidiu e a data. Igreja sem
+    pastor cadastrado ganha um aviso: sem ele, nada é aprovado.
+  - **Sua decisão** (só o pastor ou a tesouraria que ainda não decidiu, com a
+    solicitação em aberto — o lado vem de `GET …/solicitacoes/papel`): a
+    lista abre marcada com o que o outro lado aprovou, se ele já decidiu
+    (senão, com tudo), e a faixa diz quem falta ou que entra só o que os dois
+    aprovarem. **Aprovar tudo** / **Aprovar N de M** manda os marcados
+    (precisa de ao menos um); **Recusar** pede confirmação ali mesmo ("Recusar
+    encerra a solicitação…", **Voltar** / **Sim, recusar**) — o SweetAlert
+    abriria por baixo da janela. A resposta escrita vai junto da decisão.
+  - **Situação e resposta:** o select de situação só aparece antes de qualquer
+    decisão, e só com Solicitado e Em análise (aprovar e recusar são do pastor
+    e da tesouraria). A resposta segue editável. **Salvar** grava os dois e só
+    acende quando algo mudou; **Cancelar** fecha sem mudar.
 - **Home do painel:** card de Solicitações para o admin da igreja, como os
   outros módulos.
 

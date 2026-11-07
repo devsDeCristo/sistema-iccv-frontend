@@ -17,18 +17,64 @@ interface Props {
   /** mostra só os primeiros e um "+ N produtos" (no card) */
   limite?: number;
   /**
-   * Na janela do admin: cada produto numa linha com caixa de marcar
-   * (`ProdutosParaMarcar`). Sem isto, a lista compacta do card, com a decisão
-   * já tomada.
+   * Na janela do painel: cada produto numa linha (`ProdutosParaMarcar`). Com
+   * `onAlternar`, a linha tem caixa de marcar (quem está decidindo); sem, mostra
+   * o resultado. Sem `marcar`, a lista compacta do card, com a decisão já
+   * tomada.
    */
-  marcar?: { marcados: Set<string>; onAlternar: (id: string) => void };
+  marcar?: {
+    marcados: Set<string>;
+    onAlternar?: (id: string) => void;
+    /**
+     * O que cada lado já decidiu sobre o produto ("Pastor ✓", "Tesouraria ✗"):
+     * é como o segundo vê o que o primeiro liberou ou recusou. Só aparece o
+     * lado que já decidiu.
+     */
+    etiquetas?: {
+      rotulo: string;
+      de: (produto: ProdutoDaSolicitacao) => boolean | null | undefined;
+    }[];
+  };
+}
+
+/** "Pastor ✓" / "Tesouraria ✗" ao lado do produto */
+function Etiqueta({ rotulo, aprovou }: { rotulo: string; aprovou: boolean }) {
+  const theme = useTheme();
+  const cor = aprovou
+    ? theme.palette.chips.success
+    : theme.palette.text.disabled;
+  const Icone = aprovou ? CheckCircle : HighlightOff;
+  return (
+    <Stack
+      direction="row"
+      alignItems="center"
+      gap={0.4}
+      aria-label={`${rotulo} ${aprovou ? 'aprovou' : 'não aprovou'}`}
+      sx={{
+        flex: 'none',
+        px: 0.75,
+        borderRadius: 999,
+        fontSize: 11.5,
+        fontWeight: 600,
+        lineHeight: '20px',
+        color: aprovou ? cor : 'text.secondary',
+        bgcolor: alpha(cor, 0.12),
+      }}
+    >
+      <Icone sx={{ fontSize: 13 }} />
+      {rotulo}
+    </Stack>
+  );
 }
 
 /**
- * Os produtos para o admin decidir: uma caixa com uma linha por produto,
- * clicável inteira (a linha é o `label` da caixa de marcar). A quantidade vem
- * num destaque, o nome inteiro, e o aceito fica tingido de verde. O "Ver"
- * abre a loja sem marcar a linha: link dentro de `label` não aciona a caixa.
+ * Os produtos no painel: uma caixa com uma linha por produto. Para quem está
+ * decidindo, a linha inteira é clicável (é o `label` da caixa de marcar); para
+ * os outros, no lugar da caixa vem o resultado (✓, ✗ ou um ponto, sem
+ * resultado ainda). A quantidade vem num destaque, o nome inteiro, as
+ * etiquetas do que cada lado decidiu, e o marcado fica tingido de verde. O
+ * "Ver" abre a loja sem marcar a linha: link dentro de `label` não aciona a
+ * caixa.
  */
 function ProdutosParaMarcar({
   produtos,
@@ -50,38 +96,68 @@ function ProdutosParaMarcar({
     >
       {produtos.map((p, i) => {
         const marcado = marcar.marcados.has(p.id);
+        const { onAlternar } = marcar;
         return (
           <Box
             key={p.id}
-            component="label"
+            component={onAlternar ? 'label' : 'div'}
             sx={{
               display: 'flex',
               alignItems: 'center',
+              flexWrap: 'wrap',
               gap: 1.25,
               px: 1.5,
               py: 1,
-              cursor: 'pointer',
+              cursor: onAlternar ? 'pointer' : 'default',
               borderTop: i ? `1px solid ${theme.palette.divider}` : 'none',
               bgcolor: marcado ? alpha(verde, 0.08) : 'transparent',
               transition: theme.transitions.create('background-color'),
-              '&:hover': {
-                bgcolor: marcado
-                  ? alpha(verde, 0.13)
-                  : alpha(theme.palette.text.primary, 0.04),
-              },
+              ...(onAlternar && {
+                '&:hover': {
+                  bgcolor: marcado
+                    ? alpha(verde, 0.13)
+                    : alpha(theme.palette.text.primary, 0.04),
+                },
+              }),
             }}
           >
-            <Checkbox
-              size="small"
-              checked={marcado}
-              onChange={() => marcar.onAlternar(p.id)}
-              inputProps={{ 'aria-label': `Aceitar ${p.name}` }}
-              sx={{
-                p: 0.25,
-                color: theme.palette.text.secondary,
-                '&.Mui-checked': { color: verde },
-              }}
-            />
+            {onAlternar ? (
+              <Checkbox
+                size="small"
+                checked={marcado}
+                onChange={() => onAlternar(p.id)}
+                inputProps={{ 'aria-label': `Aprovar ${p.name}` }}
+                sx={{
+                  p: 0.25,
+                  color: theme.palette.text.secondary,
+                  '&.Mui-checked': { color: verde },
+                }}
+              />
+            ) : p.accepted === true ? (
+              <CheckCircle
+                aria-label="Aceito"
+                sx={{ fontSize: 20, color: verde, m: 0.25 }}
+              />
+            ) : p.accepted === false ? (
+              <HighlightOff
+                aria-label="Não aceito"
+                sx={{ fontSize: 20, color: 'text.disabled', m: 0.25 }}
+              />
+            ) : (
+              <Box
+                aria-label="Sem resultado ainda"
+                sx={{ width: 24, display: 'grid', placeItems: 'center' }}
+              >
+                <Box
+                  sx={{
+                    width: 6,
+                    height: 6,
+                    borderRadius: '50%',
+                    bgcolor: 'text.secondary',
+                  }}
+                />
+              </Box>
+            )}
             <Box
               sx={{
                 flex: 'none',
@@ -108,6 +184,12 @@ function ProdutosParaMarcar({
             >
               {p.name}
             </Typography>
+            {marcar.etiquetas?.map(({ rotulo, de }) => {
+              const decisao = de(p);
+              return decisao === true || decisao === false ? (
+                <Etiqueta key={rotulo} rotulo={rotulo} aprovou={decisao} />
+              ) : null;
+            })}
             {p.link && (
               <Button
                 size="small"
