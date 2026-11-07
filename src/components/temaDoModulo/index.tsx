@@ -7,6 +7,7 @@ import {
   ChaveDoModulo,
   CORES_DO_MODULO,
 } from '../../constants/identidadeDosModulos';
+import { ModuloAtual } from './moduloAtual';
 
 /**
  * As rotas de um módulo com as cores dele (`CORES_DO_MODULO`). Envolve só o
@@ -22,7 +23,9 @@ function TemaDoModulo({ modulo }: { modulo: ChaveDoModulo }) {
 
   return (
     <ThemeProvider theme={theme}>
-      <Outlet />
+      <ModuloAtual.Provider value={modulo}>
+        <Outlet />
+      </ModuloAtual.Provider>
     </ThemeProvider>
   );
 }

@@ -1,7 +1,10 @@
-import { ReactNode } from 'react';
+import { ReactNode, useContext } from 'react';
 import {
   alpha,
   Box,
+  darken,
+  decomposeColor,
+  lighten,
   Card,
   CardContent,
   Skeleton,
@@ -12,6 +15,32 @@ import {
   useTheme,
 } from '@mui/material';
 import { sombraSuperficie } from '../../themes';
+import { CORES_DO_MODULO } from '../../constants/identidadeDosModulos';
+import { ModuloAtual } from '../temaDoModulo/moduloAtual';
+
+/**
+ * A cor do módulo levada para outro matiz, com a saturação e a luz dela — o
+ * vermelho e o laranja dos cards de problema, mas da família do módulo. A luz
+ * fica numa faixa (e a saturação num mínimo) para o resultado ainda se ler como
+ * vermelho ou laranja: a primária escura do Eventos daria um vinho quase preto,
+ * e a terciária clara do Membros, um salmão sem força.
+ */
+function noMatiz(cor: string, matiz: number, escuro: boolean) {
+  const [r, g, b] = decomposeColor(cor).values.map((v) => v / 255);
+  const maior = Math.max(r, g, b);
+  const menor = Math.min(r, g, b);
+  const luz = (maior + menor) / 2;
+  const delta = maior - menor;
+  const saturacao = delta === 0 ? 0 : delta / (1 - Math.abs(2 * luz - 1));
+  const [minimo, maximo] = escuro ? [0.62, 0.72] : [0.36, 0.48];
+  const l = Math.min(Math.max(luz, minimo), maximo);
+  const s = Math.max(saturacao, 0.65);
+  return `hsl(${matiz}, ${Math.round(s * 100)}%, ${Math.round(l * 100)}%)`;
+}
+
+/** Matizes dos cards de problema: cancelado/falha e atenção */
+const VERMELHO = 356;
+const LARANJA = 28;
 
 export interface StatusCard {
   title: string;
@@ -19,7 +48,10 @@ export interface StatusCard {
   value: ReactNode;
   subtitle: string;
   icon: ReactNode;
-  /** Cor de destaque do card — sempre um token do tema */
+  /**
+   * Cor de destaque do card — sempre um token do tema. Dentro de um módulo ela
+   * não vale: o card leva uma variação das cores do módulo (ver `StatusCards`).
+   */
   color: string;
   /** Pinta o ponto de status como sinal vivo, pulsando */
   live?: boolean;
@@ -52,8 +84,52 @@ interface StatusCardsProps {
  * importa é rótulo pequeno, número grande, legenda pequena — e ela se mantém
  * com o número em 30px.
  */
-export function StatusCards({ cards, isLoading, sx }: StatusCardsProps) {
+export function StatusCards({
+  cards: recebidos,
+  isLoading,
+  sx,
+}: StatusCardsProps) {
   const theme = useTheme();
+  const modulo = useContext(ModuloAtual);
+
+  /**
+   * Dentro de um módulo, os cards são variações das cores dele, pela ordem:
+   * primária, secundária, terciária e, do quarto em diante, a primária e a
+   * terciária mais claras (mais fechadas no escuro, onde as cores do módulo já
+   * são claras). Antes cada tela pintava com as cores dos chips de status
+   * (sucesso, alerta, pendente...), e a régua saía com cores sem relação com o
+   * módulo nem entre si. Fora dos módulos (Início, Usuários, Logs), vale a cor
+   * que a tela passou.
+   *
+   * O card de problema não perde o aviso: quem veio com a cor de cancelado
+   * (`chips.canceled`) fica num vermelho, e quem veio com a de atenção
+   * (`chips.alert`), num laranja — os dois tirados das cores do módulo
+   * (`noMatiz`), e não o vermelho e o laranja puros dos chips.
+   */
+  const escuro = theme.palette.mode === 'dark';
+  const doModulo =
+    modulo && CORES_DO_MODULO[modulo][escuro ? 'escuro' : 'claro'];
+  const variar = (cor: string) =>
+    escuro ? darken(cor, 0.3) : lighten(cor, 0.3);
+  const paleta = doModulo && [
+    doModulo.primaria,
+    doModulo.secundaria,
+    doModulo.terciaria,
+    variar(doModulo.primaria),
+    variar(doModulo.terciaria),
+  ];
+  const corNoModulo = (cor: string, indice: number) => {
+    if (!doModulo || !paleta) return cor;
+    if (cor === theme.palette.chips.canceled)
+      return noMatiz(doModulo.primaria, VERMELHO, escuro);
+    if (cor === theme.palette.chips.alert)
+      return noMatiz(doModulo.secundaria, LARANJA, escuro);
+    return paleta[indice % paleta.length];
+  };
+  const cards = recebidos.map((card, indice) => ({
+    ...card,
+    color: corNoModulo(card.color, indice),
+  }));
 
   /**
    * A régua divide a linha pelo número de cards, até cinco lado a lado.
@@ -233,7 +309,9 @@ export function StatusCards({ cards, isLoading, sx }: StatusCardsProps) {
                     borderRadius: { xs: '7px', sm: '9px' },
                     '& svg': { fontSize: { xs: 16, sm: 20 } },
                     bgcolor: card.color,
-                    color: theme.palette.common.white,
+                    // branco, ou escuro onde a cor é clara (as do módulo no
+                    // tema escuro): o ícone não some no quadrado
+                    color: theme.palette.getContrastText(card.color),
                   }}
                 >
                   {card.icon}
