@@ -128,7 +128,23 @@ export function Sininho() {
           },
         }}
       >
-        <Badge badgeContent={naoLidas} color="error" max={99}>
+        <Badge
+          badgeContent={naoLidas}
+          color="error"
+          max={99}
+          // o padrão do MUI (20px) cobria metade do sino de 22px; e, no canto
+          // do ícone, a bolinha saía acima dele: desce para encostar no sino
+          sx={{
+            '& .MuiBadge-badge': {
+              height: 15,
+              minWidth: 15,
+              px: 0.5,
+              fontSize: 10,
+              fontWeight: 700,
+              top: 2,
+            },
+          }}
+        >
           <NotificationsNone
             className="sino"
             onAnimationEnd={() => setTocando(false)}
