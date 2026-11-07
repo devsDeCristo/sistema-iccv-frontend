@@ -54,10 +54,9 @@ export const CardsStatus = ({ churchId = 'all' }: { churchId?: string }) => {
       value: inativos,
       subtitle: 'Ocultos do público',
       icon: <EventBusy sx={{ fontSize: 20 }} />,
-      // `text.disabled` e não uma cor de alerta: inativo é estado desligado,
-      // não problema. E é o único cinza do tema que aguenta ícone branco em
-      // cima nos dois modos.
-      color: theme.palette.text.disabled,
+      // a cor de cancelado: dentro do módulo ela vira o vermelho tirado das
+      // cores dele (`StatusCards`), e o inativo se destaca do ativo
+      color: theme.palette.chips.canceled,
     },
     {
       title: 'Em teste',

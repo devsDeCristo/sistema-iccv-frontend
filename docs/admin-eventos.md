@@ -9,7 +9,9 @@ inscrição por grupo também (`docs/inscricao-em-grupos.md`).
 
 - **Cards de resumo:** total, ativos, inativos, em teste e "em andamento"
   (eventos cuja data cobre hoje, dia inteiro nas duas pontas). Os números vêm da
-  mesma consulta da tabela, sem chamada extra.
+  mesma consulta da tabela, sem chamada extra. Cores: variações das do módulo
+  (ver `StatusCards` em `docs/layout-e-navegacao.md`); Inativos no vermelho do
+  módulo e Em teste no laranja.
   Seguem a igreja do seletor (canto superior direito), com o mesmo recorte
   da lista; numa igreja escolhida, o total diz "Nesta igreja".
 - **Filtros:** busca por nome e dois filtros de **várias opções** (componente
