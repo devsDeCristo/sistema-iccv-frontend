@@ -29,6 +29,7 @@ duas áreas (usuário e painel). Quem recebe cada aviso é decidido no backend
 | Pedido aceito ou recusado | Membros | `/home` |
 | Nova solicitação | Solicitações | `/admin/solicitacoes` (troca a igreja) |
 | Solicitação respondida | Solicitações | `/solicitacoes` |
+| Solicitação aguardando você (pastor ou tesouraria) | Solicitações | `/admin/solicitacoes` (troca a igreja) |
 | Notícia | Notícias | `/home` (o mural) |
 | Novo evento | Eventos | `/eventos/:id` |
 

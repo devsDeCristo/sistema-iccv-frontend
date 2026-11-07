@@ -56,7 +56,8 @@ export function PendingActions({ pending, showChurch }: PendingActionsProps) {
         cor: corDoModulo(theme, 'solicitacoes'),
         icone: <Icone sx={{ fontSize: 20 }} />,
         titulo: `${tarefa.count} solicitação(ões) esperando resposta`,
-        detalhe: 'pedidos dos ministérios solicitados ou em análise',
+        // conta também as que esperam o pastor ou a tesouraria
+        detalhe: 'pedidos dos ministérios ainda sem decisão final',
         destino: '/admin/solicitacoes',
       };
     }

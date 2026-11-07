@@ -7,6 +7,8 @@ export type TipoDeNotificacao =
   | 'MEMBERSHIP_ANSWERED'
   | 'CHURCH_REQUEST'
   | 'CHURCH_REQUEST_ANSWERED'
+  /** um dos dois aprovou e falta você (o pastor ou a tesouraria) */
+  | 'CHURCH_REQUEST_AWAITING'
   | 'NEWS'
   | 'EVENT';
 

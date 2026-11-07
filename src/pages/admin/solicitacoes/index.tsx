@@ -53,8 +53,8 @@ function SolicitacoesAdmin() {
         </Alert>
       ) : escopo.semIgreja ? (
         <Alert severity="info">
-          Você não administra nenhuma igreja. As solicitações são por igreja, e
-          quem responde é quem a administra.
+          Você não é admin nem tesouraria de nenhuma igreja. As solicitações são
+          por igreja, e quem decide é o pastor e a tesouraria dela.
         </Alert>
       ) : (
         <>

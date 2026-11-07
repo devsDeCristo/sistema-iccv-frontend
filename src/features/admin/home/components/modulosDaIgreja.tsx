@@ -58,7 +58,7 @@ export function ModulosDaIgreja({
     const Icone = ICONE_DO_MODULO[chave];
     return { icone: <Icone />, cor: corDoModulo(theme, chave) };
   };
-  const { isSuperAdmin, isAdmin, perfilNaIgreja } = useRole();
+  const { isSuperAdmin, isAdmin, isTesouraria, perfilNaIgreja } = useRole();
   // o plano se troca em Igrejas; Meus planos é a vitrine da própria igreja
   const ondeMudar = isSuperAdmin
     ? {
@@ -71,9 +71,13 @@ export function ModulosDaIgreja({
         texto: 'Ver planos',
         fora: 'Fora do seu plano',
       };
+  const perfilAqui = churchId ? perfilNaIgreja(churchId) : null;
   const adminAqui =
-    isSuperAdmin ||
-    (churchId ? perfilNaIgreja(churchId) === Role.ADMIN : isAdmin);
+    isSuperAdmin || (churchId ? perfilAqui === Role.ADMIN : isAdmin);
+  // Solicitações também é da tesouraria, que aprova junto com o pastor
+  const tesourariaAqui = churchId
+    ? perfilAqui === Role.TESOURARIA
+    : isTesouraria;
 
   const modulos: Modulo[] = [
     {
@@ -111,7 +115,7 @@ export function ModulosDaIgreja({
       link: '/admin/tesouraria',
       modulo: 'TREASURY',
     },
-    ...(adminAqui
+    ...(adminAqui || tesourariaAqui
       ? [
           {
             nome: 'Solicitações',

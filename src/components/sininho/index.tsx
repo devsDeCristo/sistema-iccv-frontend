@@ -57,6 +57,12 @@ const DESTINO: Record<
     modulo: 'solicitacoes',
     rota: () => '/solicitacoes',
   },
+  // a vez do pastor ou da tesouraria: abre o painel na igreja da solicitação
+  CHURCH_REQUEST_AWAITING: {
+    modulo: 'solicitacoes',
+    rota: () => '/admin/solicitacoes',
+    doPainel: true,
+  },
   NEWS: { modulo: 'noticias', rota: () => '/home' },
   EVENT: { modulo: 'eventos', rota: (n) => `/eventos/${n.origemId}` },
 };

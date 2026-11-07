@@ -104,8 +104,10 @@ têm resposta: aceita, em parte e recusada; as de "aguardando" ainda não.
     decisão, e só com Solicitado e Em análise (aprovar e recusar são do pastor
     e da tesouraria). A resposta segue editável. **Salvar** grava os dois e só
     acende quando algo mudou; **Cancelar** fecha sem mudar.
-- **Home do painel:** card de Solicitações para o admin da igreja, como os
-  outros módulos.
+- **Home do painel:** card de Solicitações para o admin e a tesouraria da
+  igreja, como os outros módulos (`modulosDaIgreja.tsx`), e a tarefa
+  "solicitação(ões) esperando resposta" em Precisa de você, que conta também
+  as que aguardam o pastor ou a tesouraria.
 
 ## Identidade
 
