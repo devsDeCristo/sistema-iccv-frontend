@@ -9,7 +9,6 @@ import { Header } from '../../../components/header';
 import { PageStyle } from '../../../components/pageStyle';
 import { useGetDashboard } from './api/getDashboard';
 import { ChurchBreakdown } from './components/churchBreakdown';
-import { ChurchRankings } from './components/churchRankings';
 import { EventEarnings } from './components/eventEarnings';
 import { EventsList } from './components/eventsList';
 //import { FinanceSummary } from './components/financeSummary';
@@ -19,9 +18,7 @@ import { NewsBoard } from './components/newsBoard';
 import { PendingActions } from './components/pendingActions';
 import { SecaoDaHome } from './components/secao';
 import { SystemInsights } from './components/systemInsights';
-import { SystemKpis } from './components/systemKpis';
 import { TreasuryKpis } from './components/treasuryKpis';
-import { UserOverview } from './components/userOverview';
 
 interface HomeProps {
   /**
@@ -39,8 +36,8 @@ interface HomeProps {
  * quem pergunta:
  *
  * - admin e tesouraria abrem na igreja deles — eventos, inscritos e caixa;
- * - o super admin, em "como estão as igrejas e as pessoas do sistema";
- * - o dev, nos indicadores de funcionamento.
+ * - o super admin escolhe uma igreja e vê o que o admin dela vê;
+ * - o dev, sem igreja escolhida, nos indicadores de funcionamento.
  *
  * Números de evento para quem toca evento; totais do sistema para quem
  * responde pelo sistema. O mesmo total na tela errada não significa nada — foi
@@ -62,12 +59,14 @@ export function Home({ churchId }: HomeProps = {}) {
    * Multitenant: no `/admin/inicio`, a home é sempre de uma igreja, a
    * escolhida — a mesma em todos os módulos (`useIgrejaEscolhida`) —, e
    * mostra o que o admin dela vê. A exceção é a visão **DEV** (`'all'`), o
-   * sistema, que só dev e super admin têm (e é o padrão deles). Aberta pela
-   * lista de igrejas, a home já vem com a igreja e não mostra o seletor.
+   * sistema, que só o dev tem (e é o padrão dele). O super admin também
+   * escolhe uma igreja: até 07/11/2026 ele tinha uma home do sistema própria.
+   * Aberta pela lista de igrejas, a home já vem com a igreja e não mostra o
+   * seletor.
    */
-  const { isSuperAdmin } = useRole();
+  const { isDev } = useRole();
   const [escolhida, setEscolhida] = useIgrejaEscolhida();
-  const visaoDev = isSuperAdmin && escolhida === TODAS_AS_IGREJAS;
+  const visaoDev = isDev && escolhida === TODAS_AS_IGREJAS;
   const igrejaDaTela =
     churchId ??
     (escolhida && escolhida !== TODAS_AS_IGREJAS ? escolhida : undefined);
@@ -83,8 +82,8 @@ export function Home({ churchId }: HomeProps = {}) {
    */
   const igreja = data?.churches?.[0];
 
-  // quem vê várias igrejas precisa saber de qual é cada tarefa — o super admin
-  // e o dev na visão DEV
+  // quem vê várias igrejas precisa saber de qual é cada tarefa — o dev na
+  // visão DEV
   const varias = data?.scope === 'system' || (data?.churches?.length ?? 0) > 1;
 
   return (
@@ -139,11 +138,6 @@ export function Home({ churchId }: HomeProps = {}) {
         {/* a da tesouraria é só dinheiro — vaga e ritmo não são decisão dela */}
         {data?.events && data.treasury && (
           <TreasuryKpis events={data.events} treasury={data.treasury} />
-        )}
-
-        {/* o tamanho do sistema, para quem responde por ele */}
-        {data?.panorama && data.byChurch && (
-          <SystemKpis churches={data.byChurch} panorama={data.panorama} />
         )}
 
         {/*
@@ -202,12 +196,6 @@ export function Home({ churchId }: HomeProps = {}) {
         )}
 
         {data?.byChurch && <ChurchBreakdown churches={data.byChurch} />}
-
-        {data?.panorama && data.byChurch && (
-          <ChurchRankings churches={data.byChurch} panorama={data.panorama} />
-        )}
-
-        {data?.panorama && <UserOverview panorama={data.panorama} />}
       </Stack>
     </PageStyle>
   );

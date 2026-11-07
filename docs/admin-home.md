@@ -18,8 +18,8 @@ que chegue sem seção.
 | --- | --- | --- |
 | Admin de igreja | a home da igreja dele (`scope: 'church'`) | módulos (`ModulosDaIgreja`), lista de eventos, mural (`news`) |
 | Tesouraria | a home da igreja dele, mesmo layout | `TreasuryKpis` e `EventEarnings` no lugar dos números e da lista de eventos do admin |
-| Super admin | panorama do sistema (`scope: 'system'`) | `SystemKpis`, comparativo entre igrejas, lista de igrejas, base de usuários |
-| Dev | mesmo panorama do super admin | `SystemInsights` (indicadores de funcionamento), além dos blocos do super admin |
+| Super admin | a home da igreja escolhida no seletor — a mesma do admin dela | nenhum: sem igreja escolhida, a home pede a escolha. Até 07/11/2026 ele tinha uma home do sistema própria (base de usuários, comparativo e números das igrejas), que saiu |
+| Dev | a visão do sistema (`scope: 'system'`), o padrão dele; ou a home de uma igreja, se escolher | `SystemInsights` (indicadores de funcionamento) e a lista de igrejas (`ChurchBreakdown`) |
 
 Arquivos: `src/pages/admin/home/routes/index.tsx`, `src/auth/functions/authLoaderAdmin.tsx`, `src/routes/index.tsx`.
 
@@ -30,7 +30,9 @@ usa a mesma escolha de igreja dos outros módulos. A home é **sempre de uma
 igreja**, e mostra o que o admin dela vê (`GET /dashboard?churchId=…`), com o
 perfil que a pessoa tem **nela**: quem é tesouraria na igreja vê a home da
 tesouraria. A exceção é a opção **DEV** (`'all'`), a visão do sistema, que só
-dev e super admin têm — e é o padrão deles. Quem trabalha em igreja escolhe
+o dev tem — e é o padrão dele. O super admin também escolhe uma igreja (todas
+aparecem no seletor); o `'all'` que ele tinha salvo deixa de valer e a home
+pede a escolha. A API devolve `400` se ele pedir sem igreja. Quem trabalha em igreja escolhe
 uma das suas (as de tesouraria também): com uma só ela vem sozinha e o
 seletor some; com várias e nenhuma escolhida, a home pede a escolha e não
 consulta a API. Até 13/10/2026 havia "Todas as igrejas", que somava as igrejas
@@ -38,7 +40,7 @@ da pessoa. Na home aberta pela lista de igrejas (`churchHome`) o seletor não
 aparece, porque a igreja já veio na URL.
 
 - **De qual igreja é cada pendência:** aparece o nome da igreja sempre que a
-  tela tem mais de uma, seja o super admin no sistema ou quem administra
+  tela tem mais de uma, seja o dev no sistema ou quem administra
   várias em "Todas". Antes só aparecia para o super admin.
 
 ## Faixa de abertura (`Hero`)
@@ -48,9 +50,8 @@ aparece, porque a igreja já veio na URL.
   `</>` para dev).
 - Frase de apresentação (`apresentacao`, em `utils.ts`) diz o cargo e a igreja
   por extenso:
-  - sem igreja (super admin/dev): "Você é super admin e acompanha todas as
-    igrejas do sistema", seguido do que vem abaixo (indicadores, para o dev;
-    resumo de igrejas e usuários, para o super admin);
+  - sem igreja (só o dev, na visão DEV): "Você é dev e acompanha todas as
+    igrejas do sistema. A seguir, os indicadores do sistema.";
   - com vínculo em mais de uma igreja e papéis diferentes: lista as duas,
     porque "Admin" sozinho mentiria pela metade;
   - vínculo mas nenhuma igreja (`churches.length === 0`): troca a segunda
@@ -125,28 +126,18 @@ que estão acontecendo ou a caminho (ver abaixo).
 
 Arquivos: `src/features/admin/home/components/modulosDaIgreja.tsx`, `treasuryKpis.tsx`, `eventsList.tsx`, `eventEarnings.tsx`, `pendingActions.tsx`, `newsBoard.tsx`.
 
-## Panorama do super admin e do dev
+## Visão do sistema (só o dev)
 
-Só entra quando a API responde `scope: 'system'` — quem não pertence a
-nenhuma igreja e por isso atravessa todas.
-
-- **SystemKpis:** igrejas cadastradas (com quantas têm evento aberto),
-  eventos abertos no sistema, pessoas cadastradas e quantas nunca se
-  inscreveram em nada — o número que só faz sentido olhando o conjunto
-  inteiro. O rodapé do último card também soma quem opera o painel (todo
-  perfil diferente de `USER`), porque vínculo de igreja não serve de contagem
-  aqui: super admin e dev não têm nenhum.
-- **Comparativo entre igrejas (`ChurchRankings`):** dois rankings lado a
-  lado — igrejas com mais ações de admin/tesouraria na janela recente
-  (`activityWindowDays`; super admin e dev ficam de fora porque não têm
-  vínculo de igreja) e igrejas com mais eventos cadastrados.
+Só entra quando a API responde `scope: 'system'` — o dev sem igreja
+escolhida. Até 07/11/2026 o super admin também tinha esta tela, com um
+panorama próprio (`SystemKpis`, o comparativo `ChurchRankings` e a base de
+usuários `UserOverview`); os três saíram junto com o `panorama` da API.
 - **Igrejas (`ChurchBreakdown`):** substitui a lista de eventos da home de
   igreja — cada linha é uma igreja com o evento em foco dela (o ativo/a
   caminho, não o histórico). Igreja sem evento em andamento não ganha barra
   nem número zerado, só a frase "Sem evento em andamento ou a caminho" — uma
   barra em zero se leria como evento vazio, não como ausência de evento. Tem
   atalho para "Gerenciar" (`/admin/igrejas`).
-- **Usuários (`UserOverview`):** novos cadastros por mês, últimos 12 meses.
 - **Indicadores do sistema (`SystemInsights`):** só do dev. Inscrições por
   mês, movimento do sistema (ações registradas em 14 dias), tentativas de
   login por dia (sucesso/falha — a tabela que alimenta isso só existe a
@@ -155,7 +146,7 @@ nenhuma igreja e por isso atravessa todas.
   movimenta o painel (ações de escrita do log; o sistema não registra
   login/acesso, só o texto já avisa disso no rótulo).
 
-Arquivos: `src/features/admin/home/components/systemKpis.tsx`, `churchRankings.tsx`, `churchBreakdown.tsx`, `userOverview.tsx`, `systemInsights.tsx`, `charts.tsx`.
+Arquivos: `src/features/admin/home/components/churchBreakdown.tsx`, `systemInsights.tsx`, `charts.tsx`.
 
 ## Home de uma igreja aberta pela lista (`churchHome`)
 

@@ -1,6 +1,6 @@
 import dayjs from 'dayjs';
 import { Theme } from '@mui/material';
-import { ROLE_LABELS, Role } from '../../../constants/roles';
+import { ROLE_LABELS } from '../../../constants/roles';
 import { DashboardChurch, DashboardEvent, EventPhase } from './types';
 
 /**
@@ -119,16 +119,11 @@ export function apresentacao(
   const meu = papel(role);
   if (!meu) return null;
 
-  // super admin e dev não pertencem a igreja nenhuma: atravessam todas
+  // só o dev chega sem igreja (a visão DEV): ele atravessa todas
   if (churches === null) {
-    const oQueVem =
-      role === Role.DEV
-        ? 'os indicadores do sistema'
-        : 'um resumo das igrejas e dos usuários';
-
     return [
       {
-        texto: `Você é ${meu} e acompanha todas as igrejas do sistema. A seguir, ${oQueVem}.`,
+        texto: `Você é ${meu} e acompanha todas as igrejas do sistema. A seguir, os indicadores do sistema.`,
       },
     ];
   }

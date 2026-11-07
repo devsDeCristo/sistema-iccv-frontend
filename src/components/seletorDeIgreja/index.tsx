@@ -20,24 +20,25 @@ const VISAO_DEV = 'DEV';
  *
  * As telas dos módulos são sempre de **uma** igreja, a escolhida, e mostram
  * exatamente o que o admin dela vê (`useIgrejaSelecionada` + `ChurchScopeBar`).
- * A home é a exceção por ser também a do dev e do super admin: para eles há a
- * opção **DEV**, a visão do sistema (`'all'`), que é o padrão deles. Quem
- * trabalha em igreja escolhe uma das suas — com uma só, ela vem sozinha, e
- * com várias a home pede a escolha.
+ * A home é a exceção por ser também a do dev: para ele há a opção **DEV**, a
+ * visão do sistema (`'all'`), que é o padrão dele. Os demais — o super admin
+ * inclusive, desde 07/11/2026 — escolhem uma igreja: com uma só, ela vem
+ * sozinha, e com várias a home pede a escolha.
  *
- * Uma escolha que deixou de valer (igreja apagada, vínculo removido) volta
- * para DEV, para quem tem, ou para nenhuma.
+ * Uma escolha que deixou de valer (igreja apagada, vínculo removido, ou o
+ * `'all'` que o super admin tinha salvo) volta para DEV, para o dev, ou para
+ * nenhuma.
  */
 function SeletorDeIgreja({ value, onChange }: SeletorDeIgrejaProps) {
-  const { isSuperAdmin } = useRole();
+  const { isDev, isSuperAdmin } = useRole();
   const { igrejas, carregando } = useIgrejasDoSeletor({
     incluirTesouraria: true,
   });
 
   const valida =
-    (isSuperAdmin && value === TODAS_AS_IGREJAS) ||
+    (isDev && value === TODAS_AS_IGREJAS) ||
     igrejas.some((igreja) => igreja.id === value);
-  const padrao = isSuperAdmin
+  const padrao = isDev
     ? TODAS_AS_IGREJAS
     : igrejas.length === 1
       ? igrejas[0].id
@@ -48,12 +49,13 @@ function SeletorDeIgreja({ value, onChange }: SeletorDeIgrejaProps) {
     if (!carregando && !valida && value !== padrao) onChange(padrao);
   }, [carregando, valida, value, padrao, onChange]);
 
-  // com uma igreja só e sem a visão DEV não há o que escolher
+  // com uma igreja só e sem a visão DEV não há o que escolher (dev e super
+  // admin veem todas as igrejas: sempre têm o seletor)
   if (!isSuperAdmin && igrejas.length <= 1 && !carregando) return null;
 
   return (
     <ChurchScopeBar
-      todas={isSuperAdmin ? VISAO_DEV : undefined}
+      todas={isDev ? VISAO_DEV : undefined}
       escopo={{
         igrejas,
         churchId: valida ? value : null,
