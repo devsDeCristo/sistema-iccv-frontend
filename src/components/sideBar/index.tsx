@@ -824,8 +824,9 @@ const SideBar: React.FC<SideBarProps> = ({
               },
             ]
           : []),
-        // o que os membros pedem à igreja: quem responde é o admin dela
-        ...(isAdminRole
+        // o que os membros pedem à igreja: quem responde é o admin ou a
+        // tesouraria dela
+        ...(isAdminRole || isTesouraria
           ? [
               {
                 link: '/admin/solicitacoes',

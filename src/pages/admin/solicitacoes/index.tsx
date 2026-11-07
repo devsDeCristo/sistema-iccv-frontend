@@ -25,7 +25,8 @@ import {
  * filtra pela situação e abre cada uma para ler inteira e responder.
  */
 function SolicitacoesAdmin() {
-  const escopo = useIgrejaSelecionada();
+  // a tesouraria da igreja também responde as solicitações
+  const escopo = useIgrejaSelecionada(true);
   const churchId = escopo.churchId;
   const [aba, setAba] = useState<'todas' | StatusDaSolicitacao>('todas');
   const [aberta, setAberta] = useState<SolicitacaoDaIgreja | null>(null);

@@ -57,8 +57,11 @@ têm resposta: as três últimas.
 
 ## Painel (`/admin/solicitacoes`)
 
-- **Quem vê:** o admin da igreja (e dev/super admin), com o módulo no plano.
-  O seletor de igreja do topo escolhe de qual igreja são as solicitações.
+- **Quem vê:** o admin e a tesouraria da igreja (e dev/super admin), com o
+  módulo no plano — rota com `ADMIN_AREA_ROLES`, item no menu lateral para os
+  dois. O seletor de igreja do topo escolhe de qual igreja são as solicitações,
+  e para a tesouraria traz as igrejas em que ela é tesouraria
+  (`useIgrejaSelecionada(true)`).
 - **Abas** (`NavTabs`): Todas e uma por situação, cada uma com ícone
   (`ICONE_DO_STATUS` em `constants.ts`: relógio, ampulheta, ✓ e ✕) e a
   quantidade num chip depois do rótulo (`contagem`).
