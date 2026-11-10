@@ -212,32 +212,34 @@ function ProviderForm({ churchId, integracao, onClose }: Props) {
           )
         )}
 
-        {integracao.fields.map((campo) => (
-          <Input
-            key={campo.key}
-            label={campo.label + (campo.required ? ' *' : '')}
-            value={valores[campo.key] ?? ''}
-            onChange={(evento) =>
-              setValores((atual) => ({
-                ...atual,
-                [campo.key]: evento.target.value,
-              }))
-            }
-            // `password` nos segredos evita que o token fique legível na tela
-            // durante um compartilhamento de tela — que é como isso vaza na
-            // prática, não por invasão.
-            type={campo.secret ? 'password' : 'text'}
-            // sem isto o navegador punha o login salvo (CPF e senha) aqui
-            {...semAutopreencher(campo.secret)}
-            size="small"
-            placeholder={
-              campo.secret && integracao.credentialsHint?.[campo.key]
-                ? `Salvo: ${integracao.credentialsHint[campo.key]} — deixe em branco para manter`
-                : campo.placeholder
-            }
-            errorMessage={campo.help}
-          />
-        ))}
+        {integracao.fields
+          .filter((campo) => !campo.toggle)
+          .map((campo) => (
+            <Input
+              key={campo.key}
+              label={campo.label + (campo.required ? ' *' : '')}
+              value={valores[campo.key] ?? ''}
+              onChange={(evento) =>
+                setValores((atual) => ({
+                  ...atual,
+                  [campo.key]: evento.target.value,
+                }))
+              }
+              // `password` nos segredos evita que o token fique legível na tela
+              // durante um compartilhamento de tela — que é como isso vaza na
+              // prática, não por invasão.
+              type={campo.secret ? 'password' : 'text'}
+              // sem isto o navegador punha o login salvo (CPF e senha) aqui
+              {...semAutopreencher(campo.secret)}
+              size="small"
+              placeholder={
+                campo.secret && integracao.credentialsHint?.[campo.key]
+                  ? `Salvo: ${integracao.credentialsHint[campo.key]} — deixe em branco para manter`
+                  : campo.placeholder
+              }
+              errorMessage={campo.help}
+            />
+          ))}
 
         {/*
           Rótulo à esquerda e chave à direita, dentro de um bloco só.
@@ -282,6 +284,47 @@ function ProviderForm({ churchId, integracao, onClose }: Props) {
               </Typography>
             }
           />
+          {/*
+            As chaves que o próprio gateway declara (o "Aceitar Pix" do PayPal).
+            Entram neste bloco porque são da mesma natureza das duas de cima:
+            decidem como a igreja cobra, não com que credencial. Desligada, a
+            chave não vai no corpo — e o servidor entende campo ausente como
+            desligado.
+          */}
+          {integracao.fields
+            .filter((campo) => campo.toggle)
+            .map((campo) => (
+              <FormControlLabel
+                key={campo.key}
+                labelPlacement="start"
+                sx={styles.chave}
+                control={
+                  <Switch
+                    checked={valores[campo.key] === 'true'}
+                    onChange={(evento) =>
+                      setValores((atual) => ({
+                        ...atual,
+                        [campo.key]: evento.target.checked ? 'true' : '',
+                      }))
+                    }
+                  />
+                }
+                label={
+                  <Box sx={{ py: 0.5, pr: 1 }}>
+                    <Typography variant="body2">{campo.label}</Typography>
+                    {campo.help && (
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        display="block"
+                      >
+                        {campo.help}
+                      </Typography>
+                    )}
+                  </Box>
+                }
+              />
+            ))}
         </Box>
 
         {/*

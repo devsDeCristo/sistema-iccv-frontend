@@ -10,6 +10,7 @@ por vir.
 - **Data:** vem do catálogo de eventos. Um evento que não está no catálogo vai para o grupo **"Sem data"**, no fim.
 - **Sem separação por pendência:** a página não divide mais em "Esperando você" / "Em dia". O que está pendente se vê no chip do próprio ingresso e na seção de pendências do modal de detalhes.
 - **Sem inscrições:** mostra o aviso "Você ainda não tem inscrições…".
+- **Pagar:** o botão do ingresso abre o modal de pagamentos (`modalPayment.tsx`), que cria o checkout e abre o link em nova aba. Na igreja que cobra pelo PayPal com Pix ligado, antes do link vem a pergunta "Como você quer pagar?" — Pix numa tela do sistema ou cartão no site do PayPal. É também por aqui que a pessoa volta ao QR Code que fechou. Ver [pagamento-pix.md](pagamento-pix.md).
 
 ## Formato
 

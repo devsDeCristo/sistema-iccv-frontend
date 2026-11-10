@@ -3,6 +3,7 @@ import { Events } from '..';
 import { EventsDetails } from '../details';
 import { Subscribe } from '../subscribe';
 import { EventProducts } from '../products';
+import { EventPixPayment } from '../pix';
 import { EventQuadrante } from '../quadrante';
 import { HistoricoDeEventos } from '../historico';
 
@@ -27,6 +28,11 @@ function RoutesEvents() {
       <Route path="/eventos/:id/inscricao" element={<Subscribe />} />
       {/* compra de produtos depois da inscrição, só para inscritos */}
       <Route path="/eventos/:id/produtos" element={<EventProducts />} />
+      {/* o Pix pago aqui dentro (PayPal): o link do checkout aponta para cá */}
+      <Route
+        path="/eventos/:id/pagamento/pix/:referenceId"
+        element={<EventPixPayment />}
+      />
       {/* só para inscritos, e só se o evento liberar */}
       <Route path="/eventos/:id/quadrante" element={<EventQuadrante />} />
     </>

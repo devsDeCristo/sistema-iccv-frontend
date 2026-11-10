@@ -41,7 +41,7 @@ Arquivo: `src/features/events/components/productOffer.tsx`, `src/features/events
 
 `usePostBuyEventProducts` (`POST /events/:eventId/users/:userId/products`) registra a compra e devolve um `paymentId`. A partir daí:
 
-- **Igreja que recebe pelo site** (`modulePayment`/`chargesOnline`): a tela abre o checkout automaticamente com esse `paymentId` (`usePostCreateCheckoutEvent`), sempre por link hospedado do gateway, nunca checkout transparente.
+- **Igreja que recebe pelo site** (`modulePayment`/`chargesOnline`): a tela abre o checkout automaticamente com esse `paymentId` (`usePostCreateCheckoutEvent`), sempre por link hospedado do gateway, nunca checkout transparente. A única exceção é o Pix do PayPal, que o inscrito escolhe numa pergunta feita pela própria função de API e paga numa tela do sistema — ver [pagamento-pix.md](pagamento-pix.md).
 - **Igreja sem pagamento online:** a compra fica registrada e a tela avisa que o valor é combinado diretamente com a organização, sem tentar abrir checkout.
 - **Erro 503 ao criar o checkout** (`ehPagamentoForaDoSite`): tratado como o mesmo aviso acima — não é falha, é a igreja não recebendo pelo site; a compra continua válida e disponível para pagamento depois em Minhas Inscrições.
 - **Falha no item** (ex.: variante esgotou entre a escolha e o envio): o servidor recusa e a tela recarrega o evento para atualizar o estoque, sem perder a seleção da sacola que ainda for válida.

@@ -16,6 +16,7 @@ contexto para quem (pessoa ou IA) for mexer nessas telas.
 | Inscrição no evento | `/eventos/:id/inscricao` | [inscricao-no-evento.md](inscricao-no-evento.md) |
 | Inscrição em grupos | página do evento, inscrição e painel | [inscricao-em-grupos.md](inscricao-em-grupos.md) |
 | Loja do evento | `/eventos/:id/produtos` | [loja-do-evento.md](loja-do-evento.md) |
+| Escolha da forma de pagamento e Pix na tela (PayPal) | `/eventos/:id/pagamento/pix/:referenceId` | [pagamento-pix.md](pagamento-pix.md) |
 | Quadrante | `/eventos/:id/quadrante` | [quadrante.md](quadrante.md) |
 | Notícias | feed da `/home` e painel | [noticias.md](noticias.md) |
 | Perfil | `/perfil` | [perfil.md](perfil.md) |

@@ -19,6 +19,8 @@ export interface CredentialField {
   secret: boolean;
   help?: string;
   placeholder?: string;
+  /** Liga/desliga: vira uma chave no formulário, e o valor é `'true'` ou nada */
+  toggle?: boolean;
   allowedHostSuffixes?: string[];
 }
 

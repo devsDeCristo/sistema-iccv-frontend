@@ -75,4 +75,6 @@ Arquivos: `src/features/events/components/productOffer.tsx`, `src/features/event
 - **Igreja sem pagamento online** (`recebePagamentoOnline === false`): nenhuma pergunta de pagamento aparece. A inscrição é dada como concluída com aviso de que o valor é combinado diretamente com a organização.
 - **Erro 503 do servidor ao criar o checkout** (`ehPagamentoForaDoSite`): tratado como o mesmo aviso acima, não como erro — a inscrição já está feita, só o pagamento pelo site não está disponível para aquela igreja.
 
+- **Igreja que cobra pelo PayPal com Pix ligado:** antes de abrir o link, `usePostCreateCheckoutEvent` pergunta se a pessoa quer pagar por Pix (QR Code numa tela do sistema) ou por cartão/conta PayPal (site do PayPal). A pergunta mora na função de API, então esta tela não mudou. Ver [pagamento-pix.md](pagamento-pix.md).
+
 Arquivo: `src/features/admin/events/api/postCreateCheckoutEvent.tsx`. Regras de gateway no servidor: repositório `ic-backend`, `docs/pagamentos.md`.

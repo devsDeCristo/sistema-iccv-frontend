@@ -5,6 +5,11 @@ import {
   handleResponseSuccess,
   handleResponseThrowError,
 } from '../../../../utils/service';
+import {
+  EscolhaDePagamento,
+  FormaDePagamento,
+  escolherFormaDePagamento,
+} from '../../../events/components/escolherFormaDePagamento';
 
 type PostCreateCheckoutEventProps = {
   eventId: string;
@@ -29,23 +34,65 @@ const NAO_RECEBE_ONLINE = 503;
 const ehPagamentoForaDoSite = (erro: unknown) =>
   (erro as AxiosError)?.response?.status === NAO_RECEBE_ONLINE;
 
-const postCreateCheckoutEvent = ({
-  data,
-  eventId,
-  userId,
-}: PostCreateCheckoutEventProps) =>
+/**
+ * `link` é para onde o inscrito vai: a página do gateway ou, no Pix do PayPal,
+ * a nossa tela do QR. `choice` vem no lugar dele quando o gateway pede que a
+ * forma de pagamento seja escolhida antes.
+ */
+type RespostaDoCheckout = {
+  message: string;
+  link?: string;
+  choice?: EscolhaDePagamento;
+};
+
+/** A pessoa fechou a pergunta da forma de pagamento sem escolher */
+class EscolhaCancelada extends Error {}
+
+const criarCheckout = (
+  { data, eventId, userId }: PostCreateCheckoutEventProps,
+  method?: FormaDePagamento
+) =>
   apiClient
-    .post<boolean>(`/events/${eventId}/users/${userId}/payments`, {
+    .post<RespostaDoCheckout>(`/events/${eventId}/users/${userId}/payments`, {
       roleRegistrationId: data.roleId ?? [],
       paymentIds: data.paymentIds ?? [],
+      ...(method ? { method } : {}),
     })
-    .then((response) => {
-      handleResponseSuccess(response.data, 'Sala de pagamento criada com sucesso!')();
-      return response.data;
-    })
-    .catch((error: AxiosError<any>) =>
-      handleResponseThrowError(undefined, !ehPagamentoForaDoSite(error))(error)
-    );
+    .then((response) => response.data);
+
+/**
+ * A pergunta da forma de pagamento mora aqui, e não em cada tela, porque três
+ * lugares abrem checkout (a inscrição, a loja e Minhas Inscrições) e nenhum
+ * deles sabe qual gateway a igreja usa. Quem sabe é o servidor: ele responde
+ * `choice` quando é preciso escolher, a pergunta é feita e a chamada se repete
+ * com a resposta. Nos gateways sem escolha vem o `link` direto, como sempre.
+ */
+const postCreateCheckoutEvent = async (props: PostCreateCheckoutEventProps) => {
+  try {
+    let resposta = await criarCheckout(props);
+
+    if (resposta.choice) {
+      const forma = await escolherFormaDePagamento(resposta.choice);
+      if (!forma) throw new EscolhaCancelada();
+
+      resposta = await criarCheckout(props, forma);
+    }
+
+    return handleResponseSuccess(
+      resposta,
+      'Sala de pagamento criada com sucesso!'
+    )();
+  } catch (error) {
+    // Desistir da pergunta não é falha: sem toast vermelho. Quem chamou trata
+    // como qualquer pagamento que ficou para depois.
+    if (error instanceof EscolhaCancelada) throw error;
+
+    return handleResponseThrowError(
+      undefined,
+      !ehPagamentoForaDoSite(error)
+    )(error as AxiosError<any>);
+  }
+};
 
 type PostCreateCheckoutEventData = Awaited<ReturnType<typeof postCreateCheckoutEvent>>;
 
