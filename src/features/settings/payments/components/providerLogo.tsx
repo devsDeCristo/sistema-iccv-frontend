@@ -4,6 +4,7 @@ import PagbankLogo from '../../../../assets/gateways/pagbank.svg?react';
 import MercadoPagoLogo from '../../../../assets/gateways/mercadopago.svg?react';
 import InfinitePayLogo from '../../../../assets/gateways/infinitepay.svg?react';
 import TonLogo from '../../../../assets/gateways/ton.svg?react';
+import PayPalLogo from '../../../../assets/gateways/paypal.svg?react';
 import { PaymentProviderKey } from '../types';
 
 /**
@@ -26,6 +27,7 @@ const LOGOS: Record<
   MERCADO_PAGO: MercadoPagoLogo,
   INFINITEPAY: InfinitePayLogo,
   TON: TonLogo,
+  PAYPAL: PayPalLogo,
 };
 
 interface Props {

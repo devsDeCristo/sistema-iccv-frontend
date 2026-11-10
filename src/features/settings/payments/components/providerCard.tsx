@@ -256,29 +256,25 @@ function ProviderCard({ churchId, integracao, onConfigurar }: Props) {
       </Typography>
 
       {/*
-        A tabela entra no lugar das etiquetas de forma de pagamento: ela já diz
-        quais são as formas, e com o preço ao lado — as duas juntas repetiriam
-        as mesmas palavras a dois centímetros de distância.
-
-        A casa sem tabela cadastrada aqui volta a mostrar só as etiquetas. É o
-        caso de uma integração nova no backend antes de alguém levantar o preço
-        dela: o cartão fica incompleto, não quebrado.
+        As etiquetas e a tabela respondem perguntas diferentes, e por isso as
+        duas aparecem: as etiquetas vêm do adapter no backend (`paymentMethods`,
+        o que a integração oferece pela API); a tabela é o preço que o gateway
+        publica, mantido à mão no front. Gateway sem tabela levantada fica só
+        com as etiquetas.
       */}
-      {pricing ? (
-        <ProviderFees pricing={pricing} />
-      ) : (
-        <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
-          {integracao.paymentMethods.map((metodo) => (
-            <Chip
-              key={metodo}
-              size="small"
-              variant="outlined"
-              label={PAYMENT_METHOD_LABEL[metodo] ?? metodo}
-              sx={{ height: 22, fontSize: 11 }}
-            />
-          ))}
-        </Stack>
-      )}
+      <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
+        {integracao.paymentMethods.map((metodo) => (
+          <Chip
+            key={metodo}
+            size="small"
+            variant="outlined"
+            label={PAYMENT_METHOD_LABEL[metodo] ?? metodo}
+            sx={{ height: 22, fontSize: 11 }}
+          />
+        ))}
+      </Stack>
+
+      {pricing && <ProviderFees pricing={pricing} />}
 
       <Box sx={{ mt: 'auto', pt: 0.5 }}>
         <Divider sx={{ mb: 1.25 }} />

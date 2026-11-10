@@ -12,6 +12,7 @@ export const PROVIDER_SLUG: Record<string, string> = {
   MERCADO_PAGO: 'mercadopago',
   INFINITEPAY: 'infinitepay',
   TON: 'ton',
+  PAYPAL: 'paypal',
 };
 
 /**
@@ -133,6 +134,9 @@ export const PROVIDER_PRICING: Record<string, ProviderPricing> = {
  * que recebe notificação enquanto a integração roda com credencial de teste.
  * Sem cadastrar, o teste passa a vida inteira sem nenhum retorno.
  *
+ * O PayPal também é `painel`: webhook no PayPal é da aplicação (Apps &
+ * Credentials › Webhooks), não do pedido.
+ *
  * Espelha o que cada adapter faz em `createCheckout`. Mudar o adapter sem
  * mudar aqui deixa a tela mandando a pessoa fazer trabalho à toa — ou, pior,
  * calada sobre um cadastro que ela precisa fazer.
@@ -144,13 +148,14 @@ export const PROVIDER_WEBHOOK_SETUP: Record<string, WebhookSetup> = {
   MERCADO_PAGO: 'por-cobranca-e-painel',
   INFINITEPAY: 'por-cobranca',
   TON: 'painel',
+  PAYPAL: 'painel',
 };
 
 /**
  * As casas que ainda não foram usadas para receber dinheiro de verdade.
  *
  * Só o PagBank já rodou em produção com inscrição paga de ponta a ponta. As
- * outras três estão implementadas e passam no teste de conexão, mas nenhuma
+ * outras estão implementadas e passam no teste de conexão, mas nenhuma
  * igreja fechou um ciclo completo nelas — cobrança criada, paga e com baixa
  * automática chegando.
  *
@@ -163,4 +168,5 @@ export const PROVIDER_EM_TESTE: Record<string, boolean> = {
   MERCADO_PAGO: true,
   INFINITEPAY: true,
   TON: true,
+  PAYPAL: true,
 };

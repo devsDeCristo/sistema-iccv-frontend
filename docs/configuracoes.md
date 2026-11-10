@@ -39,7 +39,8 @@ Arquivos: `src/features/settings/shared/useIgrejaSelecionada.ts`, `src/features/
 
 Tela em `src/pages/settings/payments/index.tsx` (`PaymentsSettings`), corpo em
 `src/features/settings/payments/`. Cada igreja escolhe e cadastra credenciais
-para os gateways que aceita — hoje PagBank, Mercado Pago, InfinitePay e Ton. As
+para os gateways que aceita — hoje PagBank, Mercado Pago, InfinitePay, Ton e
+PayPal. As
 regras de como o servidor valida, cifra e roteia essas credenciais e cobranças
 estão em `ic-backend docs/pagamentos.md`; aqui documenta-se só o que a tela
 mostra e permite configurar.
@@ -54,9 +55,9 @@ mostra e permite configurar.
 ### "Recebendo agora" e a grade de gateways
 
 - **Recebendo agora:** faixa de destaque mostrando qual gateway é o padrão (`isDefault`) da igreja hoje — a pergunta mais cara da tela. Sem gateway padrão, mostra um aviso de que os inscritos não conseguem pagar pelo sistema.
-- **Um cartão por gateway**, sempre os quatro (mesmo os não configurados), mostrando: nome/logo, situação, resumo, tabela de taxas (ou os métodos de pagamento aceitos, se não houver tabela cadastrada) e as ações disponíveis.
+- **Um cartão por gateway**, sempre os cinco (mesmo os não configurados), mostrando: nome/logo, situação, resumo, etiquetas com os métodos de pagamento que a integração oferece pela API (vêm do backend, `paymentMethods`), tabela de taxas quando houver uma levantada, e as ações disponíveis. Até nov/2026 a tabela substituía as etiquetas; passaram a aparecer as duas porque respondem perguntas diferentes (o que a integração aceita × quanto o gateway cobra).
 - **Situação de cada cartão:** `Não configurada` → `Desligada` (configurada mas `enabled: false`) → `Pronta para usar` (ligada, mas não é a padrão) → `Recebendo` (ligada e padrão).
-- **Selo "Em teste":** aparece nos gateways que ainda não fecharam um ciclo completo em produção (hoje: Mercado Pago, InfinitePay e Ton — só o PagBank já rodou de ponta a ponta com inscrição paga). Convite para conferir no painel do gateway se as primeiras baixas chegaram sozinhas.
+- **Selo "Em teste":** aparece nos gateways que ainda não fecharam um ciclo completo em produção (hoje: Mercado Pago, InfinitePay, Ton e PayPal — só o PagBank já rodou de ponta a ponta com inscrição paga). Convite para conferir no painel do gateway se as primeiras baixas chegaram sozinhas.
 - **Modo Sandbox:** cartão e faixa "Recebendo agora" avisam quando o gateway padrão está em sandbox (pagamento de teste, dinheiro não entra de verdade).
 - **Ações por cartão:** Configurar/Editar (abre o formulário), "Usar esta" (torna padrão, só aparece se já ligada e não for a padrão), testar conexão (ícone, mostra o resultado num popover), e o menu (⋮) com "Gerar novo endereço de notificação" (gira o segredo do webhook) e "Remover credenciais".
 - **Cofre indisponível:** se o servidor não tiver a chave de cifragem configurada (`PAYMENT_CREDENTIALS_KEY`), a tela mostra um alerta de erro e nenhuma integração pode ser cadastrada ou usada.
@@ -77,7 +78,7 @@ Arquivo: `src/features/settings/payments/components/providerForm.tsx`.
 
 ### Webhooks (endereço de notificação)
 
-- **Quando aparece:** só para gateways que exigem cadastro de URL no painel deles — hoje Ton (só resolve webhook por conta) e Mercado Pago (aceita URL por cobrança, mas em modo sandbox só notifica o endereço cadastrado no painel). PagBank e InfinitePay recebem a URL dentro da própria chamada de criação da cobrança e não mostram esta seção.
+- **Quando aparece:** só para gateways que exigem cadastro de URL no painel deles — hoje Ton (só resolve webhook por conta), PayPal (webhook é da aplicação, em Apps & Credentials › Webhooks) e Mercado Pago (aceita URL por cobrança, mas em modo sandbox só notifica o endereço cadastrado no painel). PagBank e InfinitePay recebem a URL dentro da própria chamada de criação da cobrança e não mostram esta seção.
 - **O que a tela oferece:** lista os endereços a cadastrar, com botão de copiar (não é link clicável — abrir no navegador jogaria o segredo da URL no histórico).
 - **Assinatura:** quando o gateway assina a notificação (`signsWebhook`), a tela mostra só uma legenda de cautela; quando não assina, mostra um alerta mais forte — o segredo da URL é a única barreira entre um POST forjado e uma inscrição marcada como paga.
 - **Girar o segredo** ("Gerar novo endereço de notificação", no menu do cartão): pede confirmação e avisa da consequência conforme o tipo de cadastro — se depende de painel, nenhuma baixa automática chega até alguém recadastrar lá; se não depende, cobranças já abertas param de dar baixa (as novas já saem com o endereço novo).
@@ -91,6 +92,7 @@ Arquivo: `src/features/settings/payments/components/webhookUrls.tsx`.
 - **Exibição:** recolhida por padrão dentro de cada cartão (accordion), com forma de pagamento, taxa (ou "não divulgada" quando o gateway aceita a forma mas não publica preço) e prazo de liquidação quando conhecido.
 - **Rodapé de cada tabela:** mês da consulta, uma nota específica do gateway quando houver, aviso de que todo gateway negocia taxa por faturamento, e link para a fonte.
 - Vale só para checkout/link de pagamento — não para maquininha, que tem outra tabela.
+- **PayPal sem tabela:** a página oficial de taxas do PayPal Brasil bloqueia leitura e as fontes de terceiros divergem (nov/2026), então o PayPal não entra em `PROVIDER_PRICING` — o cartão dele fica só com as etiquetas dos métodos aceitos, até haver fonte oficial para citar.
 - **Última consulta: out/2026**, nas páginas públicas de link/checkout de cada gateway. Mudanças em relação a set/2026: Mercado Pago passou a cobrar Pix (0,99%) e publica crédito em 14 dias (4,48%), 12x (17,28%), débito só no Débito Virtual CAIXA (3,99%) e boleto (3,99%); PagBank publica boleto (4,99% + R$ 0,40 em 14 dias, 3,99% + R$ 0,40 em 30) e deixou de publicar o débito; InfinitePay mostra a taxa geral do link (crédito à vista 4,20% em 1 dia útil, 5,49% na hora; 12x 16,66% e 18,29%), com as reduzidas por faturamento na nota; Ton publica crédito à vista a partir de 3,19% e a cobrança mínima de R$ 10,00. Páginas de oferta de maquininha (ex.: ton.com.br/oferta-ton) não servem de fonte.
 
 Arquivo: `src/features/settings/payments/constants.ts` (`PROVIDER_PRICING`), `src/features/settings/payments/components/providerFees.tsx`.
