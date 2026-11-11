@@ -36,6 +36,7 @@ Um evento pode ter `event.data.registrationTerm` (HTML). `temTermo` considera va
 
 - **Sem termo:** ao confirmar o passo 2, a inscrição é enviada direto.
 - **Com termo:** a inscrição fica retida (`inscricaoAguardandoTermo`) e abre o diálogo `EventTermsDialog` com o texto inteiro. O aceite (`Li e aceito todos os termos`) só libera depois que a rolagem chega ao fim do termo; termo curto que não gera rolagem já nasce liberado. Cancelar fecha o diálogo sem nada ter sido enviado. Aceitar dispara a inscrição com `acceptedTerms: true`.
+- **iPhone — "pisca e sobe" na rolagem (corrigido em 11/11/2026):** no Safari do iOS (e em qualquer navegador do iPhone, que usam o mesmo motor) o termo voltava para o topo ao chegar perto do fim, e não dava para liberar o aceite. A causa era o visualizador (`ReactQuillViewer`, que é o `react-quill`): a cada re-renderização do diálogo — e ele re-renderiza justamente quando o aceite libera — o editor reescrevia o termo inteiro, porque o HTML salvo nunca é idêntico ao que o Quill gera. O Chrome de desktop preserva a posição da rolagem quando o conteúdo é refeito; o Safari não. Hoje o visualizador é `memo` e só redesenha quando o texto muda. O aviso "Role o termo até o fim" também passou a ficar sempre no layout (só escondido depois da leitura), para a caixa do termo não mudar de tamanho no momento em que o aceite libera.
 
 Arquivos: `src/features/admin/events/terms.ts`, `src/features/events/components/eventTermsDialog.tsx`.
 

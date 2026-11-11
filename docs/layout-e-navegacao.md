@@ -175,6 +175,13 @@ O **editor de texto rico** (`ReactQuillEditor`, Quill) não é um
 Antes ele usava o visual "snow" do Quill, com borda clara e ícones pretos que
 sumiam no tema escuro.
 
+O **visualizador** (`ReactQuillViewer`, `src/components/reactQuill/index.tsx`,
+usado no termo da inscrição, na página do evento e no modal de notícias) é
+`memo` de propósito: o `react-quill` reescreve o conteúdo inteiro a cada
+renderização quando o HTML recebido difere do que ele gera — o que é a regra,
+não a exceção —, e no Safari do iPhone isso joga a rolagem de volta para o
+topo. Não tire o `memo`, e não passe para ele props que mudem a cada render.
+
 Não repita esse estilo no `sx` de cada tela: campo novo já nasce assim. Até
 06/10/2026 ele vivia em `campoBuscaSx` (`listPageStyles.ts`) e só valia nas
 buscas das listas do admin. O resto do sistema ficava com o contorno padrão do

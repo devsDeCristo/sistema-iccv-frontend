@@ -207,15 +207,23 @@ function EventTermsDialog({
             }
           />
 
-          {!leuAteOFim && (
-            <Typography
-              variant="caption"
-              color="text.secondary"
-              sx={{ display: 'block', pl: 1.5 }}
-            >
-              Role o termo até o fim para liberar o aceite.
-            </Typography>
-          )}
+          {/*
+            Sempre no layout, só escondido depois da leitura. Tirar a linha
+            mudava a altura do rodapé no exato momento em que o aceite libera,
+            e a caixa do termo crescia junto — no iPhone, no meio da rolagem.
+          */}
+          <Typography
+            variant="caption"
+            color="text.secondary"
+            aria-hidden={leuAteOFim}
+            sx={{
+              display: 'block',
+              pl: 1.5,
+              visibility: leuAteOFim ? 'hidden' : 'visible',
+            }}
+          >
+            Role o termo até o fim para liberar o aceite.
+          </Typography>
         </Box>
 
         <Stack

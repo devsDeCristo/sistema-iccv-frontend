@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import ReactQuill from 'react-quill';
 import Quill from 'quill';
 import 'react-quill/dist/quill.snow.css';
@@ -71,7 +72,23 @@ const formats = [
   // 'style',
 ];
 
-function ReactQuillViewer({ value }: ReactQuillProps) {
+/**
+ * `memo` não é otimização aqui, é correção.
+ *
+ * O `react-quill` é um editor: a cada renderização ele compara o `value`
+ * recebido com o HTML que ele mesmo gera e, se forem diferentes, apaga e
+ * reescreve o conteúdo inteiro. Texto salvo quase nunca é idêntico, byte a
+ * byte, ao HTML do Quill — então qualquer mudança de estado na tela em volta
+ * reescrevia o texto. No Safari do iPhone, que não preserva a posição da
+ * rolagem quando o conteúdo é refeito, isso jogava a leitura de volta para o
+ * topo: no termo da inscrição, o aceite libera perto do fim, a tela
+ * re-renderiza e o texto "pisca e sobe" sem deixar chegar ao final.
+ *
+ * Com `memo`, o visualizador só redesenha quando o texto muda de verdade.
+ */
+const ReactQuillViewer = memo(function ReactQuillViewer({
+  value,
+}: ReactQuillProps) {
   return (
     <>
       <ReactQuill
@@ -87,6 +104,6 @@ function ReactQuillViewer({ value }: ReactQuillProps) {
       />
     </>
   );
-}
+});
 
 export default ReactQuillViewer;
