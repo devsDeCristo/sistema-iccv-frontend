@@ -34,7 +34,7 @@ modal de detalhes.
 ### Variações
 
 - **Normal** (Minhas Inscrições): horizontal, com o canhoto à direita, a partir de `sm`. No celular o canhoto desce para baixo.
-- **`compacto`** (home): sempre vertical, com capa e medidas menores, e o canhoto em uma linha só (selo + "Confirmada" à esquerda, status à direita).
+- **`compacto`** (home): sempre vertical, com capa e medidas menores, e o canhoto em uma linha só (selo + "Confirmada" à esquerda, status à direita). Quando a igreja não recebe pelo site e há pagamento em aberto, o aviso "Pague direto à organização" (com ícone de informação) desce para uma **segunda linha**, alinhado à esquerda. Até 11/11/2026 ele dividia a mesma linha com o selo e o chip, e na coluna de 240px cortava "Confirmada" em "Confir…" e quebrava o aviso em duas linhas; o texto era "Acerte com a organização.", que não dizia o que acertar.
 
 Arquivo: `src/features/myRegisters/components/cards.tsx` (`EventCard`).
 

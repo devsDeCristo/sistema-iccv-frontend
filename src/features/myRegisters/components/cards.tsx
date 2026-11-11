@@ -22,6 +22,7 @@ import {
   PlaceOutlined,
   CalendarMonthOutlined,
   ShoppingBagOutlined,
+  InfoOutlined,
 } from '@mui/icons-material';
 
 import { paymentsWithRoles } from '../types';
@@ -336,6 +337,10 @@ function EventCard({
       flexShrink: 0,
       display: 'flex',
       flexDirection: compacto ? 'row' : 'column',
+      // no compacto o aviso de pagamento fora do site desce para uma linha
+      // própria: os três na mesma linha cortavam "Confirmada" em "Confir…" e
+      // espremiam o aviso em duas linhas
+      flexWrap: compacto ? 'wrap' : 'nowrap',
       alignItems: 'center',
       justifyContent: compacto ? 'space-between' : 'center',
       gap: compacto ? 1 : 0.75,
@@ -514,9 +519,26 @@ function EventCard({
           />
         )}
         {!modulePayment && emAberto > 0 && (
-          <Typography variant="caption" color="text.secondary">
-            Acerte com a organização.
-          </Typography>
+          <Stack
+            direction="row"
+            alignItems="center"
+            justifyContent={compacto ? 'flex-start' : 'center'}
+            gap={0.5}
+            sx={{
+              width: compacto ? '100%' : 'auto',
+              color: 'text.secondary',
+            }}
+          >
+            <InfoOutlined sx={{ fontSize: 14, flexShrink: 0 }} />
+            <Typography
+              variant="caption"
+              color="inherit"
+              lineHeight={1.3}
+              textAlign={compacto ? 'left' : 'center'}
+            >
+              Pague direto à organização
+            </Typography>
+          </Stack>
         )}
       </Box>
     </Paper>
