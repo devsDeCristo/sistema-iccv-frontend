@@ -28,6 +28,11 @@ hospedado", decidida em 10/11/2026, e não envolve dado de cartão.
   cartão ou conta PayPal no site do PayPal. O inscrito precisa saber para quem
   está pagando antes de escolher: é esse nome que aparece no app do banco e na
   fatura.
+- **Pix recusado pelo PayPal** (conta sem Pix habilitado, dado inválido): o
+  servidor responde 422 com "O Pix não está disponível agora. Escolha cartão ou
+  conta PayPal.", que sai no aviso vermelho da tela; a pessoa paga de novo e
+  escolhe cartão. Falha de rede continua com "não foi possível falar com o
+  PayPal".
 - **Fechar sem escolher** não é erro: não sai toast vermelho, e cada tela trata
   como pagamento que ficou para depois (o modal de Minhas Inscrições destrava;
   a inscrição e a loja seguem para onde já seguiam).
