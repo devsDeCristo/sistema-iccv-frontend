@@ -69,10 +69,12 @@ Eventos › o evento, `ModalTesoureiros`); ver `docs/tesouraria.md`, seção
     assim), "Gateway de pagamento" (`SYSTEM`, confirmado pelo retorno do
     gateway) ou "Lançamento manual" (`EXTERNAL`).
   - **Gateway** (`provider`): por qual gateway o dinheiro entrou — PagBank,
-    Mercado Pago, InfinitePay, Ton ou PayPal. Vazio no lançamento manual e na
-    cobrança não paga. É a coluna da auditoria: o extrato de cada gateway se
-    confere contra as baixas dele. Na linha agrupada por pessoa, "Vários"
-    quando os pagamentos dela entraram por gateways diferentes.
+    Mercado Pago, InfinitePay, Ton ou PayPal. É o último gateway que respondeu
+    pela cobrança: na paga, quem recebeu; na recusada, quem recusou. Vazio no
+    lançamento manual (quitar à mão limpa o campo) e enquanto nenhum gateway
+    respondeu. É a coluna da auditoria: o extrato de cada gateway se confere
+    contra as baixas dele. Na linha agrupada por pessoa, "Vários" quando os
+    pagamentos dela passaram por gateways diferentes.
   - **Produtos:** cada linha é uma compra; ingresso e produtos comprados junto
     aparecem na mesma célula.
 - **Exportar:** CSV nativo da grade (`GridToolbarExport`), respeitando a
@@ -189,8 +191,12 @@ Arquivos: `src/features/admin/events/components/listProductOrders.tsx`, `cardsPr
 ## Origem "Retorno do gateway" no histórico
 
 Em `modalPaymentHistory.tsx`, o passo que veio do aviso do gateway (`source:
-WEBHOOK`, em `ORIGEM`) aparece como **"Retorno do gateway · PayPal"**: o nome
-sai da mudança do campo `provider`, que a baixa grava na cobrança e a trilha
-registra. Passos antigos, de antes desse campo, ficam só com "Retorno do
-gateway". Até 11/11/2026 o rótulo estava fixo como "Retorno do PagBank" e
+WEBHOOK`, em `ORIGEM`) aparece como **"Retorno do gateway · PayPal"** — e a
+conferência automática, como "Conferência automática · PayPal". O nome não sai
+só do passo em si: a trilha registra o que **mudou**, e o gateway muda uma vez
+só (no primeiro aviso, que costuma ser o de "aguardando"); o passo "Pago" ficaria
+sem nome. Então `gatewayDeCadaPasso` percorre os passos em ordem cronológica e
+leva adiante o último gateway conhecido — da criação do link ou da própria
+cobrança. Para passos de antes desse campo existir, vale o gateway gravado hoje
+na cobrança. Até 11/11/2026 o rótulo estava fixo como "Retorno do PagBank" e
 mentia nas cobranças pagas pelos outros quatro gateways.

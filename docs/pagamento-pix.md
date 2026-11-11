@@ -62,7 +62,10 @@ cá — é o servidor que monta o endereço.
   nessa consulta: uma falha de rede viraria uma pilha de avisos.
 - **Já paguei** (`POST …/pix/:referenceId/check`): manda o servidor perguntar
   ao gateway na hora. É o que resolve o aviso que demora ou não chega. Se o
-  gateway ainda não confirma, sai um aviso azul pedindo para aguardar.
+  gateway ainda não confirma, sai um aviso azul pedindo para aguardar. O
+  servidor só pergunta ao PayPal uma vez a cada 15 s por cobrança; cliques
+  dentro desse intervalo recebem o que já está no banco (protege o limite de
+  chamadas da conta da igreja).
 - **Os outros estados:**
 
   | Situação | Quando | O que a tela mostra |

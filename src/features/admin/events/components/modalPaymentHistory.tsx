@@ -38,7 +38,13 @@ interface ModalPaymentHistoryProps {
   open: boolean;
   handleClose: () => void;
   /** A cobrança em foco; nula enquanto nenhuma linha foi escolhida */
-  payment: { id?: string; fullName?: string; amount?: number } | null;
+  payment: {
+    id?: string;
+    fullName?: string;
+    amount?: number;
+    /** o gateway gravado na cobrança, para os passos de antes desse campo */
+    provider?: string | null;
+  } | null;
   eventId: string;
   /** os pagamentos da pessoa (aba "Todos"): com mais de um, viram abas */
   pagamentos?: PaymentResponse[];
@@ -133,7 +139,46 @@ function tituloDoPasso(passo: PaymentLog): string {
 }
 
 /** Um passo da linha do tempo: bolinha, fio, e o que aconteceu */
-function Passo({ passo, ultimo }: { passo: PaymentLog; ultimo: boolean }) {
+/**
+ * O gateway de cada passo, em ordem cronológica.
+ *
+ * O nome não pode sair só do passo em si: a trilha registra o que **mudou**, e
+ * o gateway só muda uma vez. Na sequência comum — um aviso de "aguardando"
+ * (que grava o gateway) e depois o de "pago" (que não muda o campo) —, o passo
+ * "Pago", justamente o que a auditoria procura, ficava sem nome. Então o
+ * gateway conhecido vai sendo levado adiante: vem da criação do link (o
+ * checkout registra o dele) ou da própria cobrança. Para passos de antes do
+ * campo existir, vale o gateway gravado hoje na cobrança.
+ */
+function gatewayDeCadaPasso(
+  passos: PaymentLog[],
+  gatewayDaCobranca?: string | null
+) {
+  const porPasso = new Map<string, string>();
+  let conhecido: string | undefined;
+
+  // a lista chega do mais novo para o mais antigo
+  [...passos].reverse().forEach((passo) => {
+    const mudou = passo.changes?.provider?.after;
+    if (typeof mudou === 'string') conhecido = mudou;
+
+    const gateway = conhecido ?? gatewayDaCobranca ?? undefined;
+    if (gateway) porPasso.set(passo.id, gateway);
+  });
+
+  return porPasso;
+}
+
+function Passo({
+  passo,
+  ultimo,
+  gateway,
+}: {
+  passo: PaymentLog;
+  ultimo: boolean;
+  /** o gateway que respondia por esta cobrança naquele momento */
+  gateway?: string;
+}) {
   const theme = useTheme();
 
   const ehCheckout = passo.model === 'PaymentCheckout';
@@ -143,12 +188,13 @@ function Passo({ passo, ultimo }: { passo: PaymentLog; ultimo: boolean }) {
       : theme.palette.chips.info;
 
   const veioDeAlguem = passo.source === 'PANEL' && passo.actorName;
-  // a baixa grava o gateway na cobrança (`provider`), e a trilha guarda a
-  // mudança: com ele dá para dizer quem respondeu, e não só "o gateway"
-  const gateway = passo.changes?.provider?.after as string | undefined;
+  // só nos passos em que foi o gateway que respondeu — o aviso dele ou a
+  // conferência automática, que pergunta a ele
+  const respostaDoGateway =
+    passo.source === 'WEBHOOK' || passo.source === 'CRON';
   const origem = veioDeAlguem
     ? `${ORIGEM[passo.source]} · ${passo.actorName}`
-    : gateway && passo.source !== 'PANEL'
+    : respostaDoGateway && gateway
       ? `${ORIGEM[passo.source]} · ${PROVIDER_LABEL[gateway] ?? gateway}`
       : ORIGEM[passo.source];
 
@@ -251,6 +297,7 @@ export function ModalPaymentHistory({
   );
 
   const passos = data?.items ?? [];
+  const gateways = gatewayDeCadaPasso(passos, payment?.provider);
 
   return (
     <Modal
@@ -334,6 +381,7 @@ export function ModalPaymentHistory({
                     key={passo.id}
                     passo={passo}
                     ultimo={indice === passos.length - 1}
+                    gateway={gateways.get(passo.id)}
                   />
                 ))}
               </Stack>
