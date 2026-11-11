@@ -12,8 +12,13 @@ export type PaymentStatus =
  */
 export type PaymentReceived = 'PENDING' | 'SYSTEM' | 'EXTERNAL';
 
+/**
+ * `WALLET` é saldo ou conta do próprio gateway (conta PayPal; saldo, Linha de
+ * Crédito e carteiras do Mercado Pago). `OTHER` também quer dizer "forma ainda
+ * não definida" — é por ele que a tela sabe que não há cobrança em andamento.
+ */
 export type PaymentMethod =
-  'PIX' | 'CREDIT_CARD' | 'DEBIT_CARD' | 'CASH' | 'BOLETO' | 'OTHER';
+  'PIX' | 'CREDIT_CARD' | 'DEBIT_CARD' | 'CASH' | 'BOLETO' | 'WALLET' | 'OTHER';
 
 export interface discountsResponse {
   id: string;
@@ -33,6 +38,11 @@ export interface PaymentResponse {
   method: PaymentMethod;
   status: PaymentStatus;
   receivedFrom: PaymentReceived;
+  /**
+   * Por qual gateway o dinheiro entrou (`PAYPAL`, `PAGBANK`…). Nulo no
+   * lançamento manual e na cobrança ainda não paga.
+   */
+  provider?: string | null;
   amount: number;
 
   createdAt: string; // ISO date string

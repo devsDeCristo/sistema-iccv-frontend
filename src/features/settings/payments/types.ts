@@ -95,6 +95,7 @@ export const PAYMENT_METHOD_LABEL: Record<string, string> = {
   CREDIT_CARD: 'Crédito',
   DEBIT_CARD: 'Débito',
   CASH: 'Dinheiro',
+  WALLET: 'Conta digital',
   OTHER: 'Outro',
 };
 

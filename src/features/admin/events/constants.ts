@@ -533,6 +533,7 @@ export const PAYMENT_METHODS = (payment: PaymentMethod): string => {
     DEBIT_CARD: 'Cartão de Débito',
     CASH: 'Dinheiro',
     BOLETO: 'Boleto',
+    WALLET: 'Conta digital',
     OTHER: 'Outro',
   };
 
@@ -591,6 +592,7 @@ export const methodPaymentOptions = [
   { value: 'DEBIT_CARD', label: 'Cartão de Débito' },
   { value: 'CASH', label: 'Dinheiro' },
   { value: 'BOLETO', label: 'Boleto' },
+  { value: 'WALLET', label: 'Conta digital' },
   { value: 'OTHER', label: 'Outro' },
 ] as const;
 

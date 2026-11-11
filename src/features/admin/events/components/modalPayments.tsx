@@ -25,6 +25,7 @@ import { ReceiptPreviewModal } from './modalReceiptView';
 import { toast } from 'react-toastify';
 import { PaymentResponse } from '../../../../types/user';
 import { AbasDosPagamentos } from './abasDosPagamentos';
+import { PROVIDER_LABEL } from '../../../settings/payments/constants';
 
 interface ModalPaymentProps {
   open: boolean;
@@ -244,9 +245,20 @@ export function ModalPayment({
               }}
             >
               <Typography fontSize={13} color="text.secondary">
-                Pagamento recebido pelo checkout: os dados vêm do gateway de
-                pagamento e são conferidos com ele a cada retorno. Para corrigir
-                algo, o caminho é o lançamento manual.
+                {/* o gateway vai nomeado: é a primeira pergunta de quem
+                    confere o pagamento contra um extrato */}
+                Pagamento recebido pelo checkout
+                {payment?.provider ? (
+                  <>
+                    {' do '}
+                    <strong>
+                      {PROVIDER_LABEL[payment.provider] ?? payment.provider}
+                    </strong>
+                  </>
+                ) : null}
+                : os dados vêm do gateway de pagamento e são conferidos com ele
+                a cada retorno. Para corrigir algo, o caminho é o lançamento
+                manual.
               </Typography>
             </Box>
           )}

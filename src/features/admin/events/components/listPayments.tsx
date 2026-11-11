@@ -49,6 +49,7 @@ import { toast } from 'react-toastify';
 import { useGetPayments } from '../api/getPayments';
 import { ModalPayment } from './modalPayments';
 import { ModalPaymentHistory } from './modalPaymentHistory';
+import { PROVIDER_LABEL } from '../../../settings/payments/constants';
 import { UserAvatar } from '../../../../components/userAvatar';
 import {
   cardTabelaSx,
@@ -281,6 +282,29 @@ function ListPayments({
           customColor={theme.palette.info.main}
         />
       ),
+    },
+    {
+      // por qual gateway o dinheiro entrou: é o que a auditoria confere contra
+      // o extrato de cada um. Vazio no lançamento manual e no que não foi pago
+      field: 'provider',
+      headerName: 'Gateway',
+      width: 140,
+      valueGetter: (params) => {
+        const gateways = distintos(params.row as Linha, 'provider').filter(
+          Boolean
+        );
+        if (gateways.length > 1) return 'Vários';
+        return gateways[0] ? (PROVIDER_LABEL[gateways[0]] ?? gateways[0]) : '';
+      },
+      renderCell: (params) =>
+        params.value ? (
+          <CustomChip
+            label={params.value}
+            customColor={theme.palette.info.main}
+          />
+        ) : (
+          '—'
+        ),
     },
     {
       field: 'amount',

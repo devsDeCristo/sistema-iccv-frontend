@@ -7,6 +7,18 @@ export const GET_PAYMENT_PROVIDERS = 'GET_PAYMENT_PROVIDERS';
  * no backend — é o mesmo apelido que aparece na URL de notificação, e é por
  * isso que ele não segue o valor do enum em minúsculas.
  */
+/**
+ * O nome de cada gateway onde o backend não manda o rótulo junto — a lista de
+ * pagamentos e o histórico, que só recebem o valor do enum.
+ */
+export const PROVIDER_LABEL: Record<string, string> = {
+  PAGBANK: 'PagBank',
+  MERCADO_PAGO: 'Mercado Pago',
+  INFINITEPAY: 'InfinitePay',
+  TON: 'Ton',
+  PAYPAL: 'PayPal',
+};
+
 export const PROVIDER_SLUG: Record<string, string> = {
   PAGBANK: 'pagbank',
   MERCADO_PAGO: 'mercadopago',

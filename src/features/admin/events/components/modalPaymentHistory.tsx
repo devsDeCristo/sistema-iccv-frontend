@@ -32,6 +32,7 @@ import {
   PAYMENT_STATUS,
   PAYMENT_STATUS_COLOR,
 } from '../constants';
+import { PROVIDER_LABEL } from '../../../settings/payments/constants';
 
 interface ModalPaymentHistoryProps {
   open: boolean;
@@ -52,7 +53,9 @@ interface ModalPaymentHistoryProps {
  */
 const ORIGEM: Record<PaymentLogSource, string> = {
   PANEL: 'Pelo painel',
-  WEBHOOK: 'Retorno do PagBank',
+  // o registro guarda o molde da rota (`/webhooks/:provider/…`), não qual
+  // gateway avisou; o nome fixo do PagBank ficou errado quando vieram os outros
+  WEBHOOK: 'Retorno do gateway',
   CRON: 'Conferência automática',
   SYSTEM: 'Pelo sistema',
 };
@@ -140,9 +143,14 @@ function Passo({ passo, ultimo }: { passo: PaymentLog; ultimo: boolean }) {
       : theme.palette.chips.info;
 
   const veioDeAlguem = passo.source === 'PANEL' && passo.actorName;
+  // a baixa grava o gateway na cobrança (`provider`), e a trilha guarda a
+  // mudança: com ele dá para dizer quem respondeu, e não só "o gateway"
+  const gateway = passo.changes?.provider?.after as string | undefined;
   const origem = veioDeAlguem
     ? `${ORIGEM[passo.source]} · ${passo.actorName}`
-    : ORIGEM[passo.source];
+    : gateway && passo.source !== 'PANEL'
+      ? `${ORIGEM[passo.source]} · ${PROVIDER_LABEL[gateway] ?? gateway}`
+      : ORIGEM[passo.source];
 
   const detalhes = Object.entries(passo.changes ?? {})
     .filter(([campo]) => campo in CAMPOS_VISIVEIS)
