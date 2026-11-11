@@ -493,15 +493,38 @@ function ListUsers({
     )?.roles[0]?.id;
     if (!roleRegistrationId) return;
     handleClose();
+
+    /**
+     * A remoção tira a pessoa do evento inteiro — todos os grupos — e apaga os
+     * pagamentos dos ingressos dela junto (com os produtos comprados com o
+     * ingresso). Quem já pagou perde o registro do pagamento, e o dinheiro não
+     * volta sozinho. Por isso olha todas as inscrições, e não só a do grupo
+     * aberto. Em análise conta como pago: o dinheiro já entrou.
+     */
+    const jaPagou = (rowSelected.groupsRegistration ?? []).some((grupo: any) =>
+      (grupo.roles ?? []).some((regra: any) =>
+        ['PAID', 'IN_ANALYSIS'].includes(regra.paymentStatus)
+      )
+    );
+
     const result = await Swal.fire({
-      title: 'Tem certeza que deseja desvincular o usuário do evento?',
-      text: 'Esta ação não poderá ser desfeita!',
+      title: jaPagou
+        ? 'Esta pessoa já pagou a inscrição'
+        : 'Tem certeza que deseja desvincular o usuário do evento?',
+      text: jaPagou
+        ? 'Ao remover, o pagamento dos ingressos dela (e dos produtos comprados junto) é apagado do sistema e some da Tesouraria. O dinheiro não é devolvido automaticamente: se houver devolução, ela é feita à parte. Esta ação não poderá ser desfeita.'
+        : 'Esta ação não poderá ser desfeita!',
       icon: 'warning',
       showCancelButton: true,
       showLoaderOnConfirm: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Sim, desvincular do evento!',
+      // com pagamento, o botão de remover vira o vermelho e o foco começa no
+      // cancelar: um Enter distraído não pode apagar dinheiro recebido
+      confirmButtonColor: jaPagou ? '#d33' : '#3085d6',
+      cancelButtonColor: jaPagou ? '#6e7881' : '#d33',
+      focusCancel: jaPagou,
+      confirmButtonText: jaPagou
+        ? 'Remover mesmo assim'
+        : 'Sim, desvincular do evento!',
       cancelButtonText: 'Cancelar',
       allowOutsideClick: () => !Swal.isLoading(),
       allowEscapeKey: () => !Swal.isLoading(),

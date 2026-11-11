@@ -122,7 +122,15 @@ evento, na etapa Módulos (`docs/admin-eventos.md`).
     pessoa.
   - **Baixar Crachá:** aberto a todo mundo que vê a aba.
   - **Remover do evento** (só quem administra): desvincula a inscrição do
-    evento, com confirmação. Não é reversível pela tela.
+    evento, com confirmação. Não é reversível pela tela. **Se a pessoa já
+    pagou** (algum ingresso dela no evento com pagamento "Pago" ou "Em
+    análise", em qualquer grupo — a remoção tira de todos), a confirmação muda:
+    título "Esta pessoa já pagou a inscrição", aviso de que o pagamento dos
+    ingressos e dos produtos comprados junto é apagado e some da Tesouraria, e
+    de que o dinheiro não volta sozinho. O botão vira "Remover mesmo assim", em
+    vermelho, e o foco começa no Cancelar. O status vem de
+    `groupsRegistration[].roles[].paymentStatus`, devolvido por
+    `GET /events/:idEvent/users`. Ainda é possível remover; o aviso não bloqueia.
 - **Nascimento:** a data e, embaixo, a idade no **primeiro dia do evento**
   (hoje, se o evento não tem data) — é essa idade que decide se a pessoa é
   menor e precisa de liberação. A conta usa só a parte da data, sem fuso: o
