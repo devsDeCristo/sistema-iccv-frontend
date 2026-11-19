@@ -7,11 +7,17 @@ import {
   Campaign,
   Diversity3,
   Event,
+  Work,
 } from '@mui/icons-material';
 
 /** Os módulos que a home apresenta e cujas telas levam a identidade deles */
 export type ChaveDoModulo =
-  'membros' | 'eventos' | 'noticias' | 'tesouraria' | 'solicitacoes';
+  | 'membros'
+  | 'eventos'
+  | 'noticias'
+  | 'tesouraria'
+  | 'solicitacoes'
+  | 'oportunidades';
 
 /**
  * O ícone de cada módulo — o mesmo no card da home e no cabeçalho da tela
@@ -23,6 +29,7 @@ export const ICONE_DO_MODULO: Record<ChaveDoModulo, ElementType> = {
   noticias: Campaign,
   tesouraria: AccountBalanceWallet,
   solicitacoes: Assignment,
+  oportunidades: Work,
 };
 
 /**
@@ -84,6 +91,15 @@ export const CORES_DO_MODULO: Record<
       terciaria: '#CA67DA',
     },
   },
+  // Mãos à obra (Ne 2:18)
+  oportunidades: {
+    claro: { primaria: '#8A3A00', secundaria: '#AD4A00', terciaria: '#D9650B' },
+    escuro: {
+      primaria: '#F2B07C',
+      secundaria: '#FF9B52',
+      terciaria: '#EE7A22',
+    },
+  },
 };
 
 /** Onde começa cada módulo no painel */
@@ -93,8 +109,10 @@ const ROTA_DO_MODULO: [string, ChaveDoModulo][] = [
   ['/admin/noticias', 'noticias'],
   ['/admin/tesouraria', 'tesouraria'],
   ['/admin/solicitacoes', 'solicitacoes'],
-  // a tela do membro, na área do participante
+  ['/admin/oportunidades', 'oportunidades'],
+  // as telas do membro, na área do participante
   ['/solicitacoes', 'solicitacoes'],
+  ['/oportunidades', 'oportunidades'],
 ];
 
 /** O módulo da tela aberta, pelo caminho; fora dos módulos, `undefined` */

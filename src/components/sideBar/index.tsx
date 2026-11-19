@@ -23,6 +23,7 @@ import {
   Hub,
   HolidayVillage,
   Diversity3,
+  Work,
   WorkspacePremium,
 } from '@mui/icons-material';
 import { Link, useLocation } from 'react-router-dom';
@@ -60,6 +61,7 @@ const MODULO_DO_LINK: Record<string, ModuloDaIgreja> = {
   '/admin/noticias': 'NEWS',
   '/admin/tesouraria': 'TREASURY',
   '/admin/solicitacoes': 'REQUESTS',
+  '/admin/oportunidades': 'OPPORTUNITIES',
   // as configurações seguem o módulo a que servem
   '/configuracoes/pagamentos': 'EVENTS',
   '/configuracoes/disparadores': 'NEWS',
@@ -746,6 +748,17 @@ const SideBar: React.FC<SideBarProps> = ({
               },
             ]
           : []),
+        // vagas de emprego: só para quem é membro de uma igreja com o módulo
+        ...(getStoredUser()?.memberChurch?.modulos.includes('OPPORTUNITIES')
+          ? [
+              {
+                link: '/oportunidades',
+                icon: <Work />,
+                title: 'Oportunidades',
+                novo: true,
+              },
+            ]
+          : []),
       ];
 
   /**
@@ -832,6 +845,17 @@ const SideBar: React.FC<SideBarProps> = ({
                 link: '/admin/solicitacoes',
                 icon: <Assignment />,
                 title: 'Solicitações',
+                novo: true,
+              },
+            ]
+          : []),
+        // vagas de emprego aos membros: publicar é do admin da igreja
+        ...(isAdminRole
+          ? [
+              {
+                link: '/admin/oportunidades',
+                icon: <Work />,
+                title: 'Oportunidades',
                 novo: true,
               },
             ]

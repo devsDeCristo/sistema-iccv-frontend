@@ -68,8 +68,8 @@ Arquivo: `src/components/appBar/index.tsx`.
 - **Cores do módulo:** cada módulo tem três cores, no claro e no escuro
   (`CORES_DO_MODULO` em `src/constants/identidadeDosModulos.ts`): Membros
   "Tabernáculo" (púrpura), Eventos "Águas tranquilas" (verde-água), Notícias
-  "Céus" (azul-céu), Tesouraria "Trigo" (dourado) e Solicitações "Videira"
-  (framboesa). As rotas de cada módulo
+  "Céus" (azul-céu), Tesouraria "Trigo" (dourado), Solicitações "Videira"
+  (framboesa) e Oportunidades "Mãos à obra" (laranja). As rotas de cada módulo
   passam por `TemaDoModulo` (`src/components/temaDoModulo`), que troca só as
   cores do tema (`myTheme(colorMode, cores)`); raio, sombra, fonte e
   espaçamento são os de sempre. Primária: botões cheio e de contorno, foco
@@ -271,7 +271,7 @@ Seção sem título (`titulo: ''`) não monta a linha de título; só a primeira
 
 **Usuário (`usuario`)**
 
-Página Inicial, Minhas Inscrições, Eventos — sem distinção de papel (é a área de quem não é da organização).
+Página Inicial, Minhas Inscrições, Eventos — sem distinção de papel (é a área de quem não é da organização). Para quem é membro de uma igreja, entram também Solicitações e Oportunidades, cada uma só se a igreja dele tiver o módulo no plano (`memberChurch.modulos`).
 
 Arquivo: `src/components/sideBar/index.tsx`.
 

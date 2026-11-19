@@ -19,6 +19,8 @@ import { RoutesTesourariaAdmin } from '../pages/admin/tesouraria/routes';
 import { RoutesMembrosAdmin } from '../pages/admin/membros/routes';
 import { RoutesSolicitacoesAdmin } from '../pages/admin/solicitacoes/routes';
 import { RoutesSolicitacoes } from '../pages/solicitacoes/routes';
+import { RoutesOportunidadesAdmin } from '../pages/admin/oportunidades/routes';
+import { RoutesOportunidades } from '../pages/oportunidades/routes';
 import { RoutesLogsAdmin } from '../pages/admin/logs/routes';
 import { RoutesLoginAttemptsAdmin } from '../pages/admin/logins/routes';
 import { RoutesChurchesAdmin } from '../pages/admin/churches/routes';
@@ -61,6 +63,7 @@ const routers = (): ReturnType<typeof createBrowserRouter> => {
           {RoutesTesourariaAdmin()}
           {RoutesMembrosAdmin()}
           {RoutesSolicitacoesAdmin()}
+          {RoutesOportunidadesAdmin()}
           {RoutesLogsAdmin()}
           {RoutesLoginAttemptsAdmin()}
         </Route>
@@ -97,6 +100,7 @@ const routers = (): ReturnType<typeof createBrowserRouter> => {
           {RoutesEvents()}
           {RoutesMyRegisters()}
           {RoutesSolicitacoes()}
+          {RoutesOportunidades()}
           {/* perfil de quem está logado — admin e usuário entram pelo mesmo menu */}
           <Route path="/perfil" element={<Profile />} />
         </Route>

@@ -127,6 +127,18 @@ export function ModulosDaIgreja({
           },
         ]
       : []),
+    ...(adminAqui
+      ? [
+          {
+            nome: 'Oportunidades',
+            descricao: 'Vagas de emprego para os membros.',
+            icone: identidade('oportunidades').icone,
+            cor: identidade('oportunidades').cor,
+            link: '/admin/oportunidades',
+            modulo: 'OPPORTUNITIES' as const,
+          },
+        ]
+      : []),
   ];
 
   return (

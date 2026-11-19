@@ -8,7 +8,8 @@
  * (WhatsApp) de Notícias, Integrações (Pluggy) de Tesouraria. A cobrança
  * online é parte de Eventos.
  */
-export type ModuloDaIgreja = 'EVENTS' | 'NEWS' | 'TREASURY' | 'REQUESTS';
+export type ModuloDaIgreja =
+  'EVENTS' | 'NEWS' | 'TREASURY' | 'REQUESTS' | 'OPPORTUNITIES';
 
 /** Na ordem do menu, com o que cada um abre */
 export const MODULOS: {
@@ -37,6 +38,12 @@ export const MODULOS: {
     label: 'Solicitações',
     ajuda:
       'Os membros pedem equipamentos e melhorias à igreja, e o admin responde',
+  },
+  {
+    value: 'OPPORTUNITIES',
+    label: 'Oportunidades',
+    ajuda:
+      'O admin publica vagas de emprego aos membros e exporta quem se interessou',
   },
 ];
 

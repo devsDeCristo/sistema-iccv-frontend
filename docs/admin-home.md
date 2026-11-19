@@ -71,7 +71,8 @@ que estão acontecendo ou a caminho (ver abaixo).
 
 - **Módulos (`ModulosDaIgreja`)**, logo abaixo da saudação, para admin e
   tesouraria: a **apresentação** de cada módulo, sem números — Membros,
-  Eventos, Notícias (só para quem é admin da igreja) e Tesouraria. Cada um é
+  Eventos, Notícias (só para quem é admin da igreja), Tesouraria,
+  Solicitações (admin e tesouraria) e Oportunidades (só o admin). Cada um é
   um tile de fundo tingido na cor do módulo, com o ícone grande em marca
   d'água, a palavra "Módulo", o nome e uma frase do que ele faz; não usa o
   card de números do sistema. Dois por linha no celular, todos numa linha na

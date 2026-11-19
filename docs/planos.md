@@ -43,13 +43,15 @@ Regras de servidor: `docs/planos.md` no `ic-backend`.
 
 ## Os módulos
 
-São três (`ModuloDaIgreja` em `src/constants/modulos.ts`, `ChurchModule` na API), na ordem do menu:
+São cinco (`ModuloDaIgreja` em `src/constants/modulos.ts`, `ChurchModule` na API), na ordem do menu:
 
 | Módulo                      | O que libera no painel                                                                                                                                          | Configuração que vem junto              | Fora do plano                                                                                                                                                                  |
 | --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **Eventos** (`EVENTS`)      | Criar e gerir eventos: inscritos, lista de espera, a aba Tesouraria do evento, pedidos de produtos, quartos, equipes, transporte, crachás, check-in e quadrante | **Pagamentos** (os gateways da igreja)  | Some do painel. O evento publicado segue aberto, mas a igreja **não cobra pelo site**: a inscrição se confirma sem pagamento online e o inscrito vê "acerte com a organização" |
 | **Notícias** (`NEWS`)       | Notícias e disparos                                                                                                                                             | **Disparadores** (o WhatsApp da igreja) | Some do painel                                                                                                                                                                 |
 | **Tesouraria** (`TREASURY`) | Tesouraria administrativa (conciliação, dízimos, lançamentos) e as de eventos e congregações                                                                    | **Integrações** (os bancos pela Pluggy) | Some do painel                                                                                                                                                                 |
+| **Solicitações** (`REQUESTS`) | O que os membros pedem à igreja (ver [solicitacoes.md](solicitacoes.md)) | — | Some do painel e da área do membro |
+| **Oportunidades** (`OPPORTUNITIES`) | Vagas de emprego aos membros, com os interessados e a exportação (ver [oportunidades.md](oportunidades.md)) | — | Some do painel e da área do membro |
 
 ### A cobrança online é parte de Eventos
 
