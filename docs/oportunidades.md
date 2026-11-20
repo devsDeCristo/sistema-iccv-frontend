@@ -104,8 +104,9 @@ ser longo, e no celular o modal fica apertado.
 - **Já se candidatou:** a página mostra o que foi enviado e o botão
   **Retirar candidatura** (com confirmação). Para mudar, retira e manda de
   novo.
-- Vaga encerrada em que a pessoa não se candidatou: "não está mais
-  recebendo candidaturas".
+- Quem não é membro, ou é de igreja sem o módulo, lê o mesmo motivo da
+  vitrine, e a página nem consulta a API. Vaga encerrada em que a pessoa não
+  se candidatou: "não está mais recebendo candidaturas".
 
 ## Painel (`/admin/oportunidades`)
 

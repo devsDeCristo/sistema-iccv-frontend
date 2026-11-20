@@ -16,6 +16,7 @@ import { Header } from '../../components/header';
 import { ConfirmModal } from '../../components/ConfirmModal';
 import { superficieSx } from '../../components/listPageStyles';
 import { useGetMe } from '../../features/profile/api';
+import { getStoredUser } from '../../auth/session';
 import {
   useCandidatar,
   useOportunidade,
@@ -37,7 +38,15 @@ import { ImagemDaVaga } from '../../features/oportunidades/components/cardDaVaga
 function Candidatura() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { data: vaga, isLoading, isError } = useOportunidade(id);
+  // a mesma regra da vitrine: só membro de igreja com o módulo no plano; fora
+  // disso nem consulta a API, e diz o motivo certo
+  const igreja = getStoredUser()?.memberChurch;
+  const podeVer = !!igreja?.modulos.includes('OPPORTUNITIES');
+  const {
+    data: vaga,
+    isLoading,
+    isError,
+  } = useOportunidade(podeVer ? id : undefined);
   const { data: eu } = useGetMe();
   const candidatar = useCandidatar();
   const retirar = useRetirarCandidatura();
@@ -47,7 +56,7 @@ function Candidatura() {
 
   const voltar = () => navigate(`/oportunidades?vaga=${id}`);
 
-  if (isLoading) {
+  if (podeVer && isLoading) {
     return (
       <PageStyle>
         <Box sx={{ display: 'grid', placeItems: 'center', py: 8 }}>
@@ -66,7 +75,11 @@ function Candidatura() {
           buttonBack
         />
         <Alert severity="info">
-          Esta vaga não está mais recebendo candidaturas.
+          {!igreja
+            ? 'As oportunidades são só para os membros da igreja.'
+            : !podeVer
+              ? `A ${igreja.name} ainda não divulga oportunidades por aqui.`
+              : 'Esta vaga não está mais recebendo candidaturas.'}
         </Alert>
       </PageStyle>
     );
