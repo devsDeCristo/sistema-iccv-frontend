@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Alert, Button, Stack } from '@mui/material';
 import { Add, LockOutlined, Work } from '@mui/icons-material';
 
@@ -14,23 +15,20 @@ import {
   useSalvarOportunidade,
 } from '../../../features/oportunidades/api';
 import { ListaDaIgreja } from '../../../features/oportunidades/components/listaDaIgreja';
-import { ModalDaOportunidade } from '../../../features/oportunidades/components/modalDaOportunidade';
 import { ModalInteressados } from '../../../features/oportunidades/components/modalInteressados';
 import { OportunidadeDaIgreja } from '../../../features/oportunidades/types';
 
 /**
  * As vagas de emprego que a igreja publica aos membros (módulo
- * Oportunidades). O admin publica, encerra, vê quem se interessou e exporta a
- * lista para quem ofereceu a vaga.
+ * Oportunidades). O admin publica, encerra, vê quem se candidatou e exporta a
+ * lista para quem ofereceu a vaga. Publicar e editar abrem a página da vaga
+ * (`editar.tsx`), com o formulário de candidatura.
  */
 function OportunidadesAdmin() {
   const escopo = useIgrejaSelecionada();
   const churchId = escopo.churchId;
   const [aba, setAba] = useState<'abertas' | 'encerradas'>('abertas');
-  // `null` fechado; `'nova'` publicando; a vaga, editando
-  const [editando, setEditando] = useState<
-    OportunidadeDaIgreja | 'nova' | null
-  >(null);
+  const navigate = useNavigate();
   const [interessados, setInteressados] = useState<OportunidadeDaIgreja | null>(
     null
   );
@@ -41,8 +39,9 @@ function OportunidadesAdmin() {
   const excluir = useExcluirOportunidade();
 
   const todas = useMemo(() => data ?? [], [data]);
-  const abertas = todas.filter((o) => o.isOpen);
-  const encerradas = todas.filter((o) => !o.isOpen);
+  // vencida conta como encerrada
+  const abertas = todas.filter((o) => !o.encerrada);
+  const encerradas = todas.filter((o) => o.encerrada);
 
   return (
     <PageStyle>
@@ -91,7 +90,7 @@ function OportunidadesAdmin() {
             <Button
               variant="contained"
               startIcon={<Add />}
-              onClick={() => setEditando('nova')}
+              onClick={() => navigate('/admin/oportunidades/nova')}
               sx={{ textTransform: 'none', borderRadius: 2 }}
             >
               Nova oportunidade
@@ -102,27 +101,29 @@ function OportunidadesAdmin() {
             oportunidades={aba === 'abertas' ? abertas : encerradas}
             carregando={isFetching && !data}
             onInteressados={setInteressados}
-            onEditar={setEditando}
-            onAbrirOuEncerrar={(o) =>
+            onEditar={(o) => navigate(`/admin/oportunidades/${o.id}`)}
+            onAbrirOuEncerrar={(o) => {
+              // reabrir a vencida tira a data final, senão continuaria fechada
+              const vencida =
+                !!o.closesAt && new Date(o.closesAt) <= new Date();
               salvar.mutate({
                 churchId,
                 id: o.id,
-                dados: { aberta: !o.isOpen },
-                aviso: o.isOpen
+                dados: o.encerrada
+                  ? { aberta: true, ...(vencida && { encerraEm: null }) }
+                  : { aberta: false },
+                aviso: !o.encerrada
                   ? 'Oportunidade encerrada'
-                  : 'Oportunidade reaberta',
-              })
-            }
+                  : vencida
+                    ? 'Oportunidade reaberta, sem data final'
+                    : 'Oportunidade reaberta',
+              });
+            }}
             onExcluir={setExcluindo}
           />
 
-          <ModalDaOportunidade
-            open={!!editando}
-            churchId={churchId}
-            oportunidade={editando === 'nova' ? null : editando}
-            onClose={() => setEditando(null)}
-          />
           <ModalInteressados
+            churchId={churchId}
             oportunidade={interessados}
             onClose={() => setInteressados(null)}
           />
@@ -130,7 +131,7 @@ function OportunidadesAdmin() {
             open={!!excluindo}
             onClose={() => setExcluindo(null)}
             title="Excluir oportunidade?"
-            message={`“${excluindo?.title ?? ''}” sai do sistema, com a lista de interessados. Para só tirar dos membros, encerre.`}
+            message={`“${excluindo?.title ?? ''}” sai do sistema, com as candidaturas e os currículos. Para só tirar dos membros, encerre.`}
             alerta={
               excluindo?.interests.length
                 ? `${excluindo.interests.length} ${excluindo.interests.length === 1 ? 'pessoa demonstrou' : 'pessoas demonstraram'} interesse. Exporte a lista antes, se ainda precisar dela.`

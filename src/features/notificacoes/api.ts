@@ -10,7 +10,8 @@ export type TipoDeNotificacao =
   /** um dos dois aprovou e falta você (o pastor ou a tesouraria) */
   | 'CHURCH_REQUEST_AWAITING'
   | 'NEWS'
-  | 'EVENT';
+  | 'EVENT'
+  | 'OPPORTUNITY';
 
 export interface Notificacao {
   id: string;

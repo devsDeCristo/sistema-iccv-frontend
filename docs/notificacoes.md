@@ -32,6 +32,7 @@ duas áreas (usuário e painel). Quem recebe cada aviso é decidido no backend
 | Solicitação aguardando você (pastor ou tesouraria) | Solicitações | `/admin/solicitacoes` (troca a igreja) |
 | Notícia | Notícias | `/home` (o mural) |
 | Novo evento | Eventos | `/eventos/:id` |
+| Nova oportunidade | Oportunidades | `/oportunidades?vaga=:id` (abre o modal da vaga) |
 
 ## Código
 

@@ -21,6 +21,7 @@ import { DataGrid, GridColDef, ptBR } from '@mui/x-data-grid';
 
 import CustomChip from '../../../components/customChip';
 import { cardTabelaSx, dataGridSx } from '../../../components/listPageStyles';
+import { formatarData } from '../formulario';
 import { OportunidadeDaIgreja } from '../types';
 
 interface Props {
@@ -31,6 +32,9 @@ interface Props {
   onAbrirOuEncerrar: (oportunidade: OportunidadeDaIgreja) => void;
   onExcluir: (oportunidade: OportunidadeDaIgreja) => void;
 }
+
+const situacao = (o: OportunidadeDaIgreja) =>
+  !o.encerrada ? 'Aberta' : o.isOpen ? 'Vencida' : 'Encerrada';
 
 /** As vagas da igreja; as ações de cada uma ficam na própria linha */
 function ListaDaIgreja({
@@ -84,7 +88,7 @@ function ListaDaIgreja({
     },
     {
       field: 'interests',
-      headerName: 'Interessados',
+      headerName: 'Candidaturas',
       width: 140,
       valueGetter: ({ row }) => row.interests.length,
       renderCell: ({ row }) => (
@@ -92,7 +96,7 @@ function ListaDaIgreja({
           size="small"
           startIcon={<PeopleOutline />}
           onClick={() => onInteressados(row)}
-          aria-label={`Ver os interessados em ${row.title}`}
+          aria-label={`Ver as candidaturas em ${row.title}`}
           sx={{ textTransform: 'none', fontWeight: 600 }}
         >
           {row.interests.length}
@@ -101,24 +105,44 @@ function ListaDaIgreja({
     },
     {
       field: 'createdAt',
-      headerName: 'Publicada em',
-      width: 120,
+      headerName: 'Publicada',
+      width: 140,
+      renderCell: ({ row }) => (
+        <Box sx={{ py: 1, minWidth: 0 }}>
+          <Typography fontSize={13}>{formatarData(row.createdAt)}</Typography>
+          {row.createdBy && (
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              noWrap
+              component="div"
+            >
+              por {row.createdBy.fullName.split(' ')[0]}
+            </Typography>
+          )}
+        </Box>
+      ),
+    },
+    {
+      field: 'closesAt',
+      headerName: 'Até',
+      width: 110,
       valueFormatter: ({ value }) =>
-        new Date(value as string).toLocaleDateString('pt-BR'),
+        value ? formatarData(value as string) : '—',
     },
     {
       field: 'isOpen',
       headerName: 'Situação',
       width: 120,
-      valueGetter: ({ row }) => (row.isOpen ? 'Aberta' : 'Encerrada'),
+      valueGetter: ({ row }) => situacao(row),
       renderCell: ({ row }) => (
         <CustomChip
           size="small"
-          label={row.isOpen ? 'Aberta' : 'Encerrada'}
+          label={situacao(row)}
           customColor={
-            row.isOpen
-              ? theme.palette.success.main
-              : theme.palette.text.secondary
+            row.encerrada
+              ? theme.palette.text.secondary
+              : theme.palette.success.main
           }
         />
       ),
@@ -136,8 +160,8 @@ function ListaDaIgreja({
             onEditar(row)
           )}
           {acao(
-            row.isOpen ? 'Encerrar' : 'Reabrir',
-            row.isOpen ? (
+            row.encerrada ? 'Reabrir' : 'Encerrar',
+            !row.encerrada ? (
               <LockOutlined fontSize="small" />
             ) : (
               <LockOpenOutlined fontSize="small" />

@@ -65,6 +65,11 @@ const DESTINO: Record<
   },
   NEWS: { modulo: 'noticias', rota: () => '/home' },
   EVENT: { modulo: 'eventos', rota: (n) => `/eventos/${n.origemId}` },
+  // abre a vitrine com o modal da vaga
+  OPPORTUNITY: {
+    modulo: 'oportunidades',
+    rota: (n) => `/oportunidades?vaga=${n.origemId}`,
+  },
 };
 
 /**
