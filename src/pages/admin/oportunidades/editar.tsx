@@ -9,10 +9,14 @@ import {
   Paper,
   Stack,
   TextField,
+  ToggleButton,
+  ToggleButtonGroup,
   Typography,
 } from '@mui/material';
 import { DeleteOutline, ImageOutlined } from '@mui/icons-material';
+import { format, isValid } from 'date-fns';
 import ReactQuillEditor from '../../../components/reactQuillEditor';
+import { InputDatePicker } from '../../../components/inputDatePicker';
 import { toast } from 'react-toastify';
 
 import { PageStyle } from '../../../components/pageStyle';
@@ -37,6 +41,13 @@ import {
 } from '../../../features/oportunidades/components/editorDoFormulario';
 import { ImagemDaVaga } from '../../../features/oportunidades/components/cardDaVaga';
 import { DadosDaOportunidade } from '../../../features/oportunidades/types';
+
+/** "2026-12-31" como data local (sem o fuso empurrar para o dia anterior) */
+const dataDoDia = (dia: string | null) => {
+  if (!dia) return null;
+  const [ano, mes, d] = dia.split('-').map(Number);
+  return new Date(ano, mes - 1, d);
+};
 
 const IMAGEM_MAXIMA_BYTES = 5 * 1024 * 1024;
 
@@ -90,6 +101,8 @@ function EditarOportunidade() {
   const existente = useMemo(() => vagas?.find((v) => v.id === id), [vagas, id]);
 
   const [dados, setDados] = useState<DadosDaOportunidade>(nova);
+  // valor fixo ou faixa: a vaga com máximo abre em faixa
+  const [faixa, setFaixa] = useState(false);
   // `undefined`: sem mudança; `File`: trocar; `null`: remover
   const [imagem, setImagem] = useState<File | null | undefined>(undefined);
   const previa = useMemo(
@@ -109,6 +122,7 @@ function EditarOportunidade() {
       salario: existente.salario,
       formulario: existente.formulario,
     });
+    setFaixa(existente.salario?.max !== undefined);
   }, [existente]);
 
   if (id && isLoading) {
@@ -139,6 +153,13 @@ function EditarOportunidade() {
   const mudar = (parte: Partial<DadosDaOportunidade>) =>
     setDados((atual) => ({ ...atual, ...parte }));
   const salario = dados.salario ?? {};
+  const faixaInvertida =
+    faixa &&
+    salario.min !== undefined &&
+    salario.min !== '' &&
+    salario.max !== undefined &&
+    salario.max !== '' &&
+    Number(salario.max) < Number(salario.min);
   const imagemAtual =
     imagem === null ? null : (previa ?? existente?.imagemUrl ?? null);
 
@@ -146,6 +167,7 @@ function EditarOportunidade() {
     !dados.titulo.trim() && 'dê um título à vaga',
     !dados.empresa.trim() && 'diga quem oferece',
     !descricaoEmTexto(dados.descricao).trim() && 'descreva a vaga',
+    faixaInvertida && 'o salário máximo é menor que o inicial',
     ...problemasDoFormulario(dados.formulario.campos),
   ].filter(Boolean) as string[];
 
@@ -168,7 +190,8 @@ function EditarOportunidade() {
               ? null
               : {
                   min: Number(salario.min),
-                  ...(salario.max !== undefined &&
+                  ...(faixa &&
+                    salario.max !== undefined &&
                     salario.max !== '' && { max: Number(salario.max) }),
                 },
         },
@@ -300,9 +323,46 @@ function EditarOportunidade() {
                   sx={{ flex: 1 }}
                 />
               </Stack>
+              {/* o salário: valor fixo ou faixa; os dois são opcionais */}
+              <Stack
+                direction="row"
+                alignItems="center"
+                gap={1.5}
+                flexWrap="wrap"
+              >
+                <Typography variant="body2" color="text.secondary">
+                  Salário (opcional)
+                </Typography>
+                <ToggleButtonGroup
+                  exclusive
+                  size="small"
+                  value={faixa ? 'faixa' : 'fixo'}
+                  onChange={(_, valor) => {
+                    if (!valor) return;
+                    setFaixa(valor === 'faixa');
+                    // o fixo não tem máximo: ele não vai junto
+                    if (valor === 'fixo')
+                      mudar({ salario: { min: salario.min } });
+                  }}
+                  aria-label="Tipo de salário"
+                >
+                  <ToggleButton
+                    value="fixo"
+                    sx={{ textTransform: 'none', px: 1.5 }}
+                  >
+                    Valor fixo
+                  </ToggleButton>
+                  <ToggleButton
+                    value="faixa"
+                    sx={{ textTransform: 'none', px: 1.5 }}
+                  >
+                    Faixa
+                  </ToggleButton>
+                </ToggleButtonGroup>
+              </Stack>
               <Stack direction={{ xs: 'column', sm: 'row' }} gap={2}>
                 <TextField
-                  label="Salário (ou mínimo)"
+                  label={faixa ? 'De' : 'Salário'}
                   type="number"
                   value={salario.min ?? ''}
                   onChange={(e) =>
@@ -314,34 +374,52 @@ function EditarOportunidade() {
                       <InputAdornment position="start">R$</InputAdornment>
                     ),
                   }}
-                  helperText="Opcional. Vazio: não aparece"
+                  helperText="Vazio: não aparece"
                   sx={{ flex: 1 }}
                 />
-                <TextField
-                  label="Salário máximo"
-                  type="number"
-                  value={salario.max ?? ''}
-                  onChange={(e) =>
-                    mudar({ salario: { ...salario, max: e.target.value } })
-                  }
-                  inputProps={{ min: 0, step: 50 }}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">R$</InputAdornment>
-                    ),
-                  }}
-                  helperText="Para uma faixa"
-                  sx={{ flex: 1 }}
-                />
-                <TextField
-                  label="Candidaturas até"
-                  type="date"
-                  value={dados.encerraEm ?? ''}
-                  onChange={(e) => mudar({ encerraEm: e.target.value || null })}
-                  InputLabelProps={{ shrink: true }}
-                  helperText="Opcional. Depois do dia, encerra sozinha"
-                  sx={{ flex: 1 }}
-                />
+                {faixa && (
+                  <TextField
+                    label="Até"
+                    type="number"
+                    value={salario.max ?? ''}
+                    onChange={(e) =>
+                      mudar({ salario: { ...salario, max: e.target.value } })
+                    }
+                    inputProps={{ min: 0, step: 50 }}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">R$</InputAdornment>
+                      ),
+                    }}
+                    error={faixaInvertida}
+                    helperText={
+                      faixaInvertida ? 'Menor que o valor inicial' : ' '
+                    }
+                    sx={{ flex: 1 }}
+                  />
+                )}
+                {/* o seletor de data do sistema (o mesmo do cadastro de usuário) */}
+                <Box sx={{ flex: 1 }}>
+                  <InputDatePicker
+                    label="Candidaturas até"
+                    value={dataDoDia(dados.encerraEm)}
+                    onChange={(dia) =>
+                      mudar({
+                        encerraEm:
+                          dia && isValid(dia)
+                            ? format(dia, 'yyyy-MM-dd')
+                            : null,
+                      })
+                    }
+                    disablePast
+                    slotProps={{
+                      field: { clearable: true },
+                      textField: {
+                        helperText: 'Opcional. Depois do dia, encerra sozinha',
+                      },
+                    }}
+                  />
+                </Box>
               </Stack>
               <Box>
                 <Typography
@@ -360,28 +438,28 @@ function EditarOportunidade() {
             </Stack>
           </Secao>
 
-          <Secao titulo="Formulário de candidatura">
-            {/* o editor e, ao lado, a prévia do que o candidato vê; no celular a prévia desce */}
-            <Box
-              sx={{
-                display: 'grid',
-                gridTemplateColumns: {
-                  xs: '1fr',
-                  lg: 'minmax(0, 1fr) minmax(0, 1fr)',
-                },
-                gap: 2.5,
-                alignItems: 'start',
-              }}
-            >
+          {/* o editor e, ao lado, a prévia num Paper só dela; no celular a prévia desce */}
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: {
+                xs: '1fr',
+                lg: 'minmax(0, 1fr) minmax(0, 1fr)',
+              },
+              gap: 2,
+              alignItems: 'start',
+            }}
+          >
+            <Secao titulo="Formulário de candidatura">
               <EditorDoFormulario
                 campos={dados.formulario.campos}
                 onChange={(campos) => mudar({ formulario: { campos } })}
               />
-              <Box sx={{ position: { lg: 'sticky' }, top: { lg: 88 } }}>
-                <PreviaDoFormulario campos={dados.formulario.campos} />
-              </Box>
+            </Secao>
+            <Box sx={{ position: { lg: 'sticky' }, top: { lg: 88 } }}>
+              <PreviaDoFormulario campos={dados.formulario.campos} />
             </Box>
-          </Secao>
+          </Box>
 
           <Stack
             direction="row"

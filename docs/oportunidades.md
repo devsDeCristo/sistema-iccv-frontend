@@ -127,14 +127,23 @@ ser longo, e no celular o modal fica apertado.
 - **Publicar e editar** (`pages/admin/oportunidades/editar.tsx`, em
   `/admin/oportunidades/nova` e `/admin/oportunidades/:id`):
   - **A vaga:** imagem (prévia, trocar, remover; sobe depois de salvar),
-    Vaga\*, Quem oferece\*, Local, salário (valor ou faixa), "Candidaturas
-    até" (data) e Descrição\* no `ReactQuillEditor`, o editor do sistema,
+    Vaga\*, Quem oferece\*, Local e Descrição\* no `ReactQuillEditor`, o editor do sistema,
     com fundo, borda e ícones iguais aos dos campos.
+  - **Salário** (opcional): "Valor fixo" ou "Faixa", num
+    `ToggleButtonGroup` como o de Nova tesouraria. Valor fixo mostra um
+    campo ("Salário"); faixa mostra dois ("De" e "Até"), e o "Até" fica em
+    vermelho se for menor que o "De". Voltar para fixo descarta o máximo. A
+    vaga com máximo já abre em faixa.
+  - **Candidaturas até** (opcional): o `InputDatePicker` do sistema (o
+    mesmo da data de nascimento no cadastro de usuário), sem dias passados
+    e com o botão de limpar.
   - **Formulário de candidatura** (`components/editorDoFormulario.tsx`), em
     duas colunas na tela grande: o editor e, ao lado (fixa ao rolar), a
-    **prévia** do que o candidato vê. A prévia usa o mesmo
-    `CampoDoFormulario` da candidatura, dá para preencher e não envia nada.
-    No celular, a prévia desce para baixo do editor.
+    **prévia** num Paper só dela, com o que o candidato vê. A prévia usa o
+    mesmo `CampoDoFormulario` da candidatura e é só para olhar: os campos
+    não respondem a clique, teclado nem leitor de tela (`inert`), para quem
+    monta o formulário não confundi-la com o editor. No celular, a prévia
+    desce para baixo do editor.
   - Cada campo é um card um tom abaixo do Paper (`background.default`), com
     a faixa laranja à esquerda no campo em edição, como no Google Forms, e
     com subir/descer, remover e a chave **Obrigatório**. Nas perguntas

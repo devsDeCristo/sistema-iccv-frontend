@@ -368,66 +368,56 @@ export function EditorDoFormulario({
 }
 
 /**
- * O formulário como o candidato vai ver, ao vivo enquanto o admin edita.
- * Dá para preencher (para sentir o formulário), mas nada é enviado.
+ * O formulário como o candidato vai ver, ao vivo enquanto o admin edita, num
+ * Paper só dele. É só para olhar: os campos não respondem a clique, teclado
+ * nem leitor de tela (`inert`), para quem monta o formulário não confundir a
+ * prévia com o editor.
  */
 export function PreviaDoFormulario({ campos }: { campos: Campo[] }) {
-  const theme = useTheme();
-  const [valores, setValores] = useState<Record<string, unknown>>({});
-  const [curriculo, setCurriculo] = useState<File | null>(null);
-
   return (
-    <Box
-      sx={{
-        borderRadius: 3,
-        border: `1px dashed ${theme.palette.divider}`,
-        overflow: 'hidden',
-      }}
-    >
-      <Stack
-        direction="row"
-        alignItems="center"
-        gap={1}
-        sx={{
-          px: 2,
-          py: 1,
-          borderBottom: `1px dashed ${theme.palette.divider}`,
-          color: 'text.secondary',
-          '& svg': { fontSize: 18 },
-        }}
+    <Paper sx={{ borderRadius: 3, p: { xs: 2, sm: 2.5 } }}>
+      <Stack direction="row" alignItems="center" gap={1} sx={{ mb: 0.5 }}>
+        <VisibilityOutlined sx={{ fontSize: 20, color: 'text.secondary' }} />
+        <Typography fontWeight={800}>Prévia</Typography>
+      </Stack>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 2.5 }}>
+        Como o candidato vê o formulário. Só para conferir: edite ao lado.
+      </Typography>
+
+      <Box
+        // `inert` tira cliques, foco e leitor de tela de tudo aqui dentro
+        {...{ inert: '' }}
+        aria-hidden
+        sx={{ pointerEvents: 'none', userSelect: 'none' }}
       >
-        <VisibilityOutlined />
-        <Typography variant="body2" fontWeight={700}>
-          Prévia: como o candidato vê
-        </Typography>
-      </Stack>
-      <Stack spacing={2.5} sx={{ p: 2 }}>
-        <Box>
-          <Typography fontWeight={700} sx={{ mb: 0.5 }}>
-            Seus dados
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Nome, e-mail e celular vêm do perfil do candidato.
-          </Typography>
-        </Box>
-        {campos.map((campo) => (
-          <CampoDoFormulario
-            key={campo.id}
-            campo={{
-              ...campo,
-              rotulo: campo.rotulo.trim() || 'Pergunta sem título',
-              opcoes: campo.opcoes?.filter((o) => o.trim()),
-            }}
-            valor={valores[campo.id]}
-            onChange={(v) => setValores((a) => ({ ...a, [campo.id]: v }))}
-            curriculo={curriculo}
-            onCurriculo={setCurriculo}
-          />
-        ))}
-        <Button variant="contained" disabled sx={{ alignSelf: 'flex-end' }}>
-          Enviar candidatura
-        </Button>
-      </Stack>
-    </Box>
+        <Stack spacing={2.5}>
+          <Box>
+            <Typography fontWeight={700} sx={{ mb: 0.5 }}>
+              Seus dados
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Nome, e-mail e celular vêm do perfil do candidato.
+            </Typography>
+          </Box>
+          {campos.map((campo) => (
+            <CampoDoFormulario
+              key={campo.id}
+              campo={{
+                ...campo,
+                rotulo: campo.rotulo.trim() || 'Pergunta sem título',
+                opcoes: campo.opcoes?.filter((o) => o.trim()),
+              }}
+              valor={undefined}
+              onChange={() => undefined}
+              curriculo={null}
+              onCurriculo={() => undefined}
+            />
+          ))}
+          <Button variant="contained" disabled sx={{ alignSelf: 'flex-end' }}>
+            Enviar candidatura
+          </Button>
+        </Stack>
+      </Box>
+    </Paper>
   );
 }
