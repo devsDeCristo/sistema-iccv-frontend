@@ -12,6 +12,14 @@ e formato do formulário em `ic-backend/docs/oportunidades.md`.
   só a quem é membro de uma igreja com o módulo no plano
   (`memberChurch.modulos` da sessão). Quem abrir o endereço sem isso lê o
   motivo, e a tela nem consulta a API.
+- **Filtros** (na barra de cima, no padrão das listas do sistema), feitos
+  na tela sobre a lista que a API já entrega:
+  - busca por nome ("Pesquisar vaga por nome"), que procura no título e em
+    quem oferece, sem diferenciar acento nem maiúsculas;
+  - "Publicada entre" (`SeletorDeIntervalo`, só datas, sem futuro). As duas
+    pontas podem ficar vazias ("qualquer data" e "hoje"), e o fim vale o
+    dia inteiro.
+  - Se nada passar pelos filtros, a tela diz isso.
 - **Agrupamento:** pelo mês de publicação ("Novembro de 2026 · 3 vagas"),
   das mais novas para as mais antigas, com o mesmo título de grupo do
   histórico de eventos (que agrupa por ano).
