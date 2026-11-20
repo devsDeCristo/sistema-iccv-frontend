@@ -12,6 +12,9 @@ e formato do formulário em `ic-backend/docs/oportunidades.md`.
   só a quem é membro de uma igreja com o módulo no plano
   (`memberChurch.modulos` da sessão). Quem abrir o endereço sem isso lê o
   motivo, e a tela nem consulta a API.
+- **Agrupamento:** pelo mês de publicação ("Novembro de 2026 · 3 vagas"),
+  das mais novas para as mais antigas, com o mesmo título de grupo do
+  histórico de eventos (que agrupa por ano).
 - **Cards** (`components/cardDaVaga.tsx`), no mesmo estilo dos cards de
   Solicitações e na mesma grade (3 colunas na tela grande, 2 no tablet, 1
   no celular):
