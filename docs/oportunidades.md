@@ -53,9 +53,20 @@ e formato do formulário em `ic-backend/docs/oportunidades.md`.
   - De cima para baixo: fita e mosquetão, o rasgo do crachá, a logo e quem
     oferece, "ESTAMOS CONTRATANDO!" (ou "VAGA ENCERRADA"), o selo "VAGA"
     entre traços e o título.
-  - Depois, a descrição inteira (`ReactQuillViewer`; vaga antiga, em texto
-    puro, vira parágrafos por `descricaoEmHtml`) e a ficha: quem oferece,
-    local, salário, candidaturas até e publicada em.
+  - Depois, a descrição **cortada em 5 linhas** (a última esmaece) e a ficha
+    em linhas, rótulo à esquerda e valor à direita: local, salário,
+    candidaturas até e publicada em ("Quem oferece" saiu: a empresa já está
+    no topo). As linhas em branco ficam como foram escritas; as listas
+    perdem o recuo grande do Quill.
+  - **Ver mais** (só quando o texto passa do corte) **vira o crachá**
+    (`rotateY`, 0,6s; sem animação com `prefers-reduced-motion`). O verso
+    tem o mesmo tamanho da frente: o letreiro "Sobre a vaga", o título e a
+    descrição inteira. Se ela não cabe, vira **páginas**, com ‹ 1 / 3 › embaixo.
+    As páginas são colunas CSS da largura da área (`column-width`, em
+    `DescricaoPaginada`): o navegador quebra o HTML onde cabe, sem cortar
+    linha, e trocar de página desliza as colunas. "Voltar ao crachá" desvira.
+    A face escondida fica `inert`, fora do teclado e do leitor de tela.
+    Abrir outra vaga recomeça na frente e na página 1.
   - Embaixo, o botão **Candidatar-me** (ou **Ver candidatura**), dentro do
     crachá.
   - Na tela grande, um segundo crachá, do mesmo tamanho do da frente e na
@@ -78,6 +89,31 @@ e formato do formulário em `ic-backend/docs/oportunidades.md`.
     cor vai junto no upload da imagem.
 - A vaga aberta fica no endereço (`?vaga=<id>`): a notificação de vaga nova
   e o voltar da candidatura caem direto no modal dela.
+
+## Propor uma vaga (membro)
+
+Qualquer membro que vê as vagas pode propor uma. Ela só vai ao ar depois que
+o admin aprova.
+
+- **Onde:** o botão **Propor vaga** no cabeçalho da vitrine, e a aba
+  **Minhas propostas** ao lado de **Vagas** (`?aba=propostas`, onde cai o
+  aviso de proposta aprovada ou recusada).
+- **Página da proposta** (`pages/oportunidades/proposta.tsx`): em
+  `/oportunidades/propor` para propor e `/oportunidades/propostas/:id` para
+  editar a pendente. É o mesmo formulário do admin (`FormularioDaVaga`: a
+  vaga, o salário, a data, a descrição, o formulário de candidatura com a
+  prévia). No topo, o aviso: a proposta vai para o admin, que pode ajustar,
+  aprovar ou recusar, e só aparece aos membros aprovada. Aprovada, quem
+  propôs vê nome, celular, e-mail, currículo e respostas dos candidatos,
+  para usar só no processo da vaga. Decidida, a página não edita mais e diz
+  isso.
+- **Minhas propostas** (`components/minhasPropostas.tsx`): a mesma lista do
+  painel, com a situação e o motivo da recusa.
+  - Na pendente: **Editar** e **Retirar** (com confirmação).
+  - Na aprovada: o botão de candidaturas abre a mesma página do admin
+    (`/oportunidades/propostas/:id/candidaturas`), com a etapa, a anotação,
+    o currículo pela rota da proposta e a exportação.
+  - Sem nenhuma, um convite para propor.
 
 ## Candidatura (`/oportunidades/:id/candidatura`)
 
@@ -114,19 +150,29 @@ ser longo, e no celular o modal fica apertado.
   plano: rotas com `ADMIN_ROLES`; a tesouraria não tem o item no menu. O
   seletor de igreja do topo (`ChurchScopeBar` + `useIgrejaSelecionada`)
   escolhe de qual igreja são as vagas.
-- **Abas** (`NavTabs`): **Abertas** e **Encerradas** (a vencida entra aqui),
-  com a quantidade de cada uma. **Nova oportunidade** fica ao lado das abas.
-- **Lista** (`components/listaDaIgreja.tsx`): vaga (título, quem oferece e
-  local), candidaturas (botão com a contagem), data de publicação com quem
-  publicou, data final e situação em chip (Aberta em verde; Encerrada e
-  Vencida em cinza). Ações na linha:
-  - **Editar**;
-  - **Encerrar**/**Reabrir**, sem confirmação porque é reversível. Reabrir
-    uma vencida tira a data final e avisa;
-  - **Excluir**, com confirmação. Se houver candidaturas, o aviso sugere
-    exportar antes.
+- **Abas** (`NavTabs`, no endereço como `?aba=`): **Pendentes** (as
+  propostas dos membros), **Abertas**, **Encerradas** (a vencida entra aqui)
+  e **Recusadas**, com a quantidade de cada uma. Sem aba no endereço, abre
+  em Pendentes se houver alguma; senão, em Abertas. **Nova oportunidade**
+  fica ao lado das abas.
+- **Lista** (`components/listaDaIgreja.tsx`, a mesma de "Minhas propostas";
+  as ações de cada linha vêm de quem usa): vaga (título, quem oferece e
+  local; na recusada, o motivo), candidaturas (botão com a contagem; "—"
+  fora da aprovada), data com quem publicou ("proposta por Fulano" na
+  proposta), data final e situação em chip: Pendente (laranja), Aberta
+  (verde), Encerrada e Vencida (cinza), Recusada (vermelho). Ações na linha:
+  - **pendente:** **Revisar e editar** (a página da vaga, com o aviso de
+    que é proposta), **Aprovar** (confirmação: avisa os membros, e quem
+    propôs passa a ver os candidatos) e **Recusar** (janela com motivo
+    opcional, que vai para quem propôs);
+  - **aprovada:** **Editar**; **Encerrar**/**Reabrir**, sem confirmação
+    porque é reversível (reabrir uma vencida tira a data final e avisa); e
+    **Excluir**, com confirmação, que sugere exportar antes se houver
+    candidaturas;
+  - **recusada:** só **Excluir**.
 - **Publicar e editar** (`pages/admin/oportunidades/editar.tsx`, em
-  `/admin/oportunidades/nova` e `/admin/oportunidades/:id`):
+  `/admin/oportunidades/nova` e `/admin/oportunidades/:id`; o formulário é
+  `components/formularioDaVaga.tsx`, o mesmo da proposta do membro):
   - **A vaga:** imagem (prévia, trocar, remover; sobe depois de salvar),
     Vaga\*, Quem oferece\*, Local e Descrição\* no `ReactQuillEditor`, o editor do sistema,
     com fundo, borda e ícones iguais aos dos campos.
@@ -156,13 +202,37 @@ ser longo, e no celular o modal fica apertado.
     social). A vaga nova já vem com Currículo, Pretensão salarial,
     Mensagem, LinkedIn e Instagram.
   - O botão salvar fica desligado e diz o que falta, como na candidatura.
-- **Candidaturas** (`components/modalInteressados.tsx`): foto, nome, celular,
-  e-mail e data de cada candidato, na ordem em que chegaram. Clicar abre as
-  respostas: links das redes clicáveis e **Baixar currículo**, que vem pela
-  API (o arquivo não tem link público). **Exportar PDF**
-  (`components/pdfCandidaturas.tsx`) gera `<vaga>-candidaturas.pdf` com a
-  tabela de nome, celular e e-mail e um bloco por candidato com as
-  respostas. Os currículos vão à parte.
+- **Candidaturas** (página, `components/paginaDeCandidaturas.tsx`): o botão
+  com a contagem, na lista, leva a `/admin/oportunidades/:id/candidaturas`
+  (e, para quem propôs a vaga, a `/oportunidades/propostas/:id/candidaturas`,
+  a mesma página). Ela substitui a janela que havia antes.
+  - **Cards no topo** (`StatusCards`): candidaturas, com currículo, novas
+    nas últimas 24 horas e selecionadas.
+  - **Lista à esquerda:** foto, nome, data, a etapa num chip, o ícone de
+    currículo e a pretensão salarial. Tem busca por nome ou e-mail, filtro
+    por etapa, ordem (mais recentes, mais antigas, nome), "só com currículo",
+    "pretensão até" e um filtro para cada pergunta de escolha do formulário
+    (seleção, opção única, caixas). "Limpar filtros" volta tudo.
+  - **Detalhe à direita:** foto, nome, contato, data e hora da candidatura,
+    botões **WhatsApp** (`wa.me`), **E-mail** (com a vaga no assunto) e
+    **Copiar contato**. Depois o **acompanhamento** e as respostas na ordem
+    do formulário (resposta a campo que saiu vem no fim, com o rótulo de
+    quando respondeu), com os links das redes clicáveis. O currículo tem
+    **Ver** (um visualizador de PDF na própria página; alguns celulares não
+    mostram PDF ali, e a tela diz para baixar) e **Baixar**. Embaixo,
+    **Anterior** e **Próximo**, na ordem da lista filtrada.
+  - **Acompanhamento** (interno; o candidato não vê): a **etapa** (Nova, Em
+    análise, Entrevista, Selecionada, Descartada), que grava ao escolher, e
+    a **anotação interna**, com "Salvar anotação".
+  - **Celular:** a lista ocupa a tela; tocar num candidato abre o detalhe,
+    com "Todos os candidatos" para voltar. Na tela grande, o primeiro da
+    lista já aparece aberto. O candidato aberto fica no endereço
+    (`?candidato=<id>`).
+  - **Exportar (N):** exporta o que está filtrado. O **PDF**
+    (`components/pdfCandidaturas.tsx`) traz a tabela de contato e um bloco
+    por candidato com as respostas. O **Excel** tem uma coluna por pergunta
+    do formulário, mais nome, celular, e-mail, data e etapa. A anotação, que
+    é interna, não vai em nenhum dos dois.
 - **Home do painel:** card de Oportunidades para o admin da igreja
   (`modulosDaIgreja.tsx`), como os outros módulos.
 

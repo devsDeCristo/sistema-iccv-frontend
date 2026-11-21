@@ -9,6 +9,7 @@ import {
 } from '../../utils/service';
 import {
   DadosDaOportunidade,
+  EtapaDaCandidatura,
   DetalheDaOportunidade,
   OportunidadeDaIgreja,
   OportunidadeDoMembro,
@@ -17,6 +18,7 @@ import {
 const GET_ABERTAS = 'GET_OPORTUNIDADES_ABERTAS';
 const GET_DETALHE = 'GET_OPORTUNIDADE';
 const GET_DA_IGREJA = 'GET_OPORTUNIDADES_DA_IGREJA';
+const GET_PROPOSTAS = 'GET_MINHAS_PROPOSTAS';
 
 const atualizarMembro = () =>
   Promise.all([
@@ -24,6 +26,7 @@ const atualizarMembro = () =>
     queryClient.invalidateQueries(GET_DETALHE),
   ]);
 const atualizarPainel = () => queryClient.invalidateQueries(GET_DA_IGREJA);
+const atualizarPropostas = () => queryClient.invalidateQueries(GET_PROPOSTAS);
 
 /** As vagas da igreja de que a pessoa é membro: a API decide qual */
 export const useOportunidadesAbertas = (enabled: boolean) =>
@@ -123,19 +126,26 @@ export const useSalvarOportunidade = () =>
     onSuccess: atualizarPainel,
   });
 
-/** `File` troca a imagem (com a cor dominante dela, para o crachá); `null` remove */
+/** O caminho de uma vaga na API: pelo painel ou como proposta do membro */
+export const caminhoNoPainel = (churchId: string, id: string) =>
+  `/churches/${churchId}/oportunidades/${id}`;
+export const caminhoDaProposta = (id: string) =>
+  `/oportunidades/propostas/${id}`;
+
+/**
+ * `File` troca a imagem (com a cor dominante dela, para o crachá); `null`
+ * remove. `caminho` é o da vaga (`caminhoNoPainel` ou `caminhoDaProposta`).
+ */
 export const useImagemDaOportunidade = () =>
   useMutation({
     mutationFn: async ({
-      churchId,
-      id,
+      caminho,
       imagem,
     }: {
-      churchId: string;
-      id: string;
+      caminho: string;
       imagem: File | null;
     }) => {
-      const url = `/churches/${churchId}/oportunidades/${id}/imagem`;
+      const url = `${caminho}/imagem`;
       if (!imagem) return apiClient.delete(url).then((r) => r.data);
       const corpo = new FormData();
       corpo.append('imagem', imagem);
@@ -143,7 +153,7 @@ export const useImagemDaOportunidade = () =>
       if (cor) corpo.append('cor', cor);
       return apiClient.put(url, corpo).then((r) => r.data);
     },
-    onSuccess: atualizarPainel,
+    onSuccess: () => Promise.all([atualizarPainel(), atualizarPropostas()]),
   });
 
 export const useExcluirOportunidade = () =>
@@ -158,16 +168,125 @@ export const useExcluirOportunidade = () =>
     onSuccess: atualizarPainel,
   });
 
-/** O currículo vem pela API (não há link público): baixa como arquivo */
+/** O currículo como arquivo (vem pela API: não há link público) */
+export const buscarCurriculo = (caminho: string, userId: string) =>
+  apiClient
+    .get<Blob>(`${caminho}/interessados/${userId}/curriculo`, {
+      responseType: 'blob',
+    })
+    .then((r) => r.data);
+
+/** A etapa e a anotação de um candidato (o candidato não vê) */
+export const useAcompanharCandidatura = () =>
+  useMutation({
+    mutationFn: ({
+      caminho,
+      userId,
+      etapa,
+      nota,
+    }: {
+      caminho: string;
+      userId: string;
+      etapa?: EtapaDaCandidatura;
+      nota?: string;
+    }) =>
+      apiClient
+        .patch(`${caminho}/interessados/${userId}`, { etapa, nota })
+        .then((response) =>
+          handleResponseSuccess(
+            response.data,
+            etapa ? 'Etapa atualizada' : 'Anotação salva'
+          )()
+        )
+        .catch(handleResponseThrowError()),
+    onSuccess: () => Promise.all([atualizarPainel(), atualizarPropostas()]),
+  });
+
+/**
+ * O currículo vem pela API (não há link público): baixa como arquivo.
+ * `caminho` é o da vaga (painel ou proposta, para quem propôs).
+ */
 export const baixarCurriculo = async (
-  churchId: string,
-  id: string,
+  caminho: string,
   userId: string,
   nome: string
 ) => {
-  const { data } = await apiClient.get<Blob>(
-    `/churches/${churchId}/oportunidades/${id}/interessados/${userId}/curriculo`,
-    { responseType: 'blob' }
-  );
-  FileSaver.saveAs(data, nome);
+  FileSaver.saveAs(await buscarCurriculo(caminho, userId), nome);
 };
+
+/** O admin aprova ou recusa (com motivo opcional) a proposta de um membro */
+export const useDecidirProposta = () =>
+  useMutation({
+    mutationFn: ({
+      churchId,
+      id,
+      decisao,
+      motivo,
+    }: {
+      churchId: string;
+      id: string;
+      decisao: 'aprovar' | 'recusar';
+      motivo?: string;
+    }) =>
+      apiClient
+        .post<OportunidadeDaIgreja>(
+          `${caminhoNoPainel(churchId, id)}/${decisao}`,
+          decisao === 'recusar' ? { motivo } : {}
+        )
+        .then((response) =>
+          handleResponseSuccess(
+            response.data,
+            decisao === 'aprovar'
+              ? 'Proposta aprovada: a vaga está no ar'
+              : 'Proposta recusada'
+          )()
+        )
+        .catch(handleResponseThrowError()),
+    onSuccess: atualizarPainel,
+  });
+
+// ---- propostas do membro -----------------------------------------------------
+
+/** As propostas da pessoa na igreja dela (a aprovada vem com os candidatos) */
+export const useMinhasPropostas = (enabled: boolean) =>
+  useQuery(
+    GET_PROPOSTAS,
+    () =>
+      apiClient
+        .get<OportunidadeDaIgreja[]>('/oportunidades/propostas')
+        .then((response) => response.data),
+    { enabled }
+  );
+
+/** Sem `id` propõe; com `id` edita a proposta pendente */
+export const useSalvarProposta = () =>
+  useMutation({
+    mutationFn: ({ id, dados }: { id?: string; dados: DadosDaOportunidade }) =>
+      (id
+        ? apiClient.put<OportunidadeDaIgreja>(caminhoDaProposta(id), dados)
+        : apiClient.post<OportunidadeDaIgreja>(
+            '/oportunidades/propostas',
+            dados
+          )
+      )
+        .then((response) =>
+          handleResponseSuccess(
+            response.data,
+            id ? 'Proposta salva' : 'Proposta enviada ao admin da igreja'
+          )()
+        )
+        .catch(handleResponseThrowError()),
+    onSuccess: atualizarPropostas,
+  });
+
+export const useRetirarProposta = () =>
+  useMutation({
+    mutationFn: (id: string) =>
+      apiClient
+        .delete(caminhoDaProposta(id))
+        .then((response) =>
+          handleResponseSuccess(response.data, 'Proposta retirada')()
+        )
+        .catch(handleResponseThrowError()),
+    onSuccess: atualizarPropostas,
+  });

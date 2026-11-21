@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import {
   Alert,
   Box,
+  Button,
   CircularProgress,
   InputAdornment,
   Paper,
@@ -9,8 +10,8 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import { Search, Work } from '@mui/icons-material';
-import { useSearchParams } from 'react-router-dom';
+import { Add, AssignmentOutlined, Search, Work } from '@mui/icons-material';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import { PageStyle } from '../../components/pageStyle';
 import { Header } from '../../components/header';
@@ -25,6 +26,8 @@ import {
 } from '../../components/seletorDeIntervalo';
 import { useOportunidadesAbertas } from '../../features/oportunidades/api';
 import { CardDaVaga } from '../../features/oportunidades/components/cardDaVaga';
+import { MinhasPropostas } from '../../features/oportunidades/components/minhasPropostas';
+import { NavTabs } from '../../components/navTabs';
 import { ModalDetalhesDaVaga } from '../../features/oportunidades/components/modalDetalhesDaVaga';
 import { OportunidadeDoMembro } from '../../features/oportunidades/types';
 
@@ -48,6 +51,9 @@ function Oportunidades() {
   const podeVer = !!igreja?.modulos.includes('OPPORTUNITIES');
   const { data, isLoading } = useOportunidadesAbertas(podeVer);
   const [params, setParams] = useSearchParams();
+  const navigate = useNavigate();
+  // a aba fica no endereço: o aviso de proposta aprovada/recusada cai nela
+  const aba = params.get('aba') === 'propostas' ? 'propostas' : 'vagas';
   const aberta = data?.find((v) => v.id === params.get('vaga')) ?? null;
   const [busca, setBusca] = useState('');
   const [periodo, setPeriodo] = useState<Intervalo>({ de: null, ate: null });
@@ -97,7 +103,45 @@ function Oportunidades() {
             ? `Vagas de emprego divulgadas pela ${igreja?.name}`
             : 'Vagas de emprego divulgadas pela igreja'
         }
-      />
+        acaoAoLado
+      >
+        {/* qualquer membro propõe; a vaga só vai ao ar com o aval do admin */}
+        {podeVer && (
+          <Button
+            variant="contained"
+            startIcon={<Add />}
+            onClick={() => navigate('/oportunidades/propor')}
+            sx={{ textTransform: 'none', borderRadius: 2 }}
+          >
+            Propor vaga
+          </Button>
+        )}
+      </Header>
+
+      {podeVer && (
+        <Box sx={{ mb: 2 }}>
+          <NavTabs
+            value={aba}
+            onChange={(nova) =>
+              setParams(nova === 'propostas' ? { aba: nova } : {}, {
+                replace: true,
+              })
+            }
+            options={[
+              {
+                value: 'vagas',
+                label: 'Vagas',
+                icon: <Work fontSize="small" />,
+              },
+              {
+                value: 'propostas',
+                label: 'Minhas propostas',
+                icon: <AssignmentOutlined fontSize="small" />,
+              },
+            ]}
+          />
+        </Box>
+      )}
 
       {!podeVer ? (
         <Alert severity="info">
@@ -105,6 +149,8 @@ function Oportunidades() {
             ? `A ${igreja.name} ainda não divulga oportunidades por aqui.`
             : 'As oportunidades são só para os membros da igreja.'}
         </Alert>
+      ) : aba === 'propostas' ? (
+        <MinhasPropostas />
       ) : isLoading ? (
         <Box sx={{ display: 'grid', placeItems: 'center', py: 6 }}>
           <CircularProgress />

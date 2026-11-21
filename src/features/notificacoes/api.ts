@@ -11,7 +11,9 @@ export type TipoDeNotificacao =
   | 'CHURCH_REQUEST_AWAITING'
   | 'NEWS'
   | 'EVENT'
-  | 'OPPORTUNITY';
+  | 'OPPORTUNITY'
+  | 'OPPORTUNITY_PROPOSAL'
+  | 'OPPORTUNITY_PROPOSAL_ANSWERED';
 
 export interface Notificacao {
   id: string;

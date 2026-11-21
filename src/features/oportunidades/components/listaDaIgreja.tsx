@@ -9,14 +9,7 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
-import {
-  DeleteOutline,
-  EditOutlined,
-  LockOpenOutlined,
-  LockOutlined,
-  PeopleOutline,
-  Work,
-} from '@mui/icons-material';
+import { PeopleOutline, Work } from '@mui/icons-material';
 import { DataGrid, GridColDef, ptBR } from '@mui/x-data-grid';
 
 import CustomChip from '../../../components/customChip';
@@ -24,36 +17,64 @@ import { cardTabelaSx, dataGridSx } from '../../../components/listPageStyles';
 import { formatarData } from '../formulario';
 import { OportunidadeDaIgreja } from '../types';
 
+/** Uma ação da linha: ícone com dica; sem `cor`, a primária */
+export interface AcaoDaLinha {
+  titulo: string;
+  icone: React.ReactNode;
+  onClick: () => void;
+  cor?: string;
+}
+
 interface Props {
   oportunidades: OportunidadeDaIgreja[];
   carregando: boolean;
   onInteressados: (oportunidade: OportunidadeDaIgreja) => void;
-  onEditar: (oportunidade: OportunidadeDaIgreja) => void;
-  onAbrirOuEncerrar: (oportunidade: OportunidadeDaIgreja) => void;
-  onExcluir: (oportunidade: OportunidadeDaIgreja) => void;
+  /**
+   * As ações de cada linha, conforme a situação. Vêm de fora: o admin
+   * aprova, encerra e exclui; quem propôs edita e retira a pendente.
+   */
+  acoesDaLinha: (oportunidade: OportunidadeDaIgreja) => AcaoDaLinha[];
 }
 
 const situacao = (o: OportunidadeDaIgreja) =>
-  !o.encerrada ? 'Aberta' : o.isOpen ? 'Vencida' : 'Encerrada';
+  o.status === 'PENDING'
+    ? 'Pendente'
+    : o.status === 'REJECTED'
+      ? 'Recusada'
+      : !o.encerrada
+        ? 'Aberta'
+        : o.isOpen
+          ? 'Vencida'
+          : 'Encerrada';
 
-/** As vagas da igreja; as ações de cada uma ficam na própria linha */
+/**
+ * As vagas da igreja (no painel) ou as propostas de um membro; as ações de
+ * cada uma ficam na própria linha
+ */
 function ListaDaIgreja({
   oportunidades,
   carregando,
   onInteressados,
-  onEditar,
-  onAbrirOuEncerrar,
-  onExcluir,
+  acoesDaLinha,
 }: Props) {
   const theme = useTheme();
 
-  const acao = (
-    titulo: string,
-    icone: React.ReactNode,
-    onClick: () => void,
-    cor = theme.palette.primary.main
-  ) => (
-    <Tooltip title={titulo} arrow>
+  const corDaSituacao = (o: OportunidadeDaIgreja) =>
+    o.status === 'PENDING'
+      ? theme.palette.warning.main
+      : o.status === 'REJECTED'
+        ? theme.palette.error.main
+        : o.encerrada
+          ? theme.palette.text.secondary
+          : theme.palette.success.main;
+
+  const acao = ({
+    titulo,
+    icone,
+    onClick,
+    cor = theme.palette.primary.main,
+  }: AcaoDaLinha) => (
+    <Tooltip key={titulo} title={titulo} arrow>
       <IconButton
         size="small"
         aria-label={titulo}
@@ -83,6 +104,18 @@ function ListaDaIgreja({
           <Typography variant="caption" color="text.secondary">
             {[row.company, row.location].filter(Boolean).join(' · ')}
           </Typography>
+          {row.status === 'REJECTED' && (
+            <Typography
+              variant="caption"
+              color="error.main"
+              component="div"
+              sx={{ overflowWrap: 'anywhere' }}
+            >
+              {row.rejectionReason
+                ? `Motivo: ${row.rejectionReason}`
+                : 'Recusada sem motivo informado'}
+            </Typography>
+          )}
         </Box>
       ),
     },
@@ -91,17 +124,21 @@ function ListaDaIgreja({
       headerName: 'Candidaturas',
       width: 140,
       valueGetter: ({ row }) => row.interests.length,
-      renderCell: ({ row }) => (
-        <Button
-          size="small"
-          startIcon={<PeopleOutline />}
-          onClick={() => onInteressados(row)}
-          aria-label={`Ver as candidaturas em ${row.title}`}
-          sx={{ textTransform: 'none', fontWeight: 600 }}
-        >
-          {row.interests.length}
-        </Button>
-      ),
+      // candidatura só existe na vaga aprovada
+      renderCell: ({ row }) =>
+        row.status !== 'APPROVED' ? (
+          <Typography color="text.disabled">—</Typography>
+        ) : (
+          <Button
+            size="small"
+            startIcon={<PeopleOutline />}
+            onClick={() => onInteressados(row)}
+            aria-label={`Ver as candidaturas em ${row.title}`}
+            sx={{ textTransform: 'none', fontWeight: 600 }}
+          >
+            {row.interests.length}
+          </Button>
+        ),
     },
     {
       field: 'createdAt',
@@ -110,14 +147,15 @@ function ListaDaIgreja({
       renderCell: ({ row }) => (
         <Box sx={{ py: 1, minWidth: 0 }}>
           <Typography fontSize={13}>{formatarData(row.createdAt)}</Typography>
-          {row.createdBy && (
+          {(row.proposedBy ?? row.createdBy) && (
             <Typography
               variant="caption"
               color="text.secondary"
               noWrap
               component="div"
             >
-              por {row.createdBy.fullName.split(' ')[0]}
+              {row.proposedBy ? 'proposta por' : 'por'}{' '}
+              {(row.proposedBy ?? row.createdBy)!.fullName.split(' ')[0]}
             </Typography>
           )}
         </Box>
@@ -139,11 +177,7 @@ function ListaDaIgreja({
         <CustomChip
           size="small"
           label={situacao(row)}
-          customColor={
-            row.encerrada
-              ? theme.palette.text.secondary
-              : theme.palette.success.main
-          }
+          customColor={corDaSituacao(row)}
         />
       ),
     },
@@ -156,24 +190,7 @@ function ListaDaIgreja({
       disableExport: true,
       renderCell: ({ row }) => (
         <Stack direction="row" spacing={0.75}>
-          {acao('Editar', <EditOutlined fontSize="small" />, () =>
-            onEditar(row)
-          )}
-          {acao(
-            row.encerrada ? 'Reabrir' : 'Encerrar',
-            !row.encerrada ? (
-              <LockOutlined fontSize="small" />
-            ) : (
-              <LockOpenOutlined fontSize="small" />
-            ),
-            () => onAbrirOuEncerrar(row)
-          )}
-          {acao(
-            'Excluir',
-            <DeleteOutline fontSize="small" />,
-            () => onExcluir(row),
-            theme.palette.error.main
-          )}
+          {acoesDaLinha(row).map(acao)}
         </Stack>
       ),
     },

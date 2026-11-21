@@ -73,9 +73,17 @@ export interface DetalheDaOportunidade extends OportunidadeDoMembro {
   minhaCandidatura: { createdAt: string; respostas: Respostas } | null;
 }
 
+/** A etapa de uma candidatura no processo; o candidato não vê */
+export type EtapaDaCandidatura =
+  'NEW' | 'REVIEWING' | 'INTERVIEW' | 'SELECTED' | 'DISCARDED';
+
 export interface Interessado {
   createdAt: string;
   respostas: Respostas;
+  /** o acompanhamento, de quem conduz a vaga (admin e quem propôs) */
+  stage: EtapaDaCandidatura;
+  note: string | null;
+  trackedAt: string | null;
   user: {
     id: string;
     fullName: string;
@@ -86,9 +94,25 @@ export interface Interessado {
 }
 
 /** No painel: quem publicou, o formulário e as candidaturas */
+/**
+ * Situação na igreja: a vaga do admin nasce aprovada; a proposta de um membro
+ * nasce pendente e só vai ao ar aprovada
+ */
+export type SituacaoDaVaga = 'PENDING' | 'APPROVED' | 'REJECTED';
+
+type Pessoa = { id: string; fullName: string } | null;
+
+/** No painel (e para quem propôs): a situação, quem publicou e as candidaturas */
 export interface OportunidadeDaIgreja extends Oportunidade {
   formulario: Formulario;
-  createdBy: { id: string; fullName: string } | null;
+  status: SituacaoDaVaga;
+  /** o motivo da recusa, que vai para quem propôs */
+  rejectionReason: string | null;
+  reviewedAt: string | null;
+  createdBy: Pessoa;
+  /** o membro que propôs (nulo na vaga criada pelo admin) */
+  proposedBy: Pessoa;
+  reviewedBy: Pessoa;
   interests: Interessado[];
 }
 

@@ -70,6 +70,17 @@ const DESTINO: Record<
     modulo: 'oportunidades',
     rota: (n) => `/oportunidades?vaga=${n.origemId}`,
   },
+  // proposta de vaga de um membro: abre as pendentes, na igreja dela
+  OPPORTUNITY_PROPOSAL: {
+    modulo: 'oportunidades',
+    rota: () => '/admin/oportunidades?aba=pendentes',
+    doPainel: true,
+  },
+  // a resposta à proposta: abre as propostas da pessoa
+  OPPORTUNITY_PROPOSAL_ANSWERED: {
+    modulo: 'oportunidades',
+    rota: () => '/oportunidades?aba=propostas',
+  },
 };
 
 /**

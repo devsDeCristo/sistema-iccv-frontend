@@ -1,6 +1,7 @@
 import { Route } from 'react-router-dom';
 import { OportunidadesAdmin } from '..';
 import { EditarOportunidade } from '../editar';
+import { CandidaturasDaVaga } from '../candidaturas';
 import { RequireRole } from '../../../../components/requireRole';
 import { ADMIN_ROLES } from '../../../../constants/roles';
 import { TemaDoModulo } from '../../../../components/temaDoModulo';
@@ -22,6 +23,10 @@ function RoutesOportunidadesAdmin() {
       <Route
         path="/admin/oportunidades/nova"
         element={doAdmin(<EditarOportunidade />)}
+      />
+      <Route
+        path="/admin/oportunidades/:id/candidaturas"
+        element={doAdmin(<CandidaturasDaVaga />)}
       />
       <Route
         path="/admin/oportunidades/:id"

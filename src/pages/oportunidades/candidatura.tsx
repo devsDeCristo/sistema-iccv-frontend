@@ -219,8 +219,9 @@ function Candidatura() {
             )}
 
             <Alert severity="info">
-              Ao se candidatar, a igreja repassa seu nome, celular, e-mail e o
-              que você preencher aqui a quem oferece a vaga.
+              Ao se candidatar, seu nome, celular, e-mail e o que você preencher
+              aqui (inclusive o currículo) ficam com a igreja e com quem oferece
+              a vaga, para o processo dela.
             </Alert>
 
             <Stack
@@ -256,7 +257,7 @@ function Candidatura() {
         open={retirando}
         onClose={() => setRetirando(false)}
         title="Retirar candidatura?"
-        message="Suas respostas e o currículo saem da lista de quem oferece a vaga. Se já tiverem sido repassados, a igreja não tem como pegar de volta."
+        message="Suas respostas e o currículo saem da lista da igreja e de quem oferece a vaga. O que já tiver sido baixado ou repassado não tem como voltar."
         confirmLabel="Retirar"
         onConfirm={() =>
           retirar.mutate(vaga.id, {

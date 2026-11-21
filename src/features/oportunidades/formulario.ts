@@ -1,4 +1,11 @@
-import { Campo, Rede, Respostas, Salario, TipoDeCampo } from './types';
+import {
+  Campo,
+  EtapaDaCandidatura,
+  Rede,
+  Respostas,
+  Salario,
+  TipoDeCampo,
+} from './types';
 
 /**
  * O espelho, na tela, das regras de `ic-backend/src/oportunidades/formulario.ts`
@@ -163,3 +170,25 @@ export const preenchido = (
   if (campo.tipo === 'CAIXAS') return Array.isArray(valor) && valor.length > 0;
   return typeof valor === 'string' && valor.trim() !== '';
 };
+
+/** As etapas do processo, na ordem, com o nome e o tom de cada uma */
+export const ETAPAS: {
+  valor: EtapaDaCandidatura;
+  rotulo: string;
+  tom: 'info' | 'warning' | 'secondary' | 'success' | 'error';
+}[] = [
+  { valor: 'NEW', rotulo: 'Nova', tom: 'info' },
+  { valor: 'REVIEWING', rotulo: 'Em análise', tom: 'warning' },
+  { valor: 'INTERVIEW', rotulo: 'Entrevista', tom: 'secondary' },
+  { valor: 'SELECTED', rotulo: 'Selecionada', tom: 'success' },
+  { valor: 'DISCARDED', rotulo: 'Descartada', tom: 'error' },
+];
+export const etapaDe = (valor: EtapaDaCandidatura) =>
+  ETAPAS.find((e) => e.valor === valor) ?? ETAPAS[0];
+
+/** O link do WhatsApp para um celular brasileiro (com ou sem o 55) */
+export function linkDoWhatsApp(celular?: string | null) {
+  const d = (celular ?? '').replace(/\D/g, '');
+  if (d.length < 10) return null;
+  return `https://wa.me/${d.length <= 11 ? `55${d}` : d}`;
+}

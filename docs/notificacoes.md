@@ -33,6 +33,8 @@ duas áreas (usuário e painel). Quem recebe cada aviso é decidido no backend
 | Notícia | Notícias | `/home` (o mural) |
 | Novo evento | Eventos | `/eventos/:id` |
 | Nova oportunidade | Oportunidades | `/oportunidades?vaga=:id` (abre o modal da vaga) |
+| Nova proposta de vaga | Oportunidades | `/admin/oportunidades?aba=pendentes` (troca o seletor para a igreja da proposta) |
+| Proposta de vaga aprovada / recusada | Oportunidades | `/oportunidades?aba=propostas` |
 
 ## Código
 
