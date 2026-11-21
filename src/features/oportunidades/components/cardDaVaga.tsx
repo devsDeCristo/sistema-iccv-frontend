@@ -335,8 +335,8 @@ export function CardDaVaga({
               pt: 1,
               borderRadius: '8px',
               overflow: 'hidden',
-              // o papel do crachá dos detalhes: grafite no escuro, creme no claro
-              backgroundColor: escuro ? '#1A1D24' : '#F5F3EE',
+              // um tom abaixo do card, como card dentro de card
+              backgroundColor: theme.palette.background.default,
               border: escuro ? `1px solid ${alpha('#fff', 0.1)}` : 'none',
               boxShadow: '0 4px 10px rgba(0,0,0,0.35)',
             }}

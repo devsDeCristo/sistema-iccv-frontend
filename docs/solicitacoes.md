@@ -137,13 +137,16 @@ têm resposta: aceita, em parte e recusada; as de "aguardando" ainda não.
   (`ResponsiveModal` agora volta a folha sempre que quem abriu não fecha).
 - **Detalhes para o membro** (`ModalDaMinhaSolicitacao`): o card inteiro
   abre, pelo clique ou pelo teclado, a solicitação como **uma folha presa
-  numa prancheta** — assim como a vaga é um crachá. A prancheta é
-  de **chapa de fibra** marrom clara, tipo Eucatex (pontilhado fino e manchas
-  largas de tom com ruído SVG `feTurbulence` embutido, mais o brilho no
-  canto; mais escura no tema escuro), com o prendedor de metal
-  mordendo a folha e outra folha torta por baixo (num tom fora da de
-  cima, as duas com borda fina, para o alto não se misturar no escuro), e "Solicitações" gravado a
-  fogo na borda de baixo. No pé das duas folhas (a do pedido e a de
+  numa prancheta** — assim como a vaga é um crachá. As cores são as
+  **superfícies do tema**, como card dentro de card (a madeira quebrava o
+  design do sistema): a prancheta no fundo do modal (`background.paper`) e
+  as duas folhas, a do pedido e a de baixo (torta, 1,5°, terminando antes do
+  nome gravado), na mesma cor, o tom mais claro (`background.paperSecondary`:
+  brancas no claro), cada uma com borda fina para o alto não se misturar. O
+  cabeçalho da folha tem a linha cinza de 1px, como o card. O prendedor de metal, chapado (placa e
+  alavanca `#B8BDC6`, no escuro `#5E646E`; rebites um tom abaixo; sem degradê), morde a
+  folha, e "Solicitações" fica gravado na borda de baixo da prancheta, na cor
+  do texto bem suave. No pé das duas folhas (a do pedido e a de
   baixo, cada uma no seu tom; componente `Picote`), o **picote** com os meios-furos
   recortados (a mesma máscara do card, espelhada: linha tracejada e furos na
   borda de baixo), para parecer que os cards da lista foram destacados dali:

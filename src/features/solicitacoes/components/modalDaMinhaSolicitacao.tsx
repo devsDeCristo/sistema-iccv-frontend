@@ -4,7 +4,6 @@ import {
   Box,
   Button,
   darken,
-  lighten,
   Dialog,
   IconButton,
   Stack,
@@ -28,44 +27,11 @@ import { Paleta, usePaleta } from './paletaDaFolha';
 
 const data = (iso: string) => new Date(iso).toLocaleDateString('pt-BR');
 
-/** A cor do módulo, na pasta de trás: a prancheta é de madeira */
+/** A cor do módulo, na pasta de trás */
 const COR_DO_MODULO = CORES_DO_MODULO.solicitacoes.claro.primaria;
-/**
- * Um ruído em SVG (feTurbulence), para a textura da chapa: `frequencia` alta
- * dá o pontilhado fino; baixa, as manchas largas de tom. A cor é fixa
- * (`[r, g, b]`, de 0 a 1) e a transparência vem do ruído: alfa × ruído +
- * desvio — o desvio negativo apaga o ruído fraco e deixa só os pontos.
- */
-const ruido = (
-  frequencia: number,
-  [r, g, b]: number[],
-  alfa: number,
-  desvio: number
-) =>
-  `url("data:image/svg+xml,${encodeURIComponent(
-    `<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='r' color-interpolation-filters='sRGB'><feTurbulence type='fractalNoise' baseFrequency='${frequencia}' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 ${r} 0 0 0 0 ${g} 0 0 0 0 ${b} ${alfa} 0 0 0 ${desvio}'/></filter><rect width='100%' height='100%' filter='url(#r)'/></svg>`
-  )}")`;
-
-/** O pontilhado escuro, o claro e as manchas, montados uma vez só */
-const PONTOS_ESCUROS = ruido(0.85, [0.24, 0.13, 0.05], 0.85, -0.2);
-const PONTOS_CLAROS = ruido(1.1, [1, 0.9, 0.75], 0.5, -0.2);
-const MANCHAS = ruido(0.012, [0.3, 0.17, 0.07], 0.35, -0.08);
-
-/**
- * A prancheta de chapa de fibra (tipo Eucatex): o marrom claro e liso, sem
- * veio, com o pontilhado fino, manchas largas de tom e o brilho no canto.
- */
-const madeira = (escuro: boolean) => ({
-  backgroundColor: escuro ? '#9E7149' : '#BE8C5C',
-  backgroundImage: [
-    `linear-gradient(150deg, ${alpha('#fff', 0.1)}, transparent 40%, ${alpha('#000', 0.14)})`,
-    PONTOS_ESCUROS,
-    PONTOS_CLAROS,
-    MANCHAS,
-  ].join(', '),
-});
-/** O metal do prendedor */
-const METAL = 'linear-gradient(180deg, #E9ECEF, #A9AFB8 55%, #D5D9DE)';
+/** O metal do prendedor, chapado: mais escuro no tema escuro */
+const METAL = { claro: '#B8BDC6', escuro: '#5E646E' };
+const REBITE = { claro: '#8E949E', escuro: '#3E434B' };
 /** Sem animação para quem pediu menos movimento */
 const SEM_MOVIMENTO = {
   '@media (prefers-reduced-motion: reduce)': { animation: 'none' },
@@ -199,11 +165,13 @@ function ItemDaLista({
 
 /** O prendedor de metal no alto da prancheta, com a alavanca e os rebites */
 function Prendedor() {
+  const tom = useTheme().palette.mode === 'dark' ? 'escuro' : 'claro';
+  const metal = METAL[tom];
   const rebite = {
     width: 9,
     height: 9,
     borderRadius: '50%',
-    background: 'radial-gradient(circle at 35% 35%, #fff, #8E949E 70%)',
+    backgroundColor: REBITE[tom],
     boxShadow: '0 1px 1px rgba(0,0,0,0.4)',
   };
   return (
@@ -226,7 +194,7 @@ function Prendedor() {
           height: 26,
           mx: 'auto',
           mb: '-8px',
-          border: '5px solid #B8BDC6',
+          border: `5px solid ${metal}`,
           borderBottom: 'none',
           borderRadius: '16px 16px 0 0',
         }}
@@ -238,10 +206,9 @@ function Prendedor() {
         sx={{
           height: 34,
           px: 2,
-          background: METAL,
+          backgroundColor: metal,
           borderRadius: '8px 8px 16px 16px',
-          boxShadow:
-            '0 4px 8px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.8)',
+          boxShadow: '0 3px 6px rgba(0,0,0,0.3)',
         }}
       >
         <Box sx={rebite} />
@@ -310,7 +277,7 @@ function PastaDeTras({ cor }: { cor: string }) {
  * (Cancelar solicitação, com confirmação no pé da folha). A janela segue
  * aberta, e o carimbo vira "Cancelado".
  *
- * O papel e a madeira acompanham o tema (claro ou escuro); a pasta de trás e
+ * A prancheta e as folhas usam as superfícies do tema; a pasta de trás e
  * os títulos usam a cor do módulo. Fecha no X, no Esc ou clicando fora.
  */
 function ModalDaMinhaSolicitacao({
@@ -321,11 +288,18 @@ function ModalDaMinhaSolicitacao({
   solicitacao: MinhaSolicitacao | null;
   onClose: () => void;
 }) {
+  const theme = useTheme();
   const paleta = usePaleta();
   const corDaPasta = darken(COR_DO_MODULO, paleta.escuro ? 0.45 : 0.3);
-  const papelDeBaixo = paleta.escuro
-    ? lighten(paleta.papel, 0.07)
-    : darken(paleta.papel, 0.06);
+  /**
+   * As superfícies do tema: a prancheta no fundo do modal (o Paper) e as duas
+   * folhas, iguais, no tom mais claro (brancas no claro); a borda fina de cada
+   * uma separa o alto delas. Com a folha um tom abaixo da prancheta, no claro
+   * ficavam três quase-brancos e a folha saía acinzentada
+   */
+  const prancheta = theme.palette.background.paper;
+  const papelDaFolha = theme.palette.background.paperSecondary;
+  const papelDeBaixo = papelDaFolha;
   const cancelar = useCancelarSolicitacao();
   const [confirmando, setConfirmando] = useState(false);
   // outra solicitação aberta começa sem a confirmação
@@ -364,8 +338,8 @@ function ModalDaMinhaSolicitacao({
               px: { xs: 1.25, sm: 1.75 },
               pb: { xs: 1.5, sm: 2 },
               borderRadius: '20px',
-              ...madeira(paleta.escuro),
-              boxShadow: `0 28px 60px rgba(0,0,0,0.45), inset 0 1px 0 ${alpha('#fff', 0.3)}`,
+              backgroundColor: prancheta,
+              boxShadow: '0 28px 60px rgba(0,0,0,0.45)',
               /**
                * A entrada: a prancheta sobe e esmaece já com as folhas nela
                * (sem atraso nem opacidade própria, senão aparecia vazia), e as
@@ -392,7 +366,8 @@ function ModalDaMinhaSolicitacao({
               sx={{
                 position: 'absolute',
                 top: 50,
-                bottom: 22,
+                // termina antes do nome gravado na prancheta, sem cobri-lo
+                bottom: 38,
                 left: 20,
                 right: 16,
                 // um tom fora da folha de cima e borda fina: no escuro as duas
@@ -401,7 +376,7 @@ function ModalDaMinhaSolicitacao({
                 border: `1px solid ${paleta.linha}`,
                 borderBottom: 'none',
                 borderRadius: '4px 4px 0 0',
-                transform: 'rotate(-2.8deg)',
+                transform: 'rotate(-1.5deg)',
                 filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))',
                 // presa no alto: a ponta de baixo, levantada, baixa e assenta torta
                 transformOrigin: 'top center',
@@ -412,7 +387,7 @@ function ModalDaMinhaSolicitacao({
                   },
                   '100%': {
                     transform:
-                      'perspective(1000px) rotateX(0deg) rotate(-2.8deg)',
+                      'perspective(1000px) rotateX(0deg) rotate(-1.5deg)',
                   },
                 },
                 animation:
@@ -431,7 +406,7 @@ function ModalDaMinhaSolicitacao({
                 position: 'relative',
                 zIndex: 2,
                 // o papel deixa livre a faixa do picote, no pé
-                ...papelComPicote(paleta.papel),
+                ...papelComPicote(papelDaFolha),
                 color: paleta.texto,
                 border: `1px solid ${paleta.linha}`,
                 borderBottom: 'none',
@@ -485,7 +460,8 @@ function ModalDaMinhaSolicitacao({
                 sx={{
                   pb: 1.5,
                   mb: 2,
-                  borderBottom: `2px solid ${paleta.texto}`,
+                  // a linha cinza das demais, como no card
+                  borderBottom: `1px solid ${paleta.linha}`,
                 }}
               >
                 <Box sx={{ minWidth: 0 }}>
@@ -658,10 +634,10 @@ function ModalDaMinhaSolicitacao({
                 </Stack>
               )}
 
-              <Picote papel={paleta.papel} linha={paleta.linha} />
+              <Picote papel={papelDaFolha} linha={paleta.linha} />
             </Box>
 
-            {/* o nome gravado a fogo na madeira, na borda de baixo */}
+            {/* o nome gravado na prancheta, na borda de baixo */}
             <Typography
               aria-hidden
               sx={{
@@ -672,8 +648,7 @@ function ModalDaMinhaSolicitacao({
                 letterSpacing: '0.4em',
                 pl: '0.4em',
                 textTransform: 'uppercase',
-                color: alpha('#000', 0.28),
-                textShadow: `0 1px 0 ${alpha('#fff', 0.22)}`,
+                color: alpha(paleta.texto, 0.3),
               }}
             >
               Solicitações

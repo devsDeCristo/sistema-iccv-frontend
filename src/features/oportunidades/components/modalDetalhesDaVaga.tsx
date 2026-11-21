@@ -44,11 +44,16 @@ const ALTURA_DA_LINHA = 13 * 1.5;
 /** O vão entre as páginas do verso (as colunas do texto) */
 const VAO_ENTRE_PAGINAS = 32;
 
-/** As cores do crachá: o papel segue o tema; fita e destaques, a logo */
+/**
+ * As cores do crachá: o papel é o fundo do modal no tema (o mesmo da
+ * prancheta de Solicitações; um grafite fixo ficava cinza no escuro); fita e
+ * destaques, a logo
+ */
 function usePaleta(cor: string | null | undefined) {
-  const escuro = useTheme().palette.mode === 'dark';
+  const theme = useTheme();
+  const escuro = theme.palette.mode === 'dark';
   const fita = cor ?? COR_DO_MODULO;
-  const papel = escuro ? '#1A1D24' : '#F5F3EE';
+  const papel = theme.palette.background.paper;
   const texto = escuro ? '#EEF0F3' : '#16181D';
   return {
     escuro,

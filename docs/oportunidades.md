@@ -36,8 +36,8 @@ e formato do formulário em `ic-backend/docs/oportunidades.md`.
     torto: a miniatura do crachá dos detalhes, com a fita e o mosquetão
     saindo da borda de cima da página, o rasgo, a logo (`contain` sobre um
     quadrado branco, como a `LogoDaVaga`; sem imagem, a maleta `Work`, que fica só para a logo que falta) e um
-    friso embaixo. A face é o papel do crachá dos detalhes: grafite no
-    escuro, creme no claro. A fita, a faixa e o ícone
+    friso embaixo. A face fica um tom abaixo do card
+    (`background.default`), como card dentro de card. A fita, a faixa e o ícone
     usam a **cor da logo** (`vaga.cor`; sem ela, a do módulo), como o crachá;
   - "CONTRATO DE TRABALHO" e, anotados em fonte de máquina sobre linhas
     pontilhadas, **Empregador** (quem oferece), **Cargo** (o título),
@@ -84,7 +84,8 @@ e formato do formulário em `ic-backend/docs/oportunidades.md`.
     para ficar centrado), só com "OPORTUNIDADE" na vertical, na cor da fita escurecida, como marca d'água. Ao abrir, o
     crachá balança uma vez, a não ser com `prefers-reduced-motion`.
   - **Cores:**
-    - o papel segue o tema: claro no claro e grafite no escuro;
+    - o papel é o fundo do modal no tema (`background.paper`, o mesmo da
+      prancheta de Solicitações; um grafite fixo ficava cinza no escuro);
     - a fita, o crachá de trás, o botão e o título pegam a **cor da logo**
       (`vaga.cor`);
     - o título passa por `legivelSobre`, que escurece ou clareia a cor até
