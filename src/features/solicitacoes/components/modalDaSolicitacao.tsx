@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   Alert,
   alpha,
@@ -23,15 +23,21 @@ import CustomChip from '../../../components/customChip';
 import { ResponsiveModal } from '../../../components/responsiveModal';
 import { UserAvatar } from '../../../components/userAvatar';
 import { formatPhoneNumber } from '../../../utils';
-import { useDecidir, useMudarStatus, usePapelNasSolicitacoes } from '../api';
+import { useDecidir, useMudarStatus } from '../api';
 import {
+  aguardaVoce,
   corDoStatus,
   ICONE_DO_STATUS,
   RESPONDIDA,
   ROTULO_DO_STATUS,
 } from '../constants';
 import { iconeDoMinisterio } from '../ministerios';
-import { SolicitacaoDaIgreja, StatusDaSolicitacao } from '../types';
+import {
+  PapelNasSolicitacoes,
+  SolicitacaoDaIgreja,
+  StatusDaSolicitacao,
+} from '../types';
+import { ListaDeProdutos } from './listaDeProdutos';
 
 const data = (iso: string) => new Date(iso).toLocaleDateString('pt-BR');
 
@@ -95,12 +101,13 @@ function Confirmacao({
     </Stack>
   );
 }
-import { ListaDeProdutos } from './listaDeProdutos';
 
 interface Props {
   churchId: string;
   /** a solicitação aberta; `null` fecha a janela */
   solicitacao: SolicitacaoDaIgreja | null;
+  /** como quem está logado decide nesta igreja; buscado pela página */
+  papel: PapelNasSolicitacoes | undefined;
   onClose: () => void;
 }
 
@@ -115,12 +122,23 @@ interface Props {
  * que o outro aprovou e mostra, em cada produto, o que ele liberou ou recusou
  * — e escolhe Aprovar ou Recusar. Entra só o que os dois aprovaram.
  *
+ * Na igreja sem o módulo Tesouraria e sem ninguém na tesouraria
+ * (`papel.exigeTesouraria` falso), só o pastor decide, e a decisão dele fecha
+ * a solicitação: a tesouraria some da janela.
+ *
+ * Recusar pede o motivo na resposta: é o que quem pediu lê.
+ *
  * Os demais (o admin, dev e super admin) acompanham: põem em análise antes de
  * qualquer decisão e escrevem a resposta ao membro (Salvar). Recusar encerra a
  * solicitação para todos, então pede confirmação ali mesmo — o SweetAlert do
  * resto do sistema abriria por baixo desta janela.
  */
-function ModalDaSolicitacao({ churchId, solicitacao: s, onClose }: Props) {
+function ModalDaSolicitacao({
+  churchId,
+  solicitacao: s,
+  papel,
+  onClose,
+}: Props) {
   const theme = useTheme();
   const [status, setStatus] = useState<StatusDaSolicitacao>('REQUESTED');
   const [resposta, setResposta] = useState('');
@@ -128,25 +146,26 @@ function ModalDaSolicitacao({ churchId, solicitacao: s, onClose }: Props) {
   const [confirmandoRecusa, setConfirmandoRecusa] = useState(false);
   const mudar = useMudarStatus();
   const decidir = useDecidir();
-  const { data: papel } = usePapelNasSolicitacoes(s ? churchId : null);
   const lado = papel?.lado ?? null;
+  // sem a tesouraria no trâmite, o pastor decide sozinho
+  const comTesouraria = papel?.exigeTesouraria ?? true;
+  const campoDaResposta = useRef<HTMLTextAreaElement>(null);
 
-  const minha =
-    lado === 'PASTOR'
-      ? s?.pastorDecision
-      : lado === 'TESOURARIA'
-        ? s?.treasuryDecision
-        : undefined;
-  const outra =
-    lado === 'PASTOR'
+  const outra = !comTesouraria
+    ? undefined
+    : lado === 'PASTOR'
       ? s?.treasuryDecision
       : lado === 'TESOURARIA'
         ? s?.pastorDecision
         : undefined;
-  const possoDecidir = !!s && !!lado && !RESPONDIDA[s.status] && minha === null;
+  const possoDecidir = !!s && aguardaVoce(s, lado);
+  const semMotivo = !resposta.trim();
 
   // abre com a situação e a resposta que já estavam; quem vai decidir começa
-  // com o que o outro lado aprovou (ou com tudo, se é o primeiro)
+  // com o que o outro lado aprovou (ou com tudo, se é o primeiro). Roda ao
+  // abrir outra solicitação ou quando esta mudou no banco (`updatedAt`) — não
+  // a cada refetch da lista, que traz um objeto novo e apagaria o que a
+  // pessoa está digitando.
   useEffect(() => {
     if (!s) return;
     setStatus(s.status);
@@ -161,7 +180,8 @@ function ModalDaSolicitacao({ churchId, solicitacao: s, onClose }: Props) {
           .map((p) => p.id)
       )
     );
-  }, [s, lado, outra]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [s?.id, s?.updatedAt, lado, outra]);
 
   const total = s?.items.length ?? 0;
 
@@ -345,8 +365,12 @@ function ModalDaSolicitacao({ churchId, solicitacao: s, onClose }: Props) {
                 {possoDecidir
                   ? `${aceitos.size} de ${total} aprovados por você · marque os que aprova`
                   : RESPONDIDA[s.status]
-                    ? 'Entra o que o pastor e a tesouraria aprovaram'
-                    : 'O resultado sai quando os dois decidirem'}
+                    ? comTesouraria
+                      ? 'Entra o que o pastor e a tesouraria aprovaram'
+                      : 'Entra o que o pastor aprovou'
+                    : comTesouraria
+                      ? 'O resultado sai quando os dois decidirem'
+                      : 'O resultado sai quando o pastor decidir'}
               </Typography>
             </Stack>
             <ListaDeProdutos
@@ -356,15 +380,20 @@ function ModalDaSolicitacao({ churchId, solicitacao: s, onClose }: Props) {
                   ? aceitos
                   : new Set(s.items.filter((p) => p.accepted).map((p) => p.id)),
                 ...(possoDecidir && { onAlternar: alternar }),
-                etiquetas: [
-                  { rotulo: 'Pastor', de: (p) => p.pastorAccepted },
-                  { rotulo: 'Tesouraria', de: (p) => p.treasuryAccepted },
-                ],
+                // sozinho, o que o pastor marcou já é o resultado (✓/✗)
+                ...(comTesouraria && {
+                  etiquetas: [
+                    { rotulo: 'Pastor', de: (p) => p.pastorAccepted },
+                    { rotulo: 'Tesouraria', de: (p) => p.treasuryAccepted },
+                  ],
+                }),
               }}
             />
           </Stack>
 
-          {/* as duas confirmações: quem já decidiu, quem falta */}
+          {/* as confirmações: quem já decidiu, quem falta (sem o módulo
+              Tesouraria, só a do pastor — a não ser que a tesouraria já
+              tenha decidido antes de o módulo sair) */}
           <Stack spacing={1}>
             <Typography sx={{ fontSize: 14, fontWeight: 600 }}>
               Aprovação
@@ -377,13 +406,15 @@ function ModalDaSolicitacao({ churchId, solicitacao: s, onClose }: Props) {
                 quem={s.pastor?.fullName}
                 quando={s.pastorAt}
               />
-              <Confirmacao
-                rotulo="Tesouraria"
-                Icone={AccountBalanceWalletOutlined}
-                decisao={s.treasuryDecision}
-                quem={s.treasurer?.fullName}
-                quando={s.treasuryAt}
-              />
+              {(comTesouraria || s.treasuryDecision !== null) && (
+                <Confirmacao
+                  rotulo="Tesouraria"
+                  Icone={AccountBalanceWalletOutlined}
+                  decisao={s.treasuryDecision}
+                  quem={s.treasurer?.fullName}
+                  quando={s.treasuryAt}
+                />
+              )}
             </Stack>
             {papel && !papel.temPastor && !RESPONDIDA[s.status] && (
               <Alert severity="warning">
@@ -391,6 +422,16 @@ function ModalDaSolicitacao({ churchId, solicitacao: s, onClose }: Props) {
                 solicitação é aprovada. Cadastre o líder espiritual em Igrejas.
               </Alert>
             )}
+            {papel &&
+              papel.exigeTesouraria &&
+              !papel.temTesouraria &&
+              !RESPONDIDA[s.status] && (
+                <Alert severity="warning">
+                  Esta igreja tem o módulo Tesouraria, mas ninguém com o perfil
+                  de tesouraria: sem ele, nenhuma solicitação é aprovada. Dê o
+                  perfil a alguém em Usuários.
+                </Alert>
+              )}
           </Stack>
 
           {/* a decisão de quem pode decidir: aprovar os marcados ou recusar */}
@@ -412,7 +453,7 @@ function ModalDaSolicitacao({ churchId, solicitacao: s, onClose }: Props) {
                       color="error"
                       size="small"
                       variant="contained"
-                      disabled={ocupado}
+                      disabled={ocupado || semMotivo}
                       onClick={() => enviarDecisao(false)}
                     >
                       Sim, recusar
@@ -420,9 +461,12 @@ function ModalDaSolicitacao({ churchId, solicitacao: s, onClose }: Props) {
                   </Stack>
                 }
               >
-                Recusar encerra a solicitação, mesmo que{' '}
-                {lado === 'PASTOR' ? 'a tesouraria' : 'o pastor'}{' '}
-                {outra ? 'já tenha aprovado' : 'aprove depois'}.
+                {comTesouraria
+                  ? `Recusar encerra a solicitação, mesmo que ${
+                      lado === 'PASTOR' ? 'a tesouraria' : 'o pastor'
+                    } ${outra ? 'já tenha aprovado' : 'aprove depois'}.`
+                  : 'Recusar encerra a solicitação.'}{' '}
+                Escreva o motivo na resposta, abaixo.
               </Alert>
             ) : (
               <Stack
@@ -437,15 +481,21 @@ function ModalDaSolicitacao({ churchId, solicitacao: s, onClose }: Props) {
               >
                 <Typography variant="body2" sx={{ flex: 1 }}>
                   Sua decisão como <strong>{rotuloDoLado}</strong>
-                  {outra
-                    ? `: ${lado === 'PASTOR' ? 'a tesouraria' : 'o pastor'} já aprovou, e entra só o que os dois aprovarem.`
-                    : `: depois falta ${lado === 'PASTOR' ? 'a tesouraria' : 'o pastor'}.`}
+                  {!comTesouraria
+                    ? ': ela fecha a solicitação, com os produtos que você aprovar.'
+                    : outra
+                      ? `: ${lado === 'PASTOR' ? 'a tesouraria' : 'o pastor'} já aprovou, e entra só o que os dois aprovarem.`
+                      : `: depois falta ${lado === 'PASTOR' ? 'a tesouraria' : 'o pastor'}.`}
                 </Typography>
                 <Stack direction="row" gap={1}>
                   <Button
                     color="error"
                     disabled={ocupado}
-                    onClick={() => setConfirmandoRecusa(true)}
+                    onClick={() => {
+                      setConfirmandoRecusa(true);
+                      // o motivo é obrigatório: leva a pessoa até o campo
+                      campoDaResposta.current?.focus();
+                    }}
                   >
                     Recusar
                   </Button>
@@ -471,7 +521,11 @@ function ModalDaSolicitacao({ churchId, solicitacao: s, onClose }: Props) {
             <TextField
               select
               label="Situação"
-              helperText="Aprovar e recusar são do pastor e da tesouraria"
+              helperText={
+                comTesouraria
+                  ? 'Aprovar e recusar são do pastor e da tesouraria'
+                  : 'Aprovar e recusar são do pastor'
+              }
               value={status}
               onChange={(e) => setStatus(e.target.value as StatusDaSolicitacao)}
             >
@@ -492,8 +546,14 @@ function ModalDaSolicitacao({ churchId, solicitacao: s, onClose }: Props) {
           )}
           <TextField
             label="Resposta para quem pediu"
+            inputRef={campoDaResposta}
+            error={confirmandoRecusa && semMotivo}
             placeholder="O motivo de recusar, o prazo da compra, o próximo passo"
-            helperText="Quem pediu lê a resposta junto da situação; vai junto da sua decisão, ou em Salvar. Opcional."
+            helperText={
+              confirmandoRecusa
+                ? 'Obrigatória para recusar: quem pediu lê o motivo.'
+                : 'Quem pediu lê a resposta junto da situação; vai junto da sua decisão, ou em Salvar. Opcional, menos para recusar.'
+            }
             value={resposta}
             onChange={(e) => setResposta(e.target.value)}
             inputProps={{ maxLength: 1000 }}

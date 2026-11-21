@@ -10,6 +10,20 @@ export type StatusDaSolicitacao =
 /** Quem decide: o pastor (líder espiritual da igreja) ou a tesouraria dela */
 export type LadoDaDecisao = 'PASTOR' | 'TESOURARIA';
 
+/**
+ * Como quem está logado decide nesta igreja (`lado`, ou `null`). `temPastor`:
+ * a igreja tem líder espiritual cadastrado — sem ele, nada é aprovado.
+ * `exigeTesouraria`: a aprovação pede a tesouraria (a igreja tem o módulo
+ * Tesouraria ou alguém com o perfil de tesouraria); senão, o pastor aprova
+ * sozinho. `temTesouraria`: alguém tem o perfil de tesouraria na igreja.
+ */
+export interface PapelNasSolicitacoes {
+  lado: LadoDaDecisao | null;
+  temPastor: boolean;
+  temTesouraria: boolean;
+  exigeTesouraria: boolean;
+}
+
 /** Um produto do pedido, com a decisão do admin sobre ele */
 export interface ProdutoDaSolicitacao {
   id: string;

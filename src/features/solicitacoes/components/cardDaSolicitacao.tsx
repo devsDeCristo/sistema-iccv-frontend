@@ -62,11 +62,17 @@ function Info({
  *
  * Recusada, o card apaga: fundo, pontinhos, chip, textos e links em cinza, e
  * só a etiqueta "Recusado" fica em vermelho.
+ *
+ * O card inteiro abre a solicitação inteira (`onAbrir`), pelo clique ou pelo
+ * teclado. Não é um `button` porque tem links dentro (o da loja), e link
+ * dentro de botão não vale; o clique num link abre só a loja.
  */
 function CardDaSolicitacao({
   solicitacao: s,
+  onAbrir,
 }: {
   solicitacao: MinhaSolicitacao;
+  onAbrir: () => void;
 }) {
   const theme = useTheme();
   const cor = corDoStatus(theme, s.status);
@@ -78,9 +84,27 @@ function CardDaSolicitacao({
 
   return (
     <Paper
+      role="button"
+      tabIndex={0}
+      aria-label={`Abrir a solicitação ${s.title}`}
+      onClick={(e) => {
+        if (!(e.target as HTMLElement).closest('a')) onAbrir();
+      }}
+      onKeyDown={(e) => {
+        if (e.target !== e.currentTarget) return;
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onAbrir();
+        }
+      }}
       sx={{
         ...superficieSx,
         position: 'relative',
+        cursor: 'pointer',
+        '&:focus-visible': {
+          outline: `2px solid ${theme.palette.primary.main}`,
+          outlineOffset: 2,
+        },
         // o fundo decorado fica em z-index -1 dentro do card: acima do fundo
         // dele e abaixo de todo o conteúdo
         isolation: 'isolate',

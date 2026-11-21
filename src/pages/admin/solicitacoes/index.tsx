@@ -1,17 +1,19 @@
 import { useMemo, useState } from 'react';
 import { Alert } from '@mui/material';
-import { AllInbox } from '@mui/icons-material';
+import { AllInbox, HowToReg } from '@mui/icons-material';
 
 import { PageStyle } from '../../../components/pageStyle';
 import { NavTabs } from '../../../components/navTabs';
 import { Header } from '../../../components/header';
 import { ChurchScopeBar } from '../../../features/settings/shared/churchScopeBar';
 import { useIgrejaSelecionada } from '../../../features/settings/shared/useIgrejaSelecionada';
-import { useSolicitacoesDaIgreja } from '../../../features/solicitacoes/api';
-import { ETAPAS } from '../../../features/solicitacoes/constants';
+import {
+  usePapelNasSolicitacoes,
+  useSolicitacoesDaIgreja,
+} from '../../../features/solicitacoes/api';
+import { aguardaVoce, ETAPAS } from '../../../features/solicitacoes/constants';
 import { ListaDaIgreja } from '../../../features/solicitacoes/components/listaDaIgreja';
 import { ModalDaSolicitacao } from '../../../features/solicitacoes/components/modalDaSolicitacao';
-import { SolicitacaoDaIgreja } from '../../../features/solicitacoes/types';
 
 /**
  * O que os membros pedem à igreja (módulo Solicitações). O painel dela vê
@@ -23,17 +25,33 @@ function SolicitacoesAdmin() {
   const escopo = useIgrejaSelecionada(true);
   const churchId = escopo.churchId;
   const [aba, setAba] = useState('todas');
-  const [aberta, setAberta] = useState<SolicitacaoDaIgreja | null>(null);
+  // só o id: a solicitação aberta sai da lista, e o refetch traz para a
+  // janela a decisão que alguém deu enquanto ela estava aberta
+  const [abertaId, setAbertaId] = useState<string | null>(null);
 
   const { data, isFetching } = useSolicitacoesDaIgreja(churchId);
+  // o papel é da igreja, não da solicitação: busca uma vez aqui, e a janela
+  // já abre sabendo se a pessoa decide
+  const { data: papel } = usePapelNasSolicitacoes(churchId);
   const todas = useMemo(() => data ?? [], [data]);
+  const aberta = todas.find((s) => s.id === abertaId) ?? null;
   const daEtapa = (valor: string) =>
     todas.filter((s) =>
       ETAPAS.find((etapa) => etapa.valor === valor)?.situacoes.includes(
         s.status
       )
     );
-  const visiveis = aba === 'todas' ? todas : daEtapa(aba);
+  // a vez de quem está logado (pastor ou tesouraria): o que ele precisa decidir
+  const lado = papel?.lado ?? null;
+  const suaVez = todas.filter((s) => aguardaVoce(s, lado));
+  // trocou para uma igreja em que não decide: a aba "Sua vez" some
+  const abaAtual = aba === 'sua-vez' && !lado ? 'todas' : aba;
+  const visiveis =
+    abaAtual === 'todas'
+      ? todas
+      : abaAtual === 'sua-vez'
+        ? suaVez
+        : daEtapa(abaAtual);
 
   return (
     <PageStyle>
@@ -60,7 +78,7 @@ function SolicitacoesAdmin() {
         <>
           <NavTabs
             fullWidth
-            value={aba}
+            value={abaAtual}
             onChange={setAba}
             sx={{ mb: 2 }}
             options={[
@@ -70,6 +88,17 @@ function SolicitacoesAdmin() {
                 icon: <AllInbox fontSize="small" />,
                 contagem: todas.length,
               },
+              // só para quem decide: o admin que acompanha não tem vez
+              ...(lado
+                ? [
+                    {
+                      value: 'sua-vez',
+                      label: 'Sua vez',
+                      icon: <HowToReg fontSize="small" />,
+                      contagem: suaVez.length,
+                    },
+                  ]
+                : []),
               ...ETAPAS.map(({ valor, rotulo, Icone }) => ({
                 value: valor,
                 label: rotulo,
@@ -81,13 +110,14 @@ function SolicitacoesAdmin() {
           <ListaDaIgreja
             solicitacoes={visiveis}
             carregando={isFetching && !data}
-            onAbrir={setAberta}
+            onAbrir={(s) => setAbertaId(s.id)}
           />
           {churchId && (
             <ModalDaSolicitacao
               churchId={churchId}
               solicitacao={aberta}
-              onClose={() => setAberta(null)}
+              papel={papel}
+              onClose={() => setAbertaId(null)}
             />
           )}
         </>

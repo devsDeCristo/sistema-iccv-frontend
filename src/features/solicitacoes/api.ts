@@ -5,7 +5,11 @@ import {
   handleResponseSuccess,
   handleResponseThrowError,
 } from '../../utils/service';
-import { LadoDaDecisao, MinhaSolicitacao, SolicitacaoDaIgreja } from './types';
+import {
+  MinhaSolicitacao,
+  PapelNasSolicitacoes,
+  SolicitacaoDaIgreja,
+} from './types';
 
 const GET_MINHAS = 'GET_MINHAS_SOLICITACOES';
 const GET_DA_IGREJA = 'GET_SOLICITACOES_DA_IGREJA';
@@ -55,10 +59,7 @@ export const usePapelNasSolicitacoes = (churchId: string | null) =>
     ['GET_PAPEL_NAS_SOLICITACOES', churchId ?? ''],
     () =>
       apiClient
-        .get<{
-          lado: LadoDaDecisao | null;
-          temPastor: boolean;
-        }>(`/churches/${churchId}/solicitacoes/papel`)
+        .get<PapelNasSolicitacoes>(`/churches/${churchId}/solicitacoes/papel`)
         .then((response) => response.data),
     { enabled: !!churchId }
   );

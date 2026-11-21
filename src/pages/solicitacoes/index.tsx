@@ -16,6 +16,7 @@ import { Header } from '../../components/header';
 import { getStoredUser } from '../../auth/session';
 import { useMinhasSolicitacoes } from '../../features/solicitacoes/api';
 import { ModalNovaSolicitacao } from '../../features/solicitacoes/components/modalNovaSolicitacao';
+import { ModalDaMinhaSolicitacao } from '../../features/solicitacoes/components/modalDaMinhaSolicitacao';
 import { CardDaSolicitacao } from '../../features/solicitacoes/components/cardDaSolicitacao';
 import { MinhaSolicitacao } from '../../features/solicitacoes/types';
 import { RESPONDIDA } from '../../features/solicitacoes/constants';
@@ -24,9 +25,11 @@ import { RESPONDIDA } from '../../features/solicitacoes/constants';
 function Secao({
   titulo,
   solicitacoes,
+  onAbrir,
 }: {
   titulo: string;
   solicitacoes: MinhaSolicitacao[];
+  onAbrir: (id: string) => void;
 }) {
   const theme = useTheme();
   // seção vazia não aparece: quem não tem nada respondido não vê o título
@@ -66,7 +69,11 @@ function Secao({
         }}
       >
         {solicitacoes.map((s) => (
-          <CardDaSolicitacao key={s.id} solicitacao={s} />
+          <CardDaSolicitacao
+            key={s.id}
+            solicitacao={s}
+            onAbrir={() => onAbrir(s.id)}
+          />
         ))}
       </Box>
     </Stack>
@@ -82,7 +89,10 @@ function Solicitacoes() {
   const igreja = getStoredUser()?.memberChurch;
   const podePedir = !!igreja?.modulos.includes('REQUESTS');
   const [pedindo, setPedindo] = useState(false);
+  // só o id: a janela acompanha o refetch (a resposta que chegou depois)
+  const [abertaId, setAbertaId] = useState<string | null>(null);
   const { data, isLoading } = useMinhasSolicitacoes();
+  const aberta = data?.find((s) => s.id === abertaId) ?? null;
 
   return (
     <PageStyle>
@@ -134,13 +144,20 @@ function Solicitacoes() {
           <Secao
             titulo="Aguardando"
             solicitacoes={data.filter((s) => !RESPONDIDA[s.status])}
+            onAbrir={setAbertaId}
           />
           <Secao
             titulo="Respondidos"
             solicitacoes={data.filter((s) => RESPONDIDA[s.status])}
+            onAbrir={setAbertaId}
           />
         </Stack>
       )}
+
+      <ModalDaMinhaSolicitacao
+        solicitacao={aberta}
+        onClose={() => setAbertaId(null)}
+      />
 
       {igreja && (
         <ModalNovaSolicitacao

@@ -10,7 +10,11 @@ import {
   Schedule,
 } from '@mui/icons-material';
 import type { SvgIconComponent } from '@mui/icons-material';
-import { StatusDaSolicitacao } from './types';
+import {
+  LadoDaDecisao,
+  SolicitacaoDaIgreja,
+  StatusDaSolicitacao,
+} from './types';
 
 /**
  * Os ministérios que pedem. A API tem a mesma lista (`MINISTERIOS` em
@@ -99,6 +103,19 @@ export const RESPONDIDA: Record<StatusDaSolicitacao, boolean> = {
   PARTIALLY_ACCEPTED: true,
   REJECTED: true,
 };
+
+/**
+ * A solicitação espera a decisão de quem está logado: ainda em aberto, e o
+ * lado dele (pastor ou tesouraria) não decidiu. É a aba "Sua vez" do painel e
+ * o que abre o bloco de decisão na janela.
+ */
+export const aguardaVoce = (
+  s: SolicitacaoDaIgreja,
+  lado: LadoDaDecisao | null
+) =>
+  !!lado &&
+  !RESPONDIDA[s.status] &&
+  (lado === 'PASTOR' ? s.pastorDecision : s.treasuryDecision) === null;
 
 /**
  * A cor do chip de cada situação, das cores de estado do tema. A parcial não

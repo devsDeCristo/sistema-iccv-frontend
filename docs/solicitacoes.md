@@ -4,8 +4,8 @@ Módulo do plano (`REQUESTS`) em que os membros pedem à igreja equipamentos e
 melhorias: o louvor pede um pedestal, a mídia pede um cabo. O admin responde
 mudando a situação, e o membro acompanha. Aprovar pede duas confirmações, em
 qualquer ordem: a do pastor (o líder espiritual da igreja) e a de uma
-tesouraria; recusar basta um. Regras e rotas da API em
-`ic-backend/docs/solicitacoes.md`.
+tesouraria; recusar basta um, com o motivo. Na igreja sem o módulo
+Tesouraria e sem ninguém na tesouraria, o pastor aprova sozinho. Regras e rotas da API em `ic-backend/docs/solicitacoes.md`.
 
 Um pedido tem um ou mais produtos, e pode ser aceito só em parte (**Aceito
 parcialmente**): entra o que o pastor e a tesouraria aprovaram em comum.
@@ -92,6 +92,22 @@ têm resposta: aceita, em parte e recusada; as de "aguardando" ainda não.
   - **Aprovação:** dois quadros lado a lado, Pastor e Tesouraria, cada um com
     "Aprovou", "Recusou" ou "Aguardando", quem decidiu e a data. Igreja sem
     pastor cadastrado ganha um aviso: sem ele, nada é aprovado.
+  - **Sem a tesouraria no trâmite** (`papel.exigeTesouraria` falso: sem o
+    módulo e sem ninguém no perfil): só o quadro do Pastor (o da Tesouraria
+    aparece só se ela decidiu antes), sem as etiquetas por produto, e os
+    textos falam só do pastor — a decisão dele fecha a solicitação. Com o
+    módulo e ninguém no perfil (`temTesouraria` falso), um aviso pede para
+    dar o perfil a alguém em Usuários.
+  - **Recusar pede o motivo:** "Sim, recusar" só habilita com a resposta
+    preenchida, e clicar em Recusar leva o foco até o campo.
+  - **Aba "Sua vez"** (só para o pastor e a tesouraria): as solicitações em
+    aberto em que o lado de quem está logado ainda não decidiu
+    (`aguardaVoce`, em `constants.ts` — a mesma regra que abre o bloco de
+    decisão na janela). O papel é buscado pela página, uma vez por igreja.
+- **Detalhes para o membro** (`ModalDaMinhaSolicitacao`): o card inteiro
+  abre, pelo clique ou pelo teclado, a solicitação inteira, só leitura — a
+  descrição, todos os produtos com o resultado e a resposta sem corte. O
+  clique no link da loja abre só a loja.
   - **Sua decisão** (só o pastor ou a tesouraria que ainda não decidiu, com a
     solicitação em aberto — o lado vem de `GET …/solicitacoes/papel`): a
     lista abre marcada com o que o outro lado aprovou, se ele já decidiu
