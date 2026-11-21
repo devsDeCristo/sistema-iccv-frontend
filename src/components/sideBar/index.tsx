@@ -717,7 +717,7 @@ const SideBar: React.FC<SideBarProps> = ({
                 link: '/admin/planos',
                 icon: <WorkspacePremium />,
                 title: 'Planos',
-                novo: true,
+               
               },
             ]
           : []),
@@ -777,7 +777,7 @@ const SideBar: React.FC<SideBarProps> = ({
                 link: '/admin/membros',
                 icon: <Diversity3 />,
                 title: 'Membros',
-                novo: true,
+                
               },
             ]
           : []),
@@ -793,7 +793,7 @@ const SideBar: React.FC<SideBarProps> = ({
                 link: '/admin/noticias',
                 icon: <Campaign />,
                 title: 'Notícias',
-                novo: true,
+                
               },
             ]
           : []),
