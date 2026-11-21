@@ -13,7 +13,7 @@ import { CalendarTodayOutlined } from '@mui/icons-material';
 import CustomChip from '../../../components/customChip';
 import { superficieSx } from '../../../components/listPageStyles';
 import { corDoStatus, ROTULO_DO_STATUS } from '../constants';
-import { iconeDoMinisterio } from '../ministerios';
+import { iconeDoMinisterio, nomeDoMinisterio } from '../ministerios';
 import { MinhaSolicitacao } from '../types';
 import { ListaDeProdutos } from './listaDeProdutos';
 
@@ -199,7 +199,7 @@ function CardDaSolicitacao({
         <CustomChip
           size="small"
           icon={iconeDoMinisterio(s.ministry)}
-          label={s.ministry}
+          label={nomeDoMinisterio(s)}
           customColor={recusada ? cinza : theme.palette.secondary.main}
           sx={{ '& .MuiChip-icon': { color: 'inherit', fontSize: 15 } }}
         />

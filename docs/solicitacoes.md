@@ -26,7 +26,8 @@ têm resposta: aceita, em parte e recusada; as de "aguardando" ainda não.
   vê o item. Quem abrir o endereço sem poder pedir lê o motivo, sem o botão.
 - **Nova solicitação:** o ministério se escolhe em cards com ícone (lista
   fixa `MINISTERIOS` em `src/features/solicitacoes/constants.ts`, a mesma da
-  API), na cor do módulo; depois, o título do pedido, por que precisa e os
+  API), na cor do módulo — com "Outro", aparece o campo "Qual ministério?",
+  obrigatório; depois, o título do pedido, por que precisa e os
   **produtos**: cada um num bloco com nome, quantidade (1 a 999) e, opcional,
   o link da loja (só `http://` ou `https://`, conferido na tela e na API);
   "Adicionar produto" põe outro (até 20, o teto da API) e a lixeira tira (com
@@ -72,8 +73,12 @@ têm resposta: aceita, em parte e recusada; as de "aguardando" ainda não.
   uma com ícone e a quantidade num chip depois do rótulo (`contagem`). Uma aba
   por situação davam oito, e os rótulos longos quebravam em duas linhas; a
   situação exata segue no chip de cada linha da lista.
-- **Lista:** quem pediu e o ministério, o pedido (com quantos produtos tem),
-  a data e a situação.
+- **Lista:** quem pediu, o ministério (coluna própria, com o ícone; com
+  "Outro", o nome que a pessoa escreveu), o pedido (com quantos produtos
+  tem), a data e a situação. Vem **paginada da API** (`paginationMode`,
+  `sortingMode` e `filterMode` "server", 25 por página): as abas e o filtro
+  refazem a busca, e as contagens das abas vêm na mesma resposta. Só a data
+  ordena e só o ministério filtra (pelo menu da coluna) — é o que a API faz.
   Clicar na linha (ou no botão redondo de olho, no fim dela, com a dica
   "Abrir solicitação") abre a solicitação inteira.
 - **Janela da solicitação** (`components/modalDaSolicitacao.tsx`): no topo,
@@ -98,16 +103,15 @@ têm resposta: aceita, em parte e recusada; as de "aguardando" ainda não.
     textos falam só do pastor — a decisão dele fecha a solicitação. Com o
     módulo e ninguém no perfil (`temTesouraria` falso), um aviso pede para
     dar o perfil a alguém em Usuários.
+  - **Produto que o outro recusou:** quem decide em segundo não consegue
+    marcá-lo (a caixa fica desabilitada, com a etiqueta de quem recusou):
+    entra só o que os dois aprovam.
   - **Recusar pede o motivo:** "Sim, recusar" só habilita com a resposta
     preenchida, e clicar em Recusar leva o foco até o campo.
   - **Aba "Sua vez"** (só para o pastor e a tesouraria): as solicitações em
     aberto em que o lado de quem está logado ainda não decidiu
     (`aguardaVoce`, em `constants.ts` — a mesma regra que abre o bloco de
     decisão na janela). O papel é buscado pela página, uma vez por igreja.
-- **Detalhes para o membro** (`ModalDaMinhaSolicitacao`): o card inteiro
-  abre, pelo clique ou pelo teclado, a solicitação inteira, só leitura — a
-  descrição, todos os produtos com o resultado e a resposta sem corte. O
-  clique no link da loja abre só a loja.
   - **Sua decisão** (só o pastor ou a tesouraria que ainda não decidiu, com a
     solicitação em aberto — o lado vem de `GET …/solicitacoes/papel`): a
     lista abre marcada com o que o outro lado aprovou, se ele já decidiu
@@ -120,6 +124,22 @@ têm resposta: aceita, em parte e recusada; as de "aguardando" ainda não.
     decisão, e só com Solicitado e Em análise (aprovar e recusar são do pastor
     e da tesouraria). A resposta segue editável. **Salvar** grava os dois e só
     acende quando algo mudou; **Cancelar** fecha sem mudar.
+- **Descartar a nova solicitação:** fechar com algo preenchido (Cancelar,
+  fora da janela, Esc ou arrastar a folha) pergunta no rodapé "Descartar o
+  que você preencheu?". Arrastada, a folha volta ao lugar
+  (`ResponsiveModal` agora volta a folha sempre que quem abriu não fecha).
+- **Detalhes para o membro** (`ModalDaMinhaSolicitacao`): o card inteiro
+  abre, pelo clique ou pelo teclado, a solicitação como **uma folha presa
+  numa prancheta** — assim como a vaga é um crachá. A prancheta é de
+  acrílico na cor do módulo, com o prendedor de metal mordendo a folha e
+  outra folha torta por baixo; o papel segue o tema. Na folha: "Solicitação",
+  o número (os 8 primeiros do id) e o **carimbo** da situação (decidida,
+  borda cheia e inclinado; em andamento, tracejado); os campos do pedido em
+  linhas de formulário (ministério, data, igreja); o porquê; os produtos
+  numa **lista de conferência** (☑ aceito, ☒ não aceito e riscado, ☐ sem
+  resultado, com o link da loja); e a resposta da igreja em papel pautado.
+  Só leitura, sem o que cada lado marcou. Fecha no X, no Esc ou clicando
+  fora; entra "pousando", menos com movimento reduzido.
 - **Home do painel:** card de Solicitações para o admin e a tesouraria da
   igreja, como os outros módulos (`modulosDaIgreja.tsx`), e a tarefa
   "solicitação(ões) esperando resposta" em Precisa de você, que conta também

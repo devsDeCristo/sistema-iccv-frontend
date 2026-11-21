@@ -6,9 +6,10 @@ import {
   handleResponseThrowError,
 } from '../../utils/service';
 import {
+  FiltrosDaIgreja,
   MinhaSolicitacao,
+  PaginaDaIgreja,
   PapelNasSolicitacoes,
-  SolicitacaoDaIgreja,
 } from './types';
 
 const GET_MINHAS = 'GET_MINHAS_SOLICITACOES';
@@ -26,6 +27,8 @@ export const useCriarSolicitacao = () =>
   useMutation({
     mutationFn: (dados: {
       ministerio: string;
+      /** com "Outro": qual é o ministério */
+      ministerioOutro?: string;
       titulo: string;
       descricao: string;
       produtos: { nome: string; quantidade: number; link?: string }[];
@@ -39,12 +42,18 @@ export const useCriarSolicitacao = () =>
     onSuccess: () => queryClient.invalidateQueries(GET_MINHAS),
   });
 
-export const useSolicitacoesDaIgreja = (churchId: string | null) =>
+/** Uma página da lista do painel, com as contagens de cada aba */
+export const useSolicitacoesDaIgreja = (
+  churchId: string | null,
+  filtros: FiltrosDaIgreja
+) =>
   useQuery(
-    [GET_DA_IGREJA, churchId ?? ''],
+    [GET_DA_IGREJA, churchId ?? '', filtros],
     () =>
       apiClient
-        .get<SolicitacaoDaIgreja[]>(`/churches/${churchId}/solicitacoes`)
+        .get<PaginaDaIgreja>(`/churches/${churchId}/solicitacoes`, {
+          params: filtros,
+        })
         .then((response) => response.data),
     { enabled: !!churchId, keepPreviousData: true }
   );

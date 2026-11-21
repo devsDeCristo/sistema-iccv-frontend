@@ -26,6 +26,11 @@ interface Props {
     marcados: Set<string>;
     onAlternar?: (id: string) => void;
     /**
+     * Os que não dá para marcar: o outro lado já recusou, e entra só o que os
+     * dois aprovam. A caixa fica desabilitada, e a etiqueta diz quem recusou.
+     */
+    bloqueados?: Set<string>;
+    /**
      * O que cada lado já decidiu sobre o produto ("Pastor ✓", "Tesouraria ✗"):
      * é como o segundo vê o que o primeiro liberou ou recusou. Só aparece o
      * lado que já decidiu.
@@ -96,7 +101,9 @@ function ProdutosParaMarcar({
     >
       {produtos.map((p, i) => {
         const marcado = marcar.marcados.has(p.id);
-        const { onAlternar } = marcar;
+        const bloqueado = !!marcar.bloqueados?.has(p.id);
+        // bloqueado, a linha não marca: nem a caixa nem o clique nela
+        const onAlternar = bloqueado ? undefined : marcar.onAlternar;
         return (
           <Box
             key={p.id}
@@ -121,12 +128,17 @@ function ProdutosParaMarcar({
               }),
             }}
           >
-            {onAlternar ? (
+            {marcar.onAlternar ? (
               <Checkbox
                 size="small"
                 checked={marcado}
-                onChange={() => onAlternar(p.id)}
-                inputProps={{ 'aria-label': `Aprovar ${p.name}` }}
+                disabled={bloqueado}
+                onChange={() => onAlternar?.(p.id)}
+                inputProps={{
+                  'aria-label': bloqueado
+                    ? `${p.name}: já recusado pelo outro lado`
+                    : `Aprovar ${p.name}`,
+                }}
                 sx={{
                   p: 0.25,
                   color: theme.palette.text.secondary,

@@ -44,6 +44,8 @@ export interface ProdutoDaSolicitacao {
 export interface Solicitacao {
   id: string;
   ministry: string;
+  /** com "Outro": qual é o ministério (o teatro, a dança) */
+  ministryOther: string | null;
   title: string;
   description: string;
   /** os produtos, na ordem em que a pessoa listou */
@@ -81,4 +83,25 @@ export interface SolicitacaoDaIgreja extends Solicitacao {
     profilePhotoUrl: string | null;
     cellphone: string | null;
   };
+}
+
+/** Uma página da lista do painel, com as contagens de cada aba */
+export interface PaginaDaIgreja {
+  items: SolicitacaoDaIgreja[];
+  total: number;
+  page: number;
+  limit: number;
+  /** por aba: `todas`, cada etapa (`ETAPAS`) e `sua-vez` */
+  contagens: Record<string, number>;
+}
+
+/** O que a lista do painel pede à API */
+export interface FiltrosDaIgreja {
+  /** uma das `ETAPAS` ou `sua-vez`; ausente, todas */
+  etapa?: string;
+  ministerio?: string;
+  ordem: 'desc' | 'asc';
+  /** a partir de 1, como a API */
+  page: number;
+  limit: number;
 }

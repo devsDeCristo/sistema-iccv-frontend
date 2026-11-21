@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Alert } from '@mui/material';
 import { AllInbox, HowToReg } from '@mui/icons-material';
 
@@ -11,47 +11,52 @@ import {
   usePapelNasSolicitacoes,
   useSolicitacoesDaIgreja,
 } from '../../../features/solicitacoes/api';
-import { aguardaVoce, ETAPAS } from '../../../features/solicitacoes/constants';
+import { ETAPAS } from '../../../features/solicitacoes/constants';
 import { ListaDaIgreja } from '../../../features/solicitacoes/components/listaDaIgreja';
 import { ModalDaSolicitacao } from '../../../features/solicitacoes/components/modalDaSolicitacao';
+import { FiltrosDaIgreja } from '../../../features/solicitacoes/types';
 
 /**
  * O que os membros pedem à igreja (módulo Solicitações). O painel dela vê
  * tudo, filtra pela etapa do trâmite (`ETAPAS`) e abre cada uma para ler
  * inteira, decidir (pastor e tesouraria) e responder.
+ *
+ * A lista vem paginada da API, já filtrada pela aba e pelo ministério, com a
+ * contagem de cada aba.
  */
 function SolicitacoesAdmin() {
   // a tesouraria da igreja também responde as solicitações
   const escopo = useIgrejaSelecionada(true);
   const churchId = escopo.churchId;
   const [aba, setAba] = useState('todas');
+  const [filtros, setFiltros] = useState<Omit<FiltrosDaIgreja, 'etapa'>>({
+    ordem: 'desc',
+    page: 1,
+    limit: 25,
+  });
+  const mudarFiltros = (mudou: Partial<FiltrosDaIgreja>) =>
+    setFiltros((atual) => ({ ...atual, ...mudou }));
   // só o id: a solicitação aberta sai da lista, e o refetch traz para a
   // janela a decisão que alguém deu enquanto ela estava aberta
   const [abertaId, setAbertaId] = useState<string | null>(null);
 
-  const { data, isFetching } = useSolicitacoesDaIgreja(churchId);
   // o papel é da igreja, não da solicitação: busca uma vez aqui, e a janela
   // já abre sabendo se a pessoa decide
   const { data: papel } = usePapelNasSolicitacoes(churchId);
-  const todas = useMemo(() => data ?? [], [data]);
-  const aberta = todas.find((s) => s.id === abertaId) ?? null;
-  const daEtapa = (valor: string) =>
-    todas.filter((s) =>
-      ETAPAS.find((etapa) => etapa.valor === valor)?.situacoes.includes(
-        s.status
-      )
-    );
-  // a vez de quem está logado (pastor ou tesouraria): o que ele precisa decidir
+  // a vez de quem está logado (pastor ou tesouraria): o que ele precisa
+  // decidir. Trocou para uma igreja em que não decide: a aba some
   const lado = papel?.lado ?? null;
-  const suaVez = todas.filter((s) => aguardaVoce(s, lado));
-  // trocou para uma igreja em que não decide: a aba "Sua vez" some
   const abaAtual = aba === 'sua-vez' && !lado ? 'todas' : aba;
-  const visiveis =
-    abaAtual === 'todas'
-      ? todas
-      : abaAtual === 'sua-vez'
-        ? suaVez
-        : daEtapa(abaAtual);
+
+  // outra igreja: volta para a primeira página
+  useEffect(() => mudarFiltros({ page: 1 }), [churchId]);
+
+  const { data, isFetching } = useSolicitacoesDaIgreja(churchId, {
+    ...filtros,
+    ...(abaAtual !== 'todas' && { etapa: abaAtual }),
+  });
+  const contagens = data?.contagens ?? {};
+  const aberta = data?.items.find((s) => s.id === abertaId) ?? null;
 
   return (
     <PageStyle>
@@ -79,14 +84,17 @@ function SolicitacoesAdmin() {
           <NavTabs
             fullWidth
             value={abaAtual}
-            onChange={setAba}
+            onChange={(valor) => {
+              setAba(valor);
+              mudarFiltros({ page: 1 });
+            }}
             sx={{ mb: 2 }}
             options={[
               {
                 value: 'todas',
                 label: 'Todas',
                 icon: <AllInbox fontSize="small" />,
-                contagem: todas.length,
+                contagem: contagens.todas ?? 0,
               },
               // só para quem decide: o admin que acompanha não tem vez
               ...(lado
@@ -95,7 +103,7 @@ function SolicitacoesAdmin() {
                       value: 'sua-vez',
                       label: 'Sua vez',
                       icon: <HowToReg fontSize="small" />,
-                      contagem: suaVez.length,
+                      contagem: contagens['sua-vez'] ?? 0,
                     },
                   ]
                 : []),
@@ -103,13 +111,16 @@ function SolicitacoesAdmin() {
                 value: valor,
                 label: rotulo,
                 icon: <Icone fontSize="small" />,
-                contagem: daEtapa(valor).length,
+                contagem: contagens[valor] ?? 0,
               })),
             ]}
           />
           <ListaDaIgreja
-            solicitacoes={visiveis}
+            solicitacoes={data?.items ?? []}
+            total={data?.total ?? 0}
             carregando={isFetching && !data}
+            filtros={filtros}
+            onFiltros={mudarFiltros}
             onAbrir={(s) => setAbertaId(s.id)}
           />
           {churchId && (

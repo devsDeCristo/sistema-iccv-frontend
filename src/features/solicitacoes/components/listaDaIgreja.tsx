@@ -9,22 +9,52 @@ import {
   useTheme,
 } from '@mui/material';
 import { Assignment, VisibilityOutlined } from '@mui/icons-material';
-import { DataGrid, GridColDef, ptBR } from '@mui/x-data-grid';
+import {
+  DataGrid,
+  getGridSingleSelectOperators,
+  GridColDef,
+  ptBR,
+} from '@mui/x-data-grid';
 
 import CustomChip from '../../../components/customChip';
 import { UserAvatar } from '../../../components/userAvatar';
 import { cardTabelaSx, dataGridSx } from '../../../components/listPageStyles';
-import { corDoStatus, ROTULO_DO_STATUS } from '../constants';
-import { SolicitacaoDaIgreja } from '../types';
+import { corDoStatus, MINISTERIOS, ROTULO_DO_STATUS } from '../constants';
+import { iconeDoMinisterio, nomeDoMinisterio } from '../ministerios';
+import { FiltrosDaIgreja, SolicitacaoDaIgreja } from '../types';
+
+/** O filtro do ministério: só "é", que é o que a API sabe filtrar */
+const SO_IGUAL = getGridSingleSelectOperators().filter(
+  (operador) => operador.value === 'is'
+);
 
 interface Props {
+  /** a página atual */
   solicitacoes: SolicitacaoDaIgreja[];
+  /** quantas há no filtro, somando todas as páginas */
+  total: number;
   carregando: boolean;
+  filtros: FiltrosDaIgreja;
+  /** página, tamanho, ordem e ministério: a página da tela refaz a busca */
+  onFiltros: (mudou: Partial<FiltrosDaIgreja>) => void;
   onAbrir: (solicitacao: SolicitacaoDaIgreja) => void;
 }
 
-/** As solicitações da igreja: a linha (ou o botão) abre a solicitação inteira */
-function ListaDaIgreja({ solicitacoes, carregando, onAbrir }: Props) {
+/**
+ * As solicitações da igreja: a linha (ou o botão) abre a solicitação inteira.
+ *
+ * Página, ordem e filtro são da API (`paginationMode`, `sortingMode` e
+ * `filterMode` "server"): a lista não vem inteira. Por isso só a data ordena
+ * e só o ministério filtra — é o que a API sabe fazer.
+ */
+function ListaDaIgreja({
+  solicitacoes,
+  total,
+  carregando,
+  filtros,
+  onFiltros,
+  onAbrir,
+}: Props) {
   const theme = useTheme();
 
   const columns: GridColDef<SolicitacaoDaIgreja>[] = [
@@ -32,7 +62,9 @@ function ListaDaIgreja({ solicitacoes, carregando, onAbrir }: Props) {
       field: 'requester',
       headerName: 'Quem pediu',
       flex: 1.2,
-      minWidth: 220,
+      minWidth: 200,
+      sortable: false,
+      filterable: false,
       valueGetter: ({ row }) => row.requester.fullName,
       renderCell: ({ row }) => (
         <Stack
@@ -46,14 +78,35 @@ function ListaDaIgreja({ solicitacoes, carregando, onAbrir }: Props) {
             photoUrl={row.requester.profilePhotoUrl ?? undefined}
             sx={{ width: 32, height: 32, fontSize: 13 }}
           />
-          <Box sx={{ minWidth: 0 }}>
-            <Typography fontSize={14} fontWeight={600} noWrap>
-              {row.requester.fullName}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              {row.ministry}
-            </Typography>
-          </Box>
+          <Typography fontSize={14} fontWeight={600} noWrap>
+            {row.requester.fullName}
+          </Typography>
+        </Stack>
+      ),
+    },
+    {
+      field: 'ministry',
+      headerName: 'Ministério',
+      width: 170,
+      sortable: false,
+      type: 'singleSelect',
+      valueOptions: [...MINISTERIOS],
+      filterOperators: SO_IGUAL,
+      renderCell: ({ row }) => (
+        <Stack
+          direction="row"
+          alignItems="center"
+          gap={0.75}
+          sx={{
+            minWidth: 0,
+            color: 'text.secondary',
+            '& svg': { fontSize: 17, flex: 'none' },
+          }}
+        >
+          {iconeDoMinisterio(row.ministry)}
+          <Typography fontSize={13.5} color="text.primary" noWrap>
+            {nomeDoMinisterio(row)}
+          </Typography>
         </Stack>
       ),
     },
@@ -62,6 +115,8 @@ function ListaDaIgreja({ solicitacoes, carregando, onAbrir }: Props) {
       headerName: 'Pedido',
       flex: 2,
       minWidth: 260,
+      sortable: false,
+      filterable: false,
       renderCell: ({ row }) => (
         <Box sx={{ minWidth: 0, py: 1 }}>
           <Typography fontSize={14} fontWeight={600}>
@@ -92,6 +147,7 @@ function ListaDaIgreja({ solicitacoes, carregando, onAbrir }: Props) {
       field: 'createdAt',
       headerName: 'Pediu em',
       width: 110,
+      filterable: false,
       valueFormatter: ({ value }) =>
         new Date(value as string).toLocaleDateString('pt-BR'),
     },
@@ -100,6 +156,8 @@ function ListaDaIgreja({ solicitacoes, carregando, onAbrir }: Props) {
       headerName: 'Situação',
       // cabe o chip mais longo, "Aceito parcialmente"
       width: 180,
+      sortable: false,
+      filterable: false,
       valueGetter: ({ row }) => ROTULO_DO_STATUS[row.status],
       renderCell: ({ row }) => (
         <CustomChip
@@ -151,8 +209,33 @@ function ListaDaIgreja({ solicitacoes, carregando, onAbrir }: Props) {
         autoHeight
         disableRowSelectionOnClick
         onRowClick={({ row }) => onAbrir(row)}
+        paginationMode="server"
+        rowCount={total}
         pageSizeOptions={[25, 50]}
-        initialState={{ pagination: { paginationModel: { pageSize: 25 } } }}
+        // a grade conta as páginas a partir de 0; a API, de 1
+        paginationModel={{ page: filtros.page - 1, pageSize: filtros.limit }}
+        onPaginationModelChange={({ page, pageSize }) =>
+          onFiltros({ page: page + 1, limit: pageSize })
+        }
+        sortingMode="server"
+        sortModel={[{ field: 'createdAt', sort: filtros.ordem }]}
+        onSortModelChange={([coluna]) =>
+          onFiltros({ ordem: coluna?.sort === 'asc' ? 'asc' : 'desc', page: 1 })
+        }
+        filterMode="server"
+        filterModel={{
+          items: filtros.ministerio
+            ? [{ field: 'ministry', operator: 'is', value: filtros.ministerio }]
+            : [],
+        }}
+        onFilterModelChange={({ items }) =>
+          onFiltros({
+            ministerio:
+              items.find((item) => item.field === 'ministry')?.value ||
+              undefined,
+            page: 1,
+          })
+        }
         columnHeaderHeight={44}
         sx={{
           ...dataGridSx(theme),

@@ -39,3 +39,9 @@ export const ICONE_DO_MINISTERIO: Record<Ministerio, ReactElement> = {
 
 export const iconeDoMinisterio = (ministerio: string) =>
   ICONE_DO_MINISTERIO[ministerio as Ministerio] ?? ICONE_DO_MINISTERIO.Outro;
+
+/** O nome que aparece: com "Outro", o que a pessoa escreveu (o teatro) */
+export const nomeDoMinisterio = (s: {
+  ministry: string;
+  ministryOther: string | null;
+}) => s.ministryOther || s.ministry;

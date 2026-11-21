@@ -31,7 +31,7 @@ import {
   RESPONDIDA,
   ROTULO_DO_STATUS,
 } from '../constants';
-import { iconeDoMinisterio } from '../ministerios';
+import { iconeDoMinisterio, nomeDoMinisterio } from '../ministerios';
 import {
   PapelNasSolicitacoes,
   SolicitacaoDaIgreja,
@@ -159,6 +159,15 @@ function ModalDaSolicitacao({
         ? s?.pastorDecision
         : undefined;
   const possoDecidir = !!s && aguardaVoce(s, lado);
+  const doOutro = (p: SolicitacaoDaIgreja['items'][number]) =>
+    lado === 'PASTOR' ? p.treasuryAccepted : p.pastorAccepted;
+  // o outro lado já aprovou: o que ele recusou não entra (só o que os dois
+  // aprovam), então nem dá para marcar
+  const bloqueados = new Set(
+    outra === true && s
+      ? s.items.filter((p) => doOutro(p) === false).map((p) => p.id)
+      : []
+  );
   const semMotivo = !resposta.trim();
 
   // abre com a situação e a resposta que já estavam; quem vai decidir começa
@@ -171,8 +180,6 @@ function ModalDaSolicitacao({
     setStatus(s.status);
     setResposta(s.response ?? '');
     setConfirmandoRecusa(false);
-    const doOutro = (p: SolicitacaoDaIgreja['items'][number]) =>
-      lado === 'PASTOR' ? p.treasuryAccepted : p.pastorAccepted;
     setAceitos(
       new Set(
         s.items
@@ -293,7 +300,7 @@ function ModalDaSolicitacao({
                 <CustomChip
                   size="small"
                   icon={iconeDoMinisterio(s.ministry)}
-                  label={s.ministry}
+                  label={nomeDoMinisterio(s)}
                   customColor={theme.palette.secondary.main}
                   sx={{ '& .MuiChip-icon': { color: 'inherit', fontSize: 15 } }}
                 />
@@ -379,7 +386,7 @@ function ModalDaSolicitacao({
                 marcados: possoDecidir
                   ? aceitos
                   : new Set(s.items.filter((p) => p.accepted).map((p) => p.id)),
-                ...(possoDecidir && { onAlternar: alternar }),
+                ...(possoDecidir && { onAlternar: alternar, bloqueados }),
                 // sozinho, o que o pastor marcou já é o resultado (✓/✗)
                 ...(comTesouraria && {
                   etiquetas: [

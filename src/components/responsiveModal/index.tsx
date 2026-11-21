@@ -84,6 +84,10 @@ function ResponsiveModal({
     setIsSettling(false);
   }, [open]);
 
+  // o `open` de agora, para o fim do arraste saber se quem abriu fechou mesmo
+  const abertoRef = useRef(open);
+  abertoRef.current = open;
+
   const handleClose = () => {
     if (disableClose) return;
     onClose();
@@ -111,7 +115,16 @@ function ResponsiveModal({
       // termina o gesto deslizando para fora antes de desmontar; o estado volta
       // ao lugar na próxima abertura, não aqui, senão a folha pula na saída
       setDragY(window.innerHeight);
-      setTimeout(onClose, CLOSE_ANIMATION);
+      setTimeout(() => {
+        onClose();
+        // quem abriu pode recusar o fechar (pedir para confirmar o descarte):
+        // a folha, que já saiu da tela, volta ao lugar
+        setTimeout(() => {
+          if (!abertoRef.current) return;
+          setDragY(0);
+          setTimeout(() => setIsSettling(false), CLOSE_ANIMATION);
+        });
+      }, CLOSE_ANIMATION);
       return;
     }
 
@@ -233,10 +246,10 @@ function ResponsiveModal({
       {header}
       <Divider />
       <Box
-          sx={{ px: 3, py: 2, overflowY: 'auto', overflowX: 'hidden', flex: 1 }}
-        >
-          {children}
-        </Box>
+        sx={{ px: 3, py: 2, overflowY: 'auto', overflowX: 'hidden', flex: 1 }}
+      >
+        {children}
+      </Box>
       {footer}
     </Dialog>
   );

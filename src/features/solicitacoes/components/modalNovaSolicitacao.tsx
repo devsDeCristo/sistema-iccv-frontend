@@ -17,7 +17,12 @@ import { useCriarSolicitacao } from '../api';
 import { MINISTERIOS } from '../constants';
 import { ICONE_DO_MINISTERIO } from '../ministerios';
 
-const VAZIO = { ministerio: '', titulo: '', descricao: '' };
+const VAZIO = {
+  ministerio: '',
+  ministerioOutro: '',
+  titulo: '',
+  descricao: '',
+};
 type Produto = { nome: string; quantidade: string; link: string };
 const PRODUTO_VAZIO: Produto = { nome: '', quantidade: '1', link: '' };
 /** O mesmo teto da API */
@@ -42,6 +47,12 @@ interface Props {
  * link da loja) — um pedido pode ter vários. Os cards usam a cor do módulo (a
  * tela abre com `TemaDoModulo`).
  *
+ * Com "Outro", a pessoa diz qual é o ministério (o teatro, a dança).
+ *
+ * Fechar com algo preenchido (Cancelar, fora da janela, Esc, arrastar a
+ * folha) pergunta antes de descartar, no rodapé: o SweetAlert do resto do
+ * sistema abriria por baixo desta janela.
+ *
  * Os obrigatórios levam o asterisco pelo rótulo (`InputLabelProps.required`),
  * e não pelo `required` do campo: esse acendia o balão nativo do navegador,
  * "Preencha este campo.", fora de qualquer envio de formulário.
@@ -51,10 +62,13 @@ function ModalNovaSolicitacao({ open, igreja, onClose }: Props) {
   const cor = theme.palette.secondary.main;
   const [dados, setDados] = useState(VAZIO);
   const [produtos, setProdutos] = useState<Produto[]>([PRODUTO_VAZIO]);
+  const [confirmandoDescarte, setConfirmandoDescarte] = useState(false);
   const criar = useCriarSolicitacao();
+  const outro = dados.ministerio === 'Outro';
 
   const pronto =
     !!dados.ministerio &&
+    (!outro || !!dados.ministerioOutro.trim()) &&
     !!dados.titulo.trim() &&
     !!dados.descricao.trim() &&
     produtos.every(
@@ -62,11 +76,20 @@ function ModalNovaSolicitacao({ open, igreja, onClose }: Props) {
         !!p.nome.trim() && quantidadeValida(p.quantidade) && linkValido(p.link)
     );
 
+  const preenchido =
+    JSON.stringify([dados, produtos]) !==
+    JSON.stringify([VAZIO, [PRODUTO_VAZIO]]);
+
   const fechar = () => {
     setDados(VAZIO);
     setProdutos([PRODUTO_VAZIO]);
+    setConfirmandoDescarte(false);
     onClose();
   };
+
+  /** Fechar sem enviar: com algo preenchido, pergunta antes */
+  const pedirParaFechar = () =>
+    preenchido ? setConfirmandoDescarte(true) : fechar();
 
   const mudarProduto =
     (i: number, nome: keyof Produto) =>
@@ -83,6 +106,7 @@ function ModalNovaSolicitacao({ open, igreja, onClose }: Props) {
     criar.mutate(
       {
         ministerio: dados.ministerio,
+        ...(outro && { ministerioOutro: dados.ministerioOutro.trim() }),
         titulo: dados.titulo,
         descricao: dados.descricao,
         produtos: produtos.map((p) => ({
@@ -97,24 +121,45 @@ function ModalNovaSolicitacao({ open, igreja, onClose }: Props) {
   return (
     <ResponsiveModal
       open={open}
-      onClose={fechar}
+      onClose={pedirParaFechar}
       disableClose={criar.isLoading}
       maxWidth="sm"
       fullWidth
       title="Nova solicitação"
       actions={
-        <>
-          <Button onClick={fechar} disabled={criar.isLoading} color="inherit">
-            Cancelar
-          </Button>
-          <Button
-            variant="contained"
-            disabled={!pronto || criar.isLoading}
-            onClick={enviar}
-          >
-            {criar.isLoading ? 'Enviando…' : 'Enviar'}
-          </Button>
-        </>
+        confirmandoDescarte ? (
+          <>
+            <Typography variant="body2" sx={{ flex: 1, fontWeight: 500 }}>
+              Descartar o que você preencheu?
+            </Typography>
+            <Button
+              onClick={() => setConfirmandoDescarte(false)}
+              color="inherit"
+            >
+              Continuar editando
+            </Button>
+            <Button onClick={fechar} color="error" variant="contained">
+              Descartar
+            </Button>
+          </>
+        ) : (
+          <>
+            <Button
+              onClick={pedirParaFechar}
+              disabled={criar.isLoading}
+              color="inherit"
+            >
+              Cancelar
+            </Button>
+            <Button
+              variant="contained"
+              disabled={!pronto || criar.isLoading}
+              onClick={enviar}
+            >
+              {criar.isLoading ? 'Enviando…' : 'Enviar'}
+            </Button>
+          </>
+        )
       }
     >
       <Stack spacing={2} sx={{ pt: 1 }}>
@@ -186,6 +231,18 @@ function ModalNovaSolicitacao({ open, igreja, onClose }: Props) {
               );
             })}
           </Box>
+          {outro && (
+            <TextField
+              size="small"
+              label="Qual ministério?"
+              placeholder="Ex.: teatro"
+              value={dados.ministerioOutro}
+              onChange={campo('ministerioOutro')}
+              inputProps={{ maxLength: 60 }}
+              InputLabelProps={{ required: true }}
+              autoFocus
+            />
+          )}
         </Stack>
 
         <TextField
