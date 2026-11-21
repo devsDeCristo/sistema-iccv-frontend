@@ -247,7 +247,8 @@ ser longo, e no celular o modal fica apertado.
     **Anterior** e **Próximo**, na ordem da lista filtrada.
   - **Acompanhamento** (interno; o candidato não vê): a **etapa** (Nova, Em
     análise, Entrevista, Selecionada, Descartada), que grava ao escolher, e
-    a **anotação interna**, com "Salvar anotação".
+    a **anotação interna**, com "Salvar anotação". Em coluna, em qualquer
+    tela: a etapa em cima e a anotação embaixo, as duas na largura toda.
   - **Celular:** a lista ocupa a tela; tocar num candidato abre o detalhe,
     com "Todos os candidatos" para voltar. Na tela grande, o primeiro da
     lista já aparece aberto. O candidato aberto fica no endereço

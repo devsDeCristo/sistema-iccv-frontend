@@ -461,11 +461,8 @@ function DetalheDoCandidato({
           border: (t) => `1px solid ${t.palette.divider}`,
         }}
       >
-        <Stack
-          direction={{ xs: 'column', sm: 'row' }}
-          gap={1.5}
-          alignItems={{ sm: 'flex-start' }}
-        >
+        {/* em coluna: a etapa em cima e a anotação embaixo, as duas na largura toda */}
+        <Stack gap={1.5}>
           <TextField
             select
             size="small"
