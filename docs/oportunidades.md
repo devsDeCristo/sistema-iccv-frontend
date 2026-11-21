@@ -35,7 +35,7 @@ e formato do formulário em `ic-backend/docs/oportunidades.md`.
   - no lugar da foto 3x4, um **crachá pequeno** preso no canto, um pouco
     torto: a miniatura do crachá dos detalhes, com a fita e o mosquetão
     saindo da borda de cima da página, o rasgo, a logo (`contain` sobre um
-    quadrado branco, como a `LogoDaVaga`; sem imagem, o ícone `Work`) e um
+    quadrado branco, como a `LogoDaVaga`; sem imagem, a maleta `Work`, que fica só para a logo que falta) e um
     friso embaixo. A face é o papel do crachá dos detalhes: grafite no
     escuro, creme no claro. A fita, a faixa e o ícone
     usam a **cor da logo** (`vaga.cor`; sem ela, a do módulo), como o crachá;
@@ -278,7 +278,9 @@ ser longo, e no celular o modal fica apertado.
 
 ## Identidade
 
-Ícone `Work` e a paleta "Mãos à obra" (Ne 2:18), laranja, em
+Ícone `Badge` (um crachá, como o dos detalhes da vaga; no menu lateral, no
+card da home, no cabeçalho, nas abas "Vagas" e "Abertas" e nos estados
+vazios) e a paleta "Mãos à obra" (Ne 2:18), laranja, em
 `CORES_DO_MODULO`: claro `#8A3A00` / `#AD4A00` / `#D9650B`, escuro
 `#F2B07C` / `#FF9B52` / `#EE7A22` (contrastes conferidos: primária 7,8:1 e
 8,6:1 com o texto do botão; secundária 4,9:1 e 7:1; terciária 3,2:1 e

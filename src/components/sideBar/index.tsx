@@ -23,7 +23,7 @@ import {
   Hub,
   HolidayVillage,
   Diversity3,
-  Work,
+  Badge,
   WorkspacePremium,
 } from '@mui/icons-material';
 import { Link, useLocation } from 'react-router-dom';
@@ -753,7 +753,7 @@ const SideBar: React.FC<SideBarProps> = ({
           ? [
               {
                 link: '/oportunidades',
-                icon: <Work />,
+                icon: <Badge />,
                 title: 'Oportunidades',
                 novo: true,
               },
@@ -854,7 +854,7 @@ const SideBar: React.FC<SideBarProps> = ({
           ? [
               {
                 link: '/admin/oportunidades',
-                icon: <Work />,
+                icon: <Badge />,
                 title: 'Oportunidades',
                 novo: true,
               },

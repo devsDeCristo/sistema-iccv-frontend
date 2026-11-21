@@ -15,7 +15,7 @@ import {
   DeleteOutline,
   EditOutlined,
   PeopleOutline,
-  Work,
+  Badge,
 } from '@mui/icons-material';
 import { ConfirmModal } from '../../../components/ConfirmModal';
 import { corDoModulo } from '../../../constants/identidadeDosModulos';
@@ -129,7 +129,7 @@ export function MinhasPropostas() {
   if (data && !data.length) {
     return (
       <Stack alignItems="center" spacing={1.5} sx={{ py: 6 }}>
-        <Work sx={{ fontSize: 40, color: 'text.disabled' }} />
+        <Badge sx={{ fontSize: 40, color: 'text.disabled' }} />
         <Typography color="text.secondary" textAlign="center">
           Você ainda não propôs nenhuma vaga.
         </Typography>

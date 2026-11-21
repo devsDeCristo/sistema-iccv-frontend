@@ -10,7 +10,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import { Add, AssignmentOutlined, Search, Work } from '@mui/icons-material';
+import { Add, AssignmentOutlined, Search, Badge } from '@mui/icons-material';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import { PageStyle } from '../../components/pageStyle';
@@ -131,7 +131,7 @@ function Oportunidades() {
               {
                 value: 'vagas',
                 label: 'Vagas',
-                icon: <Work fontSize="small" />,
+                icon: <Badge fontSize="small" />,
               },
               {
                 value: 'propostas',
@@ -157,7 +157,7 @@ function Oportunidades() {
         </Box>
       ) : !data?.length ? (
         <Stack alignItems="center" spacing={1} sx={{ py: 6 }}>
-          <Work sx={{ fontSize: 40, color: 'text.disabled' }} />
+          <Badge sx={{ fontSize: 40, color: 'text.disabled' }} />
           <Typography color="text.secondary" textAlign="center">
             Nenhuma vaga aberta no momento.
           </Typography>

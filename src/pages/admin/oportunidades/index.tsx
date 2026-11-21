@@ -10,7 +10,7 @@ import {
   HourglassEmptyOutlined,
   LockOpenOutlined,
   LockOutlined,
-  Work,
+  Badge,
 } from '@mui/icons-material';
 
 import { PageStyle } from '../../../components/pageStyle';
@@ -183,7 +183,7 @@ function OportunidadesAdmin() {
                 {
                   value: 'abertas',
                   label: 'Abertas',
-                  icon: <Work fontSize="small" />,
+                  icon: <Badge fontSize="small" />,
                   contagem: porAba.abertas.length,
                 },
                 {

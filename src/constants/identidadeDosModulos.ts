@@ -7,7 +7,7 @@ import {
   Campaign,
   Diversity3,
   Event,
-  Work,
+  Badge,
 } from '@mui/icons-material';
 
 /** Os módulos que a home apresenta e cujas telas levam a identidade deles */
@@ -29,7 +29,7 @@ export const ICONE_DO_MODULO: Record<ChaveDoModulo, ElementType> = {
   noticias: Campaign,
   tesouraria: AccountBalanceWallet,
   solicitacoes: Assignment,
-  oportunidades: Work,
+  oportunidades: Badge,
 };
 
 /**

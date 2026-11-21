@@ -15,7 +15,7 @@ import {
   PaymentsOutlined,
   PeopleOutline,
   PlaceOutlined,
-  Work,
+  Badge,
 } from '@mui/icons-material';
 import { DataGrid, GridColDef, ptBR } from '@mui/x-data-grid';
 
@@ -294,7 +294,7 @@ function ListaDaIgreja({
               spacing={1}
               py={5}
             >
-              <Work sx={{ fontSize: 34, color: 'text.disabled' }} />
+              <Badge sx={{ fontSize: 34, color: 'text.disabled' }} />
               <Typography color="text.secondary">
                 Nenhuma oportunidade aqui
               </Typography>
