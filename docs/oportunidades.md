@@ -171,8 +171,26 @@ ser longo, e no celular o modal fica apertado.
     candidaturas;
   - **recusada:** só **Excluir**.
 - **Publicar e editar** (`pages/admin/oportunidades/editar.tsx`, em
-  `/admin/oportunidades/nova` e `/admin/oportunidades/:id`; o formulário é
+  `/admin/oportunidades/nova`, com o título **Cadastrar oportunidade** e sem
+  subtítulo (como o "Cadastrar evento"), e `/admin/oportunidades/:id`; o formulário é
   `components/formularioDaVaga.tsx`, o mesmo da proposta do membro):
+  - Em dois passos, no layout do cadastro de evento: um Paper só com a
+    régua `StepProgress` (`components/step`) no topo, o passo e os botões
+    embaixo (contornado à esquerda, preenchido à direita), com os mesmos
+    espaços: 24px de borda e da régua ao passo, 16px entre os campos e do
+    passo aos botões, e o título do passo em `h6` de 18px. Os campos da
+    vaga também são os do evento: o `Input` do sistema (`components/input`)
+    e o `InputDatePicker`, em `size="small"`, numa `Grid` de `spacing={2}`
+    (Vaga na linha toda; Quem oferece e Local meio a meio; salário e data
+    em duas ou três colunas, conforme fixo ou faixa), e o rótulo da
+    descrição em `subtitle1` de 16px, como o "Descrição detalhada". **1. Vaga** (os
+    dados abaixo, até Candidaturas até): Cancelar e **Próximo**, travado
+    enquanto falta algo da vaga (o "Falta:" diz o quê). **2. Formulário de
+    inscrição** (editor e prévia): **Voltar** e Salvar, que confere a vaga e
+    o formulário. No celular a régua deixa tocar no passo, mas o 2 só abre
+    com a vaga completa. Os dados dos dois passos ficam juntos no
+    componente, e trocar de passo volta a rolagem do `#layout-scroll` para o
+    topo. Editar uma vaga também passa pelos dois.
   - **A vaga:** imagem (prévia, trocar, remover; sobe depois de salvar),
     Vaga\*, Quem oferece\*, Local e Descrição\* no `ReactQuillEditor`, o editor do sistema,
     com fundo, borda e ícones iguais aos dos campos.
@@ -185,8 +203,12 @@ ser longo, e no celular o modal fica apertado.
     mesmo da data de nascimento no cadastro de usuário), sem dias passados
     e com o botão de limpar.
   - **Formulário de candidatura** (`components/editorDoFormulario.tsx`), em
-    duas colunas na tela grande: o editor e, ao lado (fixa ao rolar), a
-    **prévia** num Paper só dela, com o que o candidato vê. A prévia usa o
+    duas colunas na tela grande: o editor e, ao lado (fixa ao rolar, 16px
+    abaixo do topo do `#layout-scroll`, que já começa sob a appbar), a
+    **prévia**, com o que o candidato vê: uma moldura tracejada um tom
+    abaixo do Paper (`background.default`), com o cabeçalho "Prévia", e
+    dentro dela o formulário num Paper próprio, como uma telinha (num Paper
+    simples ela ficava da cor do cadastro e não parecia amostra). A prévia usa o
     mesmo `CampoDoFormulario` da candidatura e é só para olhar: os campos
     não respondem a clique, teclado nem leitor de tela (`inert`), para quem
     monta o formulário não confundi-la com o editor. No celular, a prévia

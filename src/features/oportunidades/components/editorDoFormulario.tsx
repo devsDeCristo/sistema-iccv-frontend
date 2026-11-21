@@ -375,20 +375,38 @@ export function EditorDoFormulario({
  */
 export function PreviaDoFormulario({ campos }: { campos: Campo[] }) {
   return (
-    <Paper sx={{ borderRadius: 3, p: { xs: 2, sm: 2.5 } }}>
+    /**
+     * A moldura um tom abaixo e tracejada, e o formulário num Paper dentro dela,
+     * como uma telinha: dentro do Paper do cadastro, a prévia num Paper igual
+     * ficava da mesma cor e não parecia amostra.
+     */
+    <Box
+      sx={{
+        borderRadius: 3,
+        border: '1px dashed',
+        borderColor: 'divider',
+        bgcolor: 'background.default',
+        p: { xs: 1.5, sm: 2 },
+      }}
+    >
       <Stack direction="row" alignItems="center" gap={1} sx={{ mb: 0.5 }}>
         <VisibilityOutlined sx={{ fontSize: 20, color: 'text.secondary' }} />
         <Typography fontWeight={800}>Prévia</Typography>
       </Stack>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 2.5 }}>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
         Como o candidato vê o formulário. Só para conferir: edite ao lado.
       </Typography>
 
-      <Box
+      <Paper
         // `inert` tira cliques, foco e leitor de tela de tudo aqui dentro
         {...{ inert: '' }}
         aria-hidden
-        sx={{ pointerEvents: 'none', userSelect: 'none' }}
+        sx={{
+          borderRadius: 2,
+          p: { xs: 2, sm: 2.5 },
+          pointerEvents: 'none',
+          userSelect: 'none',
+        }}
       >
         <Stack spacing={2.5}>
           <Box>
@@ -417,7 +435,7 @@ export function PreviaDoFormulario({ campos }: { campos: Campo[] }) {
             Enviar candidatura
           </Button>
         </Stack>
-      </Box>
-    </Paper>
+      </Paper>
+    </Box>
   );
 }

@@ -98,12 +98,10 @@ function EditarOportunidade() {
             ? pendente
               ? 'Revisar proposta'
               : 'Editar oportunidade'
-            : 'Nova oportunidade'
+            : 'Cadastrar oportunidade'
         }
         modulo="oportunidades"
-        description={
-          id ? existente?.title : 'Publique uma vaga para os membros da igreja'
-        }
+        description={existente?.title}
         pageBack="/admin/oportunidades"
         buttonBack
       />
