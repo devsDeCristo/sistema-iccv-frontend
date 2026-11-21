@@ -156,10 +156,12 @@ ser longo, e no celular o modal fica apertado.
   em Pendentes se houver alguma; senão, em Abertas. **Nova oportunidade**
   fica ao lado das abas.
 - **Lista** (`components/listaDaIgreja.tsx`, a mesma de "Minhas propostas";
-  as ações de cada linha vêm de quem usa): vaga (título, quem oferece e
-  local; na recusada, o motivo), candidaturas (botão com a contagem; "—"
-  fora da aprovada), data com quem publicou ("proposta por Fulano" na
-  proposta), data final e situação em chip: Pendente (laranja), Aberta
+  as ações de cada linha vêm de quem usa): vaga (a logo, o título e, com
+  ícone, como no card da vitrine, quem oferece, local e salário; na
+  recusada, o motivo), candidaturas (botão com a contagem; "—" fora da
+  aprovada), data com quem publicou ("proposta por Fulano" na proposta),
+  data final com o prazo embaixo na aberta ("Faltam 3 dias", em laranja
+  quando falta uma semana ou menos) e situação em chip: Pendente (laranja), Aberta
   (verde), Encerrada e Vencida (cinza), Recusada (vermelho). Ações na linha:
   - **pendente:** **Revisar e editar** (a página da vaga, com o aviso de
     que é proposta), **Aprovar** (confirmação: avisa os membros, e quem

@@ -9,12 +9,20 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
-import { ChevronRight, PeopleOutline, Work } from '@mui/icons-material';
+import {
+  BusinessOutlined,
+  ChevronRight,
+  PaymentsOutlined,
+  PeopleOutline,
+  PlaceOutlined,
+  Work,
+} from '@mui/icons-material';
 import { DataGrid, GridColDef, ptBR } from '@mui/x-data-grid';
 
 import CustomChip from '../../../components/customChip';
 import { cardTabelaSx, dataGridSx } from '../../../components/listPageStyles';
-import { formatarData } from '../formulario';
+import { formatarData, formatarSalario, prazo } from '../formulario';
+import { Info, LogoDaVaga } from './cardDaVaga';
 import { OportunidadeDaIgreja } from '../types';
 
 /** Uma ação da linha: ícone com dica; sem `cor`, a primária */
@@ -95,28 +103,54 @@ function ListaDaIgreja({
       field: 'title',
       headerName: 'Vaga',
       flex: 2,
-      minWidth: 240,
+      minWidth: 280,
+      // a logo e as informações com ícone, como no card da vitrine
       renderCell: ({ row }) => (
-        <Box sx={{ minWidth: 0, py: 1 }}>
-          <Typography fontSize={14} fontWeight={600}>
-            {row.title}
-          </Typography>
-          <Typography variant="caption" color="text.secondary">
-            {[row.company, row.location].filter(Boolean).join(' · ')}
-          </Typography>
-          {row.status === 'REJECTED' && (
-            <Typography
-              variant="caption"
-              color="error.main"
-              component="div"
-              sx={{ overflowWrap: 'anywhere' }}
-            >
-              {row.rejectionReason
-                ? `Motivo: ${row.rejectionReason}`
-                : 'Recusada sem motivo informado'}
+        <Stack
+          direction="row"
+          alignItems="center"
+          gap={1.5}
+          sx={{ minWidth: 0, py: 1.25 }}
+        >
+          <LogoDaVaga vaga={row} tamanho={44} />
+          <Box sx={{ minWidth: 0 }}>
+            <Typography fontSize={14} fontWeight={700} noWrap>
+              {row.title}
             </Typography>
-          )}
-        </Box>
+            <Stack
+              direction="row"
+              columnGap={1.5}
+              rowGap={0.25}
+              flexWrap="wrap"
+              sx={{
+                mt: 0.25,
+                '& p': { fontWeight: 500, color: 'text.secondary' },
+              }}
+            >
+              <Info icone={<BusinessOutlined />}>{row.company}</Info>
+              {row.location && (
+                <Info icone={<PlaceOutlined />}>{row.location}</Info>
+              )}
+              {row.salario && (
+                <Info icone={<PaymentsOutlined />}>
+                  {formatarSalario(row.salario)}
+                </Info>
+              )}
+            </Stack>
+            {row.status === 'REJECTED' && (
+              <Typography
+                variant="caption"
+                color="error.main"
+                component="div"
+                sx={{ overflowWrap: 'anywhere' }}
+              >
+                {row.rejectionReason
+                  ? `Motivo: ${row.rejectionReason}`
+                  : 'Recusada sem motivo informado'}
+              </Typography>
+            )}
+          </Box>
+        </Stack>
       ),
     },
     {
@@ -172,9 +206,37 @@ function ListaDaIgreja({
     {
       field: 'closesAt',
       headerName: 'Até',
-      width: 110,
+      width: 140,
       valueFormatter: ({ value }) =>
         value ? formatarData(value as string) : '—',
+      // embaixo da data, quanto falta; perto do fim, na cor de atenção
+      renderCell: ({ row }) => {
+        if (!row.closesAt)
+          return <Typography color="text.disabled">—</Typography>;
+        const ate =
+          row.status === 'APPROVED' && !row.encerrada
+            ? prazo(row.closesAt)
+            : null;
+        const perto = !!ate && /hoje|amanhã|Faltam/.test(ate);
+        return (
+          <Box sx={{ py: 1, minWidth: 0 }}>
+            <Typography fontSize={13}>{formatarData(row.closesAt)}</Typography>
+            {ate && (
+              <Typography
+                variant="caption"
+                component="div"
+                noWrap
+                sx={{
+                  color: perto ? 'warning.main' : 'text.secondary',
+                  fontWeight: perto ? 700 : 400,
+                }}
+              >
+                {ate}
+              </Typography>
+            )}
+          </Box>
+        );
+      },
     },
     {
       field: 'isOpen',
