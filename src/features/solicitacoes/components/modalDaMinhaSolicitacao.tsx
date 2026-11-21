@@ -268,9 +268,9 @@ function PastaDeTras({ cor }: { cor: string }) {
         right: 0,
         borderRadius: '20px',
         backgroundColor: cor,
-        backgroundImage: `linear-gradient(160deg, ${alpha('#fff', 0.12)}, transparent 50%, ${alpha('#000', 0.16)})`,
         transformOrigin: 'top center',
-        transform: 'translateX(24%) rotate(7deg)',
+        // menos à mostra que antes, mas ainda dá para ler o nome
+        transform: 'translateX(18%) rotate(6deg)',
         boxShadow: '0 24px 50px rgba(0,0,0,0.45)',
         alignItems: 'center',
         justifyContent: 'flex-end',
@@ -355,7 +355,7 @@ function ModalDaMinhaSolicitacao({
     >
       {s && (
         // o par fica centrado: a prancheta vai um pouco para a esquerda
-        <Box sx={{ position: 'relative', left: { sm: '-9%' } }}>
+        <Box sx={{ position: 'relative', left: { sm: '-7%' } }}>
           <PastaDeTras cor={corDaPasta} />
           <Box
             sx={{

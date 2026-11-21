@@ -150,8 +150,9 @@ têm resposta: aceita, em parte e recusada; as de "aguardando" ainda não.
   o papel cobre a folha menos essa faixa, que tem fundo próprio e recortado,
   e a sombra é `drop-shadow`, que contorna os furos;
   o papel segue o tema. Atrás, como o segundo crachá da vaga, uma **pasta**
-  inclinada na cor do módulo, escurecida, com "SOLICITAÇÃO" grande (84px), na cor da pasta escurecida, como marca d'água, na
-  vertical; o par fica centrado (a prancheta vai um pouco para a esquerda) e
+  inclinada e meio escondida (`translateX(18%) rotate(6deg)`), na cor do módulo escurecida e chapada (sem degradê), com
+  "SOLICITAÇÃO" grande (84px), na cor da pasta escurecida, como marca d'água, na
+  vertical; o par fica centrado (a prancheta vai 7% para a esquerda) e
   no celular a pasta some. Na folha: "Solicitação",
   o número (os 8 primeiros do id) e o **carimbo** da situação (decidida,
   borda cheia e inclinado; em andamento, tracejado); os campos do pedido em

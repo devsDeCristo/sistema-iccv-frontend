@@ -453,7 +453,7 @@ function Cracha({
 
   return (
     // o par fica centrado: o da frente vai um pouco para a esquerda
-    <Box sx={{ position: 'relative', left: { sm: '-9%' } }}>
+    <Box sx={{ position: 'relative', left: { sm: '-7%' } }}>
       {/*
         o segundo crachá, do tamanho do da frente (a mesma caixa, abaixo da
         fita, que fica em 70px), inclinado atrás dele e só com o nome. No
@@ -472,7 +472,8 @@ function Cracha({
           backgroundColor: fita,
           backgroundImage: `linear-gradient(160deg, ${alpha('#fff', 0.12)}, transparent 50%, ${alpha('#000', 0.16)})`,
           transformOrigin: 'top center',
-          transform: 'translateX(24%) rotate(7deg)',
+          // meio escondido, como a pasta atrás da prancheta
+          transform: 'translateX(18%) rotate(6deg)',
           boxShadow: '0 24px 50px rgba(0,0,0,0.45)',
           alignItems: 'center',
           justifyContent: 'flex-end',

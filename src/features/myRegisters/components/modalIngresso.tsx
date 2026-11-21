@@ -4,6 +4,7 @@ import {
   alpha,
   Box,
   Button,
+  darken,
   Dialog,
   IconButton,
   Stack,
@@ -339,6 +340,8 @@ function ModalIngresso({
       // passava da altura da tela, e o Dialog espremia a parte de cima — o fim
       // da lista sumia debaixo do picote
       scroll="body"
+      // o cartão de trás passa da caixa do Dialog: sem rolagem de lado
+      sx={{ '& .MuiDialog-container': { overflowX: 'hidden' } }}
       // o papel do Dialog some: quem desenha o ingresso são as duas metades
       PaperProps={{
         sx: {
@@ -346,11 +349,79 @@ function ModalIngresso({
           backgroundImage: 'none',
           boxShadow: 'none',
           overflow: 'visible',
+          // o par fica centrado: o ingresso vai um pouco para a esquerda
+          position: 'relative',
+          left: { sm: '-5%' },
         },
       }}
     >
+      {/*
+        atrás, como o segundo crachá da vaga e a pasta da prancheta, um
+        ingresso na mesma forma (o corpo, o picote com os furos e o canhoto),
+        inclinado, na cor do evento e só com o nome do módulo em marca
+        d'água. No celular não cabe ao lado e some.
+      */}
+      <Box
+        aria-hidden
+        sx={{
+          display: { xs: 'none', sm: 'flex' },
+          flexDirection: 'column',
+          position: 'absolute',
+          inset: 0,
+          transformOrigin: 'top center',
+          // mais escondido que o crachá de trás: só uma faixa aparece
+          transform: 'translateX(12%) rotate(5deg)',
+          // a sombra segue o recorte, furos inclusive
+          filter: 'drop-shadow(0 24px 30px rgba(0,0,0,0.45))',
+        }}
+      >
+        <Box
+          sx={{
+            flex: 1,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'flex-end',
+            pr: 2,
+            overflow: 'hidden',
+            borderRadius: `${raio}px ${raio}px 0 0`,
+            backgroundColor: cor,
+            ...furo('bottom'),
+          }}
+        >
+          <Typography
+            sx={{
+              writingMode: 'vertical-rl',
+              fontSize: 84,
+              fontWeight: 900,
+              lineHeight: 1,
+              letterSpacing: '0.04em',
+              // a cor do evento, escurecida: marca d'água
+              color: darken(cor, 0.28),
+              textTransform: 'uppercase',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            Evento
+          </Typography>
+        </Box>
+        {/* o canhoto do cartão de trás, da altura do da frente */}
+        <Box
+          sx={{
+            height: 72,
+            flexShrink: 0,
+            borderRadius: `0 0 ${raio}px ${raio}px`,
+            borderTop: `2px dashed ${alpha('#000', 0.25)}`,
+            backgroundColor: cor,
+            backgroundImage: `linear-gradient(${alpha('#000', 0.16)}, ${alpha('#000', 0.16)})`,
+            ...furo('top'),
+          }}
+        />
+      </Box>
+
       <Box
         sx={{
+          // acima do cartão de trás
+          position: 'relative',
           backgroundColor: theme.palette.background.paper,
           borderRadius: `${raio}px ${raio}px 0 0`,
           overflow: 'hidden',
@@ -549,6 +620,7 @@ function ModalIngresso({
         alignItems={{ xs: 'stretch', sm: 'center' }}
         gap={1.5}
         sx={{
+          position: 'relative',
           backgroundColor: theme.palette.background.paper,
           borderRadius: `0 0 ${raio}px ${raio}px`,
           borderTop: `2px dashed ${alpha(theme.palette.text.primary, 0.18)}`,

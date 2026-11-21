@@ -44,6 +44,18 @@ Modal informativo, também em formato de ingresso. Os furos do picote são
 transparentes de verdade, feitos com máscara CSS, porque atrás do modal está o
 fundo escurecido.
 
+Na tela grande, como o segundo crachá de Oportunidades e a pasta atrás da
+prancheta de Solicitações, um **ingresso na mesma forma** fica atrás dele,
+inclinado e mais escondido que o crachá de trás (`translateX(12%)
+rotate(5deg)`), na **cor do evento**, chapada (sem degradê): o corpo, o
+picote tracejado com os meios-furos recortados (o mesmo `furo` da frente) e o
+canhoto de 72px, um tom mais escuro. No corpo, só "EVENTO" grande na
+vertical, na mesma cor escurecida, como marca d'água; a sombra é
+`drop-shadow`, que contorna os furos. O par
+fica centrado (o ingresso vai 5% para a esquerda; o Dialog não rola de lado) e
+no celular o ingresso de trás some. As duas metades do da frente são
+`position: relative`, para ficarem por cima dele.
+
 O modal usa `scroll="body"`: quem rola é a página, e o ingresso inteiro desce
 junto. Antes, no celular, com várias compras o ingresso passava da altura da
 tela, o Dialog espremia a parte de cima e o fim da lista sumia debaixo do

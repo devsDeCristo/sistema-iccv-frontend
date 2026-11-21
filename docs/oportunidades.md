@@ -79,7 +79,9 @@ e formato do formulário em `ic-backend/docs/oportunidades.md`.
   - Embaixo, o botão **Candidatar-me** (ou **Ver candidatura**), dentro do
     crachá.
   - Na tela grande, um segundo crachá, do mesmo tamanho do da frente e na
-    cor da logo, fica atrás e inclinado, só com "OPORTUNIDADE" na vertical, na cor da fita escurecida, como marca d'água. Ao abrir, o
+    cor da logo, fica atrás, inclinado e meio escondido (`translateX(18%)
+    rotate(6deg)`, como a pasta da prancheta; o par vai 7% para a esquerda
+    para ficar centrado), só com "OPORTUNIDADE" na vertical, na cor da fita escurecida, como marca d'água. Ao abrir, o
     crachá balança uma vez, a não ser com `prefers-reduced-motion`.
   - **Cores:**
     - o papel segue o tema: claro no claro e grafite no escuro;
