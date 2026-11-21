@@ -133,15 +133,33 @@ têm resposta: aceita, em parte e recusada; as de "aguardando" ainda não.
 - **Detalhes para o membro** (`ModalDaMinhaSolicitacao`): o card inteiro
   abre, pelo clique ou pelo teclado, a solicitação como **uma folha presa
   numa prancheta** — assim como a vaga é um crachá. A prancheta é de
-  acrílico na cor do módulo, com o prendedor de metal mordendo a folha e
-  outra folha torta por baixo; o papel segue o tema. Na folha: "Solicitação",
+  de **chapa de fibra** marrom clara, tipo Eucatex (pontilhado fino e manchas
+  largas de tom com ruído SVG `feTurbulence` embutido, mais o brilho no
+  canto; mais escura no tema escuro), com o prendedor de metal
+  mordendo a folha e outra folha torta por baixo (num tom fora da de
+  cima, as duas com borda fina, para o alto não se misturar no escuro), e "Solicitações" gravado a
+  fogo na borda de baixo;
+  o papel segue o tema. Atrás, como o segundo crachá da vaga, uma **pasta**
+  inclinada na cor do módulo, escurecida, com "SOLICITAÇÃO" grande (84px), na cor da pasta escurecida, como marca d'água, na
+  vertical; o par fica centrado (a prancheta vai um pouco para a esquerda) e
+  no celular a pasta some. Na folha: "Solicitação",
   o número (os 8 primeiros do id) e o **carimbo** da situação (decidida,
   borda cheia e inclinado; em andamento, tracejado); os campos do pedido em
   linhas de formulário (ministério, data, igreja); o porquê; os produtos
   numa **lista de conferência** (☑ aceito, ☒ não aceito e riscado, ☐ sem
   resultado, com o link da loja); e a resposta da igreja em papel pautado.
   Só leitura, sem o que cada lado marcou. Fecha no X, no Esc ou clicando
-  fora; entra "pousando", menos com movimento reduzido.
+  fora. A entrada (~1s): a prancheta sobe e esmaece já com as folhas
+  nela (sem atraso nem opacidade própria nas folhas: com elas a prancheta
+  aparecia vazia por um instante), e as duas folhas, presas no alto pelo prendedor, baixam a
+  ponta de baixo, que vem um pouco levantada (`rotateX` de 16° na do pedido
+  e 12° na de baixo, com origem no alto: perto da prancheta, sem movimento
+  grande),
+  até deitar — o alto não se mexe; a de baixo assenta torta, a do pedido
+  vem um pouco de lado e balança em volta do prendedor. Um movimento só por
+  peça: o "passar do lugar e voltar" vem da curva com mola (`cubic-bezier`
+  com overshoot), não de paradas no keyframe, que davam trancos; a opacidade
+  acaba cedo e o deslize segue. Nada disso com movimento reduzido.
   - **Cancelar:** antes de o pastor ou a tesouraria decidir (Solicitado ou
     Em análise), o pé da folha tem "Cancelar solicitação", com a
     confirmação ali mesmo ("Desistir deste pedido?", **Voltar** / **Sim,

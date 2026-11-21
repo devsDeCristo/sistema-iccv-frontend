@@ -4,6 +4,7 @@ import {
   Box,
   Button,
   darken,
+  lighten,
   Dialog,
   IconButton,
   Stack,
@@ -30,10 +31,49 @@ import { MinhaSolicitacao, ProdutoDaSolicitacao } from '../types';
 
 const data = (iso: string) => new Date(iso).toLocaleDateString('pt-BR');
 
-/** O acrílico da prancheta: a primária do módulo, a mesma no claro e no escuro */
-const COR_DA_PRANCHETA = CORES_DO_MODULO.solicitacoes.claro.primaria;
+/** A cor do módulo, na pasta de trás: a prancheta é de madeira */
+const COR_DO_MODULO = CORES_DO_MODULO.solicitacoes.claro.primaria;
+/**
+ * Um ruído em SVG (feTurbulence), para a textura da chapa: `frequencia` alta
+ * dá o pontilhado fino; baixa, as manchas largas de tom. A cor é fixa
+ * (`[r, g, b]`, de 0 a 1) e a transparência vem do ruído: alfa × ruído +
+ * desvio — o desvio negativo apaga o ruído fraco e deixa só os pontos.
+ */
+const ruido = (
+  frequencia: number,
+  [r, g, b]: number[],
+  alfa: number,
+  desvio: number
+) =>
+  `url("data:image/svg+xml,${encodeURIComponent(
+    `<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='r' color-interpolation-filters='sRGB'><feTurbulence type='fractalNoise' baseFrequency='${frequencia}' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 ${r} 0 0 0 0 ${g} 0 0 0 0 ${b} ${alfa} 0 0 0 ${desvio}'/></filter><rect width='100%' height='100%' filter='url(#r)'/></svg>`
+  )}")`;
+
+/** O pontilhado escuro, o claro e as manchas, montados uma vez só */
+const PONTOS_ESCUROS = ruido(0.85, [0.24, 0.13, 0.05], 0.85, -0.2);
+const PONTOS_CLAROS = ruido(1.1, [1, 0.9, 0.75], 0.5, -0.2);
+const MANCHAS = ruido(0.012, [0.3, 0.17, 0.07], 0.35, -0.08);
+
+/**
+ * A prancheta de chapa de fibra (tipo Eucatex): o marrom claro e liso, sem
+ * veio, com o pontilhado fino, manchas largas de tom e o brilho no canto.
+ */
+const madeira = (escuro: boolean) => ({
+  backgroundColor: escuro ? '#9E7149' : '#BE8C5C',
+  backgroundImage: [
+    `linear-gradient(150deg, ${alpha('#fff', 0.1)}, transparent 40%, ${alpha('#000', 0.14)})`,
+    PONTOS_ESCUROS,
+    PONTOS_CLAROS,
+    MANCHAS,
+  ].join(', '),
+});
 /** O metal do prendedor */
 const METAL = 'linear-gradient(180deg, #E9ECEF, #A9AFB8 55%, #D5D9DE)';
+/** Sem animação para quem pediu menos movimento */
+const SEM_MOVIMENTO = {
+  '@media (prefers-reduced-motion: reduce)': { animation: 'none' },
+};
+
 /** A entrelinha do papel pautado da resposta */
 const PAUTA = 26;
 
@@ -274,6 +314,53 @@ function Prendedor() {
 }
 
 /**
+ * A pasta atrás da prancheta, inclinada e só com o nome — como o segundo
+ * crachá atrás do da vaga. No celular não cabe ao lado e some.
+ */
+function PastaDeTras({ cor }: { cor: string }) {
+  return (
+    <Box
+      aria-hidden
+      sx={{
+        display: { xs: 'none', sm: 'flex' },
+        position: 'absolute',
+        top: 34,
+        bottom: 0,
+        left: 0,
+        right: 0,
+        borderRadius: '20px',
+        backgroundColor: cor,
+        backgroundImage: `linear-gradient(160deg, ${alpha('#fff', 0.12)}, transparent 50%, ${alpha('#000', 0.16)})`,
+        transformOrigin: 'top center',
+        transform: 'translateX(24%) rotate(7deg)',
+        boxShadow: '0 24px 50px rgba(0,0,0,0.45)',
+        alignItems: 'center',
+        justifyContent: 'flex-end',
+        pr: 2,
+        // o nome grande não passa da pasta
+        overflow: 'hidden',
+      }}
+    >
+      <Typography
+        sx={{
+          writingMode: 'vertical-rl',
+          fontSize: 84,
+          fontWeight: 900,
+          lineHeight: 1,
+          letterSpacing: '0.04em',
+          // a cor da pasta, escurecida: marca d'água
+          color: darken(cor, 0.28),
+          textTransform: 'uppercase',
+          whiteSpace: 'nowrap',
+        }}
+      >
+        Solicitação
+      </Typography>
+    </Box>
+  );
+}
+
+/**
  * A solicitação inteira, para quem pediu, como a folha de um pedido presa
  * numa prancheta — assim como os detalhes da vaga são um crachá. Só leitura:
  * o número e o carimbo da situação no alto, os campos do pedido, o porquê,
@@ -285,8 +372,8 @@ function Prendedor() {
  * (Cancelar solicitação, com confirmação no pé da folha). A janela segue
  * aberta, e o carimbo vira "Cancelado".
  *
- * O papel acompanha o tema (claro ou escuro), a prancheta e os títulos usam
- * a cor do módulo. Fecha no X, no Esc ou clicando fora.
+ * O papel e a madeira acompanham o tema (claro ou escuro); a pasta de trás e
+ * os títulos usam a cor do módulo. Fecha no X, no Esc ou clicando fora.
  */
 function ModalDaMinhaSolicitacao({
   solicitacao: s,
@@ -297,9 +384,7 @@ function ModalDaMinhaSolicitacao({
   onClose: () => void;
 }) {
   const paleta = usePaleta();
-  const prancheta = paleta.escuro
-    ? darken(COR_DA_PRANCHETA, 0.25)
-    : COR_DA_PRANCHETA;
+  const corDaPasta = darken(COR_DO_MODULO, paleta.escuro ? 0.45 : 0.3);
   const cancelar = useCancelarSolicitacao();
   const [confirmando, setConfirmando] = useState(false);
   // outra solicitação aberta começa sem a confirmação
@@ -311,6 +396,8 @@ function ModalDaMinhaSolicitacao({
       open={!!s}
       onClose={cancelar.isLoading ? undefined : onClose}
       scroll="body"
+      // a pasta de trás passa da caixa do Dialog: sem rolagem de lado
+      sx={{ '& .MuiDialog-container': { overflowX: 'hidden' } }}
       maxWidth={false}
       aria-label={s ? `Solicitação: ${s.title}` : undefined}
       PaperProps={{
@@ -326,262 +413,324 @@ function ModalDaMinhaSolicitacao({
       }}
     >
       {s && (
-        <Box
-          sx={{
-            position: 'relative',
-            pt: '42px',
-            px: { xs: 1.25, sm: 1.75 },
-            pb: { xs: 1.5, sm: 2 },
-            borderRadius: '20px',
-            backgroundColor: prancheta,
-            // o brilho do acrílico, mais claro no canto de cima
-            backgroundImage: `linear-gradient(150deg, ${alpha('#fff', 0.22)}, transparent 40%, ${alpha('#000', 0.18)})`,
-            boxShadow: `0 28px 60px rgba(0,0,0,0.45), inset 0 1px 0 ${alpha('#fff', 0.3)}`,
-            '@keyframes pousarPrancheta': {
-              '0%': {
-                opacity: 0,
-                transform: 'translateY(-28px) rotate(-3deg)',
-              },
-              '70%': {
-                opacity: 1,
-                transform: 'translateY(3px) rotate(0.6deg)',
-              },
-              '100%': { transform: 'none' },
-            },
-            animation: 'pousarPrancheta .5s ease-out',
-            '@media (prefers-reduced-motion: reduce)': { animation: 'none' },
-          }}
-        >
-          <Prendedor />
-
-          {/* a folha de baixo, um pouco torta, dá o volume do bloco */}
+        // o par fica centrado: a prancheta vai um pouco para a esquerda
+        <Box sx={{ position: 'relative', left: { sm: '-9%' } }}>
+          <PastaDeTras cor={corDaPasta} />
           <Box
-            aria-hidden
-            sx={{
-              position: 'absolute',
-              top: 50,
-              bottom: 22,
-              left: 20,
-              right: 16,
-              backgroundColor: darken(paleta.papel, paleta.escuro ? 0 : 0.04),
-              borderRadius: '4px',
-              transform: 'rotate(-2.8deg)',
-              boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
-            }}
-          />
-
-          {/* ---- a folha do pedido ---- */}
-          <Box
-            component="article"
             sx={{
               position: 'relative',
-              zIndex: 2,
-              backgroundColor: paleta.papel,
-              color: paleta.texto,
-              borderRadius: '4px',
-              px: { xs: 2, sm: 2.75 },
-              pt: 5,
-              pb: 2.5,
-              boxShadow: '0 3px 6px rgba(0,0,0,0.1)',
+              pt: '42px',
+              px: { xs: 1.25, sm: 1.75 },
+              pb: { xs: 1.5, sm: 2 },
+              borderRadius: '20px',
+              ...madeira(paleta.escuro),
+              boxShadow: `0 28px 60px rgba(0,0,0,0.45), inset 0 1px 0 ${alpha('#fff', 0.3)}`,
+              /**
+               * A entrada: a prancheta sobe e esmaece já com as folhas nela
+               * (sem atraso nem opacidade própria, senão aparecia vazia), e as
+               * folhas, presas no alto pelo prendedor, baixam a ponta de baixo
+               * até deitar — o alto não se mexe. Um
+               * movimento só por peça, e quem dá o "passar e voltar"
+               * é a curva com mola (sem paradas no meio, que davam trancos);
+               * a opacidade acaba cedo e o deslize segue.
+               */
+              '@keyframes pousarPrancheta': {
+                '0%': { opacity: 0, transform: 'translateY(14px)' },
+                '60%': { opacity: 1 },
+                '100%': { opacity: 1, transform: 'none' },
+              },
+              animation: 'pousarPrancheta .45s cubic-bezier(.22,1,.36,1) both',
+              ...SEM_MOVIMENTO,
             }}
           >
-            <IconButton
-              onClick={onClose}
-              aria-label="Fechar"
-              size="small"
+            <Prendedor />
+
+            {/* a folha de baixo, um pouco torta, dá o volume do bloco */}
+            <Box
+              aria-hidden
               sx={{
                 position: 'absolute',
-                top: 8,
-                right: 8,
-                color: paleta.suave,
-                '&:hover': {
-                  color: paleta.texto,
-                  backgroundColor: paleta.linha,
+                top: 50,
+                bottom: 22,
+                left: 20,
+                right: 16,
+                // um tom fora da folha de cima e borda fina: no escuro as duas
+                // tinham a mesma cor e o alto se misturava
+                backgroundColor: paleta.escuro
+                  ? lighten(paleta.papel, 0.07)
+                  : darken(paleta.papel, 0.06),
+                border: `1px solid ${paleta.linha}`,
+                borderRadius: '4px',
+                transform: 'rotate(-2.8deg)',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+                // presa no alto: a ponta de baixo, levantada, baixa e assenta torta
+                transformOrigin: 'top center',
+                '@keyframes assentarFolhaDeBaixo': {
+                  '0%': {
+                    transform:
+                      'perspective(1000px) rotateX(12deg) rotate(0deg)',
+                  },
+                  '100%': {
+                    transform:
+                      'perspective(1000px) rotateX(0deg) rotate(-2.8deg)',
+                  },
                 },
+                animation:
+                  'assentarFolhaDeBaixo .75s cubic-bezier(.34,1.3,.64,1) both',
+                willChange: 'transform',
+                ...SEM_MOVIMENTO,
               }}
-            >
-              <Close fontSize="small" />
-            </IconButton>
+            />
 
-            {/* o cabeçalho do formulário: o que é, o número e o carimbo */}
-            <Stack
-              direction="row"
-              alignItems="center"
-              justifyContent="space-between"
-              gap={1.5}
-              sx={{
-                pb: 1.5,
-                mb: 2,
-                borderBottom: `2px solid ${paleta.texto}`,
-              }}
-            >
-              <Box sx={{ minWidth: 0 }}>
-                <Typography
-                  sx={{
-                    fontSize: 12,
-                    fontWeight: 900,
-                    letterSpacing: '0.22em',
-                    textTransform: 'uppercase',
-                    color: paleta.tinta,
-                  }}
-                >
-                  Solicitação
-                </Typography>
-                <Typography
-                  sx={{
-                    fontSize: 12,
-                    fontWeight: 700,
-                    color: paleta.suave,
-                    fontVariantNumeric: 'tabular-nums',
-                  }}
-                >
-                  Nº {s.id.slice(0, 8).toUpperCase()}
-                </Typography>
-              </Box>
-              <Carimbo s={s} />
-            </Stack>
-
-            <Typography
-              component="h2"
-              sx={{
-                fontSize: { xs: 19, sm: 21 },
-                fontWeight: 800,
-                lineHeight: 1.2,
-                overflowWrap: 'anywhere',
-                mb: 2,
-              }}
-            >
-              {s.title}
-            </Typography>
-
+            {/* ---- a folha do pedido ---- */}
             <Box
+              component="article"
               sx={{
-                display: 'grid',
-                gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
-                columnGap: 2,
-                rowGap: 1.5,
-                mb: 2.25,
+                position: 'relative',
+                zIndex: 2,
+                backgroundColor: paleta.papel,
+                color: paleta.texto,
+                border: `1px solid ${paleta.linha}`,
+                borderRadius: '4px',
+                px: { xs: 2, sm: 2.75 },
+                pt: 5,
+                pb: 2.5,
+                boxShadow: '0 3px 10px rgba(0,0,0,0.3)',
+                // presa no alto: a ponta de baixo, levantada e um pouco de lado,
+                // baixa até deitar e balança em volta do prendedor
+                transformOrigin: 'top center',
+                '@keyframes cairFolha': {
+                  '0%': {
+                    transform:
+                      'perspective(1000px) rotateX(16deg) rotate(1.5deg)',
+                  },
+                  '100%': {
+                    transform: 'perspective(1000px) rotateX(0deg) rotate(0deg)',
+                  },
+                },
+                animation: 'cairFolha .9s cubic-bezier(.34,1.35,.64,1) both',
+                willChange: 'transform',
+                ...SEM_MOVIMENTO,
               }}
             >
-              <Campo rotulo="Ministério" paleta={paleta}>
-                {iconeDoMinisterio(s.ministry)}
-                {nomeDoMinisterio(s)}
-              </Campo>
-              <Campo rotulo="Pedido em" paleta={paleta}>
-                {data(s.createdAt)}
-              </Campo>
-              <Box sx={{ gridColumn: { sm: '1 / -1' } }}>
-                <Campo rotulo="Para a igreja" paleta={paleta}>
-                  {s.church.name}
-                </Campo>
-              </Box>
-            </Box>
-
-            <Rotulo paleta={paleta}>Por que precisa</Rotulo>
-            <Typography
-              sx={{
-                mt: 0.5,
-                mb: 2.25,
-                fontSize: 14,
-                lineHeight: 1.55,
-                whiteSpace: 'pre-line',
-                overflowWrap: 'anywhere',
-              }}
-            >
-              {s.description}
-            </Typography>
-
-            <Stack direction="row" alignItems="baseline" gap={1}>
-              <Rotulo paleta={paleta}>Produtos</Rotulo>
-              <Typography sx={{ fontSize: 11.5, color: paleta.suave }}>
-                {s.status === 'CANCELED'
-                  ? '· cancelada antes da decisão'
-                  : RESPONDIDA[s.status]
-                    ? '· o ✓ é o que a igreja aceitou'
-                    : '· o resultado sai quando a igreja decidir'}
-              </Typography>
-            </Stack>
-            <Box sx={{ mt: 0.5, mb: 2.5 }}>
-              {s.items.map((p) => (
-                <ItemDaLista key={p.id} produto={p} paleta={paleta} />
-              ))}
-            </Box>
-
-            <Rotulo paleta={paleta}>Resposta da igreja</Rotulo>
-            <Typography
-              sx={{
-                mt: 0.5,
-                minHeight: PAUTA * 3,
-                fontSize: 14,
-                lineHeight: `${PAUTA}px`,
-                whiteSpace: 'pre-line',
-                overflowWrap: 'anywhere',
-                // o papel pautado: uma linha a cada entrelinha
-                backgroundImage: `repeating-linear-gradient(transparent 0 ${PAUTA - 1}px, ${paleta.linha} ${PAUTA - 1}px ${PAUTA}px)`,
-                ...(!s.response && {
+              <IconButton
+                onClick={onClose}
+                aria-label="Fechar"
+                size="small"
+                sx={{
+                  position: 'absolute',
+                  top: 8,
+                  right: 8,
                   color: paleta.suave,
-                  fontStyle: 'italic',
-                }),
-              }}
-            >
-              {s.response ?? 'Ainda sem resposta'}
-            </Typography>
+                  '&:hover': {
+                    color: paleta.texto,
+                    backgroundColor: paleta.linha,
+                  },
+                }}
+              >
+                <Close fontSize="small" />
+              </IconButton>
 
-            {/* desistir: só antes de o pastor ou a tesouraria decidir, e com
-                confirmação ali mesmo — o SweetAlert abriria por baixo */}
-            {podeCancelar && (
+              {/* o cabeçalho do formulário: o que é, o número e o carimbo */}
               <Stack
                 direction="row"
                 alignItems="center"
-                justifyContent="flex-end"
-                flexWrap="wrap"
-                gap={1}
+                justifyContent="space-between"
+                gap={1.5}
                 sx={{
-                  mt: 2.5,
-                  pt: 1.5,
-                  borderTop: `1px dashed ${paleta.linha}`,
+                  pb: 1.5,
+                  mb: 2,
+                  borderBottom: `2px solid ${paleta.texto}`,
                 }}
               >
-                {confirmando ? (
-                  <>
-                    <Typography sx={{ flex: 1, minWidth: 180, fontSize: 13.5 }}>
-                      Desistir deste pedido? A igreja deixa de analisá-lo.
-                    </Typography>
-                    <Button
-                      size="small"
-                      disabled={cancelar.isLoading}
-                      onClick={() => setConfirmando(false)}
-                      sx={{ color: paleta.texto, textTransform: 'none' }}
-                    >
-                      Voltar
-                    </Button>
+                <Box sx={{ minWidth: 0 }}>
+                  <Typography
+                    sx={{
+                      fontSize: 12,
+                      fontWeight: 900,
+                      letterSpacing: '0.22em',
+                      textTransform: 'uppercase',
+                      color: paleta.tinta,
+                    }}
+                  >
+                    Solicitação
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontSize: 12,
+                      fontWeight: 700,
+                      color: paleta.suave,
+                      fontVariantNumeric: 'tabular-nums',
+                    }}
+                  >
+                    Nº {s.id.slice(0, 8).toUpperCase()}
+                  </Typography>
+                </Box>
+                <Carimbo s={s} />
+              </Stack>
+
+              <Typography
+                component="h2"
+                sx={{
+                  fontSize: { xs: 19, sm: 21 },
+                  fontWeight: 800,
+                  lineHeight: 1.2,
+                  overflowWrap: 'anywhere',
+                  mb: 2,
+                }}
+              >
+                {s.title}
+              </Typography>
+
+              <Box
+                sx={{
+                  display: 'grid',
+                  gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
+                  columnGap: 2,
+                  rowGap: 1.5,
+                  mb: 2.25,
+                }}
+              >
+                <Campo rotulo="Ministério" paleta={paleta}>
+                  {iconeDoMinisterio(s.ministry)}
+                  {nomeDoMinisterio(s)}
+                </Campo>
+                <Campo rotulo="Pedido em" paleta={paleta}>
+                  {data(s.createdAt)}
+                </Campo>
+                <Box sx={{ gridColumn: { sm: '1 / -1' } }}>
+                  <Campo rotulo="Para a igreja" paleta={paleta}>
+                    {s.church.name}
+                  </Campo>
+                </Box>
+              </Box>
+
+              <Rotulo paleta={paleta}>Por que precisa</Rotulo>
+              <Typography
+                sx={{
+                  mt: 0.5,
+                  mb: 2.25,
+                  fontSize: 14,
+                  lineHeight: 1.55,
+                  whiteSpace: 'pre-line',
+                  overflowWrap: 'anywhere',
+                }}
+              >
+                {s.description}
+              </Typography>
+
+              <Stack direction="row" alignItems="baseline" gap={1}>
+                <Rotulo paleta={paleta}>Produtos</Rotulo>
+                <Typography sx={{ fontSize: 11.5, color: paleta.suave }}>
+                  {s.status === 'CANCELED'
+                    ? '· cancelada antes da decisão'
+                    : RESPONDIDA[s.status]
+                      ? '· o ✓ é o que a igreja aceitou'
+                      : '· o resultado sai quando a igreja decidir'}
+                </Typography>
+              </Stack>
+              <Box sx={{ mt: 0.5, mb: 2.5 }}>
+                {s.items.map((p) => (
+                  <ItemDaLista key={p.id} produto={p} paleta={paleta} />
+                ))}
+              </Box>
+
+              <Rotulo paleta={paleta}>Resposta da igreja</Rotulo>
+              <Typography
+                sx={{
+                  mt: 0.5,
+                  minHeight: PAUTA * 3,
+                  fontSize: 14,
+                  lineHeight: `${PAUTA}px`,
+                  whiteSpace: 'pre-line',
+                  overflowWrap: 'anywhere',
+                  // o papel pautado: uma linha a cada entrelinha
+                  backgroundImage: `repeating-linear-gradient(transparent 0 ${PAUTA - 1}px, ${paleta.linha} ${PAUTA - 1}px ${PAUTA}px)`,
+                  ...(!s.response && {
+                    color: paleta.suave,
+                    fontStyle: 'italic',
+                  }),
+                }}
+              >
+                {s.response ?? 'Ainda sem resposta'}
+              </Typography>
+
+              {/* desistir: só antes de o pastor ou a tesouraria decidir, e com
+                confirmação ali mesmo — o SweetAlert abriria por baixo */}
+              {podeCancelar && (
+                <Stack
+                  direction="row"
+                  alignItems="center"
+                  justifyContent="flex-end"
+                  flexWrap="wrap"
+                  gap={1}
+                  sx={{
+                    mt: 2.5,
+                    pt: 1.5,
+                    borderTop: `1px dashed ${paleta.linha}`,
+                  }}
+                >
+                  {confirmando ? (
+                    <>
+                      <Typography
+                        sx={{ flex: 1, minWidth: 180, fontSize: 13.5 }}
+                      >
+                        Desistir deste pedido? A igreja deixa de analisá-lo.
+                      </Typography>
+                      <Button
+                        size="small"
+                        disabled={cancelar.isLoading}
+                        onClick={() => setConfirmando(false)}
+                        sx={{ color: paleta.texto, textTransform: 'none' }}
+                      >
+                        Voltar
+                      </Button>
+                      <Button
+                        size="small"
+                        color="error"
+                        variant="contained"
+                        disabled={cancelar.isLoading}
+                        onClick={() =>
+                          cancelar.mutate(s.id, {
+                            onSettled: () => setConfirmando(false),
+                          })
+                        }
+                        sx={{ textTransform: 'none' }}
+                      >
+                        {cancelar.isLoading ? 'Cancelando…' : 'Sim, cancelar'}
+                      </Button>
+                    </>
+                  ) : (
                     <Button
                       size="small"
                       color="error"
-                      variant="contained"
-                      disabled={cancelar.isLoading}
-                      onClick={() =>
-                        cancelar.mutate(s.id, {
-                          onSettled: () => setConfirmando(false),
-                        })
-                      }
+                      onClick={() => setConfirmando(true)}
                       sx={{ textTransform: 'none' }}
                     >
-                      {cancelar.isLoading ? 'Cancelando…' : 'Sim, cancelar'}
+                      Cancelar solicitação
                     </Button>
-                  </>
-                ) : (
-                  <Button
-                    size="small"
-                    color="error"
-                    onClick={() => setConfirmando(true)}
-                    sx={{ textTransform: 'none' }}
-                  >
-                    Cancelar solicitação
-                  </Button>
-                )}
-              </Stack>
-            )}
+                  )}
+                </Stack>
+              )}
+            </Box>
+
+            {/* o nome gravado a fogo na madeira, na borda de baixo */}
+            <Typography
+              aria-hidden
+              sx={{
+                mt: { xs: 1.25, sm: 1.5 },
+                textAlign: 'center',
+                fontSize: 10,
+                fontWeight: 900,
+                letterSpacing: '0.4em',
+                pl: '0.4em',
+                textTransform: 'uppercase',
+                color: alpha('#000', 0.28),
+                textShadow: `0 1px 0 ${alpha('#fff', 0.22)}`,
+              }}
+            >
+              Solicitações
+            </Typography>
           </Box>
         </Box>
       )}

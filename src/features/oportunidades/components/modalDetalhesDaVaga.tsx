@@ -487,7 +487,8 @@ function Cracha({
             fontWeight: 900,
             lineHeight: 1,
             letterSpacing: '0.04em',
-            color: alpha(sobreAFita, 0.9),
+            // a cor da fita, escurecida: marca d'água
+            color: darken(fita, 0.28),
             textTransform: 'uppercase',
             whiteSpace: 'nowrap',
           }}
