@@ -27,14 +27,18 @@ e formato do formulário em `ic-backend/docs/oportunidades.md`.
   o ingresso é o de Eventos e a folha do talão, o de Solicitações), na mesma
   grade (3 colunas na tela grande, 2 no tablet, 1 no celular): **a página
   de "contrato de trabalho" da carteira**.
-  - à esquerda, a **lombada** azul da capa; o papel é o do ingresso de
+  - o papel é o do ingresso de
     Eventos nos dois temas (`background.paper`, com a `sombraDeCartao` de
     `components/listPageStyles.ts`: `drop-shadow` e, no escuro, um contorno
     claro de 1px), com um **fundo de segurança** de arcos finos na cor do
     módulo;
-  - a **logo grampeada** no canto como uma foto 3x4, um pouco torta (borda
-    clara, grampo de metal; `contain` sobre branco; sem imagem, o ícone
-    `Work` na cor do módulo);
+  - no lugar da foto 3x4, um **crachá pequeno** preso no canto, um pouco
+    torto: a miniatura do crachá dos detalhes, com a fita e o mosquetão
+    saindo da borda de cima da página, o rasgo, a logo (`contain` sobre um
+    quadrado branco, como a `LogoDaVaga`; sem imagem, o ícone `Work`) e um
+    friso embaixo. A face é o papel do crachá dos detalhes: grafite no
+    escuro, creme no claro. A fita, a faixa e o ícone
+    usam a **cor da logo** (`vaga.cor`; sem ela, a do módulo), como o crachá;
   - "CONTRATO DE TRABALHO" e, anotados em fonte de máquina sobre linhas
     pontilhadas, **Empregador** (quem oferece), **Cargo** (o título),
     **Local** ("—" sem local) e **Remuneração** ("A combinar" sem salário);

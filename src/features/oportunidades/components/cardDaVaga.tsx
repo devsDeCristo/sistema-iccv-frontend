@@ -100,8 +100,6 @@ const cortar = (linhas: number) => ({
   overflowWrap: 'anywhere' as const,
 });
 
-/** A capa da carteira, vista na lombada */
-const LOMBADA = 'linear-gradient(90deg, #13294B, #1F4278 60%, #183563)';
 /** Os valores anotados no contrato, como à máquina */
 const MAQUINA = 'ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace';
 
@@ -182,8 +180,9 @@ export function EtiquetaDaVaga({
 
 /**
  * Uma vaga na vitrine do membro, como a página de "contrato de trabalho" da
- * carteira: a lombada azul da capa à esquerda, o fundo de segurança, a logo
- * grampeada no canto como uma foto 3x4 e, anotados, quem contrata, o cargo,
+ * carteira: o fundo de segurança, no
+ * lugar da foto 3x4 um crachá pequeno com a logo (a miniatura do crachá dos
+ * detalhes, com a fita na cor dela) e, anotados, quem contrata, o cargo,
  * o local e a remuneração, com a assinatura do empregador em branco. No pé, a
  * situação: o prazo quando está acabando, a candidatura enviada ou a vaga
  * encerrada (a página toda apaga). O card inteiro abre o crachá dos detalhes.
@@ -210,6 +209,8 @@ export function CardDaVaga({
   const theme = useTheme();
   const escuro = theme.palette.mode === 'dark';
   const cor = corDoModulo(theme, 'oportunidades');
+  // a fita do crachá: a cor da logo, como no crachá dos detalhes
+  const fita = vaga.cor ?? cor;
   // o fundo do ingresso de Eventos (o Paper do tema)
   const papel = theme.palette.background.paper;
   const texto = escuro ? '#EEF0F3' : '#16181D';
@@ -248,7 +249,7 @@ export function CardDaVaga({
         height: '100%',
         minHeight: 220,
         display: 'flex',
-        borderRadius: '4px 10px 10px 4px',
+        borderRadius: '10px',
         filter: sombraDeCartao(theme),
         color: texto,
         transition: 'transform .2s, filter .2s',
@@ -270,73 +271,113 @@ export function CardDaVaga({
         },
       }}
     >
-      <Box
-        aria-hidden
-        sx={{
-          width: 16,
-          flexShrink: 0,
-          borderRadius: '4px 0 0 4px',
-          background: LOMBADA,
-        }}
-      />
-
       <Stack
         gap={1.5}
         sx={{
           flex: 1,
           minWidth: 0,
           position: 'relative',
-          borderRadius: '0 10px 10px 0',
+          borderRadius: '10px',
           px: 2.25,
           pt: 2,
           pb: 2.25,
           backgroundColor: papel,
           // o fundo de segurança: arcos finos saindo do canto de cima
           backgroundImage: `repeating-radial-gradient(circle at 100% 0, transparent 0 9px, ${alpha(cor, escuro ? 0.05 : 0.08)} 9px 10px)`,
-          // a sombra da lombada sobre a página
-          boxShadow: `inset 6px 0 10px rgba(0,0,0,${escuro ? 0.35 : 0.1})`,
         }}
       >
-        {/* a logo grampeada no canto, como a foto 3x4 */}
-        <Box
+        {/*
+          no lugar da foto 3x4, um crachá pequeno preso no canto: a miniatura
+          do crachá que abre nos detalhes, com a fita na cor da logo
+        */}
+        <Stack
           aria-hidden
+          alignItems="center"
           sx={{
             position: 'absolute',
-            top: 12,
-            right: 16,
+            top: 0,
+            right: 6,
             width: 74,
-            height: 94,
-            border: '4px solid #F4F1EA',
-            backgroundColor: vaga.imagemUrl ? '#fff' : alpha(cor, 0.16),
-            boxShadow: '0 4px 10px rgba(0,0,0,0.35)',
             transform: 'rotate(4deg)',
-            display: 'grid',
-            placeItems: 'center',
-            '&::before': {
-              content: '""',
-              position: 'absolute',
-              top: -6,
-              left: '50%',
-              ml: '-16px',
-              width: 32,
-              height: 7,
-              borderRadius: '2px',
-              background: 'linear-gradient(180deg, #E3E6EA, #8E949E)',
-              boxShadow: '0 1px 2px rgba(0,0,0,0.5)',
-            },
+            transformOrigin: 'top center',
           }}
         >
-          {vaga.imagemUrl ? (
+          {/* a fita e o mosquetão */}
+          <Box
+            sx={{
+              width: 14,
+              height: 14,
+              backgroundColor: fita,
+              backgroundImage: `repeating-linear-gradient(0deg, transparent 0 4px, ${alpha('#000', 0.12)} 4px 5px)`,
+              boxShadow: `inset 2px 0 0 ${alpha('#fff', 0.18)}, inset -2px 0 0 ${alpha('#000', 0.14)}`,
+            }}
+          />
+          <Box
+            sx={{
+              width: 8,
+              height: 14,
+              mt: '-3px',
+              borderRadius: 4,
+              position: 'relative',
+              zIndex: 1,
+              background:
+                'linear-gradient(90deg, #8E949E, #E3E6EA 45%, #A2A8B1)',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.4)',
+            }}
+          />
+          {/* a face do crachá: o rasgo, a logo e a faixa na cor dela */}
+          <Stack
+            alignItems="center"
+            sx={{
+              width: 74,
+              height: 92,
+              mt: '-6px',
+              pt: 1,
+              borderRadius: '8px',
+              overflow: 'hidden',
+              // o papel do crachá dos detalhes: grafite no escuro, creme no claro
+              backgroundColor: escuro ? '#1A1D24' : '#F5F3EE',
+              border: escuro ? `1px solid ${alpha('#fff', 0.1)}` : 'none',
+              boxShadow: '0 4px 10px rgba(0,0,0,0.35)',
+            }}
+          >
             <Box
-              component="img"
-              src={vaga.imagemUrl}
-              alt=""
-              sx={{ width: '100%', height: '100%', objectFit: 'contain' }}
+              sx={{
+                width: 24,
+                height: 5,
+                borderRadius: 3,
+                backgroundColor: escuro ? '#0B0C10' : alpha('#16181D', 0.22),
+                boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.45)',
+              }}
             />
-          ) : (
-            <Work sx={{ fontSize: 30, color: alpha(cor, 0.8) }} />
-          )}
-        </Box>
+            <Box
+              sx={{
+                width: 46,
+                height: 46,
+                mt: 0.75,
+                p: vaga.imagemUrl ? 0.5 : 0,
+                borderRadius: 1.5,
+                display: 'grid',
+                placeItems: 'center',
+                // a logo sobre branco, como a `LogoDaVaga`: no escuro, logo
+                // escura ou transparente sumiria no papel
+                backgroundColor: vaga.imagemUrl ? '#fff' : alpha(fita, 0.16),
+              }}
+            >
+              {vaga.imagemUrl ? (
+                <Box
+                  component="img"
+                  src={vaga.imagemUrl}
+                  alt=""
+                  sx={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                />
+              ) : (
+                <Work sx={{ fontSize: 26, color: fita }} />
+              )}
+            </Box>
+            <Box sx={{ mt: 'auto', width: '100%', height: 5, bgcolor: fita }} />
+          </Stack>
+        </Stack>
 
         <Typography
           sx={{

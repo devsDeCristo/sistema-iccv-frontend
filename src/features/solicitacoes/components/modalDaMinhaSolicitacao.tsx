@@ -71,6 +71,48 @@ const SEM_MOVIMENTO = {
   '@media (prefers-reduced-motion: reduce)': { animation: 'none' },
 };
 
+/** A altura da faixa do picote no pé da folha, a mesma do card */
+const PICOTE = 12;
+/** Os meios-furos recortados na borda de baixo (no card, na de cima) */
+const FUROS = `radial-gradient(circle at 7px 100%, transparent 5px, #000 5.6px)`;
+
+/** O papel de uma folha, cobrindo tudo menos a faixa do picote, no pé */
+const papelComPicote = (papel: string) => ({
+  backgroundImage: `linear-gradient(${papel}, ${papel})`,
+  backgroundSize: `100% calc(100% - ${PICOTE}px)`,
+  backgroundRepeat: 'no-repeat',
+});
+
+/**
+ * O picote no pé de uma folha: os meios-furos de onde os cards da lista
+ * saíram. A faixa tem o papel próprio, recortado nos furos; a folha, sem
+ * fundo ali, deixa ver o que está atrás.
+ */
+function Picote({ papel, linha }: { papel: string; linha: string }) {
+  return (
+    <Box
+      aria-hidden
+      sx={{
+        position: 'absolute',
+        left: -1,
+        right: -1,
+        bottom: 0,
+        height: PICOTE,
+        backgroundColor: papel,
+        borderTop: `1px dashed ${linha}`,
+        borderLeft: `1px solid ${linha}`,
+        borderRight: `1px solid ${linha}`,
+        maskImage: FUROS,
+        WebkitMaskImage: FUROS,
+        maskSize: `14px ${PICOTE}px`,
+        WebkitMaskSize: `14px ${PICOTE}px`,
+        maskRepeat: 'repeat-x',
+        WebkitMaskRepeat: 'repeat-x',
+      }}
+    />
+  );
+}
+
 /** A entrelinha do papel pautado da resposta */
 const PAUTA = 26;
 
@@ -281,6 +323,9 @@ function ModalDaMinhaSolicitacao({
 }) {
   const paleta = usePaleta();
   const corDaPasta = darken(COR_DO_MODULO, paleta.escuro ? 0.45 : 0.3);
+  const papelDeBaixo = paleta.escuro
+    ? lighten(paleta.papel, 0.07)
+    : darken(paleta.papel, 0.06);
   const cancelar = useCancelarSolicitacao();
   const [confirmando, setConfirmando] = useState(false);
   // outra solicitação aberta começa sem a confirmação
@@ -351,14 +396,13 @@ function ModalDaMinhaSolicitacao({
                 left: 20,
                 right: 16,
                 // um tom fora da folha de cima e borda fina: no escuro as duas
-                // tinham a mesma cor e o alto se misturava
-                backgroundColor: paleta.escuro
-                  ? lighten(paleta.papel, 0.07)
-                  : darken(paleta.papel, 0.06),
+                // tinham a mesma cor e o alto se misturava. No pé, o picote
+                ...papelComPicote(papelDeBaixo),
                 border: `1px solid ${paleta.linha}`,
-                borderRadius: '4px',
+                borderBottom: 'none',
+                borderRadius: '4px 4px 0 0',
                 transform: 'rotate(-2.8deg)',
-                boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+                filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))',
                 // presa no alto: a ponta de baixo, levantada, baixa e assenta torta
                 transformOrigin: 'top center',
                 '@keyframes assentarFolhaDeBaixo': {
@@ -376,7 +420,9 @@ function ModalDaMinhaSolicitacao({
                 willChange: 'transform',
                 ...SEM_MOVIMENTO,
               }}
-            />
+            >
+              <Picote papel={papelDeBaixo} linha={paleta.linha} />
+            </Box>
 
             {/* ---- a folha do pedido ---- */}
             <Box
@@ -384,14 +430,17 @@ function ModalDaMinhaSolicitacao({
               sx={{
                 position: 'relative',
                 zIndex: 2,
-                backgroundColor: paleta.papel,
+                // o papel deixa livre a faixa do picote, no pé
+                ...papelComPicote(paleta.papel),
                 color: paleta.texto,
                 border: `1px solid ${paleta.linha}`,
-                borderRadius: '4px',
+                borderBottom: 'none',
+                borderRadius: '4px 4px 0 0',
                 px: { xs: 2, sm: 2.75 },
                 pt: 5,
-                pb: 2.5,
-                boxShadow: '0 3px 10px rgba(0,0,0,0.3)',
+                pb: `calc(20px + ${PICOTE}px)`,
+                // a sombra segue o recorte, furos inclusive
+                filter: 'drop-shadow(0 3px 6px rgba(0,0,0,0.3))',
                 // presa no alto: a ponta de baixo, levantada e um pouco de lado,
                 // baixa até deitar e balança em volta do prendedor
                 transformOrigin: 'top center',
@@ -608,6 +657,8 @@ function ModalDaMinhaSolicitacao({
                   )}
                 </Stack>
               )}
+
+              <Picote papel={paleta.papel} linha={paleta.linha} />
             </Box>
 
             {/* o nome gravado a fogo na madeira, na borda de baixo */}

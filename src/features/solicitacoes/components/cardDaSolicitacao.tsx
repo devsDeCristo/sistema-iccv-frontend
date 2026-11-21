@@ -118,7 +118,7 @@ function CardDaSolicitacao({
           alignItems="flex-start"
           justifyContent="space-between"
           gap={1.5}
-          sx={{ pb: 1.5, borderBottom: `2px solid ${paleta.texto}` }}
+          sx={{ pb: 1.5, borderBottom: `1px solid ${paleta.linha}` }}
         >
           <Box sx={{ minWidth: 0 }}>
             <Typography

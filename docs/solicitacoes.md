@@ -53,7 +53,8 @@ têm resposta: aceita, em parte e recusada; as de "aguardando" ainda não.
   ingresso de Eventos, nos dois temas: o `background.paper` do tema e
   `sombraDeCartao` (`components/listPageStyles.ts`: `drop-shadow`, que segue
   a forma com os furos, e no escuro um contorno claro de 1px), "REQUISIÇÃO" na cor do módulo com o número (os 8 primeiros do
-  id), o **carimbo** da situação à direita, um traço cheio, o título em até
+  id), o **carimbo** da situação à direita, uma linha cinza de 1px (a
+  mesma das linhas do formulário), o título em até
   duas linhas e o ministério (com o ícone) e a data em linhas de formulário.
   No pé, quantos produtos e a igreja, ou "respondida pela igreja" quando há
   resposta. Ao passar o mouse, a folha sobe 2px e ganha um contorno fino na
@@ -136,13 +137,18 @@ têm resposta: aceita, em parte e recusada; as de "aguardando" ainda não.
   (`ResponsiveModal` agora volta a folha sempre que quem abriu não fecha).
 - **Detalhes para o membro** (`ModalDaMinhaSolicitacao`): o card inteiro
   abre, pelo clique ou pelo teclado, a solicitação como **uma folha presa
-  numa prancheta** — assim como a vaga é um crachá. A prancheta é de
+  numa prancheta** — assim como a vaga é um crachá. A prancheta é
   de **chapa de fibra** marrom clara, tipo Eucatex (pontilhado fino e manchas
   largas de tom com ruído SVG `feTurbulence` embutido, mais o brilho no
   canto; mais escura no tema escuro), com o prendedor de metal
   mordendo a folha e outra folha torta por baixo (num tom fora da de
   cima, as duas com borda fina, para o alto não se misturar no escuro), e "Solicitações" gravado a
-  fogo na borda de baixo;
+  fogo na borda de baixo. No pé das duas folhas (a do pedido e a de
+  baixo, cada uma no seu tom; componente `Picote`), o **picote** com os meios-furos
+  recortados (a mesma máscara do card, espelhada: linha tracejada e furos na
+  borda de baixo), para parecer que os cards da lista foram destacados dali:
+  o papel cobre a folha menos essa faixa, que tem fundo próprio e recortado,
+  e a sombra é `drop-shadow`, que contorna os furos;
   o papel segue o tema. Atrás, como o segundo crachá da vaga, uma **pasta**
   inclinada na cor do módulo, escurecida, com "SOLICITAÇÃO" grande (84px), na cor da pasta escurecida, como marca d'água, na
   vertical; o par fica centrado (a prancheta vai um pouco para a esquerda) e
