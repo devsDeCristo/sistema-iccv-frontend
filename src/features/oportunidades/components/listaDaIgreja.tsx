@@ -9,7 +9,7 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
-import { PeopleOutline, Work } from '@mui/icons-material';
+import { ChevronRight, PeopleOutline, Work } from '@mui/icons-material';
 import { DataGrid, GridColDef, ptBR } from '@mui/x-data-grid';
 
 import CustomChip from '../../../components/customChip';
@@ -122,7 +122,7 @@ function ListaDaIgreja({
     {
       field: 'interests',
       headerName: 'Candidaturas',
-      width: 140,
+      width: 230,
       valueGetter: ({ row }) => row.interests.length,
       // candidatura só existe na vaga aprovada
       renderCell: ({ row }) =>
@@ -132,11 +132,19 @@ function ListaDaIgreja({
           <Button
             size="small"
             startIcon={<PeopleOutline />}
+            endIcon={<ChevronRight />}
             onClick={() => onInteressados(row)}
             aria-label={`Ver as candidaturas em ${row.title}`}
             sx={{ textTransform: 'none', fontWeight: 600 }}
           >
             {row.interests.length}
+            {/* deixa claro que a contagem abre a página dos candidatos */}
+            <Box
+              component="span"
+              sx={{ ml: 0.75,mt:0.2, fontWeight: 500, fontSize: 12, opacity: 0.8 }}
+            >
+              · Clique para ver
+            </Box>
           </Button>
         ),
     },
