@@ -56,6 +56,13 @@ fica centrado (o ingresso vai 5% para a esquerda; o Dialog não rola de lado) e
 no celular o ingresso de trás some. As duas metades do da frente são
 `position: relative`, para ficarem por cima dele.
 
+**Entrada** (como o crachá que balança e as folhas da prancheta): o ingresso
+sobe 18px e aparece (0,45s); o de trás sai de trás dele até ficar inclinado
+(0,7s, a partir de 0,1s); e o **canhoto**, dobrado para trás no picote
+(`rotateX(-75deg)` com origem no alto), desdobra até ficar reto (0,7s, a
+partir de 0,15s). Um movimento só por peça, com a curva de mola
+(`cubic-bezier` com overshoot); nada disso com `prefers-reduced-motion`.
+
 O modal usa `scroll="body"`: quem rola é a página, e o ingresso inteiro desce
 junto. Antes, no celular, com várias compras o ingresso passava da altura da
 tela, o Dialog espremia a parte de cima e o fim da lista sumia debaixo do

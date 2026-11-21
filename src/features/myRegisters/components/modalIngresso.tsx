@@ -352,6 +352,19 @@ function ModalIngresso({
           // o par fica centrado: o ingresso vai um pouco para a esquerda
           position: 'relative',
           left: { sm: '-5%' },
+          /**
+           * A entrada, como o crachá que balança e as folhas da prancheta: o
+           * ingresso sobe, o de trás sai de trás dele e o canhoto desdobra no
+           * picote. Um movimento só por peça, com a curva de mola; nada disso
+           * com movimento reduzido
+           */
+          '@keyframes entregarIngresso': {
+            '0%': { opacity: 0, transform: 'translateY(18px)' },
+            '60%': { opacity: 1 },
+            '100%': { opacity: 1, transform: 'none' },
+          },
+          animation: 'entregarIngresso .45s cubic-bezier(.22,1,.36,1) both',
+          '@media (prefers-reduced-motion: reduce)': { animation: 'none' },
         },
       }}
     >
@@ -373,6 +386,13 @@ function ModalIngresso({
           transform: 'translateX(12%) rotate(5deg)',
           // a sombra segue o recorte, furos inclusive
           filter: 'drop-shadow(0 24px 30px rgba(0,0,0,0.45))',
+          // sai de trás do da frente até ficar inclinado
+          '@keyframes sairDeTras': {
+            '0%': { transform: 'translateX(0) rotate(0deg)' },
+            '100%': { transform: 'translateX(12%) rotate(5deg)' },
+          },
+          animation: 'sairDeTras .7s cubic-bezier(.34,1.3,.64,1) .1s both',
+          '@media (prefers-reduced-motion: reduce)': { animation: 'none' },
         }}
       >
         <Box
@@ -627,6 +647,15 @@ function ModalIngresso({
           px: 3,
           py: 2,
           ...furo('top'),
+          // dobrado para trás no picote, desdobra até ficar reto
+          transformOrigin: 'top center',
+          '@keyframes desdobrarCanhoto': {
+            '0%': { transform: 'perspective(800px) rotateX(-75deg)' },
+            '100%': { transform: 'perspective(800px) rotateX(0deg)' },
+          },
+          animation:
+            'desdobrarCanhoto .7s cubic-bezier(.34,1.4,.64,1) .15s both',
+          '@media (prefers-reduced-motion: reduce)': { animation: 'none' },
         }}
       >
         <Box sx={{ flex: 1 }}>
