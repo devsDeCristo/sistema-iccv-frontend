@@ -23,8 +23,19 @@ const VAZIO = {
   titulo: '',
   descricao: '',
 };
-type Produto = { nome: string; quantidade: string; link: string };
-const PRODUTO_VAZIO: Produto = { nome: '', quantidade: '1', link: '' };
+type Produto = { id: number; nome: string; quantidade: string; link: string };
+/**
+ * Um id só da tela, para a `key` da lista: com o índice, tirar um produto do
+ * meio fazia o foco pular de campo. Um contador, e não `crypto.randomUUID`,
+ * que só existe em HTTPS (ou localhost).
+ */
+let proximoId = 0;
+const novoProduto = (): Produto => ({
+  id: proximoId++,
+  nome: '',
+  quantidade: '1',
+  link: '',
+});
 /** O mesmo teto da API */
 const MAX_PRODUTOS = 20;
 
@@ -61,7 +72,7 @@ function ModalNovaSolicitacao({ open, igreja, onClose }: Props) {
   const theme = useTheme();
   const cor = theme.palette.secondary.main;
   const [dados, setDados] = useState(VAZIO);
-  const [produtos, setProdutos] = useState<Produto[]>([PRODUTO_VAZIO]);
+  const [produtos, setProdutos] = useState<Produto[]>(() => [novoProduto()]);
   const [confirmandoDescarte, setConfirmandoDescarte] = useState(false);
   const criar = useCriarSolicitacao();
   const outro = dados.ministerio === 'Outro';
@@ -76,13 +87,17 @@ function ModalNovaSolicitacao({ open, igreja, onClose }: Props) {
         !!p.nome.trim() && quantidadeValida(p.quantidade) && linkValido(p.link)
     );
 
+  const [primeiro] = produtos;
   const preenchido =
-    JSON.stringify([dados, produtos]) !==
-    JSON.stringify([VAZIO, [PRODUTO_VAZIO]]);
+    JSON.stringify(dados) !== JSON.stringify(VAZIO) ||
+    produtos.length > 1 ||
+    !!primeiro.nome ||
+    !!primeiro.link ||
+    primeiro.quantidade !== '1';
 
   const fechar = () => {
     setDados(VAZIO);
-    setProdutos([PRODUTO_VAZIO]);
+    setProdutos([novoProduto()]);
     setConfirmandoDescarte(false);
     onClose();
   };
@@ -272,7 +287,7 @@ function ModalNovaSolicitacao({ open, igreja, onClose }: Props) {
             const linkOk = linkValido(p.link);
             return (
               <Stack
-                key={i}
+                key={p.id}
                 spacing={1.5}
                 sx={{
                   p: 1.5,
@@ -342,7 +357,7 @@ function ModalNovaSolicitacao({ open, igreja, onClose }: Props) {
           {produtos.length < MAX_PRODUTOS && (
             <Button
               startIcon={<Add />}
-              onClick={() => setProdutos((atual) => [...atual, PRODUTO_VAZIO])}
+              onClick={() => setProdutos((atual) => [...atual, novoProduto()])}
               sx={{ alignSelf: 'flex-start', textTransform: 'none' }}
             >
               Adicionar produto

@@ -40,7 +40,8 @@ têm resposta: aceita, em parte e recusada; as de "aguardando" ainda não.
   aceito ganha um ✓ verde e o não aceito fica riscado e apagado; sem decisão,
   só um ponto.
 - **Divisões:** a lista se divide em **Aguardando** (Solicitado e Em
-  análise) e **Respondidos** (Aceito, Aceito parcialmente e Recusado), cada uma com o título, a
+  análise), **Respondidos** (Aceito, Aceito parcialmente e Recusado) e
+  **Canceladas**, cada uma com o título, a
   quantidade num chip na cor do módulo e a sua grade. Divisão vazia não
   aparece.
 - **Lista:** em cada divisão, as solicitações dela, as novas primeiro, numa grade de cards
@@ -69,7 +70,8 @@ têm resposta: aceita, em parte e recusada; as de "aguardando" ainda não.
   (`useIgrejaSelecionada(true)`).
 - **Abas** (`NavTabs`): Todas e uma por etapa do trâmite (`ETAPAS` em
   `constants.ts`) — **Novas** (solicitado e em análise), **Em aprovação** (as
-  duas de aguardando), **Aceitas** (aceito e em parte) e **Recusadas** —, cada
+  duas de aguardando), **Aceitas** (aceito e em parte) e **Encerradas**
+  (recusado e cancelado) —, cada
   uma com ícone e a quantidade num chip depois do rótulo (`contagem`). Uma aba
   por situação davam oito, e os rótulos longos quebravam em duas linhas; a
   situação exata segue no chip de cada linha da lista.
@@ -140,6 +142,12 @@ têm resposta: aceita, em parte e recusada; as de "aguardando" ainda não.
   resultado, com o link da loja); e a resposta da igreja em papel pautado.
   Só leitura, sem o que cada lado marcou. Fecha no X, no Esc ou clicando
   fora; entra "pousando", menos com movimento reduzido.
+  - **Cancelar:** antes de o pastor ou a tesouraria decidir (Solicitado ou
+    Em análise), o pé da folha tem "Cancelar solicitação", com a
+    confirmação ali mesmo ("Desistir deste pedido?", **Voltar** / **Sim,
+    cancelar**). A janela segue aberta e o carimbo vira "Cancelado" (cinza);
+    o card apaga como o da recusada. No painel, a cancelada mostra um aviso
+    no lugar dos quadros de aprovação.
 - **Home do painel:** card de Solicitações para o admin e a tesouraria da
   igreja, como os outros módulos (`modulosDaIgreja.tsx`), e a tarefa
   "solicitação(ões) esperando resposta" em Precisa de você, que conta também

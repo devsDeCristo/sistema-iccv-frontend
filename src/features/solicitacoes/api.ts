@@ -23,6 +23,19 @@ export const useMinhasSolicitacoes = () =>
   );
 
 /** A igreja é a de que a pessoa é membro: a API decide, a tela não manda */
+/** Quem pediu desiste, antes de o pastor ou a tesouraria decidir */
+export const useCancelarSolicitacao = () =>
+  useMutation({
+    mutationFn: (id: string) =>
+      apiClient
+        .patch(`/solicitacoes/${id}/cancelar`)
+        .then((response) =>
+          handleResponseSuccess(response.data, 'Solicitação cancelada')()
+        )
+        .catch(handleResponseThrowError()),
+    onSuccess: () => queryClient.invalidateQueries(GET_MINHAS),
+  });
+
 export const useCriarSolicitacao = () =>
   useMutation({
     mutationFn: (dados: {

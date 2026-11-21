@@ -371,13 +371,15 @@ function ModalDaSolicitacao({
               >
                 {possoDecidir
                   ? `${aceitos.size} de ${total} aprovados por você · marque os que aprova`
-                  : RESPONDIDA[s.status]
-                    ? comTesouraria
-                      ? 'Entra o que o pastor e a tesouraria aprovaram'
-                      : 'Entra o que o pastor aprovou'
-                    : comTesouraria
-                      ? 'O resultado sai quando os dois decidirem'
-                      : 'O resultado sai quando o pastor decidir'}
+                  : s.status === 'CANCELED'
+                    ? 'Quem pediu cancelou antes da decisão'
+                    : RESPONDIDA[s.status]
+                      ? comTesouraria
+                        ? 'Entra o que o pastor e a tesouraria aprovaram'
+                        : 'Entra o que o pastor aprovou'
+                      : comTesouraria
+                        ? 'O resultado sai quando os dois decidirem'
+                        : 'O resultado sai quando o pastor decidir'}
               </Typography>
             </Stack>
             <ListaDeProdutos
@@ -401,45 +403,54 @@ function ModalDaSolicitacao({
           {/* as confirmações: quem já decidiu, quem falta (sem o módulo
               Tesouraria, só a do pastor — a não ser que a tesouraria já
               tenha decidido antes de o módulo sair) */}
-          <Stack spacing={1}>
-            <Typography sx={{ fontSize: 14, fontWeight: 600 }}>
-              Aprovação
-            </Typography>
-            <Stack direction={{ xs: 'column', sm: 'row' }} gap={1}>
-              <Confirmacao
-                rotulo="Pastor"
-                Icone={Church}
-                decisao={s.pastorDecision}
-                quem={s.pastor?.fullName}
-                quando={s.pastorAt}
-              />
-              {(comTesouraria || s.treasuryDecision !== null) && (
+          {/* cancelada, ninguém chegou a decidir: o aviso no lugar dos quadros */}
+          {s.status === 'CANCELED' ? (
+            <Alert severity="info">
+              Quem pediu cancelou esta solicitação antes de o pastor ou a
+              tesouraria decidir.
+            </Alert>
+          ) : (
+            <Stack spacing={1}>
+              <Typography sx={{ fontSize: 14, fontWeight: 600 }}>
+                Aprovação
+              </Typography>
+              <Stack direction={{ xs: 'column', sm: 'row' }} gap={1}>
                 <Confirmacao
-                  rotulo="Tesouraria"
-                  Icone={AccountBalanceWalletOutlined}
-                  decisao={s.treasuryDecision}
-                  quem={s.treasurer?.fullName}
-                  quando={s.treasuryAt}
+                  rotulo="Pastor"
+                  Icone={Church}
+                  decisao={s.pastorDecision}
+                  quem={s.pastor?.fullName}
+                  quando={s.pastorAt}
                 />
-              )}
-            </Stack>
-            {papel && !papel.temPastor && !RESPONDIDA[s.status] && (
-              <Alert severity="warning">
-                Esta igreja não tem pastor cadastrado: sem ele, nenhuma
-                solicitação é aprovada. Cadastre o líder espiritual em Igrejas.
-              </Alert>
-            )}
-            {papel &&
-              papel.exigeTesouraria &&
-              !papel.temTesouraria &&
-              !RESPONDIDA[s.status] && (
+                {(comTesouraria || s.treasuryDecision !== null) && (
+                  <Confirmacao
+                    rotulo="Tesouraria"
+                    Icone={AccountBalanceWalletOutlined}
+                    decisao={s.treasuryDecision}
+                    quem={s.treasurer?.fullName}
+                    quando={s.treasuryAt}
+                  />
+                )}
+              </Stack>
+              {papel && !papel.temPastor && !RESPONDIDA[s.status] && (
                 <Alert severity="warning">
-                  Esta igreja tem o módulo Tesouraria, mas ninguém com o perfil
-                  de tesouraria: sem ele, nenhuma solicitação é aprovada. Dê o
-                  perfil a alguém em Usuários.
+                  Esta igreja não tem pastor cadastrado: sem ele, nenhuma
+                  solicitação é aprovada. Cadastre o líder espiritual em
+                  Igrejas.
                 </Alert>
               )}
-          </Stack>
+              {papel &&
+                papel.exigeTesouraria &&
+                !papel.temTesouraria &&
+                !RESPONDIDA[s.status] && (
+                  <Alert severity="warning">
+                    Esta igreja tem o módulo Tesouraria, mas ninguém com o
+                    perfil de tesouraria: sem ele, nenhuma solicitação é
+                    aprovada. Dê o perfil a alguém em Usuários.
+                  </Alert>
+                )}
+            </Stack>
+          )}
 
           {/* a decisão de quem pode decidir: aprovar os marcados ou recusar */}
           {possoDecidir &&

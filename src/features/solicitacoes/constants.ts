@@ -1,6 +1,7 @@
 import { Theme } from '@mui/material';
 import {
   AccountBalanceWalletOutlined,
+  Block,
   CheckCircleOutline,
   Church,
   HighlightOff,
@@ -43,6 +44,7 @@ export const ROTULO_DO_STATUS: Record<StatusDaSolicitacao, string> = {
   ACCEPTED: 'Aceito',
   PARTIALLY_ACCEPTED: 'Aceito parcialmente',
   REJECTED: 'Recusado',
+  CANCELED: 'Cancelado',
 };
 
 /** O ícone de cada situação (as abas do painel) */
@@ -54,6 +56,7 @@ export const ICONE_DO_STATUS: Record<StatusDaSolicitacao, SvgIconComponent> = {
   ACCEPTED: CheckCircleOutline,
   PARTIALLY_ACCEPTED: Rule,
   REJECTED: HighlightOff,
+  CANCELED: Block,
 };
 
 /**
@@ -85,15 +88,19 @@ export const ETAPAS: {
     Icone: CheckCircleOutline,
     situacoes: ['ACCEPTED', 'PARTIALLY_ACCEPTED'],
   },
+  // o fim sem compra: recusada pela igreja ou cancelada por quem pediu
   {
-    valor: 'recusadas',
-    rotulo: 'Recusadas',
+    valor: 'encerradas',
+    rotulo: 'Encerradas',
     Icone: HighlightOff,
-    situacoes: ['REJECTED'],
+    situacoes: ['REJECTED', 'CANCELED'],
   },
 ];
 
-/** A igreja já respondeu: aceita, aceita em parte ou recusada */
+/**
+ * O trâmite acabou: a igreja respondeu (aceita, aceita em parte ou recusada)
+ * ou quem pediu cancelou. Ninguém decide mais.
+ */
 export const RESPONDIDA: Record<StatusDaSolicitacao, boolean> = {
   REQUESTED: false,
   IN_REVIEW: false,
@@ -102,7 +109,11 @@ export const RESPONDIDA: Record<StatusDaSolicitacao, boolean> = {
   ACCEPTED: true,
   PARTIALLY_ACCEPTED: true,
   REJECTED: true,
+  CANCELED: true,
 };
+
+/** Quem pediu ainda pode desistir: antes de qualquer decisão */
+export const PODE_CANCELAR: StatusDaSolicitacao[] = ['REQUESTED', 'IN_REVIEW'];
 
 /**
  * A solicitação espera a decisão de quem está logado: ainda em aberto, e o
@@ -132,4 +143,6 @@ export const corDoStatus = (theme: Theme, status: StatusDaSolicitacao) =>
     ACCEPTED: theme.palette.chips.success,
     PARTIALLY_ACCEPTED: theme.palette.mode === 'dark' ? '#2DD4BF' : '#0E7C74',
     REJECTED: theme.palette.chips.canceled,
+    // cancelada não é erro de ninguém: cinza, e não o vermelho da recusa
+    CANCELED: theme.palette.grey[600],
   })[status];

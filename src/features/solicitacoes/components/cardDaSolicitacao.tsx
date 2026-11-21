@@ -60,7 +60,7 @@ function Info({
  * A etiqueta é a cor da situação, chapada e escurecida: na cor cheia, o texto
  * branco não dá contraste no laranja de "Em análise".
  *
- * Recusada, o card apaga: fundo, pontinhos, chip, textos e links em cinza, e
+ * Recusada (ou cancelada), o card apaga: fundo, pontinhos, chip, textos e links em cinza, e
  * só a etiqueta "Recusado" fica em vermelho.
  *
  * O card inteiro abre a solicitação inteira (`onAbrir`), pelo clique ou pelo
@@ -76,8 +76,9 @@ function CardDaSolicitacao({
 }) {
   const theme = useTheme();
   const cor = corDoStatus(theme, s.status);
-  // recusada, o card inteiro apaga em cinza; só a etiqueta fica na cor
-  const recusada = s.status === 'REJECTED';
+  // recusada ou cancelada, o card inteiro apaga em cinza; só a etiqueta fica
+  // na cor
+  const recusada = s.status === 'REJECTED' || s.status === 'CANCELED';
   // o secundário, e não o desabilitado: no escuro o desabilitado não se lê
   const cinza = theme.palette.text.secondary;
   const corDoFundo = recusada ? cinza : cor;

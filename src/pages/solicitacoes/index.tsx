@@ -148,7 +148,14 @@ function Solicitacoes() {
           />
           <Secao
             titulo="Respondidos"
-            solicitacoes={data.filter((s) => RESPONDIDA[s.status])}
+            solicitacoes={data.filter(
+              (s) => RESPONDIDA[s.status] && s.status !== 'CANCELED'
+            )}
+            onAbrir={setAbertaId}
+          />
+          <Secao
+            titulo="Canceladas"
+            solicitacoes={data.filter((s) => s.status === 'CANCELED')}
             onAbrir={setAbertaId}
           />
         </Stack>

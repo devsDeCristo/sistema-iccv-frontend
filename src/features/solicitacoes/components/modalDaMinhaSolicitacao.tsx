@@ -1,7 +1,8 @@
-import { ReactNode } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import {
   alpha,
   Box,
+  Button,
   darken,
   Dialog,
   IconButton,
@@ -17,7 +18,13 @@ import {
 } from '@mui/icons-material';
 
 import { CORES_DO_MODULO } from '../../../constants/identidadeDosModulos';
-import { corDoStatus, RESPONDIDA, ROTULO_DO_STATUS } from '../constants';
+import { useCancelarSolicitacao } from '../api';
+import {
+  corDoStatus,
+  PODE_CANCELAR,
+  RESPONDIDA,
+  ROTULO_DO_STATUS,
+} from '../constants';
 import { iconeDoMinisterio, nomeDoMinisterio } from '../ministerios';
 import { MinhaSolicitacao, ProdutoDaSolicitacao } from '../types';
 
@@ -274,6 +281,10 @@ function Prendedor() {
  * resposta da igreja em papel pautado. Sem o que cada lado marcou: isso é
  * trâmite de dentro.
  *
+ * Antes de o pastor ou a tesouraria decidir, quem pediu pode desistir
+ * (Cancelar solicitação, com confirmação no pé da folha). A janela segue
+ * aberta, e o carimbo vira "Cancelado".
+ *
  * O papel acompanha o tema (claro ou escuro), a prancheta e os títulos usam
  * a cor do módulo. Fecha no X, no Esc ou clicando fora.
  */
@@ -289,11 +300,16 @@ function ModalDaMinhaSolicitacao({
   const prancheta = paleta.escuro
     ? darken(COR_DA_PRANCHETA, 0.25)
     : COR_DA_PRANCHETA;
+  const cancelar = useCancelarSolicitacao();
+  const [confirmando, setConfirmando] = useState(false);
+  // outra solicitação aberta começa sem a confirmação
+  useEffect(() => setConfirmando(false), [s?.id]);
+  const podeCancelar = !!s && PODE_CANCELAR.includes(s.status);
 
   return (
     <Dialog
       open={!!s}
-      onClose={onClose}
+      onClose={cancelar.isLoading ? undefined : onClose}
       scroll="body"
       maxWidth={false}
       aria-label={s ? `Solicitação: ${s.title}` : undefined}
@@ -366,7 +382,7 @@ function ModalDaMinhaSolicitacao({
               px: { xs: 2, sm: 2.75 },
               pt: 5,
               pb: 2.5,
-               boxShadow: '0 3px 6px rgba(0,0,0,0.1)',
+              boxShadow: '0 3px 6px rgba(0,0,0,0.1)',
             }}
           >
             <IconButton
@@ -478,9 +494,11 @@ function ModalDaMinhaSolicitacao({
             <Stack direction="row" alignItems="baseline" gap={1}>
               <Rotulo paleta={paleta}>Produtos</Rotulo>
               <Typography sx={{ fontSize: 11.5, color: paleta.suave }}>
-                {RESPONDIDA[s.status]
-                  ? '· o ✓ é o que a igreja aceitou'
-                  : '· o resultado sai quando a igreja decidir'}
+                {s.status === 'CANCELED'
+                  ? '· cancelada antes da decisão'
+                  : RESPONDIDA[s.status]
+                    ? '· o ✓ é o que a igreja aceitou'
+                    : '· o resultado sai quando a igreja decidir'}
               </Typography>
             </Stack>
             <Box sx={{ mt: 0.5, mb: 2.5 }}>
@@ -508,6 +526,62 @@ function ModalDaMinhaSolicitacao({
             >
               {s.response ?? 'Ainda sem resposta'}
             </Typography>
+
+            {/* desistir: só antes de o pastor ou a tesouraria decidir, e com
+                confirmação ali mesmo — o SweetAlert abriria por baixo */}
+            {podeCancelar && (
+              <Stack
+                direction="row"
+                alignItems="center"
+                justifyContent="flex-end"
+                flexWrap="wrap"
+                gap={1}
+                sx={{
+                  mt: 2.5,
+                  pt: 1.5,
+                  borderTop: `1px dashed ${paleta.linha}`,
+                }}
+              >
+                {confirmando ? (
+                  <>
+                    <Typography sx={{ flex: 1, minWidth: 180, fontSize: 13.5 }}>
+                      Desistir deste pedido? A igreja deixa de analisá-lo.
+                    </Typography>
+                    <Button
+                      size="small"
+                      disabled={cancelar.isLoading}
+                      onClick={() => setConfirmando(false)}
+                      sx={{ color: paleta.texto, textTransform: 'none' }}
+                    >
+                      Voltar
+                    </Button>
+                    <Button
+                      size="small"
+                      color="error"
+                      variant="contained"
+                      disabled={cancelar.isLoading}
+                      onClick={() =>
+                        cancelar.mutate(s.id, {
+                          onSettled: () => setConfirmando(false),
+                        })
+                      }
+                      sx={{ textTransform: 'none' }}
+                    >
+                      {cancelar.isLoading ? 'Cancelando…' : 'Sim, cancelar'}
+                    </Button>
+                  </>
+                ) : (
+                  <Button
+                    size="small"
+                    color="error"
+                    onClick={() => setConfirmando(true)}
+                    sx={{ textTransform: 'none' }}
+                  >
+                    Cancelar solicitação
+                  </Button>
+                )}
+              </Stack>
+            )}
           </Box>
         </Box>
       )}

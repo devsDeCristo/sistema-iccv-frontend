@@ -5,7 +5,9 @@ export type StatusDaSolicitacao =
   | 'AWAITING_PASTOR'
   | 'REJECTED'
   | 'ACCEPTED'
-  | 'PARTIALLY_ACCEPTED';
+  | 'PARTIALLY_ACCEPTED'
+  /** quem pediu desistiu, antes de qualquer decisão */
+  | 'CANCELED';
 
 /** Quem decide: o pastor (líder espiritual da igreja) ou a tesouraria dela */
 export type LadoDaDecisao = 'PASTOR' | 'TESOURARIA';
