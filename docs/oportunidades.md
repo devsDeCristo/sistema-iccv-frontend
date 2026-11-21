@@ -23,28 +23,33 @@ e formato do formulário em `ic-backend/docs/oportunidades.md`.
 - **Agrupamento:** pelo mês de publicação ("Novembro de 2026 · 3 vagas"),
   das mais novas para as mais antigas, com o mesmo título de grupo do
   histórico de eventos (que agrupa por ano).
-- **Cards** (`components/cardDaVaga.tsx`), no mesmo estilo dos cards de
-  Solicitações e na mesma grade (3 colunas na tela grande, 2 no tablet, 1
-  no celular):
-  - **etiqueta pendurada** na borda de cima, à direita, com a situação:
-    **verde** quando aberta ("Aberta", ou o prazo quando está acabando:
-    "Encerra hoje", "Faltam N dias"), **vermelha** quando encerrada e na
-    cor do módulo com "✓ Candidatura enviada";
-  - **fundo** com degradê e pontinhos saindo do canto superior esquerdo, na
-    **cor do módulo** (a cor da logo fica só para o crachá). No hover, o
-    fundo acende e a borda aparece;
-  - a logo num quadrado branco (`LogoDaVaga`, `contain`: não corta nem
-    estica; sem imagem, o ícone `Work`), ao lado do título (até 2 linhas) e
-    de quem oferece;
-  - o salário num chip na cor do módulo, o local e a data de publicação;
-  - a descrição em texto, cortada em 3 linhas;
-  - **rodapé** depois do divisor: "Candidaturas: até dd/mm/aaaa" (ou "Sem
-    data para encerrar") e "Ver vaga ›";
-  - encerrada, o card apaga em cinza (só a etiqueta fica vermelha), como a
-    solicitação recusada. As
+- **Cards** (`components/cardDaVaga.tsx`), o card exclusivo do módulo (como
+  o ingresso é o de Eventos e a folha do talão, o de Solicitações), na mesma
+  grade (3 colunas na tela grande, 2 no tablet, 1 no celular): **a página
+  de "contrato de trabalho" da carteira**.
+  - à esquerda, a **lombada** azul da capa; o papel é o do ingresso de
+    Eventos nos dois temas (`background.paper`, com a `sombraDeCartao` de
+    `components/listPageStyles.ts`: `drop-shadow` e, no escuro, um contorno
+    claro de 1px), com um **fundo de segurança** de arcos finos na cor do
+    módulo;
+  - a **logo grampeada** no canto como uma foto 3x4, um pouco torta (borda
+    clara, grampo de metal; `contain` sobre branco; sem imagem, o ícone
+    `Work` na cor do módulo);
+  - "CONTRATO DE TRABALHO" e, anotados em fonte de máquina sobre linhas
+    pontilhadas, **Empregador** (quem oferece), **Cargo** (o título),
+    **Local** ("—" sem local) e **Remuneração** ("A combinar" sem salário);
+  - no pé, a linha da **assinatura do empregador**, em branco, e a
+    situação (`EtiquetaDaVaga`): "Encerrada" (vermelho, e a página toda
+    apaga), "✓ Candidatura enviada" (cor do módulo) ou o prazo quando está
+    acabando ("Encerra hoje", "Faltam N dias", em laranja); fora isso, só
+    "até dd/mm" discreto;
+  - sem a descrição nem a data de publicação: ficam no crachá. As
     encerradas só aparecem para quem se candidatou, para ainda poder ver e
     retirar;
-  - o card inteiro é clicável (também com Enter e espaço) e abre o crachá.
+  - o card inteiro é clicável (também com Enter e espaço) e abre o crachá;
+    no hover, a página sobe 2px e ganha um contorno na cor do módulo. Com
+    `rodape`, o pé é outro e, sem `onAbrir`, o card não é clicável (é como
+    "Minhas propostas" o usa).
 - **Detalhes** (`components/modalDetalhesDaVaga.tsx`): um **crachá de
   "estamos contratando"** que substitui o modal. O `Dialog` fica
   transparente, sem cabeçalho nem rodapé: só aparece o crachá, pendurado
@@ -107,12 +112,18 @@ o admin aprova.
   propôs vê nome, celular, e-mail, currículo e respostas dos candidatos,
   para usar só no processo da vaga. Decidida, a página não edita mais e diz
   isso.
-- **Minhas propostas** (`components/minhasPropostas.tsx`): a mesma lista do
-  painel, com a situação e o motivo da recusa.
-  - Na pendente: **Editar** e **Retirar** (com confirmação).
-  - Na aprovada: o botão de candidaturas abre a mesma página do admin
-    (`/oportunidades/propostas/:id/candidaturas`), com a etapa, a anotação,
-    o currículo pela rota da proposta e a exportação.
+- **Minhas propostas** (`components/minhasPropostas.tsx`): os **mesmos
+  cards da vitrine** (a página da carteira), na mesma grade, com o pé
+  trocado pela situação da proposta e as opções dela. O card em si não abre
+  nada: quem age são os botões do pé.
+  - **Pendente:** "Aguardando aprovação" (laranja) e os botões **Editar** e
+    **Retirar** (com confirmação).
+  - **Aprovada:** "✓ Aprovada" (verde), ou "Encerrada" (cinza) quando a vaga
+    fechou, e o botão **"N candidaturas ›"**, que abre a mesma página do
+    admin (`/oportunidades/propostas/:id/candidaturas`), com a etapa, a
+    anotação, o currículo pela rota da proposta e a exportação.
+  - **Recusada:** "Recusada" (vermelho) e o motivo embaixo (ou "Recusada sem
+    motivo informado").
   - Sem nenhuma, um convite para propor.
 
 ## Candidatura (`/oportunidades/:id/candidatura`)
@@ -155,9 +166,9 @@ ser longo, e no celular o modal fica apertado.
   e **Recusadas**, com a quantidade de cada uma. Sem aba no endereço, abre
   em Pendentes se houver alguma; senão, em Abertas. **Nova oportunidade**
   fica ao lado das abas.
-- **Lista** (`components/listaDaIgreja.tsx`, a mesma de "Minhas propostas";
+- **Lista** (`components/listaDaIgreja.tsx`, só do painel;
   as ações de cada linha vêm de quem usa): vaga (a logo, o título e, com
-  ícone, como no card da vitrine, quem oferece, local e salário; na
+  ícone, quem oferece, local e salário; na
   recusada, o motivo), candidaturas (botão com a contagem; "—" fora da
   aprovada), data com quem publicou ("proposta por Fulano" na proposta),
   data final com o prazo embaixo na aberta ("Faltam 3 dias", em laranja

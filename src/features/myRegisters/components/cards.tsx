@@ -26,6 +26,7 @@ import {
 } from '@mui/icons-material';
 
 import { paymentsWithRoles } from '../types';
+import { sombraDeCartao } from '../../../components/listPageStyles';
 import { useGetPayments } from '../api/getPaymentByUser';
 import { ModalPayment } from './modalPayment';
 import { ModalIngresso } from './modalIngresso';
@@ -274,10 +275,7 @@ function EventCard({
       // a sombra das superfícies, em `drop-shadow`: ela segue o recorte e
       // contorna os furos, onde a de caixa passava reto
       boxShadow: 'none',
-      filter:
-        theme.palette.mode === 'dark'
-          ? 'drop-shadow(0 0 1px rgba(255,255,255,.16)) drop-shadow(0 6px 12px rgba(0,0,0,.45))'
-          : 'drop-shadow(0 1px 1px rgba(16,24,40,.06)) drop-shadow(0 6px 10px rgba(16,24,40,.08))',
+      filter: sombraDeCartao(theme),
       // o ingresso inteiro abre os detalhes: não há mais botões nele
       cursor: 'pointer',
       transition: theme.transitions.create(['transform', 'box-shadow'], {

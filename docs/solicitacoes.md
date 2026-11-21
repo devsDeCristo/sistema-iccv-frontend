@@ -46,20 +46,24 @@ têm resposta: aceita, em parte e recusada; as de "aguardando" ainda não.
   aparece.
 - **Lista:** em cada divisão, as solicitações dela, as novas primeiro, numa grade de cards
   (três colunas na tela grande, duas no tablet, uma no celular;
-  `components/cardDaSolicitacao.tsx`), no estilo dos cards de mapa do
-  easymaps: a situação numa etiqueta pendurada na borda de cima, à
-  direita (a cor dela, chapada e escurecida, texto branco, com bolinha) e o fundo com degradê e
-  textura de pontinhos na cor da situação, saindo do canto superior esquerdo,
-  que acende ao passar o mouse. Depois, o pedido em destaque, o ministério
-  num chip na cor do módulo, com o ícone dele (`ministerios.tsx`), e a data, a descrição em até três linhas e os
-  produtos (os três primeiros e "+ N produtos"), com o que foi aceito. No rodapé, separado por uma linha, a resposta da igreja ou
-  "Ainda sem resposta". Os cards de uma linha têm a mesma altura.
-- **Recusada:** o card apaga em cinza (fundo, pontinhos, chip do ministério,
-  textos e links, no `text.secondary`, que se lê nos dois temas); só a
-  etiqueta "Recusado" fica em vermelho.
-- **Contraste da etiqueta:** a cor cheia da situação (sobretudo o laranja de
-  "Em análise") não dá contraste com texto branco; por isso a etiqueta vai
-  35% mais escura.
+  `components/cardDaSolicitacao.tsx`). Cada card é **a folha arrancada do
+  talão de requisições**, o card exclusivo do módulo (como o ingresso é o de
+  Eventos): o picote em cima (furos recortados com `mask`, que mostram o que
+  estiver atrás do card, e linha tracejada). O fundo e a sombra são os do
+  ingresso de Eventos, nos dois temas: o `background.paper` do tema e
+  `sombraDeCartao` (`components/listPageStyles.ts`: `drop-shadow`, que segue
+  a forma com os furos, e no escuro um contorno claro de 1px), "REQUISIÇÃO" na cor do módulo com o número (os 8 primeiros do
+  id), o **carimbo** da situação à direita, um traço cheio, o título em até
+  duas linhas e o ministério (com o ícone) e a data em linhas de formulário.
+  No pé, quantos produtos e a igreja, ou "respondida pela igreja" quando há
+  resposta. Ao passar o mouse, a folha sobe 2px e ganha um contorno fino na
+  cor do módulo. É a mesma folha que, aberta, aparece presa na prancheta: as
+  cores de texto (`paletaDaFolha.ts`), o rótulo, o campo e o carimbo
+  (`folhaDoPedido.tsx`) são os mesmos nos dois (a folha da prancheta mantém
+  o papel próprio dela). Os cards de uma linha têm a
+  mesma altura.
+- **Recusada e cancelada:** quem diz é o carimbo, vermelho na recusada e
+  cinza na cancelada; a folha não muda.
 
 ## Painel (`/admin/solicitacoes`)
 
@@ -85,8 +89,8 @@ têm resposta: aceita, em parte e recusada; as de "aguardando" ainda não.
   "Abrir solicitação") abre a solicitação inteira.
 - **Janela da solicitação** (`components/modalDaSolicitacao.tsx`): no topo,
   quem pediu (foto, nome e telefone, para conversar antes de decidir) e, à
-  direita, o ministério em chip e a situação atual (na mesma etiqueta do card
-  do membro) lado a lado, com a data do pedido embaixo; no celular, essa
+  direita, o ministério em chip e a situação atual (numa etiqueta na cor
+  dela) lado a lado, com a data do pedido embaixo; no celular, essa
   coluna desce para baixo de quem pediu. Depois, o título e a descrição sem
   corte, os produtos, a **Aprovação**, a decisão (para quem decide), a
   situação e a resposta.
@@ -164,7 +168,7 @@ têm resposta: aceita, em parte e recusada; as de "aguardando" ainda não.
     Em análise), o pé da folha tem "Cancelar solicitação", com a
     confirmação ali mesmo ("Desistir deste pedido?", **Voltar** / **Sim,
     cancelar**). A janela segue aberta e o carimbo vira "Cancelado" (cinza);
-    o card apaga como o da recusada. No painel, a cancelada mostra um aviso
+    no card, o carimbo também. No painel, a cancelada mostra um aviso
     no lugar dos quadros de aprovação.
 - **Home do painel:** card de Solicitações para o admin e a tesouraria da
   igreja, como os outros módulos (`modulosDaIgreja.tsx`), e a tarefa

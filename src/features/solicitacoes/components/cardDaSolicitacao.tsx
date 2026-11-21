@@ -1,21 +1,10 @@
-import {
-  alpha,
-  Box,
-  darken,
-  Divider,
-  Paper,
-  Stack,
-  Typography,
-  useTheme,
-} from '@mui/material';
-import { CalendarTodayOutlined } from '@mui/icons-material';
+import { alpha, Box, Stack, Typography, useTheme } from '@mui/material';
 
-import CustomChip from '../../../components/customChip';
-import { superficieSx } from '../../../components/listPageStyles';
-import { corDoStatus, ROTULO_DO_STATUS } from '../constants';
 import { iconeDoMinisterio, nomeDoMinisterio } from '../ministerios';
 import { MinhaSolicitacao } from '../types';
-import { ListaDeProdutos } from './listaDeProdutos';
+import { Campo, Carimbo } from './folhaDoPedido';
+import { usePaleta } from './paletaDaFolha';
+import { sombraDeCartao } from '../../../components/listPageStyles';
 
 const data = (iso: string) => new Date(iso).toLocaleDateString('pt-BR');
 
@@ -28,44 +17,14 @@ const cortar = (linhas: number) => ({
   overflowWrap: 'anywhere' as const,
 });
 
-/** O ícone e o valor, como as contagens dos cards de mapa */
-function Info({
-  icone,
-  children,
-}: {
-  icone: React.ReactNode;
-  children: string;
-}) {
-  return (
-    <Stack
-      direction="row"
-      alignItems="center"
-      gap={0.5}
-      sx={{ minWidth: 0, '& svg': { fontSize: 15, color: 'text.secondary' } }}
-    >
-      {icone}
-      <Typography noWrap sx={{ fontSize: 13, fontWeight: 600 }}>
-        {children}
-      </Typography>
-    </Stack>
-  );
-}
-
 /**
- * Uma solicitação, do ponto de vista de quem pediu, no estilo dos cards de
- * mapa do easymaps: a situação numa etiqueta pendurada na borda de cima, à
- * direita, e o fundo com degradê e pontinhos na cor dela, saindo do canto
- * superior esquerdo. Ao passar o mouse, o fundo acende e a borda aparece.
+ * Uma solicitação, do ponto de vista de quem pediu, como a folha arrancada do
+ * talão de requisições: o picote em cima, "Requisição" com o número, o
+ * carimbo da situação, o título e os campos do pedido em linhas de
+ * formulário. É a mesma folha que, aberta, aparece presa na prancheta
+ * (`ModalDaMinhaSolicitacao`): o papel, o campo e o carimbo vêm de lá.
  *
- * A etiqueta é a cor da situação, chapada e escurecida: na cor cheia, o texto
- * branco não dá contraste no laranja de "Em análise".
- *
- * Recusada (ou cancelada), o card apaga: fundo, pontinhos, chip, textos e links em cinza, e
- * só a etiqueta "Recusado" fica em vermelho.
- *
- * O card inteiro abre a solicitação inteira (`onAbrir`), pelo clique ou pelo
- * teclado. Não é um `button` porque tem links dentro (o da loja), e link
- * dentro de botão não vale; o clique num link abre só a loja.
+ * O card inteiro abre a solicitação (`onAbrir`), pelo clique ou pelo teclado.
  */
 function CardDaSolicitacao({
   solicitacao: s,
@@ -75,160 +34,151 @@ function CardDaSolicitacao({
   onAbrir: () => void;
 }) {
   const theme = useTheme();
-  const cor = corDoStatus(theme, s.status);
-  // recusada ou cancelada, o card inteiro apaga em cinza; só a etiqueta fica
-  // na cor
-  const recusada = s.status === 'REJECTED' || s.status === 'CANCELED';
-  // o secundário, e não o desabilitado: no escuro o desabilitado não se lê
-  const cinza = theme.palette.text.secondary;
-  const corDoFundo = recusada ? cinza : cor;
+  const paleta = usePaleta();
+  // o fundo do ingresso de Eventos (o Paper do tema), e não o papel da prancheta
+  const papel = theme.palette.background.paper;
+  /**
+   * Os furos do picote são recortados (máscara), e não pintados: atrás deles
+   * aparece o que estiver atrás do card, seja qual for a superfície
+   */
+  const furos = 'radial-gradient(circle at 7px 0, transparent 5px, #000 5.6px)';
+  const produtos = s.items.length;
 
   return (
-    <Paper
+    <Box
+      component="article"
       role="button"
       tabIndex={0}
       aria-label={`Abrir a solicitação ${s.title}`}
-      onClick={(e) => {
-        if (!(e.target as HTMLElement).closest('a')) onAbrir();
-      }}
+      onClick={onAbrir}
       onKeyDown={(e) => {
-        if (e.target !== e.currentTarget) return;
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
           onAbrir();
         }
       }}
       sx={{
-        ...superficieSx,
-        position: 'relative',
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        // sem fundo próprio: o papel é do picote e do corpo, para não tapar
+        // os furos por trás
+        color: paleta.texto,
+        borderRadius: '0 0 6px 6px',
+        overflow: 'hidden',
         cursor: 'pointer',
+        // a sombra segue a forma da folha, furos inclusive
+        filter: sombraDeCartao(theme),
+        transition: 'transform .2s, filter .2s',
+        '&:hover': {
+          transform: 'translateY(-2px)',
+          filter: `${sombraDeCartao(theme)} drop-shadow(0 0 1px ${alpha(paleta.tinta, 0.8)})`,
+        },
         '&:focus-visible': {
           outline: `2px solid ${theme.palette.primary.main}`,
           outlineOffset: 2,
         },
-        // o fundo decorado fica em z-index -1 dentro do card: acima do fundo
-        // dele e abaixo de todo o conteúdo
-        isolation: 'isolate',
-        overflow: 'hidden',
-        height: '100%',
-        minHeight: 200,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 1.25,
-        p: 2.5,
-        pt: 5,
-        transition: 'box-shadow .2s',
-        '&::before, &::after': {
-          content: '""',
-          position: 'absolute',
-          inset: 0,
-          zIndex: -1,
-          pointerEvents: 'none',
-          transition: 'opacity .25s',
-          opacity: 0.75,
-        },
-        '&::before': {
-          background: `linear-gradient(135deg, ${alpha(corDoFundo, 0.16)} 0%, ${alpha(
-            corDoFundo,
-            0.05
-          )} 50%, transparent 85%)`,
-        },
-        // a textura de pontos some na mesma direção do degradê
-        '&::after': {
-          backgroundImage: `radial-gradient(${alpha(
-            corDoFundo,
-            0.3
-          )} 1px, transparent 1.5px)`,
-          backgroundSize: '10px 10px',
-          maskImage: 'linear-gradient(135deg, #000 0%, transparent 70%)',
-          WebkitMaskImage: 'linear-gradient(135deg, #000 0%, transparent 70%)',
-        },
-        // recusada: textos e link apagados, como o resto do card
-        ...(recusada && {
-          '& .MuiTypography-root:not(.etiqueta)': { color: 'text.secondary' },
-          '& .MuiLink-root, & .MuiLink-root svg': { color: 'text.secondary' },
-        }),
-        '&:hover': {
-          boxShadow: `0 0 0 1px ${alpha(corDoFundo, 0.5)}, 0 6px 18px ${alpha(
-            corDoFundo,
-            0.16
-          )}`,
-          '&::before, &::after': { opacity: 1 },
+        '@media (prefers-reduced-motion: reduce)': {
+          transition: 'none',
+          '&:hover': { transform: 'none' },
         },
       }}
     >
-      {/* a situação, pendurada na borda de cima, à direita */}
-      <Stack
-        direction="row"
-        alignItems="center"
-        gap={0.75}
+      {/* o picote: a folha foi arrancada do bloco */}
+      <Box
+        aria-hidden
         sx={{
-          position: 'absolute',
-          right: 20,
-          top: 0,
-          px: 1.25,
-          py: 0.5,
-          borderRadius: '0 0 6px 6px',
-          bgcolor: darken(cor, 0.35),
-          boxShadow: `0 2px 8px ${alpha(darken(cor, 0.5), 0.3)}`,
+          height: 12,
+          flex: 'none',
+          backgroundColor: papel,
+          borderBottom: `1px dashed ${paleta.linha}`,
+          maskImage: furos,
+          WebkitMaskImage: furos,
+          maskSize: '14px 12px',
+          WebkitMaskSize: '14px 12px',
+          maskRepeat: 'repeat-x',
+          WebkitMaskRepeat: 'repeat-x',
+        }}
+      />
+
+      <Stack
+        gap={1.75}
+        sx={{
+          flex: 1,
+          px: 2.5,
+          pt: 2,
+          pb: 2.25,
+          minWidth: 0,
+          backgroundColor: papel,
         }}
       >
-        <Box
-          aria-hidden
-          sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#fff' }}
-        />
-        <Typography
-          className="etiqueta"
-          sx={{ fontSize: 12, fontWeight: 700, lineHeight: 1.4, color: '#fff' }}
+        {/* o cabeçalho da folha: o que é, o número e o carimbo */}
+        <Stack
+          direction="row"
+          alignItems="flex-start"
+          justifyContent="space-between"
+          gap={1.5}
+          sx={{ pb: 1.5, borderBottom: `2px solid ${paleta.texto}` }}
         >
-          {ROTULO_DO_STATUS[s.status]}
+          <Box sx={{ minWidth: 0 }}>
+            <Typography
+              sx={{
+                fontSize: 11,
+                fontWeight: 900,
+                letterSpacing: '0.22em',
+                textTransform: 'uppercase',
+                color: paleta.tinta,
+              }}
+            >
+              Requisição
+            </Typography>
+            <Typography
+              sx={{
+                fontSize: 12,
+                fontWeight: 600,
+                color: paleta.suave,
+                fontVariantNumeric: 'tabular-nums',
+              }}
+            >
+              Nº {s.id.slice(0, 8).toUpperCase()}
+            </Typography>
+          </Box>
+          <Box sx={{ mt: 0.5 }}>
+            <Carimbo s={s} />
+          </Box>
+        </Stack>
+
+        <Typography
+          component="h3"
+          sx={{ fontSize: 19, fontWeight: 800, lineHeight: 1.2, ...cortar(2) }}
+        >
+          {s.title}
+        </Typography>
+
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+            columnGap: 2,
+          }}
+        >
+          <Campo rotulo="Ministério" paleta={paleta}>
+            {iconeDoMinisterio(s.ministry)}
+            <Box component="span" sx={{ minWidth: 0, ...cortar(1) }}>
+              {nomeDoMinisterio(s)}
+            </Box>
+          </Campo>
+          <Campo rotulo="Pedido em" paleta={paleta}>
+            {data(s.createdAt)}
+          </Campo>
+        </Box>
+
+        <Typography sx={{ mt: 'auto', fontSize: 12.5, color: paleta.suave }}>
+          {produtos} {produtos === 1 ? 'produto' : 'produtos'} ·{' '}
+          {s.response ? 'respondida pela igreja' : s.church.name}
         </Typography>
       </Stack>
-
-      <Typography sx={{ fontSize: 18, fontWeight: 700, ...cortar(2) }}>
-        {s.title}
-      </Typography>
-
-      <Stack
-        direction="row"
-        alignItems="center"
-        flexWrap="wrap"
-        columnGap={1.5}
-        rowGap={0.75}
-      >
-        {/* o ministério num chip, na cor do módulo; o ícone acompanha */}
-        <CustomChip
-          size="small"
-          icon={iconeDoMinisterio(s.ministry)}
-          label={nomeDoMinisterio(s)}
-          customColor={recusada ? cinza : theme.palette.secondary.main}
-          sx={{ '& .MuiChip-icon': { color: 'inherit', fontSize: 15 } }}
-        />
-        <Info icone={<CalendarTodayOutlined />}>{data(s.createdAt)}</Info>
-      </Stack>
-
-      <Typography variant="body2" color="text.secondary" sx={cortar(3)}>
-        {s.description}
-      </Typography>
-      <ListaDeProdutos produtos={s.items} limite={3} />
-
-      {/* a resposta presa ao rodapé, como os alertas dos mapas */}
-      <Divider sx={{ mt: 'auto' }} />
-      <Box sx={{ minWidth: 0 }}>
-        <Typography sx={{ fontSize: 12, color: 'text.secondary', mb: 0.25 }}>
-          Resposta da igreja
-        </Typography>
-        {s.response ? (
-          <Typography variant="body2" sx={cortar(3)}>
-            {s.response}
-          </Typography>
-        ) : (
-          <Typography variant="body2" color="text.disabled">
-            Ainda sem resposta
-          </Typography>
-        )}
-      </Box>
-    </Paper>
+    </Box>
   );
 }
 

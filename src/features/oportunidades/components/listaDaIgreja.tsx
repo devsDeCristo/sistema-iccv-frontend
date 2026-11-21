@@ -39,7 +39,7 @@ interface Props {
   onInteressados: (oportunidade: OportunidadeDaIgreja) => void;
   /**
    * As ações de cada linha, conforme a situação. Vêm de fora: o admin
-   * aprova, encerra e exclui; quem propôs edita e retira a pendente.
+   * aprova, encerra e exclui.
    */
   acoesDaLinha: (oportunidade: OportunidadeDaIgreja) => AcaoDaLinha[];
 }
@@ -56,8 +56,8 @@ const situacao = (o: OportunidadeDaIgreja) =>
           : 'Encerrada';
 
 /**
- * As vagas da igreja (no painel) ou as propostas de um membro; as ações de
- * cada uma ficam na própria linha
+ * As vagas da igreja, no painel; as ações de cada uma ficam na própria
+ * linha. As propostas do membro são cards (`MinhasPropostas`)
  */
 function ListaDaIgreja({
   oportunidades,

@@ -1,31 +1,9 @@
 import { ReactNode } from 'react';
-import {
-  alpha,
-  Box,
-  darken,
-  Divider,
-  Paper,
-  Stack,
-  Typography,
-  useTheme,
-} from '@mui/material';
-import {
-  CalendarTodayOutlined,
-  CheckCircle,
-  ChevronRight,
-  PaymentsOutlined,
-  PlaceOutlined,
-  Work,
-} from '@mui/icons-material';
-import CustomChip from '../../../components/customChip';
-import { superficieSx } from '../../../components/listPageStyles';
+import { alpha, Box, Stack, Typography, useTheme } from '@mui/material';
+import { CheckCircle, Work } from '@mui/icons-material';
 import { corDoModulo } from '../../../constants/identidadeDosModulos';
-import {
-  descricaoEmTexto,
-  formatarData,
-  formatarSalario,
-  prazo,
-} from '../formulario';
+import { sombraDeCartao } from '../../../components/listPageStyles';
+import { formatarData, formatarSalario, prazo } from '../formulario';
 import { Oportunidade } from '../types';
 
 /** Uma informação curta com ícone */
@@ -122,217 +100,308 @@ const cortar = (linhas: number) => ({
   overflowWrap: 'anywhere' as const,
 });
 
+/** A capa da carteira, vista na lombada */
+const LOMBADA = 'linear-gradient(90deg, #13294B, #1F4278 60%, #183563)';
+/** Os valores anotados no contrato, como à máquina */
+const MAQUINA = 'ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace';
+
+/** Um campo do contrato: o rótulo em versalete e o valor sobre a linha pontilhada */
+function Campo({
+  rotulo,
+  suave,
+  linha,
+  children,
+}: {
+  rotulo: string;
+  suave: string;
+  linha: string;
+  children: ReactNode;
+}) {
+  return (
+    <Box sx={{ minWidth: 0 }}>
+      <Typography
+        sx={{
+          fontSize: 9,
+          fontWeight: 800,
+          letterSpacing: '0.14em',
+          textTransform: 'uppercase',
+          color: suave,
+        }}
+      >
+        {rotulo}
+      </Typography>
+      <Typography
+        sx={{
+          fontFamily: MAQUINA,
+          fontSize: 13.5,
+          fontWeight: 600,
+          pb: 0.375,
+          borderBottom: `1px dotted ${linha}`,
+          ...cortar(1),
+        }}
+      >
+        {children}
+      </Typography>
+    </Box>
+  );
+}
+
+/** A situação no pé da página: uma pílula na cor dela, com ✓ quando pede */
+export function EtiquetaDaVaga({
+  rotulo,
+  cor,
+  check,
+}: {
+  rotulo: string;
+  cor: string;
+  check?: boolean;
+}) {
+  return (
+    <Stack
+      direction="row"
+      alignItems="center"
+      gap={0.5}
+      sx={{
+        flexShrink: 0,
+        alignSelf: 'flex-start',
+        px: 1.25,
+        py: 0.5,
+        borderRadius: 999,
+        fontSize: 11,
+        fontWeight: 800,
+        color: cor,
+        backgroundColor: alpha(cor, 0.14),
+        '& svg': { fontSize: 13 },
+      }}
+    >
+      {check && <CheckCircle />}
+      {rotulo}
+    </Stack>
+  );
+}
+
 /**
- * Uma vaga na vitrine do membro, no mesmo estilo dos cards de Solicitações:
- * a situação numa etiqueta pendurada na borda de cima, à direita, e o fundo
- * com degradê e pontinhos saindo do canto superior esquerdo, na cor do
- * módulo (a da logo fica para o crachá). Ao passar o mouse, o fundo
- * acende e a borda aparece. O card inteiro abre o crachá dos detalhes.
+ * Uma vaga na vitrine do membro, como a página de "contrato de trabalho" da
+ * carteira: a lombada azul da capa à esquerda, o fundo de segurança, a logo
+ * grampeada no canto como uma foto 3x4 e, anotados, quem contrata, o cargo,
+ * o local e a remuneração, com a assinatura do empregador em branco. No pé, a
+ * situação: o prazo quando está acabando, a candidatura enviada ou a vaga
+ * encerrada (a página toda apaga). O card inteiro abre o crachá dos detalhes.
  *
- * Encerrada, o card apaga em cinza, como a solicitação recusada.
+ * Em "Minhas propostas" o pé é outro (`rodape`: a situação da proposta e as
+ * opções dela) e o card não abre nada sozinho (sem `onAbrir`): quem age são
+ * os botões do pé.
+ *
+ * O papel acompanha o tema, como a folha de Solicitações.
  */
 export function CardDaVaga({
   vaga,
-  interessei,
+  interessei = false,
   onAbrir,
+  rodape,
 }: {
   vaga: Oportunidade;
-  interessei: boolean;
-  onAbrir: () => void;
+  interessei?: boolean;
+  /** sem ele, o card não é clicável */
+  onAbrir?: () => void;
+  /** no lugar da assinatura e da situação */
+  rodape?: ReactNode;
 }) {
   const theme = useTheme();
-  const cinza = theme.palette.text.secondary;
-  const cor = vaga.encerrada ? cinza : corDoModulo(theme, 'oportunidades');
+  const escuro = theme.palette.mode === 'dark';
+  const cor = corDoModulo(theme, 'oportunidades');
+  // o fundo do ingresso de Eventos (o Paper do tema)
+  const papel = theme.palette.background.paper;
+  const texto = escuro ? '#EEF0F3' : '#16181D';
+  const suave = alpha(texto, 0.55);
+  const linha = alpha(texto, 0.35);
   const salario = formatarSalario(vaga.salario);
   const ate = vaga.encerrada ? null : prazo(vaga.closesAt);
   const perto = !!ate && /hoje|amanhã|Faltam/.test(ate);
-  const resumo = descricaoEmTexto(vaga.description);
 
-  // a etiqueta: a situação de quem olha, ou o prazo quando está acabando
-  // encerrada em vermelho, aberta em verde (com o prazo, quando acabando);
-  // a candidatura enviada fica na cor do módulo, para não se confundir
-  const [etiqueta, corDaEtiqueta] = vaga.encerrada
-    ? ['Encerrada', theme.palette.error.main]
+  // a situação no pé: encerrada, candidatura enviada ou o prazo acabando;
+  // fora isso, só a data final, discreta
+  const situacao = vaga.encerrada
+    ? { rotulo: 'Encerrada', cor: theme.palette.error.main }
     : interessei
-      ? ['Candidatura enviada', cor]
-      : [perto ? ate : 'Aberta', theme.palette.success.main];
+      ? { rotulo: 'Candidatura enviada', cor, check: true }
+      : perto
+        ? { rotulo: ate, cor: theme.palette.warning.main }
+        : null;
 
   return (
-    <Paper
+    <Box
       component="article"
-      role="button"
-      tabIndex={0}
-      aria-label={`Ver a vaga ${vaga.title}, ${vaga.company}`}
-      onClick={onAbrir}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          onAbrir();
-        }
-      }}
+      {...(onAbrir && {
+        role: 'button',
+        tabIndex: 0,
+        'aria-label': `Ver a vaga ${vaga.title}, ${vaga.company}`,
+        onClick: onAbrir,
+        onKeyDown: (e: React.KeyboardEvent) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onAbrir();
+          }
+        },
+      })}
       sx={{
-        ...superficieSx,
-        position: 'relative',
-        // o fundo decorado fica em z-index -1 dentro do card
-        isolation: 'isolate',
-        overflow: 'hidden',
         height: '100%',
         minHeight: 220,
         display: 'flex',
-        flexDirection: 'column',
-        gap: 1.25,
-        p: 2.5,
-        pt: 5,
-        cursor: 'pointer',
-        outline: 'none',
-        transition: 'box-shadow .2s',
-        '&::before, &::after': {
-          content: '""',
-          position: 'absolute',
-          inset: 0,
-          zIndex: -1,
-          pointerEvents: 'none',
-          transition: 'opacity .25s',
-          opacity: 0.75,
-        },
-        '&::before': {
-          background: `linear-gradient(135deg, ${alpha(cor, 0.16)} 0%, ${alpha(
-            cor,
-            0.05
-          )} 50%, transparent 85%)`,
-        },
-        '&::after': {
-          backgroundImage: `radial-gradient(${alpha(
-            cor,
-            0.3
-          )} 1px, transparent 1.5px)`,
-          backgroundSize: '10px 10px',
-          maskImage: 'linear-gradient(135deg, #000 0%, transparent 70%)',
-          WebkitMaskImage: 'linear-gradient(135deg, #000 0%, transparent 70%)',
-        },
-        ...(vaga.encerrada && {
-          '& .MuiTypography-root:not(.etiqueta)': { color: 'text.secondary' },
+        borderRadius: '4px 10px 10px 4px',
+        filter: sombraDeCartao(theme),
+        color: texto,
+        transition: 'transform .2s, filter .2s',
+        ...(vaga.encerrada && { opacity: 0.7 }),
+        ...(onAbrir && {
+          cursor: 'pointer',
+          '&:hover': {
+            transform: 'translateY(-2px)',
+            filter: `${sombraDeCartao(theme)} drop-shadow(0 0 1px ${alpha(cor, 0.8)})`,
+          },
         }),
-        '&:hover, &:focus-visible': {
-          boxShadow: `0 0 0 1px ${alpha(cor, 0.5)}, 0 6px 18px ${alpha(
-            cor,
-            0.16
-          )}`,
-          '&::before, &::after': { opacity: 1 },
+        '&:focus-visible': {
+          outline: `2px solid ${theme.palette.primary.main}`,
+          outlineOffset: 2,
+        },
+        '@media (prefers-reduced-motion: reduce)': {
+          transition: 'none',
+          '&:hover': { transform: 'none' },
         },
       }}
     >
-      {/* a situação, pendurada na borda de cima, à direita */}
-      <Stack
-        direction="row"
-        alignItems="center"
-        gap={0.75}
+      <Box
+        aria-hidden
         sx={{
-          position: 'absolute',
-          right: 20,
-          top: 0,
-          px: 1.25,
-          py: 0.5,
-          borderRadius: '0 0 6px 6px',
-          bgcolor: darken(corDaEtiqueta, 0.35),
-          boxShadow: `0 2px 8px ${alpha(darken(corDaEtiqueta, 0.5), 0.3)}`,
+          width: 16,
+          flexShrink: 0,
+          borderRadius: '4px 0 0 4px',
+          background: LOMBADA,
+        }}
+      />
+
+      <Stack
+        gap={1.5}
+        sx={{
+          flex: 1,
+          minWidth: 0,
+          position: 'relative',
+          borderRadius: '0 10px 10px 0',
+          px: 2.25,
+          pt: 2,
+          pb: 2.25,
+          backgroundColor: papel,
+          // o fundo de segurança: arcos finos saindo do canto de cima
+          backgroundImage: `repeating-radial-gradient(circle at 100% 0, transparent 0 9px, ${alpha(cor, escuro ? 0.05 : 0.08)} 9px 10px)`,
+          // a sombra da lombada sobre a página
+          boxShadow: `inset 6px 0 10px rgba(0,0,0,${escuro ? 0.35 : 0.1})`,
         }}
       >
-        {interessei && !vaga.encerrada ? (
-          <CheckCircle sx={{ fontSize: 13, color: '#fff' }} />
-        ) : (
-          <Box
-            aria-hidden
-            sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#fff' }}
-          />
-        )}
-        <Typography
-          className="etiqueta"
-          sx={{ fontSize: 12, fontWeight: 700, lineHeight: 1.4, color: '#fff' }}
-        >
-          {etiqueta}
-        </Typography>
-      </Stack>
-
-      <Stack direction="row" alignItems="center" gap={1.5}>
-        <LogoDaVaga vaga={vaga} tamanho={48} />
-        <Box sx={{ minWidth: 0 }}>
-          <Typography sx={{ fontSize: 18, fontWeight: 700, ...cortar(2) }}>
-            {vaga.title}
-          </Typography>
-          <Typography noWrap sx={{ fontSize: 13, color: 'text.secondary' }}>
-            {vaga.company}
-          </Typography>
-        </Box>
-      </Stack>
-
-      <Stack
-        direction="row"
-        alignItems="center"
-        flexWrap="wrap"
-        columnGap={1.5}
-        rowGap={0.75}
-      >
-        {salario && (
-          <CustomChip
-            size="small"
-            icon={<PaymentsOutlined />}
-            label={salario}
-            customColor={vaga.encerrada ? cinza : cor}
-            sx={{ '& .MuiChip-icon': { color: 'inherit', fontSize: 15 } }}
-          />
-        )}
-        {vaga.location && (
-          <Info icone={<PlaceOutlined />}>{vaga.location}</Info>
-        )}
-        <Info icone={<CalendarTodayOutlined />}>
-          {formatarData(vaga.createdAt)}
-        </Info>
-      </Stack>
-
-      <Typography variant="body2" color="text.secondary" sx={cortar(3)}>
-        {resumo}
-      </Typography>
-
-      {/* o prazo preso ao rodapé, como a resposta nas solicitações */}
-      <Divider sx={{ mt: 'auto' }} />
-      <Stack
-        direction="row"
-        alignItems="flex-end"
-        justifyContent="space-between"
-        gap={1}
-      >
-        <Box sx={{ minWidth: 0 }}>
-          <Typography sx={{ fontSize: 12, color: 'text.secondary', mb: 0.25 }}>
-            Candidaturas
-          </Typography>
-          <Typography
-            variant="body2"
-            sx={{ fontWeight: 600, color: perto ? 'warning.main' : undefined }}
-          >
-            {vaga.encerrada
-              ? 'Encerradas'
-              : vaga.closesAt
-                ? `Até ${formatarData(vaga.closesAt)}${perto ? ` · ${ate}` : ''}`
-                : 'Sem data para encerrar'}
-          </Typography>
-        </Box>
-        <Stack
-          direction="row"
-          alignItems="center"
-          gap={0.25}
+        {/* a logo grampeada no canto, como a foto 3x4 */}
+        <Box
           aria-hidden
           sx={{
-            flexShrink: 0,
-            fontSize: 13,
-            fontWeight: 700,
-            color: vaga.encerrada ? 'text.secondary' : cor,
-            '& svg': { fontSize: 16 },
+            position: 'absolute',
+            top: 12,
+            right: 16,
+            width: 74,
+            height: 94,
+            border: '4px solid #F4F1EA',
+            backgroundColor: vaga.imagemUrl ? '#fff' : alpha(cor, 0.16),
+            boxShadow: '0 4px 10px rgba(0,0,0,0.35)',
+            transform: 'rotate(4deg)',
+            display: 'grid',
+            placeItems: 'center',
+            '&::before': {
+              content: '""',
+              position: 'absolute',
+              top: -6,
+              left: '50%',
+              ml: '-16px',
+              width: 32,
+              height: 7,
+              borderRadius: '2px',
+              background: 'linear-gradient(180deg, #E3E6EA, #8E949E)',
+              boxShadow: '0 1px 2px rgba(0,0,0,0.5)',
+            },
           }}
         >
-          Ver vaga <ChevronRight />
-        </Stack>
+          {vaga.imagemUrl ? (
+            <Box
+              component="img"
+              src={vaga.imagemUrl}
+              alt=""
+              sx={{ width: '100%', height: '100%', objectFit: 'contain' }}
+            />
+          ) : (
+            <Work sx={{ fontSize: 30, color: alpha(cor, 0.8) }} />
+          )}
+        </Box>
+
+        <Typography
+          sx={{
+            pr: 12,
+            fontSize: 11,
+            fontWeight: 900,
+            letterSpacing: '0.2em',
+            textTransform: 'uppercase',
+          }}
+        >
+          Contrato de trabalho
+        </Typography>
+        <Box sx={{ pr: 12 }}>
+          <Campo rotulo="Empregador" suave={suave} linha={linha}>
+            {vaga.company}
+          </Campo>
+        </Box>
+        <Box sx={{ pr: 12 }}>
+          <Campo rotulo="Cargo" suave={suave} linha={linha}>
+            {vaga.title}
+          </Campo>
+        </Box>
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+            columnGap: 1.5,
+          }}
+        >
+          <Campo rotulo="Local" suave={suave} linha={linha}>
+            {vaga.location || '—'}
+          </Campo>
+          <Campo rotulo="Remuneração" suave={suave} linha={linha}>
+            {salario || 'A combinar'}
+          </Campo>
+        </Box>
+
+        {rodape ? (
+          <Box sx={{ mt: 'auto' }}>{rodape}</Box>
+        ) : (
+          <Stack
+            direction="row"
+            alignItems="flex-end"
+            justifyContent="space-between"
+            gap={1.5}
+            sx={{ mt: 'auto' }}
+          >
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Box sx={{ height: 20, borderBottom: `1px solid ${linha}` }} />
+              <Typography sx={{ mt: 0.5, fontSize: 9.5, color: suave }}>
+                Assinatura do empregador
+              </Typography>
+            </Box>
+            {situacao ? (
+              <EtiquetaDaVaga {...situacao} />
+            ) : (
+              vaga.closesAt && (
+                <Typography sx={{ flexShrink: 0, fontSize: 11, color: suave }}>
+                  até {formatarData(vaga.closesAt).slice(0, 5)}
+                </Typography>
+              )
+            )}
+          </Stack>
+        )}
       </Stack>
-    </Paper>
+    </Box>
   );
 }

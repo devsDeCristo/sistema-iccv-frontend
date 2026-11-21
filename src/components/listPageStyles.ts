@@ -107,6 +107,17 @@ export const superficieSx = {
 };
 
 /**
+ * A sombra dos cards-objeto da área do membro (o ingresso de Eventos, a
+ * folha de Solicitações, a carteira de Oportunidades), em `drop-shadow`: ela
+ * segue o recorte (furos, picote), onde a de caixa passava reto. No escuro,
+ * um contorno claro de 1px separa o papel do fundo.
+ */
+export const sombraDeCartao = (theme: Theme) =>
+  theme.palette.mode === 'dark'
+    ? 'drop-shadow(0 0 1px rgba(255,255,255,.16)) drop-shadow(0 6px 12px rgba(0,0,0,.45))'
+    : 'drop-shadow(0 1px 1px rgba(16,24,40,.06)) drop-shadow(0 6px 10px rgba(16,24,40,.08))';
+
+/**
  * Barra de busca e filtros das listagens, no celular: cada item da barra e
  * cada campo, select ou grupo de botões de filtro ocupa a linha inteira.
  *
