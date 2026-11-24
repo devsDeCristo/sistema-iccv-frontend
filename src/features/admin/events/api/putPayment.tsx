@@ -26,8 +26,9 @@ const putUpdatePayment = ({ data, id, files }: PutUpdatePaymentProps) => {
   // resto dos dados do evento
   formData.append('status', data.status);
   formData.append('method', String(data.method));
-  if (data.discountsAppliedId) {
-    formData.append('discountsAppliedId', data.discountsAppliedId);
+  // ausente não mexe no desconto; zero tira
+  if (data.discountPercent !== undefined) {
+    formData.append('discountPercent', String(data.discountPercent));
   }
 
   return apiClient

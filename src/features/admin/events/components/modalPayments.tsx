@@ -1,4 +1,5 @@
 import {
+  Autocomplete,
   Backdrop,
   Box,
   Button,
@@ -18,8 +19,6 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Close, Description, Upload } from '@mui/icons-material';
 import { methodPaymentOptions, statusPaymentOptions } from '../constants';
 import { usePutUpdatePayment } from '../api/putPayment';
-import { useGetDiscounts } from '../api/getDiscounts';
-import { discountsResponse } from '../../../../types/user';
 import { formatCurrency, formatDateTime } from '../../../../utils';
 import { ReceiptPreviewModal } from './modalReceiptView';
 import { toast } from 'react-toastify';
@@ -41,6 +40,24 @@ interface ModalPaymentProps {
 // até o .txt com UUID que o app Fotos da Apple entrega quando a foto é
 // arrastada. PDF é comprovante legítimo (extrato de banco), o resto não.
 const ACCEPTED_RECEIPT_TYPES = ['image/png', 'image/jpeg', 'application/pdf'];
+
+/** Sugestões do campo de desconto: de 0 a 100, de 5 em 5 */
+const PERCENTUAIS_SUGERIDOS = Array.from({ length: 21 }, (_, i) =>
+  String(i * 5)
+);
+
+/**
+ * O percentual digitado ("12,5", "12.5", "15"), ou `null` se não for um
+ * número de 0 a 100. Vazio é zero: sem desconto.
+ */
+const lerPercentual = (valor?: string): number | null => {
+  const texto = (valor ?? '').trim().replace(',', '.');
+  if (!texto) return 0;
+  const n = Number(texto);
+  return Number.isFinite(n) && n >= 0 && n <= 100
+    ? Math.round(n * 100) / 100
+    : null;
+};
 
 const isImageType = (type?: string) => !!type && type.startsWith('image/');
 
@@ -118,10 +135,6 @@ export function ModalPayment({
       handleClose();
     },
   });
-  const { data = [] } = useGetDiscounts({
-    enabled: open,
-  });
-  const discounts = data as discountsResponse[];
 
   const preview = useMemo(() => {
     if (!receiptFile || !isImageType(receiptFile.type)) return null;
@@ -134,7 +147,10 @@ export function ModalPayment({
       reset({
         //id: payment.id,
         name: payment.fullName,
-        discountsAppliedId: payment.discountsAppliedId,
+        discountPercent:
+          payment.discountPercent != null
+            ? String(payment.discountPercent).replace('.', ',')
+            : '',
         cpf: payment.cpf,
         amount: payment.amount,
         groupName: payment.groupName,
@@ -151,7 +167,10 @@ export function ModalPayment({
       data: {
         status: data.status,
         method: data.method,
-        discountsAppliedId: data.discountsAppliedId,
+        // compra avulsa de produto não tem desconto: o campo nem vai
+        ...(payment?.purchaseType !== 'PRODUCTS' && {
+          discountPercent: lerPercentual(data.discountPercent) ?? 0,
+        }),
       },
       id: payment.id,
       files: {
@@ -401,26 +420,67 @@ export function ModalPayment({
               {payment?.purchaseType !== 'PRODUCTS' && (
                 <Grid item xs={12} md={4}>
                   <Controller
-                    name="discountsAppliedId"
+                    name="discountPercent"
                     control={control}
-                    render={({ field }) => (
+                    rules={{
+                      validate: (valor) =>
+                        !valor ||
+                        lerPercentual(valor) !== null ||
+                        'De 0 a 100%',
+                    }}
+                    render={({ field, fieldState }) => (
                       <>
                         <Title title="Desconto Aplicado" />
-                        <TextField
-                          {...field}
-                          select
-                          SelectProps={{ native: true }}
-                          fullWidth
-                          size="small"
+                        {/*
+                          Sugestões de 5 em 5, mas o valor é livre: quem dá a
+                          baixa digita 12,5 se for o combinado. Digitar filtra
+                          as sugestões ("1" mostra 10, 15 e 100).
+                        */}
+                        <Autocomplete
+                          freeSolo
+                          openOnFocus
+                          disableClearable
+                          options={PERCENTUAIS_SUGERIDOS}
+                          inputValue={field.value ?? ''}
+                          onInputChange={(_, valor) =>
+                            field.onChange(valor.replace(/[^\d.,]/g, ''))
+                          }
+                          onChange={(_, valor) => field.onChange(valor ?? '')}
+                          renderOption={(props, opcao) => (
+                            <li {...props} key={opcao}>
+                              {opcao === '0' ? 'Nenhum' : `${opcao}%`}
+                            </li>
+                          )}
                           disabled={doSistema}
-                        >
-                          <option value="">Nenhum</option>
-                          {discounts.map((option) => (
-                            <option key={option.id} value={option.id}>
-                              {option.description}
-                            </option>
-                          ))}
-                        </TextField>
+                          size="small"
+                          renderInput={(params) => (
+                            <TextField
+                              {...params}
+                              placeholder="Nenhum"
+                              error={!!fieldState.error}
+                              helperText={fieldState.error?.message}
+                              inputProps={{
+                                ...params.inputProps,
+                                inputMode: 'decimal',
+                              }}
+                              InputProps={{
+                                ...params.InputProps,
+                                endAdornment: (
+                                  <>
+                                    <Typography
+                                      component="span"
+                                      color="text.secondary"
+                                      sx={{ mr: 0.5 }}
+                                    >
+                                      %
+                                    </Typography>
+                                    {params.InputProps.endAdornment}
+                                  </>
+                                ),
+                              }}
+                            />
+                          )}
+                        />
                       </>
                     )}
                   />

@@ -20,12 +20,6 @@ export type PaymentReceived = 'PENDING' | 'SYSTEM' | 'EXTERNAL';
 export type PaymentMethod =
   'PIX' | 'CREDIT_CARD' | 'DEBIT_CARD' | 'CASH' | 'BOLETO' | 'WALLET' | 'OTHER';
 
-export interface discountsResponse {
-  id: string;
-  percentage: number;
-  description: string;
-}
-
 export interface PaymentResponse {
   // dados do usuário
   id: string;
@@ -60,7 +54,8 @@ export interface PaymentResponse {
   groupName: string;
 
   payload: Record<string, any> | null;
-  discountsAppliedId?: string;
+  /** Desconto da inscrição em pontos percentuais (12.5 é 12,5%); nulo é sem desconto */
+  discountPercent?: number | null;
   /**
    * `REGISTRATION`: o pagamento de uma inscrição (e dos produtos que foram
    * junto). `PRODUCTS`: compra avulsa de produto, sem grupo nem regra.

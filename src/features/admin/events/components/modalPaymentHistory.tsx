@@ -85,6 +85,7 @@ const CAMPOS_VISIVEIS: Record<string, string> = {
   amount: 'Valor',
   method: 'Método',
   discountId: 'Desconto',
+  discountPercent: 'Desconto',
 };
 
 /** O valor de um campo, na língua da tela */
@@ -94,7 +95,9 @@ function valorLegivel(campo: string, valor: unknown): string {
   if (campo === 'amount') return formatCurrency(Number(valor));
   if (campo === 'method')
     return PAYMENT_METHODS(valor as PaymentMethod) ?? String(valor);
+  // registros de antes do percentual guardavam só o id do desconto
   if (campo === 'discountId') return 'aplicado';
+  if (campo === 'discountPercent') return `${String(valor).replace('.', ',')}%`;
 
   return String(valor);
 }

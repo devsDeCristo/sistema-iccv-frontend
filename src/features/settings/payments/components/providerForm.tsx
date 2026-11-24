@@ -117,6 +117,13 @@ function ProviderForm({ churchId, integracao, onClose }: Props) {
         ? ''
         : (integracao.credentialsHint?.[campo.key] ?? '');
 
+      // Integração nova abre com todas as formas marcadas, e a lista vai
+      // explícita no salvar. A já gravada sem escolha mostra o padrão que o
+      // backend aplica a ela (`defaultMethods`), que é o que está valendo.
+      if (campo.methods && !integracao.configured && !iniciais[campo.key]) {
+        iniciais[campo.key] = campo.methods.join(',');
+      }
+
       // Parcelas gravadas quando o Ton aceitava texto livre: "24" vale o que o
       // gateway já cobrava (o teto), lixo vira o padrão. Sem isto o seletor
       // abria vazio e o salvar era recusado sem dizer por quê.

@@ -113,7 +113,13 @@ Arquivos: `src/features/admin/events/components/listPayments.tsx`, `cardsPayment
 - **Validação ao marcar "Pago":** exige comprovante anexado **ou** código da
   transação preenchido — não aceita os dois em branco.
 - **Desconto aplicado:** só aparece para pagamento de inscrição; compra
-  avulsa de produto não tem desconto.
+  avulsa de produto não tem desconto. É um autocomplete de percentual: sugere
+  de 0% ("Nenhum") a 100%, de 5 em 5, e aceita valor digitado (12,5 ou 12.5;
+  digitar filtra as sugestões). Vazio é sem desconto; fora de 0 a 100 o campo
+  acusa erro. Vai como `discountPercent` (zero tira o desconto, ausente não
+  mexe). Até nov/2026 era uma lista vinda da tabela `discounts` (`GET
+  /discounts`), global e sem igreja — e escolher "Nenhum" não tirava o
+  desconto já gravado.
 - **Quem marcou como pago:** na baixa manual já gravada (`receivedFrom ===
   'EXTERNAL'` e status `PAID`), uma faixa no topo diz "Marcado como pago por
   **Fulano** em dd/mm/aaaa hh:mm". O dado vem em `paidBy` na lista de
