@@ -212,7 +212,9 @@ function ProviderCard({ churchId, integracao, onConfigurar }: Props) {
               e por isso pede confirmação; ligar troca direto.
             */}
             <Tooltip
-              title={ligada ? 'Desligar' : 'Cobrar os inscritos por aqui'}
+              title={
+                ligada ? 'Desligar' : 'Definir como forma de pagamento ativa'
+              }
             >
               <Switch
                 size="small"

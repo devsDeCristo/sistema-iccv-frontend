@@ -1,7 +1,8 @@
 # Escolha da forma de pagamento e Pix na tela (PayPal)
 
-Vale **só para a igreja que cobra pelo PayPal com a chave "Aceitar Pix"
-ligada**. Em todos os outros gateways (PagBank, Mercado Pago, InfinitePay, Ton)
+Vale **só para a igreja que cobra pelo PayPal com o Pix marcado nas formas
+de pagamento** (etapa Pagamento do cadastro). Com só o Pix marcado, não há
+pergunta: o pedido sai direto em Pix e abre a tela do QR. Em todos os outros gateways (PagBank, Mercado Pago, InfinitePay, Ton)
 nada disto aparece: o inscrito vai direto para a página do gateway, que já
 oferece Pix e cartão lado a lado.
 

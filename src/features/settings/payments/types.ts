@@ -21,6 +21,14 @@ export interface CredentialField {
   placeholder?: string;
   /** Liga/desliga: vira uma chave no formulário, e o valor é `'true'` ou nada */
   toggle?: boolean;
+  /** Escolha de formas de pagamento: caixas, valor `PIX,CREDIT_CARD`; vazio é "todas" */
+  methods?: string[];
+  /** O que vale enquanto o campo nunca foi salvo; sem isto, todas */
+  defaultMethods?: string[];
+  /** Nome da forma neste gateway (o "Cartão ou conta PayPal") */
+  methodLabels?: Record<string, string>;
+  /** Teto de parcelas no cartão: seletor de 1 até este número; vazio é o padrão do gateway */
+  installmentsMax?: number;
   allowedHostSuffixes?: string[];
 }
 

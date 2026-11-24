@@ -77,11 +77,11 @@ function WebhookUrls({ integracao }: Props) {
         Cadastre no painel da {integracao.label}
       </Typography>
 
-      <Typography variant="caption" color="text.secondary">
-        {soPeloPainel
-          ? 'Sem este cadastro, o inscrito paga e a inscrição continua pendente.'
-          : 'Em modo de teste, só o endereço cadastrado no painel recebe aviso.'}
-      </Typography>
+      {soPeloPainel && (
+        <Typography variant="caption" color="text.secondary">
+          Sem este cadastro, o inscrito paga e a inscrição continua pendente.
+        </Typography>
+      )}
 
       {integracao.webhooks.map((webhook) => (
         <Box key={webhook.key} sx={styles.linha}>
