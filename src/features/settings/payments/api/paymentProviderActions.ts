@@ -7,6 +7,7 @@ import {
 } from '../../../../utils/service';
 import {
   GET_PAYMENT_PROVIDERS,
+  GET_WEBHOOK_DRAFT,
   PROVIDER_SLUG,
   PROVIDER_WEBHOOK_SETUP,
 } from '../constants';
@@ -47,6 +48,9 @@ export const useSavePaymentProvider = ({
     mutationFn: savePaymentProvider,
     onSuccess: (...args) => {
       invalidar();
+      // O rascunho virou o segredo da integração. Guardado, ele faria uma
+      // integração removida e recriada na mesma sessão ressuscitar a URL antiga.
+      queryClient.removeQueries(GET_WEBHOOK_DRAFT);
       onSuccess?.(...args);
     },
     ...options,

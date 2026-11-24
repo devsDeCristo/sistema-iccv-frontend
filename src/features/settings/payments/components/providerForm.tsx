@@ -20,6 +20,7 @@ import { PROVIDER_EM_TESTE, PROVIDER_WEBHOOK_SETUP } from '../constants';
 import { Input } from '../../../../components/input';
 import { SelectField } from '../../../../components/selectField';
 import { useSavePaymentProvider } from '../api/paymentProviderActions';
+import { useWebhookDraft } from '../api/getPaymentProviders';
 import { useRole } from '../../../../hooks/useRole';
 import { PaymentProviderIntegration, PaymentProviderMode } from '../types';
 
@@ -54,6 +55,14 @@ function ProviderForm({ churchId, integracao, onClose }: Props) {
     !!integracao &&
     PROVIDER_WEBHOOK_SETUP[integracao.provider] !== 'por-cobranca';
   const emTeste = !!integracao && !!PROVIDER_EM_TESTE[integracao.provider];
+
+  // Integração ainda não salva: a URL vem de um rascunho, para dar para
+  // cadastrá-la no painel e pegar a assinatura antes do primeiro salvar
+  const { data: rascunho } = useWebhookDraft(
+    churchId,
+    integracao?.provider,
+    precisaCadastrarWebhook && !integracao.configured
+  );
 
   const { mutate: salvar, isLoading } = useSavePaymentProvider({
     onSuccess: onClose,
@@ -127,8 +136,15 @@ function ProviderForm({ churchId, integracao, onClose }: Props) {
       credentials: Object.fromEntries(
         Object.entries(valores).filter(([, valor]) => valor.trim() !== '')
       ),
+      ...(!integracao.configured && rascunho?.webhookDraft
+        ? { webhookDraft: rascunho.webhookDraft }
+        : {}),
     });
   };
+
+  const webhooks = integracao.configured
+    ? integracao.webhooks
+    : (rascunho?.webhooks ?? []);
 
   return (
     <ResponsiveModal
@@ -336,8 +352,8 @@ function ProviderForm({ churchId, integracao, onClose }: Props) {
           no Mercado Pago, que manda na cobrança mas só notifica em modo de
           teste o endereço cadastrado no painel.
         */}
-        {precisaCadastrarWebhook && integracao.webhooks.length > 0 && (
-          <WebhookUrls integracao={integracao} />
+        {precisaCadastrarWebhook && webhooks.length > 0 && (
+          <WebhookUrls integracao={{ ...integracao, webhooks }} />
         )}
 
         <Typography

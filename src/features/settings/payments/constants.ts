@@ -1,6 +1,7 @@
 import { ProviderPricing } from './types';
 
 export const GET_PAYMENT_PROVIDERS = 'GET_PAYMENT_PROVIDERS';
+export const GET_WEBHOOK_DRAFT = 'GET_WEBHOOK_DRAFT';
 
 /**
  * O apelido de cada casa na URL da API. Espelha `src/gateways/core/provider-slug.ts`

@@ -80,6 +80,15 @@ export interface SavePaymentProviderPayload {
   enabled?: boolean;
   makeDefault?: boolean;
   credentials: Record<string, string>;
+  /** Selo da URL mostrada no cadastro; o primeiro salvar a adota */
+  webhookDraft?: string;
+}
+
+/** A URL de notificação de uma integração que ainda não foi salva */
+export interface WebhookDraft {
+  webhooks: WebhookUrl[];
+  /** `null` quando a integração já existe e a URL é a que está valendo */
+  webhookDraft: string | null;
 }
 
 export interface GatewayHealth {

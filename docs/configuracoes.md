@@ -83,6 +83,8 @@ Arquivo: `src/features/settings/payments/components/providerForm.tsx`.
 - **O que a tela oferece:** lista os endereços a cadastrar, com botão de copiar (não é link clicável — abrir no navegador jogaria o segredo da URL no histórico).
 - **Assinatura:** quando o gateway assina a notificação (`signsWebhook`), a tela mostra só uma legenda de cautela; quando não assina, mostra um alerta mais forte — o segredo da URL é a única barreira entre um POST forjado e uma inscrição marcada como paga.
 - **Girar o segredo** ("Gerar novo endereço de notificação", no menu do cartão): pede confirmação e avisa da consequência conforme o tipo de cadastro — se depende de painel, nenhuma baixa automática chega até alguém recadastrar lá; se não depende, cobranças já abertas param de dar baixa (as novas já saem com o endereço novo).
+- **Antes do primeiro salvar:** a URL já aparece no formulário de uma integração nova (rota `webhook-draft` do backend), para dar para cadastrá-la no painel do gateway e voltar com a assinatura secreta sem salvar antes. O formulário manda o `webhookDraft` no salvar e a integração nasce com essa mesma URL. A URL fica em cache pela sessão: fechar e reabrir o formulário não a troca; recarregar a página gera outra (a anterior nunca foi gravada, então é só recadastrar no painel).
+
 - **Regras de validação e assinatura do lado do servidor:** ver `ic-backend docs/pagamentos.md`, seção de webhooks.
 
 Arquivo: `src/features/settings/payments/components/webhookUrls.tsx`.
