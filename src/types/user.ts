@@ -43,6 +43,11 @@ export interface PaymentResponse {
    * lançamento manual e na cobrança ainda não paga.
    */
   provider?: string | null;
+  /**
+   * Quem marcou como pago, na baixa manual (vem de `payment_logs`). Nulo na
+   * baixa pelo gateway e na manual feita antes de existir o histórico.
+   */
+  paidBy?: { id: string; fullName: string | null; at: string } | null;
   amount: number;
 
   createdAt: string; // ISO date string

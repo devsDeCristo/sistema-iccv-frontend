@@ -114,6 +114,13 @@ Arquivos: `src/features/admin/events/components/listPayments.tsx`, `cardsPayment
   transação preenchido — não aceita os dois em branco.
 - **Desconto aplicado:** só aparece para pagamento de inscrição; compra
   avulsa de produto não tem desconto.
+- **Quem marcou como pago:** na baixa manual já gravada (`receivedFrom ===
+  'EXTERNAL'` e status `PAID`), uma faixa no topo diz "Marcado como pago por
+  **Fulano** em dd/mm/aaaa hh:mm". O dado vem em `paidBy` na lista de
+  pagamentos do evento (backend lê de `payment_logs`). Baixa feita antes de
+  existir o histórico não tem registro, e a faixa diz isso em vez de esconder.
+  Olha o que está gravado, não o select: trocar o status no formulário não
+  muda a faixa.
 
 Arquivos: `src/features/admin/events/components/modalPayments.tsx`, `modalReceiptView.tsx`, `src/features/admin/events/api/putPayment.tsx`.
 

@@ -20,7 +20,7 @@ import { methodPaymentOptions, statusPaymentOptions } from '../constants';
 import { usePutUpdatePayment } from '../api/putPayment';
 import { useGetDiscounts } from '../api/getDiscounts';
 import { discountsResponse } from '../../../../types/user';
-import { formatCurrency } from '../../../../utils';
+import { formatCurrency, formatDateTime } from '../../../../utils';
 import { ReceiptPreviewModal } from './modalReceiptView';
 import { toast } from 'react-toastify';
 import { PaymentResponse } from '../../../../types/user';
@@ -91,6 +91,10 @@ export function ModalPayment({
    * resolve: os que nunca chegaram a passar por um checkout.
    */
   const doSistema = payment?.receivedFrom === 'SYSTEM';
+  // pelo que está gravado, e não pelo select: trocar o status no formulário
+  // não faz de ninguém quem deu baixa
+  const baixaManual =
+    payment?.receivedFrom === 'EXTERNAL' && payment?.status === 'PAID';
 
   const existingReceiptUrl: string | undefined =
     payment?.payload?.comprovanteFileUrl;
@@ -259,6 +263,32 @@ export function ModalPayment({
                 : os dados vêm do gateway de pagamento e são conferidos com ele
                 a cada retorno. Para corrigir algo, o caminho é o lançamento
                 manual.
+              </Typography>
+            </Box>
+          )}
+
+          {baixaManual && (
+            <Box
+              sx={{
+                mt: 2,
+                p: 1.5,
+                borderRadius: 2,
+                bgcolor: alpha(theme.palette.info.main, 0.1),
+              }}
+            >
+              <Typography fontSize={13} color="text.secondary">
+                {payment.paidBy ? (
+                  <>
+                    Marcado como pago por{' '}
+                    <strong>
+                      {payment.paidBy.fullName ?? 'usuário removido'}
+                    </strong>{' '}
+                    em {formatDateTime(payment.paidBy.at)}.
+                  </>
+                ) : (
+                  // baixa anterior ao histórico de pagamentos: não há registro
+                  'Baixa manual sem registro de quem marcou como pago.'
+                )}
               </Typography>
             </Box>
           )}
