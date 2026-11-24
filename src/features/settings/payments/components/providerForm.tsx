@@ -48,8 +48,7 @@ function ProviderForm({ churchId, integracao, onClose }: Props) {
   const [modo, setModo] = useState<PaymentProviderMode>('PRODUCTION');
   const { isDev } = useRole();
   const theme = useTheme();
-  const [ligado, setLigado] = useState(true);
-  const [padrao, setPadrao] = useState(false);
+  const [ligado, setLigado] = useState(false);
 
   const precisaCadastrarWebhook =
     !!integracao &&
@@ -85,8 +84,9 @@ function ProviderForm({ churchId, integracao, onClose }: Props) {
 
     setValores(iniciais);
     setModo(integracao.mode);
-    setLigado(integracao.configured ? integracao.enabled : true);
-    setPadrao(integracao.isDefault);
+    // Nova começa desligada: salvar credencial não pode tirar de cena, sem
+    // ninguém pedir, a integração que já está cobrando
+    setLigado(integracao.enabled && integracao.isDefault);
   }, [integracao]);
 
   const faltando = useMemo(() => {
@@ -129,8 +129,9 @@ function ProviderForm({ churchId, integracao, onClose }: Props) {
       // mantém o que já está gravado, em vez de a edição empurrar tudo para
       // produção sem ninguém ter pedido
       ...(isDev ? { mode: modo } : {}),
+      // só uma cobra por vez: ligada é a padrão, e o backend desliga as demais
       enabled: ligado,
-      makeDefault: padrao && ligado,
+      makeDefault: ligado,
       // Só o que a pessoa digitou. O campo secreto em branco não vai no corpo,
       // e o backend entende isso como "não mexi neste campo".
       credentials: Object.fromEntries(
@@ -258,13 +259,9 @@ function ProviderForm({ churchId, integracao, onClose }: Props) {
           ))}
 
         {/*
-          Rótulo à esquerda e chave à direita, dentro de um bloco só.
-
-          Empilhadas com a chave na frente, as duas liam como dois campos
-          soltos no meio do formulário, e a segunda — que decide quem cobra de
-          verdade — passava como detalhe. Aqui elas viram uma seção, na ordem em
-          que dependem uma da outra: sem a de cima ligada, a de baixo nem pode
-          ser marcada.
+          Rótulo à esquerda e chave à direita, dentro de um bloco só. A chave
+          principal é a mesma do card: só uma integração cobra por vez, e
+          ligar esta desliga as demais.
         */}
         <Box sx={styles.chaves}>
           <FormControlLabel
@@ -273,29 +270,11 @@ function ProviderForm({ churchId, integracao, onClose }: Props) {
             control={
               <Switch
                 checked={ligado}
-                onChange={(evento) => {
-                  setLigado(evento.target.checked);
-                  if (!evento.target.checked) setPadrao(false);
-                }}
-              />
-            }
-            label={<Typography variant="body2">Integração ativa</Typography>}
-          />
-          <FormControlLabel
-            labelPlacement="start"
-            sx={styles.chave}
-            control={
-              <Switch
-                checked={padrao}
-                disabled={!ligado}
-                onChange={(evento) => setPadrao(evento.target.checked)}
+                onChange={(evento) => setLigado(evento.target.checked)}
               />
             }
             label={
-              <Typography
-                variant="body2"
-                color={ligado ? 'text.primary' : 'text.disabled'}
-              >
+              <Typography variant="body2">
                 Cobrar os inscritos por aqui
               </Typography>
             }

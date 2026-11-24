@@ -10,6 +10,7 @@ import {
   MenuItem,
   Popover,
   Stack,
+  Switch,
   Tooltip,
   Typography,
   useTheme,
@@ -36,7 +37,7 @@ import {
 import {
   useRemoveProvider,
   useRotateWebhookSecret,
-  useSetDefaultProvider,
+  useSetProviderEnabled,
   useTestProvider,
 } from '../api/paymentProviderActions';
 import {
@@ -86,11 +87,13 @@ function ProviderCard({ churchId, integracao, onConfigurar }: Props) {
   const [menu, setMenu] = useState<HTMLElement | null>(null);
   const [confirmandoRemocao, setConfirmandoRemocao] = useState(false);
   const [confirmandoGiro, setConfirmandoGiro] = useState(false);
+  const [confirmandoDesligar, setConfirmandoDesligar] = useState(false);
   const [saude, setSaude] = useState<GatewayHealth | null>(null);
   const [ancoraDoTeste, setAncoraDoTeste] = useState<HTMLElement | null>(null);
 
-  const { mutate: definirPadrao, isLoading: definindo } =
-    useSetDefaultProvider();
+  const { mutate: definirAtivo, isLoading: alternando } = useSetProviderEnabled(
+    { onSuccess: () => setConfirmandoDesligar(false) }
+  );
   const { mutate: testar, isLoading: testando } = useTestProvider({
     onSuccess: setSaude,
   });
@@ -107,6 +110,9 @@ function ProviderCard({ churchId, integracao, onConfigurar }: Props) {
     PROVIDER_WEBHOOK_SETUP[integracao.provider] === 'painel';
   const emTeste = !!PROVIDER_EM_TESTE[integracao.provider];
 
+  // Só uma integração cobra por vez: ligada é a que está recebendo
+  const ligada = integracao.enabled && integracao.isDefault;
+
   const verde = theme.palette.chips.success;
   const ambar = theme.palette.chips.alert;
   const apagado = theme.palette.text.disabled;
@@ -114,11 +120,9 @@ function ProviderCard({ churchId, integracao, onConfigurar }: Props) {
   /** A situação da casa em uma linha só — ver a nota da altura fixa acima. */
   const situacao = !integracao.configured
     ? { cor: apagado, texto: 'Não configurada' }
-    : !integracao.enabled
-      ? { cor: apagado, texto: 'Desligada' }
-      : integracao.isDefault
-        ? { cor: verde, texto: 'Recebendo' }
-        : { cor: theme.palette.text.secondary, texto: 'Pronta para usar' };
+    : ligada
+      ? { cor: verde, texto: 'Recebendo' }
+      : { cor: apagado, texto: 'Desligada' };
 
   return (
     <Box
@@ -126,11 +130,11 @@ function ProviderCard({ churchId, integracao, onConfigurar }: Props) {
         p: 2,
         borderRadius: 2.5,
         border: `1px solid ${
-          integracao.isDefault ? alpha(verde, 0.45) : theme.palette.divider
+          ligada ? alpha(verde, 0.45) : theme.palette.divider
         }`,
         // A casa que recebe ganha um fundo levemente tingido além da borda: a
         // borda sozinha se perde quando são três cartões por linha.
-        backgroundColor: integracao.isDefault
+        backgroundColor: ligada
           ? alpha(verde, 0.05)
           : theme.palette.background.paperSecondary,
         display: 'flex',
@@ -149,11 +153,8 @@ function ProviderCard({ churchId, integracao, onConfigurar }: Props) {
           // diferença entre "no ar" e "guardada" se vê antes de ler qualquer
           // palavra.
           sx={{
-            opacity: integracao.configured && !integracao.enabled ? 0.45 : 1,
-            filter:
-              integracao.configured && !integracao.enabled
-                ? 'grayscale(1)'
-                : 'none',
+            opacity: integracao.configured && !ligada ? 0.45 : 1,
+            filter: integracao.configured && !ligada ? 'grayscale(1)' : 'none',
           }}
         />
 
@@ -205,6 +206,30 @@ function ProviderCard({ churchId, integracao, onConfigurar }: Props) {
 
         {integracao.configured && (
           <>
+            {/*
+              Substitui o antigo "Usar esta": ligar faz desta a que cobra e
+              desliga as demais. Desligar deixa a igreja sem cobrança online,
+              e por isso pede confirmação; ligar troca direto.
+            */}
+            <Tooltip
+              title={ligada ? 'Desligar' : 'Cobrar os inscritos por aqui'}
+            >
+              <Switch
+                size="small"
+                checked={ligada}
+                disabled={alternando}
+                onChange={(evento) => {
+                  if (evento.target.checked) {
+                    definirAtivo({ ...acao, enabled: true });
+                  } else {
+                    setConfirmandoDesligar(true);
+                  }
+                }}
+                inputProps={{ 'aria-label': `Usar ${integracao.label}` }}
+                sx={{ mt: -0.5 }}
+              />
+            </Tooltip>
+
             <IconButton
               size="small"
               onClick={(evento) => setMenu(evento.currentTarget)}
@@ -295,19 +320,6 @@ function ProviderCard({ churchId, integracao, onConfigurar }: Props) {
             {integracao.configured ? 'Editar' : 'Configurar'}
           </Button>
 
-          {integracao.configured &&
-            integracao.enabled &&
-            !integracao.isDefault && (
-              <Button
-                size="small"
-                variant="text"
-                disabled={definindo}
-                onClick={() => definirPadrao(acao)}
-              >
-                Usar esta
-              </Button>
-            )}
-
           {integracao.configured && (
             // Botão de ícone, e não de texto: com três cartões por linha, três
             // botões escritos quebravam em duas fileiras e desalinhavam o
@@ -387,6 +399,15 @@ function ProviderCard({ churchId, integracao, onConfigurar }: Props) {
               'As cobranças já abertas continuam apontando para o endereço antigo e param de receber baixa automática. As novas já saem com o endereço novo, sem você precisar cadastrar nada.'
         }
         confirmLabel={girando ? 'Gerando…' : 'Gerar novo'}
+      />
+
+      <ConfirmModal
+        open={confirmandoDesligar}
+        onClose={() => setConfirmandoDesligar(false)}
+        onConfirm={() => definirAtivo({ ...acao, enabled: false })}
+        title={`Desligar a ${integracao.label}?`}
+        message="É por ela que a igreja está cobrando. Desligada, as novas inscrições ficam sem pagamento online até você escolher outra integração. As cobranças já abertas continuam recebendo baixa."
+        confirmLabel={alternando ? 'Desligando…' : 'Desligar'}
       />
 
       <ConfirmModal

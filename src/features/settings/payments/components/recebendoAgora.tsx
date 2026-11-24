@@ -25,7 +25,7 @@ function RecebendoAgora({ integracao }: Props) {
       <Alert severity="warning">
         <strong>Nenhum banco está recebendo.</strong> Os inscritos desta igreja
         não conseguem pagar pelo sistema. Configure uma integração abaixo e
-        marque como “Usar esta”.
+        ligue a chave dela.
       </Alert>
     );
   }

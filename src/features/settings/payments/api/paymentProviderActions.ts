@@ -58,26 +58,30 @@ export const useSavePaymentProvider = ({
 
 // --------------------------------------------------------- módulo da igreja
 
-// --------------------------------------------------------------- padrão
+// --------------------------------------------------------- ligar/desligar
 
-const setDefaultProvider = ({ churchId, provider }: AcaoBase) =>
+type AtivoArgs = AcaoBase & { enabled: boolean };
+
+const setProviderEnabled = ({ churchId, provider, enabled }: AtivoArgs) =>
   apiClient
-    .patch(`${rota(churchId, provider)}/default`)
+    .patch(`${rota(churchId, provider)}/enabled`, { enabled })
     .then((response) => {
       handleResponseSuccess(
         response.data,
-        'Esta passou a ser a forma de pagamento da igreja'
+        enabled
+          ? 'Esta passou a ser a forma de pagamento da igreja'
+          : 'Integração desligada'
       )();
       return response.data;
     })
     .catch(handleResponseThrowError());
 
-export const useSetDefaultProvider = ({
+export const useSetProviderEnabled = ({
   onSuccess,
   ...options
-}: MutationOptions<unknown, unknown, AcaoBase> = {}) =>
+}: MutationOptions<unknown, unknown, AtivoArgs> = {}) =>
   useMutation({
-    mutationFn: setDefaultProvider,
+    mutationFn: setProviderEnabled,
     onSuccess: (...args) => {
       invalidar();
       onSuccess?.(...args);
