@@ -56,6 +56,12 @@ cá — é o servidor que monta o endereço.
   dinheiro na conta de outra pessoa, e Pix não volta. O usuário é o da sessão;
   referência de outra pessoa responde 404 e a tela mostra "Pagamento não
   encontrado".
+- **Duas colunas aguardando o pagamento:** a partir do tablet (`md`), o cartão
+  vai a 880px, com o QR (240px) à esquerda e, à direita, evento e valor,
+  instruções, código, "Copiar código Pix", prazo e "Já paguei" — numa coluna de
+  460px a tela passava da altura e pedia rolagem. No celular é uma coluna, com
+  o QR em cima. Os demais estados (pago, em análise, expirado,
+  substituído, encerrado) são curtos e seguem no cartão de 460px.
 - **Cabeçalho fixo em todos os estados:** marca do gateway, "Processado pelo
   PayPal" e o aviso de que o recebedor pode aparecer com esse nome no app do
   banco. Abaixo, o evento e o valor.

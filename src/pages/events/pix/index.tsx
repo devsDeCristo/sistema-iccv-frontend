@@ -125,10 +125,19 @@ function EventPixPayment() {
       p: { xs: 2.5, sm: 3.5 },
       borderRadius: 3,
     },
+    // Aguardando, a tela tem QR e código lado a lado: numa coluna só, com a
+    // largura de 460, ela passava da altura da tela e pedia rolagem
+    cartaoLargo: { maxWidth: { xs: 460, md: 880 } },
+    colunas: {
+      display: 'grid',
+      gridTemplateColumns: { xs: '1fr', md: 'auto 1fr' },
+      gap: { xs: 2.5, md: 4 },
+      alignItems: 'center',
+    },
     // fundo branco fixo: no tema escuro o leitor do banco não engata num QR
     // desenhado sobre cinza
     qr: {
-      alignSelf: 'center',
+      justifySelf: 'center',
       p: 1.5,
       lineHeight: 0,
       borderRadius: 2,
@@ -182,6 +191,23 @@ function EventPixPayment() {
       </Stack>
     </Stack>
   );
+
+  /** Evento e valor: centralizados nos avisos, à esquerda na coluna do QR */
+  const valorDoEvento = (alinhamento: 'left' | 'center') =>
+    pix && (
+      <Box textAlign={alinhamento}>
+        <Typography variant="body2" color="text.secondary">
+          {pix.eventName}
+        </Typography>
+        {pix.amountCents !== null && (
+          <Typography fontSize={28} fontWeight={700}>
+            {formatCurrency(pix.amountCents / 100)}
+          </Typography>
+        )}
+      </Box>
+    );
+
+  const aguardando = !!pix && situacaoDe(pix, agora) === 'aguardando';
 
   const corpo = () => {
     if (!pix) return null;
@@ -249,45 +275,50 @@ function EventPixPayment() {
     );
 
     return (
-      <Stack spacing={2}>
-        <Typography variant="body2" color="text.secondary" textAlign="center">
-          Abra o app do seu banco, escolha pagar com Pix e leia o QR Code — ou
-          copie o código e cole na opção Pix Copia e Cola.
-        </Typography>
-
+      <Box sx={styles.colunas}>
+        {/* o QR vem primeiro: ao lado no computador, em cima no celular */}
         <Box sx={styles.qr} role="img" aria-label="QR Code do Pix">
-          <QRCodeCanvas value={pix.code} size={220} level="M" />
+          <QRCodeCanvas value={pix.code} size={240} level="M" />
         </Box>
 
-        <Box sx={styles.codigo}>{pix.code}</Box>
+        <Stack spacing={2} sx={{ minWidth: 0 }}>
+          {valorDoEvento('left')}
 
-        <Button
-          variant="contained"
-          fullWidth
-          startIcon={copiado ? <Check /> : <ContentCopy />}
-          onClick={copiar}
-        >
-          {copiado ? 'Código copiado' : 'Copiar código Pix'}
-        </Button>
+          <Typography variant="body2" color="text.secondary">
+            Abra o app do seu banco, escolha pagar com Pix e leia o QR Code — ou
+            copie o código e cole na opção Pix Copia e Cola.
+          </Typography>
 
-        <Stack
-          direction="row"
-          justifyContent="space-between"
-          alignItems="center"
-        >
-          <Stack direction="row" spacing={1} alignItems="center">
-            <CircularProgress size={14} />
+          <Box sx={styles.codigo}>{pix.code}</Box>
+
+          <Button
+            variant="contained"
+            fullWidth
+            startIcon={copiado ? <Check /> : <ContentCopy />}
+            onClick={copiar}
+          >
+            {copiado ? 'Código copiado' : 'Copiar código Pix'}
+          </Button>
+
+          <Stack
+            direction="row"
+            justifyContent="space-between"
+            alignItems="center"
+          >
+            <Stack direction="row" spacing={1} alignItems="center">
+              <CircularProgress size={14} />
+              <Typography variant="body2" color="text.secondary">
+                Aguardando pagamento
+              </Typography>
+            </Stack>
             <Typography variant="body2" color="text.secondary">
-              Aguardando pagamento
+              Expira em <strong>{relogio(restante)}</strong>
             </Typography>
           </Stack>
-          <Typography variant="body2" color="text.secondary">
-            Expira em <strong>{relogio(restante)}</strong>
-          </Typography>
-        </Stack>
 
-        {jaPaguei}
-      </Stack>
+          {jaPaguei}
+        </Stack>
+      </Box>
     );
   };
 
@@ -300,10 +331,14 @@ function EventPixPayment() {
       />
 
       {isLoading ? (
+        // no formato do QR aguardando, que é o caso comum ao abrir a tela
         <Skeleton
           variant="rounded"
-          height={520}
-          sx={{ maxWidth: 460, mx: 'auto' }}
+          sx={{
+            maxWidth: { xs: 460, md: 880 },
+            height: { xs: 520, md: 380 },
+            mx: 'auto',
+          }}
         />
       ) : isError || !pix ? (
         <Paper sx={styles.cartao}>
@@ -321,7 +356,7 @@ function EventPixPayment() {
           )}
         </Paper>
       ) : (
-        <Paper sx={styles.cartao}>
+        <Paper sx={{ ...styles.cartao, ...(aguardando && styles.cartaoLargo) }}>
           <Stack spacing={2.5}>
             <Stack direction="row" spacing={1.5} alignItems="center">
               <ProviderLogo provider={pix.provider} size={44} />
@@ -337,16 +372,8 @@ function EventPixPayment() {
 
             <Divider />
 
-            <Box textAlign="center">
-              <Typography variant="body2" color="text.secondary">
-                {pix.eventName}
-              </Typography>
-              {pix.amountCents !== null && (
-                <Typography fontSize={28} fontWeight={700}>
-                  {formatCurrency(pix.amountCents / 100)}
-                </Typography>
-              )}
-            </Box>
+            {/* aguardando, o valor vai para a coluna ao lado do QR */}
+            {!aguardando && valorDoEvento('center')}
 
             {corpo()}
           </Stack>

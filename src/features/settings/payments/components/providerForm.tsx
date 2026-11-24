@@ -509,29 +509,54 @@ function ProviderForm({ churchId, integracao, onClose }: Props) {
 
               {integracao.fields
                 .filter((campo) => !ehDePagamento(campo))
-                .map((campo) => (
-                  <Input
-                    key={campo.key}
-                    label={campo.label + (campo.required ? ' *' : '')}
-                    value={valores[campo.key] ?? ''}
-                    onChange={(evento) =>
-                      definir(campo.key, evento.target.value)
-                    }
-                    // `password` nos segredos evita que o token fique legível
-                    // durante um compartilhamento de tela — que é como isso
-                    // vaza na prática, não por invasão.
-                    type={campo.secret ? 'password' : 'text'}
-                    // sem isto o navegador punha o login salvo (CPF e senha) aqui
-                    {...semAutopreencher(campo.secret)}
-                    size="small"
-                    placeholder={
-                      campo.secret && integracao.credentialsHint?.[campo.key]
-                        ? `Salvo: ${integracao.credentialsHint[campo.key]} — deixe em branco para manter`
-                        : campo.placeholder
-                    }
-                    errorMessage={campo.help}
-                  />
-                ))}
+                .map((campo) => {
+                  // Segredo gravado (o servidor devolve a máscara, e ela só
+                  // diz que existe). O campo vem vazio de propósito — em
+                  // branco mantém o que está lá —, mas tem que parecer
+                  // preenchido: só bolinhas, sem caractere nenhum.
+                  const salvo = campo.secret
+                    ? integracao.credentialsHint?.[campo.key]
+                    : undefined;
+
+                  return (
+                    <Input
+                      key={campo.key}
+                      label={campo.label + (campo.required ? ' *' : '')}
+                      value={valores[campo.key] ?? ''}
+                      onChange={(evento) =>
+                        definir(campo.key, evento.target.value)
+                      }
+                      // `password` nos segredos evita que o token fique legível
+                      // durante um compartilhamento de tela — que é como isso
+                      // vaza na prática, não por invasão.
+                      type={campo.secret ? 'password' : 'text'}
+                      // sem isto o navegador punha o login salvo (CPF e senha) aqui
+                      {...semAutopreencher(campo.secret)}
+                      size="small"
+                      placeholder={salvo ? '••••••••••••' : campo.placeholder}
+                      // Com rótulo, o MUI só mostra o placeholder em foco: sem
+                      // o rótulo fixo no alto, as bolinhas não apareciam e o
+                      // campo parecia vazio
+                      InputLabelProps={salvo ? { shrink: true } : undefined}
+                      // as bolinhas em tom de texto, não no cinza claro do
+                      // placeholder comum: é o que está valendo
+                      sx={{
+                        width: '100%',
+                        ...(salvo && {
+                          '& input::placeholder': {
+                            opacity: 0.85,
+                            letterSpacing: '0.1em',
+                          },
+                        }),
+                      }}
+                      errorMessage={
+                        salvo
+                          ? `Salvo. Deixe em branco para manter, ou digite para trocar.${campo.help ? ` ${campo.help}` : ''}`
+                          : campo.help
+                      }
+                    />
+                  );
+                })}
 
               <Typography
                 variant="caption"
