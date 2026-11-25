@@ -125,6 +125,21 @@ export const PROVIDER_PRICING: Record<string, ProviderPricing> = {
       { label: 'Boleto', rate: null },
     ],
   },
+  // A tabela oficial de tarifas do PayPal Brasil (atualizada em 16/07/2025),
+  // em PDF: a página de tarifas bloqueia leitura automática. Vendas no Brasil;
+  // internacional soma 1,61%.
+  PAYPAL: {
+    checkedAt: 'jul/2025',
+    sourceUrl: 'https://www.paypal.com/br/business/paypal-business-fees',
+    note: 'Parcelado: 4,79% mais uma tarifa adicional de 1,92% (2x) a 21,12% (12x). Pix só para contas comerciais elegíveis, com tarifa mínima de R$ 0,05; no mesmo dia, mais R$ 0,10 por liquidação.',
+    fees: [
+      { label: 'Pix', rate: '0,99%', settlement: 'no dia útil seguinte' },
+      { label: 'Pix', rate: '0,99% + R$ 0,10', settlement: 'na hora' },
+      { label: 'Crédito à vista', rate: '4,79% + R$ 0,60' },
+      { label: 'Débito', rate: '4,79% + R$ 0,60' },
+      { label: 'Crédito em 12x', rate: '25,91% + R$ 0,60' },
+    ],
+  },
 };
 
 /**
