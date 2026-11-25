@@ -16,6 +16,7 @@ import { CssBaseline } from '@mui/material';
  */
 import { ThemeProvider } from '@mui/material/styles';
 import routers from './routes';
+import { TemaDosAlertas } from './components/temaDosAlertas';
 import { CustomThemeProvider, useThemeContext } from './contexts/themeContext';
 
 function Loading() {
@@ -29,6 +30,8 @@ function AppContent() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
+      {/* os alertas do SweetAlert com a cara dos modais do sistema */}
+      <TemaDosAlertas />
       <React.Suspense fallback={<Loading />}>
         <div className="App">
           <RouterProvider router={router} />

@@ -187,6 +187,35 @@ Não repita esse estilo no `sx` de cada tela: campo novo já nasce assim. Até
 buscas das listas do admin. O resto do sistema ficava com o contorno padrão do
 MUI.
 
+## Alertas do SweetAlert (`src/components/temaDosAlertas`)
+
+Os `Swal.fire` do sistema (confirmações, avisos, "deseja pagar agora?") seguem
+o tema e o layout dos modais por um estilo global (`GlobalStyles`, montado no
+`App` logo depois do `CssBaseline`), e não por ajuste em cada chamada:
+
+- **Caixa:** fundo `background.paper`, texto do tema, borda `divider`, raio dos
+  modais, sombra e fonte do tema; claro e escuro.
+- **Layout:** tudo centralizado — ícone discreto no alto (`--swal2-icon-zoom`,
+  variável da própria biblioteca), título, texto e botões, com o principal à
+  direita do cancelar.
+- **Botões:** confirmar é o botão cheio do tema (lido do override `contained`
+  do MUI — no escuro é o quase branco, ou a cor do módulo); cancelar é texto,
+  como o "Cancelar" dos modais; a terceira saída (`deny`) é contorno.
+- **Ação que apaga:** `customClass: { confirmButton: 'swal2-perigo' }`, no
+  vermelho do tema — remover produto, remover grupo de inscrição, remover
+  inscrito que já pagou.
+- **Cores na chamada** (`confirmButtonColor`…) perdem para o estilo global, de
+  propósito; as que existiam saíram das chamadas.
+- **Rótulo na cor do ícone:** `comSelo(rotulo, titulo)`
+  (`src/components/temaDosAlertas/comSelo.ts`) monta o `title` com um rótulo
+  curto em caixa alta logo abaixo do ícone, pintado na cor dele (verde no
+  sucesso, laranja no aviso…). O texto é escapado, porque o `title` do
+  SweetAlert é HTML. Hoje: "Inscrito!" nos alertas de inscrição realizada (do
+  inscrito e do admin) e "Na lista de espera" quando tudo ficou na espera.
+- **O ✓ de sucesso:** a animação é feita com peças que pintam por cima do anel
+  na cor do fundo; elas são forçadas para `background.paper`, senão saem
+  brancas no escuro (disco branco com traços).
+
 ## Menus e listas flutuantes (tema)
 
 `MuiPopover` em `src/themes/index.tsx`: o que flutua sobre a página — menu de

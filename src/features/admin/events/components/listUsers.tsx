@@ -519,8 +519,7 @@ function ListUsers({
       showLoaderOnConfirm: true,
       // com pagamento, o botão de remover vira o vermelho e o foco começa no
       // cancelar: um Enter distraído não pode apagar dinheiro recebido
-      confirmButtonColor: jaPagou ? '#d33' : '#3085d6',
-      cancelButtonColor: jaPagou ? '#6e7881' : '#d33',
+      ...(jaPagou && { customClass: { confirmButton: 'swal2-perigo' } }),
       focusCancel: jaPagou,
       confirmButtonText: jaPagou
         ? 'Remover mesmo assim'

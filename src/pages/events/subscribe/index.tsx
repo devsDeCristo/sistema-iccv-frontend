@@ -40,6 +40,7 @@ import {
 import { usePostBuyEventProducts } from '../../../features/admin/events/api/postBuyEventProducts';
 import { temDisponivel } from '../../../features/admin/events/products';
 import { ProductOffer } from '../../../features/events/components/productOffer';
+import { useEscolhaDaForma } from '../../../features/events/components/useEscolhaDaForma';
 import { ExitProductOfferDialog } from '../../../features/events/components/exitProductOfferDialog';
 import { EventTermsDialog } from '../../../features/events/components/eventTermsDialog';
 import { temTermo } from '../../../features/admin/events/terms';
@@ -55,6 +56,7 @@ import {
   SubscribeSummary,
 } from '../../../features/events/components/subscribeSummary';
 import { AZUL_VIVO, VIOLETA_VIVO } from '../../../themes';
+import { comSelo } from '../../../components/temaDosAlertas/comSelo';
 
 function Subscribe() {
   const { id } = useParams();
@@ -221,6 +223,9 @@ function Subscribe() {
     });
   };
 
+  // a pergunta "Como você quer pagar?", a mesma de Minhas Inscrições
+  const escolhaDaForma = useEscolhaDaForma(event?.name);
+
   const { mutate: mutateCreateCheckoutEvent } = usePostCreateCheckoutEvent({
     onSuccess: (data: any) => {
       const link = data.link;
@@ -270,7 +275,7 @@ function Subscribe() {
     // o valor é acertado com a organização
     if (!recebePagamentoOnline) {
       Swal.fire({
-        title: 'Inscrição(ões) realizada(s) com sucesso!',
+        title: comSelo('Inscrito!', 'Inscrição(ões) realizada(s) com sucesso!'),
         text: allRegistered
           ? 'Esta igreja não recebe pagamento pelo site. O valor é combinado diretamente com a organização.'
           : 'Algumas inscrições ficaram na lista de espera. Esta igreja não recebe pagamento pelo site — o valor é combinado com a organização.',
@@ -288,6 +293,7 @@ function Subscribe() {
         eventId: event!.id,
         userId,
         data: { roleId, paymentIds },
+        escolher: escolhaDaForma.perguntar,
       });
     };
 
@@ -298,7 +304,7 @@ function Subscribe() {
 
     // Caso 1 e 2: existe pelo menos uma registrada
     Swal.fire({
-      title: 'Inscrição(ões) realizada(s) com sucesso!',
+      title: comSelo('Inscrito!', 'Inscrição(ões) realizada(s) com sucesso!'),
       text: allRegistered
         ? 'Deseja realizar o pagamento agora?'
         : 'Algumas inscrições ficaram na lista de espera. Deseja realizar o pagamento apenas das confirmadas?',
@@ -306,8 +312,6 @@ function Subscribe() {
       showCancelButton: true,
       cancelButtonText: 'Não',
       confirmButtonText: 'Sim',
-      confirmButtonColor: theme.palette.success.main,
-      cancelButtonColor: theme.palette.error.main,
     }).then((result) => {
       if (result.isConfirmed) {
         abrirCheckout();
@@ -338,7 +342,11 @@ function Subscribe() {
         // Caso 3: tudo ficou em lista de espera
         if (allWaitlist) {
           Swal.fire({
-            title: 'Inscrição(ões) realizada(s) com sucesso!',
+            // "Inscrito!" daria a entender uma vaga que a pessoa ainda não tem
+            title: comSelo(
+              'Na lista de espera',
+              'Inscrição(ões) realizada(s) com sucesso!'
+            ),
             text: 'No momento suas inscrições ficaram na lista de espera. Você será notificado caso surja vaga.',
             icon: 'success',
             confirmButtonText: 'OK',
@@ -580,7 +588,9 @@ function Subscribe() {
 
   return (
     <PageStyle>
-      {loadingPayment && <Loading />}
+      {/* na pergunta da forma é a pessoa quem age: a espera sai da frente */}
+      {loadingPayment && !escolhaDaForma.perguntando && <Loading />}
+      {escolhaDaForma.modal}
 
       {isLoading ? (
         <Skeleton

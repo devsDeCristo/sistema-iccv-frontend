@@ -793,8 +793,8 @@ function FormProducts() {
       text: 'O produto e as variantes dele saem do evento.',
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonColor: '#d33',
-      cancelButtonColor: '#3085d6',
+      // apaga o produto: o vermelho do tema (ver `TemaDosAlertas`)
+      customClass: { confirmButton: 'swal2-perigo' },
       confirmButtonText: 'Sim, remover',
       cancelButtonText: 'Cancelar',
     }).then((resultado) => {

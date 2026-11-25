@@ -8,8 +8,7 @@ import {
 import {
   EscolhaDePagamento,
   FormaDePagamento,
-  escolherFormaDePagamento,
-} from '../../../events/components/escolherFormaDePagamento';
+} from '../../../events/components/escolhaDaForma';
 
 type PostCreateCheckoutEventProps = {
   eventId: string;
@@ -19,6 +18,13 @@ type PostCreateCheckoutEventProps = {
    * avulsas de produto, que não têm regra.
    */
   data: { roleId?: string[]; paymentIds?: string[] };
+  /**
+   * Quem pergunta a forma de pagamento, quando o servidor pede — sempre a
+   * mesma tela (`OpcoesDaForma`): como etapa do modal de Minhas Inscrições,
+   * ou pelo `useEscolhaDaForma` na inscrição e na loja. Obrigatório para não
+   * voltar a existir uma segunda versão da pergunta.
+   */
+  escolher: (escolha: EscolhaDePagamento) => Promise<FormaDePagamento | null>;
 };
 
 /**
@@ -46,7 +52,7 @@ type RespostaDoCheckout = {
 };
 
 /** A pessoa fechou a pergunta da forma de pagamento sem escolher */
-class EscolhaCancelada extends Error {}
+export class EscolhaCancelada extends Error {}
 
 const criarCheckout = (
   { data, eventId, userId }: PostCreateCheckoutEventProps,
@@ -72,7 +78,7 @@ const postCreateCheckoutEvent = async (props: PostCreateCheckoutEventProps) => {
     let resposta = await criarCheckout(props);
 
     if (resposta.choice) {
-      const forma = await escolherFormaDePagamento(resposta.choice);
+      const forma = await props.escolher(resposta.choice);
       if (!forma) throw new EscolhaCancelada();
 
       resposta = await criarCheckout(props, forma);
@@ -94,7 +100,9 @@ const postCreateCheckoutEvent = async (props: PostCreateCheckoutEventProps) => {
   }
 };
 
-type PostCreateCheckoutEventData = Awaited<ReturnType<typeof postCreateCheckoutEvent>>;
+type PostCreateCheckoutEventData = Awaited<
+  ReturnType<typeof postCreateCheckoutEvent>
+>;
 
 export { ehPagamentoForaDoSite };
 

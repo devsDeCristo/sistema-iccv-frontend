@@ -20,14 +20,16 @@ do sistema". Nenhum dado de cartão passa pelo sistema.
   Inscrições — e nenhum deles sabe qual gateway a igreja usa. Nenhum dos três
   foi alterado.
 - **Como funciona:** a primeira chamada vai sem forma de pagamento. Se o
-  servidor responde `choice` em vez de `link`, a pergunta é feita
-  (`escolherFormaDePagamento`, em
-  `src/features/events/components/escolherFormaDePagamento.ts`) e a chamada se
-  repete com `method: 'PIX'` ou `'CREDIT_CARD'`. Aí vem o `link`, e as telas
+  servidor responde `choice` em vez de `link`, a pergunta é feita (o
+  `escolher` que a tela passa — obrigatório) e a chamada se repete com `method: 'PIX'` ou `'CREDIT_CARD'`. Aí vem o `link`, e as telas
   seguem como sempre (`window.open`).
-- **O que a pergunta mostra, sempre:** a marca do gateway, a frase "O pagamento
-  é processado pelo {gateway}" e o que acontece em cada opção — Pix aqui mesmo,
-  e a outra saída no site do gateway. O nome da outra saída vem do servidor
+- **O que a pergunta mostra, sempre:** a marca do gateway, a frase "Processado
+  pelo {gateway}" e, em cada opção, como se paga e quando confirma — sem falar
+  de onde a pessoa paga ("aqui", "no site do gateway"), que não é o que ela
+  escolhe. Pix: "Pague pelo app do seu banco, com QR Code ou Pix Copia e Cola.
+  A confirmação sai na hora." A outra: "Pague com {cartão ou boleto}. A
+  confirmação sai assim que o pagamento for aprovado." No app, o Pix fala só em
+  Copia e Cola (o QR não se lê no próprio celular). O nome da outra saída vem do servidor
   (`choice.checkoutLabel`), com o que a igreja ligou no checkout: "Cartão ou
   boleto", "Boleto", "Cartão ou conta PayPal". O app mostra o logo só no
   PayPal (é o único que ele tem em imagem); nos outros, o nome. O inscrito precisa saber para quem
@@ -43,9 +45,21 @@ do sistema". Nenhum dado de cartão passa pelo sistema.
 - **Fechar sem escolher** não é erro: não sai toast vermelho, e cada tela trata
   como pagamento que ficou para depois (o modal de Minhas Inscrições destrava;
   a inscrição e a loja seguem para onde já seguiam).
-- **Por cima de tudo:** o alerta sobe a própria camada (`z-index`), porque abre
-  em cima do modal de pagamentos e da tela de espera, que ficam acima da camada
-  padrão do SweetAlert.
+- **A mesma pergunta nas três telas** (`OpcoesDaForma`, em
+  `src/features/events/components/escolhaDaForma.tsx`): "Como você quer
+  pagar?", o gateway que processa no alto e as duas saídas lado a lado (uma
+  embaixo da outra no celular), cada uma um ingresso em pé — o mesmo desenho
+  de Minhas Inscrições (`ingresso.ts`). "Voltar" desiste. O alerta do
+  SweetAlert que fazia a pergunta saiu, e o `escolher` do
+  `postCreateCheckoutEvent` ficou obrigatório para não voltar a existir outra
+  versão.
+- **Só um modal ativo por vez:** em Minhas Inscrições a pergunta é uma etapa
+  do próprio modal de pagamentos (o conteúdo troca). Na inscrição e na loja,
+  que não têm modal aberto, ela abre num `ResponsiveModal` pelo
+  `useEscolhaDaForma` (`useEscolhaDaForma.tsx`), que também diz quando está
+  perguntando — a tela de espera da inscrição some nesse momento. No canhoto
+  vai o valor quando a tela o conhece (Minhas Inscrições); na inscrição e na
+  loja, "Escolher".
 - O nome do gateway vem do servidor e entra na pergunta como **texto**, nunca
   como HTML.
 

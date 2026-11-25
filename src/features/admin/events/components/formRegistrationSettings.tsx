@@ -661,8 +661,8 @@ function FormRegistrationSettings() {
       text: 'Essa ação irá remover o grupo de inscrições.',
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonColor: '#d33',
-      cancelButtonColor: '#3085d6',
+      // apaga o grupo: o vermelho do tema (ver `TemaDosAlertas`)
+      customClass: { confirmButton: 'swal2-perigo' },
       confirmButtonText: 'Sim, remover!',
       cancelButtonText: 'Cancelar',
     }).then((resultado) => {

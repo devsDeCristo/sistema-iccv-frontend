@@ -17,6 +17,7 @@ import { useGetUsers } from '../../users/api/getUsers';
 import { User } from '../../../../types/user';
 import { usePostRegisterUserInEvent } from '../api/postRegisterUserInEvent';
 import Swal from 'sweetalert2';
+import { comSelo } from '../../../../components/temaDosAlertas/comSelo';
 import { useState } from 'react';
 
 
@@ -65,7 +66,7 @@ function ModalAddUserOnEvent({
         // Caso 3: tudo ficou em lista de espera
 
         Swal.fire({
-          title: 'Inscrição(ões) realizada(s) com sucesso!',
+          title: comSelo('Inscrito!', 'Inscrição(ões) realizada(s) com sucesso!'),
           text: 'O(s) usuário(s) foram inscritos no evento com sucesso.',
           icon: 'success',
           confirmButtonText: 'OK',

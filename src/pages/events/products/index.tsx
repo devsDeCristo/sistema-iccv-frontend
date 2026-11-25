@@ -14,6 +14,7 @@ import {
   ehPagamentoForaDoSite,
   usePostCreateCheckoutEvent,
 } from '../../../features/admin/events/api/postCreateCheckoutEvent';
+import { useEscolhaDaForma } from '../../../features/events/components/useEscolhaDaForma';
 import { temDisponivel } from '../../../features/admin/events/products';
 import {
   EventDetails,
@@ -65,6 +66,9 @@ function EventProducts() {
 
   const voltarAoEvento = () => navigate(`/eventos/${id}`);
 
+  // a pergunta "Como você quer pagar?", a mesma de Minhas Inscrições
+  const escolhaDaForma = useEscolhaDaForma(event?.name);
+
   const { mutate: abrirCheckout } = usePostCreateCheckoutEvent({
     onSuccess: (data: any) => {
       window.open(data.link, '_blank', 'noopener,noreferrer');
@@ -101,6 +105,7 @@ function EventProducts() {
           eventId: id,
           userId,
           data: { paymentIds: [compra.paymentId] },
+          escolher: escolhaDaForma.perguntar,
         });
         return;
       }
@@ -141,6 +146,7 @@ function EventProducts() {
 
   return (
     <PageStyle>
+      {escolhaDaForma.modal}
       {/* o nome do evento está no cartaz, logo abaixo: repetir aqui era a
           terceira linha de texto antes do primeiro produto */}
       <Header title="Loja do evento" buttonBack pageBack={`/eventos/${id}`} />

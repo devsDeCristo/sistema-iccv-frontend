@@ -203,6 +203,10 @@ function EventCard({
         name: role.description || "aaaa",
         groupName: role.group,
         products: role.products ?? [],
+        // o cobrado de fato (com produtos e desconto); sem pagamento, o preço
+        amount: role.amount ?? role.price,
+        // o preço do ingresso sozinho, para a linha dele no detalhe
+        price: role.price,
       };
     });
    
@@ -217,6 +221,7 @@ function EventCard({
       name: 'Compra de produtos',
       groupName: '',
       products: compra.productItems,
+      amount: compra.amount,
     }));
 
     setDataModal([...dataArray, ...compras]);
@@ -563,6 +568,8 @@ function EventCard({
           open={Boolean(dataModal)}
           handleClose={handleCloseModal}
           payments={dataModal}
+          eventName={payment.eventName}
+          cor={cor}
           eventId={payment.eventId}
           userId={userId}
         />
