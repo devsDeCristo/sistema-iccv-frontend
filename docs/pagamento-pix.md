@@ -1,15 +1,16 @@
-# Escolha da forma de pagamento e Pix na tela (PayPal)
+# Escolha da forma de pagamento e Pix na tela
 
-Vale **só para a igreja que cobra pelo PayPal com o Pix marcado nas formas
-de pagamento** (etapa Pagamento do cadastro). Com só o Pix marcado, não há
-pergunta: o pedido sai direto em Pix e abre a tela do QR. Em todos os outros gateways (PagBank, Mercado Pago, InfinitePay, Ton)
-nada disto aparece: o inscrito vai direto para a página do gateway, que já
-oferece Pix e cartão lado a lado.
+Vale para a igreja que cobra pelo **PayPal, Mercado Pago, PagBank ou Ton com o
+Pix marcado** nas formas de pagamento (etapa Pagamento do cadastro). O Pix sai
+do checkout do gateway e é pago aqui, com QR dinâmico criado pela API de
+pedidos dele (valor e validade desta cobrança); as outras formas (cartão,
+boleto, saldo) seguem no checkout. Com só o Pix marcado, não há pergunta: o
+pedido sai direto em Pix. Sem Pix marcado, nada disto aparece. A InfinitePay
+fica de fora: a API dela só gera link de checkout.
 
-O motivo está em `ic-backend docs/paypal.md`: no PayPal, Pix e cartão são
-pedidos diferentes, e o PayPal não tem página para o Pix — devolve o código, e
-quem mostra o QR é o sistema. É a única exceção à regra de "sempre checkout
-hospedado", decidida em 10/11/2026, e não envolve dado de cartão.
+Começou no PayPal (10/11/2026), que não tem página para o Pix; em nov/2026 foi
+estendido aos outros três — ver `ic-backend docs/pagamentos.md`, "Pix na tela
+do sistema". Nenhum dado de cartão passa pelo sistema.
 
 ## A pergunta
 
@@ -25,15 +26,19 @@ hospedado", decidida em 10/11/2026, e não envolve dado de cartão.
   repete com `method: 'PIX'` ou `'CREDIT_CARD'`. Aí vem o `link`, e as telas
   seguem como sempre (`window.open`).
 - **O que a pergunta mostra, sempre:** a marca do gateway, a frase "O pagamento
-  é processado pelo PayPal" e o que acontece em cada opção — Pix aqui mesmo,
-  cartão ou conta PayPal no site do PayPal. O inscrito precisa saber para quem
+  é processado pelo {gateway}" e o que acontece em cada opção — Pix aqui mesmo,
+  e a outra saída no site do gateway. O nome da outra saída vem do servidor
+  (`choice.checkoutLabel`), com o que a igreja ligou no checkout: "Cartão ou
+  boleto", "Boleto", "Cartão ou conta PayPal". O app mostra o logo só no
+  PayPal (é o único que ele tem em imagem); nos outros, o nome. O inscrito precisa saber para quem
   está pagando antes de escolher: é esse nome que aparece no app do banco e na
   fatura.
-- **Pix recusado pelo PayPal** (conta sem Pix habilitado, dado inválido, pedido
-  que volta sem o código do QR): o
-  servidor responde 422 com "O Pix não está disponível agora. Escolha cartão ou
-  conta PayPal.", que sai no aviso vermelho da tela; a pessoa paga de novo e
-  escolhe cartão. Falha de rede continua com "não foi possível falar com o
+- **Pix recusado pelo gateway** (conta sem chave Pix, dado inválido, pedido
+  que volta sem o código do QR): o servidor responde 422 com "O Pix não está
+  disponível agora. Escolha outra forma de pagamento." (no PayPal, "Escolha
+  cartão ou conta PayPal."), que sai no aviso vermelho da tela; a pessoa paga
+  de novo e escolhe a outra saída. No checkout o gateway só escondia o Pix de
+  conta sem chave; pela API a criação falha, e é este aviso que cobre isso. Falha de rede continua com "não foi possível falar com o
   PayPal".
 - **Fechar sem escolher** não é erro: não sai toast vermelho, e cada tela trata
   como pagamento que ficou para depois (o modal de Minhas Inscrições destrava;

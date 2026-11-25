@@ -1,6 +1,9 @@
 import Swal from 'sweetalert2';
 
 import paypalLogo from '../../../assets/gateways/paypal.svg';
+import mercadopagoLogo from '../../../assets/gateways/mercadopago.svg';
+import pagbankLogo from '../../../assets/gateways/pagbank.svg';
+import tonLogo from '../../../assets/gateways/ton.svg';
 
 /** O que o servidor devolve quando o gateway pede a escolha antes do checkout */
 export interface EscolhaDePagamento {
@@ -8,20 +11,29 @@ export interface EscolhaDePagamento {
   /** Nome comercial do gateway: `PayPal` */
   label: string;
   methods: string[];
+  /**
+   * O nome da outra saída, com o que a igreja ligou no checkout do gateway:
+   * "Cartão ou boleto", "Cartão ou conta PayPal". Ausente em servidor antigo.
+   */
+  checkoutLabel?: string;
 }
 
 export type FormaDePagamento = 'PIX' | 'CREDIT_CARD';
 
-/** A marca de quem processa o pagamento. Só o PayPal pede a escolha hoje. */
-const LOGOS: Record<string, string> = { PAYPAL: paypalLogo };
+/** A marca de quem processa o pagamento */
+const LOGOS: Record<string, string> = {
+  PAYPAL: paypalLogo,
+  MERCADO_PAGO: mercadopagoLogo,
+  PAGBANK: pagbankLogo,
+  TON: tonLogo,
+};
 
 /**
  * Pergunta ao inscrito como ele quer pagar.
  *
- * Só aparece no gateway em que as duas formas são pagamentos diferentes — o
- * PayPal: o Pix é pago aqui, com QR Code, e o cartão no site dele. Nos outros
- * gateways a página deles já oferece as formas lado a lado, e esta pergunta
- * nunca é feita.
+ * Aparece quando a igreja tem o Pix ligado e mais alguma forma: o Pix é pago
+ * aqui, com QR Code, e o resto (cartão, boleto, saldo) no site do gateway.
+ * Sem Pix, ou só com ele, não há pergunta.
  *
  * A marca e a frase "processado pelo…" vão sempre: o inscrito precisa saber
  * para quem está pagando antes de escolher, e é esse nome que ele vai ver no
@@ -42,11 +54,11 @@ export async function escolherFormaDePagamento(
     corpo.appendChild(paragrafo);
   };
 
+  const outra = escolha.checkoutLabel ?? `Cartão ou conta ${escolha.label}`;
+
   linha(`O pagamento é processado pelo ${escolha.label}.`, true);
   linha('Pix: o QR Code aparece aqui mesmo, e a confirmação sai na hora.');
-  linha(
-    `Cartão ou conta ${escolha.label}: você conclui o pagamento no site do ${escolha.label}.`
-  );
+  linha(`${outra}: você conclui o pagamento no site do ${escolha.label}.`);
 
   const resultado = await Swal.fire({
     imageUrl: LOGOS[escolha.provider],
@@ -58,9 +70,9 @@ export async function escolherFormaDePagamento(
     showDenyButton: true,
     showCloseButton: true,
     confirmButtonText: 'Pix',
-    denyButtonText: `Cartão ou conta ${escolha.label}`,
-    // verde do Pix e azul do PayPal: o vermelho padrão do segundo botão diria
-    // "cancelar", e as duas saídas aqui são pagar
+    denyButtonText: outra,
+    // verde do Pix e azul na outra saída: o vermelho padrão do segundo botão
+    // diria "cancelar", e as duas saídas aqui são pagar
     confirmButtonColor: '#1E9E8F',
     denyButtonColor: '#003087',
     // a pergunta abre por cima do modal de pagamentos e da tela de espera,

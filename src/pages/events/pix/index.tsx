@@ -50,8 +50,10 @@ const relogio = (segundos: number) =>
   ).padStart(2, '0')}`;
 
 /**
- * O Pix pago aqui dentro — hoje só o do PayPal, que não tem página própria
- * para ele: devolve o código, e quem mostra o QR é o sistema.
+ * O Pix pago aqui dentro — no PayPal, no Mercado Pago, no PagBank e no Ton,
+ * com a igreja de Pix ligado. O gateway cria a cobrança e devolve o código
+ * (QR dinâmico, com valor e validade desta cobrança); quem mostra o QR é o
+ * sistema. As outras formas seguem no checkout do gateway.
  *
  * O código vem sempre do servidor, pela referência que está no endereço. Nada
  * do que é pago sai da URL nem é montado no navegador: um QR trocado na tela é

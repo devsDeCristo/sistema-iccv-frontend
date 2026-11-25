@@ -142,10 +142,11 @@ export const PROVIDER_PRICING: Record<string, ProviderPricing> = {
  * paga normalmente, e a baixa nunca chega.
  *
  * `por-cobranca-e-painel`: manda a URL na cobrança e ainda assim precisa do
- * cadastro. É o Mercado Pago: em produção o `notification_url` da preferência
- * resolve, mas o painel tem uma URL separada para modo de teste, e é só ela
- * que recebe notificação enquanto a integração roda com credencial de teste.
- * Sem cadastrar, o teste passa a vida inteira sem nenhum retorno.
+ * cadastro. É o Mercado Pago: o `notification_url` da preferência resolve o
+ * checkout, mas o Pix na nossa tela é uma order, e order não tem URL própria —
+ * o aviso dela só chega pela URL do painel, com o evento "Order (Mercado
+ * Pago)" marcado. E em modo de teste é só a URL do painel que recebe qualquer
+ * coisa.
  *
  * O PayPal também é `painel`: webhook no PayPal é da aplicação (Apps &
  * Credentials › Webhooks), não do pedido.
