@@ -5,6 +5,8 @@ import {
   handleResponseSuccess,
   handleResponseThrowError,
 } from '../../../../utils/service';
+import { queryClient } from '../../../../config/lib/react-query/query-client';
+import { GET_PAYMENTS_USER } from '../../../myRegisters/constants';
 import {
   EscolhaDePagamento,
   FormaDePagamento,
@@ -49,6 +51,8 @@ type RespostaDoCheckout = {
   message: string;
   link?: string;
   choice?: EscolhaDePagamento;
+  /** desconto de 100%: o servidor quitou sem abrir cobrança, e não há link */
+  paid?: boolean;
 };
 
 /** A pessoa fechou a pergunta da forma de pagamento sem escolher */
@@ -86,7 +90,9 @@ const postCreateCheckoutEvent = async (props: PostCreateCheckoutEventProps) => {
 
     return handleResponseSuccess(
       resposta,
-      'Sala de pagamento criada com sucesso!'
+      resposta.paid
+        ? 'Desconto de 100%: inscrição quitada, não há nada a pagar.'
+        : 'Sala de pagamento criada com sucesso!'
     )();
   } catch (error) {
     // Desistir da pergunta não é falha: sem toast vermelho. Quem chamou trata
@@ -113,6 +119,8 @@ export const usePostCreateCheckoutEvent = ({
   return useMutation({
     mutationFn: postCreateCheckoutEvent,
     onSuccess: (...args) => {
+      // quitado pelo desconto: Minhas Inscrições já mostra como pago
+      if (args[0]?.paid) queryClient.invalidateQueries(GET_PAYMENTS_USER);
       onSuccess?.(...args);
     },
     ...options,

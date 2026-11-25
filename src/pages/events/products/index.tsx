@@ -71,7 +71,8 @@ function EventProducts() {
 
   const { mutate: abrirCheckout } = usePostCreateCheckoutEvent({
     onSuccess: (data: any) => {
-      window.open(data.link, '_blank', 'noopener,noreferrer');
+      // quitado pelo desconto não tem link
+      if (data.link) window.open(data.link, '_blank', 'noopener,noreferrer');
       voltarAoEvento();
     },
     // a compra já existe: o pagamento continua disponível em Minhas Inscrições

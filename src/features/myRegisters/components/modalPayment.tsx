@@ -141,8 +141,10 @@ export function ModalPayment({
 
   const { mutate: criarCheckout } = usePostCreateCheckoutEvent({
     onSuccess: (data: any) => {
-      window.open(data.link, '_blank', 'noopener,noreferrer');
+      // quitado pelo desconto não tem link
+      if (data.link) window.open(data.link, '_blank', 'noopener,noreferrer');
       setGerando(false);
+      if (data.paid) handleClose();
     },
     onError: (erro) => {
       setGerando(false);

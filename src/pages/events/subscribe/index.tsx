@@ -230,7 +230,8 @@ function Subscribe() {
     onSuccess: (data: any) => {
       const link = data.link;
 
-      window.open(link, '_blank', 'noopener,noreferrer');
+      // quitado pelo desconto não tem link
+      if (link) window.open(link, '_blank', 'noopener,noreferrer');
       setLoadingPayment(false);
       navigate('/eventos/' + id);
     },
