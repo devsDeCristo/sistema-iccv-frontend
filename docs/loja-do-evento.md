@@ -37,6 +37,8 @@ Componente compartilhado entre a compra avulsa e a oferta pós-inscrição.
 
 Arquivo: `src/features/events/components/productOffer.tsx`, `src/features/events/components/variantPickerDialog.tsx`.
 
+- **Taxa de serviço:** com repasse ligado na igreja, abaixo do total da sacola aparece "+ taxa de serviço de X%" (`event.church.serviceFee`, função `avisoDaTaxa`).
+
 ## Compra e pagamento
 
 `usePostBuyEventProducts` (`POST /events/:eventId/users/:userId/products`) registra a compra e devolve um `paymentId`. A partir daí:

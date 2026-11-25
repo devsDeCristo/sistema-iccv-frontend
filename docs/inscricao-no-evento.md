@@ -30,6 +30,8 @@ Para cada grupo escolhido no passo 1, a pessoa marca uma regra (`role`) — pre�
 
 Arquivo: `src/features/events/components/subscribeSummary.tsx`.
 
+- **Taxa de serviço:** com repasse ligado na igreja, abaixo do total do resumo e da oferta de produtos aparece "+ taxa de serviço de X%" (ou o Pix à parte, quando tem taxa própria), com os percentuais de `event.church.serviceFee`. O valor exato de cada forma aparece na pergunta "Como você quer pagar?".
+
 ## Termo do evento
 
 Um evento pode ter `event.data.registrationTerm` (HTML). `temTermo` considera vazio um HTML sem texto real (`<p><br></p>` do editor) mesmo com imagem/vídeo embutido contando como termo.

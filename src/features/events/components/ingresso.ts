@@ -93,6 +93,9 @@ export function useEstiloDeIngresso(destaque: string) {
       ),
     },
     canhotoEmPe: {
+      display: 'flex',
+      flexDirection: 'column' as const,
+      alignItems: 'center',
       px: 2,
       py: 1.25,
       borderTop: linhaDoPicote,

@@ -162,6 +162,7 @@ function EventProducts() {
         <ProductOffer
           products={produtosAVenda}
           modulePayment={modulePayment}
+          taxaDeServico={event?.church?.serviceFee}
           coverUrl={event?.data?.coverUrl || CapaLogin}
           logoUrl={event?.data?.logoUrl}
           eventName={event?.name}

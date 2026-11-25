@@ -28,6 +28,7 @@ import {
   OpcoesDaForma,
 } from '../../events/components/escolhaDaForma';
 import { useEstiloDeIngresso } from '../../events/components/ingresso';
+import { TaxaDeServico, avisoDaTaxa } from '../../events/taxaDeServico';
 import CustomChip from '../../../components/customChip';
 import { PaymentProductItem } from '../../admin/events/types';
 import { descreverItem } from '../../admin/events/products';
@@ -62,6 +63,8 @@ interface ModalPaymentProps {
   eventName?: string;
   /** a cor do evento, a mesma do ingresso no cartão */
   cor?: string;
+  /** a taxa de serviço que a igreja repassa; nula sem repasse */
+  taxaDeServico?: TaxaDeServico | null;
 }
 
 /**
@@ -92,6 +95,7 @@ export function ModalPayment({
   eventId,
   eventName,
   cor,
+  taxaDeServico,
 }: ModalPaymentProps) {
   const theme = useTheme();
   const destaque = cor ?? theme.palette.primary.main;
@@ -463,9 +467,17 @@ export function ModalPayment({
                     ? '1 pagamento marcado'
                     : `${escolhidos.length} pagamentos marcados`}
                 </Typography>
-                <Typography fontWeight={700} fontSize={18}>
-                  Total {formatCurrency(total)}
-                </Typography>
+                <Box textAlign="right">
+                  <Typography fontWeight={700} fontSize={18}>
+                    Total {formatCurrency(total)}
+                  </Typography>
+                  {/* a taxa entra conforme a forma, escolhida em seguida */}
+                  {avisoDaTaxa(taxaDeServico) && (
+                    <Typography variant="caption" color="text.secondary">
+                      {avisoDaTaxa(taxaDeServico)}
+                    </Typography>
+                  )}
+                </Box>
               </Stack>
             )}
           </Stack>

@@ -17,6 +17,7 @@ import {
   ContentCopy,
   ErrorOutline,
   HourglassEmpty,
+  ReceiptLong,
 } from '@mui/icons-material';
 import { QRCodeCanvas } from 'qrcode.react';
 import { toast } from 'react-toastify';
@@ -30,6 +31,8 @@ import {
   usePostConferirPix,
 } from '../../../features/events/api/pixCheckout';
 import { formatCurrency } from '../../../utils';
+import CustomChip from '../../../components/customChip';
+import { formatarPercentual } from '../../../features/events/taxaDeServico';
 
 type Situacao =
   'aguardando' | 'pago' | 'analise' | 'expirado' | 'substituido' | 'encerrado';
@@ -205,6 +208,23 @@ function EventPixPayment() {
           <Typography fontSize={28} fontWeight={700}>
             {formatCurrency(pix.amountCents / 100)}
           </Typography>
+        )}
+        {!!pix.serviceFeeCents && (
+          <CustomChip
+            size="small"
+            icon={<ReceiptLong sx={{ fontSize: 14 }} />}
+            label={`inclui ${formatCurrency(pix.serviceFeeCents / 100)} de taxa de serviço${
+              pix.amountCents
+                ? ` (${formatarPercentual(
+                    Math.round(
+                      (pix.serviceFeeCents / pix.amountCents) * 10000
+                    ) / 100
+                  )})`
+                : ''
+            }`}
+            customColor={theme.palette.chips.alert}
+            sx={{ mt: 0.5, '& .MuiChip-icon': { color: 'inherit' } }}
+          />
         )}
       </Box>
     );

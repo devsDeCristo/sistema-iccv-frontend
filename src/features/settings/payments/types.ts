@@ -29,6 +29,11 @@ export interface CredentialField {
   methodLabels?: Record<string, string>;
   /** Teto de parcelas no cartão: seletor de 1 até este número; vazio é o padrão do gateway */
   installmentsMax?: number;
+  /**
+   * Repasse da taxa ao inscrito: a chave "Repassar taxas para o cliente" e um
+   * percentual por forma. Valor `PIX=0.99,CREDIT_CARD=4.98`; vazio é desligado.
+   */
+  fees?: string[];
   allowedHostSuffixes?: string[];
 }
 

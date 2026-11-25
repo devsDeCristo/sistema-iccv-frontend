@@ -1,8 +1,12 @@
+import { TaxaDeServico } from '../events/taxaDeServico';
+
 export interface paymentsWithRoles{
     eventId: string;
     eventName: string;
     /** A igreja dona deste evento cobra online? Ver `Church.modulePayment`. */
     modulePayment: boolean;
+    /** A taxa de serviço repassada ao inscrito; nula sem repasse */
+    serviceFee?: TaxaDeServico | null;
     /** Dá para baixar o certificado: ligado no evento, fez check-in e o evento terminou */
     certificateAvailable?: boolean;
     data: object
@@ -24,8 +28,9 @@ export interface RegisteredRole {
     paymentStatus: string;
     paymentMethod: string;
     /**
-     * O valor cobrado de fato neste pagamento (ingresso + produtos, com
-     * desconto). Nulo quando ainda não há pagamento; aí vale o `price`.
+     * O que a pessoa paga nesta inscrição: ingresso + produtos, com o desconto
+     * aplicado pelo servidor (sem a taxa de serviço). Antes vinha sem o
+     * desconto, apesar deste comentário.
      */
     amount?: number | null;
     /** produtos comprados junto deste ingresso */

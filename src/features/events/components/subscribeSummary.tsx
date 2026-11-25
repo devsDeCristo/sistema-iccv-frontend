@@ -9,6 +9,7 @@ import {
 } from '@mui/material';
 import { ReceiptLongOutlined } from '@mui/icons-material';
 import { formatCurrency } from '../../../utils';
+import { TaxaDeServico, avisoDaTaxa } from '../taxaDeServico';
 
 /** Uma linha do resumo: o grupo escolhido e, quando já houver, o ingresso. */
 interface ItemDoResumo {
@@ -47,6 +48,7 @@ function SubscribeSummary({
   produtos = [],
   mostrarValores,
   recebePagamentoOnline = true,
+  taxaDeServico,
 }: {
   itens: ItemDoResumo[];
   /** o que foi para a sacola no passo da loja */
@@ -54,6 +56,8 @@ function SubscribeSummary({
   mostrarValores: boolean;
   /** a igreja recebe pagamento pelo site: módulo ligado e gateway ativo */
   recebePagamentoOnline?: boolean;
+  /** a taxa de serviço repassada; nula sem repasse */
+  taxaDeServico?: TaxaDeServico | null;
 }) {
   const theme = useTheme();
 
@@ -196,6 +200,17 @@ function SubscribeSummary({
               {total > 0 ? formatCurrency(total) : 'Grátis'}
             </Typography>
           </Stack>
+          {/* a taxa entra conforme a forma de pagamento, escolhida depois */}
+          {recebePagamentoOnline && total > 0 && avisoDaTaxa(taxaDeServico) && (
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              display="block"
+              textAlign="right"
+            >
+              {avisoDaTaxa(taxaDeServico)}
+            </Typography>
+          )}
           <Typography
             sx={{
               mt: 0.5,

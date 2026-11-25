@@ -51,6 +51,8 @@ export interface EventDetails extends EquipeDoEventoApi {
      * Só o módulo não basta — sem gateway o checkout devolve 503.
      */
     chargesOnline?: boolean;
+    /** a taxa de serviço repassada ao inscrito; nula sem repasse */
+    serviceFee?: { pix: number | null; checkout: number } | null;
   };
   startDate: Date;
   endDate: Date;

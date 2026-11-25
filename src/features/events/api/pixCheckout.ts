@@ -23,6 +23,8 @@ export interface PixCheckout {
   providerLabel: string;
   eventName: string;
   amountCents: number | null;
+  /** quanto do valor é taxa de serviço repassada pela igreja (0 sem repasse) */
+  serviceFeeCents?: number;
   /** O copia e cola — o QR é desenhado a partir do mesmo texto */
   code: string;
   expiresAt: string;

@@ -19,6 +19,7 @@ import {
 } from '@mui/icons-material';
 import { useEffect, useMemo, useState } from 'react';
 import { formatCurrency } from '../../../utils';
+import { TaxaDeServico, avisoDaTaxa } from '../taxaDeServico';
 import { AZUL_VIVO, degradeVivo } from '../../../themes';
 import { EventProduct } from '../../admin/events/types';
 import { temDisponivel } from '../../admin/events/products';
@@ -40,6 +41,8 @@ interface ProductOfferProps {
   products: EventProduct[];
   /** o evento cobra online: muda só o texto do botão de seguir */
   modulePayment: boolean;
+  /** a taxa de serviço repassada; nula sem repasse */
+  taxaDeServico?: TaxaDeServico | null;
   loading: boolean;
   onConfirm: (items: ItemEscolhido[]) => void;
   onSkip: () => void;
@@ -78,6 +81,7 @@ interface ProductOfferProps {
 function ProductOffer({
   products,
   modulePayment,
+  taxaDeServico,
   loading,
   onConfirm,
   onSkip,
@@ -659,6 +663,12 @@ function ProductOffer({
                 >
                   {formatCurrency(total)}
                 </Typography>
+                {/* a taxa entra conforme a forma de pagamento, escolhida depois */}
+                {modulePayment && total > 0 && avisoDaTaxa(taxaDeServico) && (
+                  <Typography variant="caption" color="text.secondary">
+                    {avisoDaTaxa(taxaDeServico)}
+                  </Typography>
+                )}
               </Box>
             </Stack>
 

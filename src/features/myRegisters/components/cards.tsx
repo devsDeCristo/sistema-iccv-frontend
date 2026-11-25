@@ -570,6 +570,7 @@ function EventCard({
           payments={dataModal}
           eventName={payment.eventName}
           cor={cor}
+          taxaDeServico={payment.serviceFee}
           eventId={payment.eventId}
           userId={userId}
         />

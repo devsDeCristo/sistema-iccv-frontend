@@ -53,6 +53,13 @@ do sistema". Nenhum dado de cartão passa pelo sistema.
   SweetAlert que fazia a pergunta saiu, e o `escolher` do
   `postCreateCheckoutEvent` ficou obrigatório para não voltar a existir outra
   versão.
+- **Taxa de serviço:** com repasse ligado, cada opção mostra no canhoto o valor
+  já com a taxa dela e, em destaque (chip de alerta com ícone de recibo),
+  "inclui R$ x de taxa de serviço (y%)" (Pix com a taxa do Pix; a outra com a
+  maior taxa das formas do checkout). O valor vem do total da tela (Minhas
+  Inscrições) ou do `choice.amountCents` que o servidor manda com a pergunta
+  (inscrição e loja) — as três telas mostram o mesmo número. A tela do QR mostra, abaixo do valor, o mesmo
+  chip "inclui R$ x de taxa de serviço" (`serviceFeeCents`), no site e no app.
 - **Só um modal ativo por vez:** em Minhas Inscrições a pergunta é uma etapa
   do próprio modal de pagamentos (o conteúdo troca). Na inscrição e na loja,
   que não têm modal aberto, ela abre num `ResponsiveModal` pelo

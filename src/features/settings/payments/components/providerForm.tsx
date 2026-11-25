@@ -34,6 +34,7 @@ import { Input } from '../../../../components/input';
 import { SelectField } from '../../../../components/selectField';
 import { useSavePaymentProvider } from '../api/paymentProviderActions';
 import { useWebhookDraft } from '../api/getPaymentProviders';
+import { gravarTaxas, lerTaxas, taxaValida, taxasConhecidas } from '../taxas';
 import { useRole } from '../../../../hooks/useRole';
 import {
   CredentialField,
@@ -62,7 +63,7 @@ const ICONE_DA_FORMA: Record<string, SvgIconComponent> = {
 
 /** Campo da etapa "Pagamento": decide como a igreja cobra, não com que credencial */
 const ehDePagamento = (campo: CredentialField) =>
-  !!(campo.toggle || campo.methods || campo.installmentsMax);
+  !!(campo.toggle || campo.methods || campo.installmentsMax || campo.fees);
 
 /**
  * Formulário de credenciais, desenhado a partir do que o backend declara.
@@ -164,6 +165,14 @@ function ProviderForm({ churchId, integracao, onClose }: Props) {
   // na criação o caminho é em ordem; na edição dá para ir direto à etapa
   const editando = integracao.configured;
   const credenciaisIncompletas = faltando.length > 0;
+  // taxa de repasse fora do formato (0 a 99,99): o servidor recusaria
+  const taxaInvalida = integracao.fields.some(
+    (campo) =>
+      campo.fees &&
+      Object.values(lerTaxas(valores[campo.key] ?? '')).some(
+        (taxa) => !taxaValida(taxa)
+      )
+  );
 
   const styles = {
     // aviso de uma linha não precisa do respiro de um bloco de texto
@@ -349,6 +358,128 @@ function ProviderForm({ churchId, integracao, onClose }: Props) {
     />
   );
 
+  /**
+   * Repassar a taxa ao inscrito. Ligada, um percentual por forma — só as
+   * formas marcadas, que são as que podem ser cobradas —, já preenchido com
+   * o pior cenário que conhecemos (recebimento na hora). A igreja ajusta para
+   * o plano dela: a API de nenhum gateway informa a taxa da conta.
+   */
+  const renderRepasse = (campo: CredentialField) => {
+    const taxas = lerTaxas(valores[campo.key] ?? '');
+    const ligado = Object.keys(taxas).length > 0;
+    const visiveis = (campo.fees ?? []).filter(
+      (forma) => !campoDeFormas || formasMarcadas(campoDeFormas).includes(forma)
+    );
+    const rotulo = (forma: string) =>
+      campoDeFormas?.methodLabels?.[forma] ??
+      PAYMENT_METHOD_LABEL[forma] ??
+      forma;
+
+    const ligar = (sim: boolean) => {
+      if (!sim) return definir(campo.key, '');
+      const conhecidas = taxasConhecidas(integracao.provider);
+      // forma sem taxa publicada (débito no PagBank, boleto no Ton) nasce com
+      // a maior conhecida do gateway — o pior caso; zero seria o melhor
+      const maior = Math.max(0, ...Object.values(conhecidas));
+      definir(
+        campo.key,
+        gravarTaxas(
+          Object.fromEntries(
+            (campo.fees ?? []).map((forma) => [
+              forma,
+              String(conhecidas[forma] ?? maior),
+            ])
+          )
+        )
+      );
+    };
+
+    return (
+      <Box key={campo.key} sx={styles.chaves}>
+        <FormControlLabel
+          labelPlacement="start"
+          sx={styles.chave}
+          control={
+            <Switch
+              checked={ligado}
+              onChange={(evento) => ligar(evento.target.checked)}
+            />
+          }
+          label={
+            <Box sx={{ py: 0.5, pr: 1 }}>
+              <Typography variant="body2">{campo.label}</Typography>
+              {campo.help && (
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  display="block"
+                >
+                  {campo.help}
+                </Typography>
+              )}
+            </Box>
+          }
+        />
+
+        {ligado && (
+          <Box sx={{ py: 1.5 }}>
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: {
+                  xs: 'repeat(2, 1fr)',
+                  sm: `repeat(${Math.min(visiveis.length, 4)}, 1fr)`,
+                },
+                gap: 1.5,
+              }}
+            >
+              {visiveis.map((forma) => {
+                const texto = taxas[forma] ?? '';
+                return (
+                  <Input
+                    key={forma}
+                    label={rotulo(forma)}
+                    size="small"
+                    value={texto.replace('.', ',')}
+                    onChange={(evento) =>
+                      definir(
+                        campo.key,
+                        gravarTaxas({
+                          ...taxas,
+                          [forma]: evento.target.value
+                            .replace(/[^\d,.]/g, '')
+                            .replace(',', '.'),
+                        })
+                      )
+                    }
+                    error={!taxaValida(texto)}
+                    inputProps={{ inputMode: 'decimal' }}
+                    InputProps={{
+                      endAdornment: (
+                        <Typography color="text.secondary">%</Typography>
+                      ),
+                    }}
+                  />
+                );
+              })}
+            </Box>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              display="block"
+              mt={1}
+            >
+              Preenchido com a taxa de recebimento na hora; ajuste para a do seu
+              plano. No checkout, cartão e boleto dividem o mesmo valor, e vale
+              a maior taxa entre as formas de lá. A taxa fixa por transação,
+              quando houver, não entra.
+            </Typography>
+          </Box>
+        )}
+      </Box>
+    );
+  };
+
   const renderChave = (campo: CredentialField) => (
     <FormControlLabel
       key={campo.key}
@@ -421,7 +552,7 @@ function ProviderForm({ churchId, integracao, onClose }: Props) {
             <Button
               variant="contained"
               onClick={enviar}
-              disabled={isLoading || credenciaisIncompletas}
+              disabled={isLoading || credenciaisIncompletas || taxaInvalida}
             >
               {isLoading ? 'Salvando…' : 'Salvar'}
             </Button>
@@ -578,6 +709,10 @@ function ProviderForm({ churchId, integracao, onClose }: Props) {
               {camposDePagamento
                 .filter((campo) => campo.installmentsMax)
                 .map(renderParcelas)}
+
+              {camposDePagamento
+                .filter((campo) => campo.fees)
+                .map(renderRepasse)}
 
               {/*
                 Cada coisa que a integração não deixa escolher ganha o próprio

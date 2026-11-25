@@ -622,6 +622,7 @@ function Subscribe() {
                   <ProductOffer
                     products={produtosAVenda}
                     modulePayment={recebePagamentoOnline}
+                    taxaDeServico={event?.church?.serviceFee}
                     loading={comprandoProdutos || loadingPayment}
                     eyebrow="Inscrição confirmada"
                     onConfirm={(items) =>
@@ -696,6 +697,7 @@ function Subscribe() {
                 produtos={produtosNaSacola}
                 mostrarValores
                 recebePagamentoOnline={recebePagamentoOnline}
+                taxaDeServico={event?.church?.serviceFee}
               />
             </Grid>
           </Grid>

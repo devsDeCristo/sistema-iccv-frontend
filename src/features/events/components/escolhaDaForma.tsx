@@ -6,12 +6,14 @@ import {
   alpha,
   useTheme,
 } from '@mui/material';
-import { OpenInNew, QrCode2 } from '@mui/icons-material';
+import { OpenInNew, QrCode2, ReceiptLong } from '@mui/icons-material';
 
 import { ProviderLogo } from '../../settings/payments/components/providerLogo';
 import { PaymentProviderKey } from '../../settings/payments/types';
 import { formatCurrency } from '../../../utils';
+import CustomChip from '../../../components/customChip';
 import { useEstiloDeIngresso } from './ingresso';
+import { TaxaDeServico, comTaxa, formatarPercentual } from '../taxaDeServico';
 
 /** O que o servidor devolve quando o gateway pede a escolha antes do checkout */
 export interface EscolhaDePagamento {
@@ -24,6 +26,10 @@ export interface EscolhaDePagamento {
    * "Cartão ou boleto", "Cartão ou conta PayPal". Ausente em servidor antigo.
    */
   checkoutLabel?: string;
+  /** a taxa de serviço de cada saída; nula sem repasse */
+  serviceFee?: TaxaDeServico | null;
+  /** o que a igreja tem a receber, sem a taxa (servidor antigo não manda) */
+  amountCents?: number;
 }
 
 /** `CREDIT_CARD` é a outra saída: o checkout do gateway, com o que estiver lá */
@@ -50,8 +56,13 @@ interface OpcoesDaFormaProps {
 export function OpcoesDaForma({
   escolha,
   onEscolher,
-  total,
+  total: totalDaTela,
 }: OpcoesDaFormaProps) {
+  // O que o servidor mandou com a pergunta manda: é a mesma conta da
+  // cobrança (desconto, estoque, arredondamento por item). O total da tela só
+  // vale com servidor antigo, que não manda o valor.
+  const total =
+    escolha.amountCents != null ? escolha.amountCents / 100 : totalDaTela;
   const theme = useTheme();
   const { raio, claro, papel, styles } = useEstiloDeIngresso(
     theme.palette.primary.main
@@ -69,6 +80,7 @@ export function OpcoesDaForma({
         'Pague pelo app do seu banco, com QR Code ou Pix Copia e Cola. A confirmação sai na hora.',
       Icone: QrCode2,
       cor: VERDE_DO_PIX,
+      taxa: escolha.serviceFee?.pix ?? 0,
     },
     {
       forma: 'CREDIT_CARD' as FormaDePagamento,
@@ -76,6 +88,7 @@ export function OpcoesDaForma({
       texto: `Pague com ${outra.toLowerCase()}. A confirmação sai assim que o pagamento for aprovado.`,
       Icone: OpenInNew,
       cor: theme.palette.primary.main,
+      taxa: escolha.serviceFee?.checkout ?? 0,
     },
   ];
 
@@ -105,7 +118,7 @@ export function OpcoesDaForma({
           gap: 1.5,
         }}
       >
-        {opcoes.map(({ forma, titulo, texto, Icone, cor }) => (
+        {opcoes.map(({ forma, titulo, texto, Icone, cor, taxa }) => (
           <ButtonBase
             key={forma}
             disableRipple
@@ -141,9 +154,29 @@ export function OpcoesDaForma({
               </Typography>
             </Box>
             <Box sx={{ ...styles.canhotoEmPe, ...papel }}>
+              {/* o valor desta saída, já com a taxa de serviço dela */}
               <Typography fontWeight={700} fontSize={18} textAlign="center">
-                {total && total > 0 ? formatCurrency(total) : 'Escolher'}
+                {total && total > 0
+                  ? formatCurrency(comTaxa(total, taxa))
+                  : 'Escolher'}
               </Typography>
+              {/* em destaque: é o que muda de uma opção para a outra */}
+              {taxa > 0 && (
+                <CustomChip
+                  size="small"
+                  icon={<ReceiptLong sx={{ fontSize: 14 }} />}
+                  label={
+                    total && total > 0
+                      ? `inclui ${formatCurrency(comTaxa(total, taxa) - total)} de taxa de serviço (${formatarPercentual(taxa)})`
+                      : `+ ${formatarPercentual(taxa)} de taxa de serviço`
+                  }
+                  customColor={theme.palette.chips.alert}
+                  sx={{
+                    mt: 0.75,
+                    '& .MuiChip-icon': { color: 'inherit' },
+                  }}
+                />
+              )}
             </Box>
           </ButtonBase>
         ))}
