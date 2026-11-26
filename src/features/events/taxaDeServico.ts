@@ -34,5 +34,9 @@ export function avisoDaTaxa(taxa?: TaxaDeServico | null): string | null {
   if (pix == null || pix === checkout) {
     return `+ taxa de serviço de ${formatarPercentual(checkout)}`;
   }
+  // Pix sem taxa (o estático, ou a igreja não repassa no Pix): "0% no Pix" lia mal
+  if (!pix) {
+    return `+ taxa de serviço de até ${formatarPercentual(checkout)} fora do Pix; no Pix, sem taxa`;
+  }
   return `+ taxa de serviço: ${formatarPercentual(pix)} no Pix, até ${formatarPercentual(checkout)} nas outras formas`;
 }

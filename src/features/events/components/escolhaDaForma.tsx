@@ -30,6 +30,8 @@ export interface EscolhaDePagamento {
   serviceFee?: TaxaDeServico | null;
   /** o que a igreja tem a receber, sem a taxa (servidor antigo não manda) */
   amountCents?: number;
+  /** Pix estático da igreja: a organização confirma, não o gateway */
+  manualPix?: boolean;
 }
 
 /** `CREDIT_CARD` é a outra saída: o checkout do gateway, com o que estiver lá */
@@ -76,8 +78,11 @@ export function OpcoesDaForma({
     {
       forma: 'PIX' as FormaDePagamento,
       titulo: 'Pix',
-      texto:
-        'Pague pelo app do seu banco, com QR Code ou Pix Copia e Cola. A confirmação sai na hora.',
+      texto: `Pague pelo app do seu banco, com QR Code ou Pix Copia e Cola. ${
+        escolha.manualPix
+          ? 'A organização do evento confere e confirma o pagamento.'
+          : 'A confirmação sai na hora.'
+      }`,
       Icone: QrCode2,
       cor: VERDE_DO_PIX,
       taxa: escolha.serviceFee?.pix ?? 0,

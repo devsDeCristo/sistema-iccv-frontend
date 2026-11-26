@@ -34,6 +34,11 @@ export interface CredentialField {
    * percentual por forma. Valor `PIX=0.99,CREDIT_CARD=4.98`; vazio é desligado.
    */
   fees?: string[];
+  /**
+   * Pix Copia e Cola fixo da igreja: chave "Usar Pix estático" e, ligada, o
+   * campo do código. Sem conferência nem baixa automática.
+   */
+  staticPix?: boolean;
   allowedHostSuffixes?: string[];
 }
 

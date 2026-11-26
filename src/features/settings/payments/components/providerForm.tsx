@@ -63,7 +63,44 @@ const ICONE_DA_FORMA: Record<string, SvgIconComponent> = {
 
 /** Campo da etapa "Pagamento": decide como a igreja cobra, não com que credencial */
 const ehDePagamento = (campo: CredentialField) =>
-  !!(campo.toggle || campo.methods || campo.installmentsMax || campo.fees);
+  !!(
+    campo.toggle ||
+    campo.methods ||
+    campo.installmentsMax ||
+    campo.fees ||
+    campo.staticPix
+  );
+
+/** O estado do formulário comparável: o que mudou é o que difere do retrato ao abrir */
+const retrato = (
+  valores: Record<string, string>,
+  ligado: boolean,
+  modo: string,
+  // ligar o Pix estático é mudança mesmo antes de colar o código
+  pixEstatico: boolean
+) =>
+  JSON.stringify({
+    // campo vazio e campo ausente são a mesma coisa para o salvar
+    valores: Object.entries(valores)
+      .filter(([, valor]) => valor.trim() !== '')
+      .map(([chave, valor]) => [chave, valor.trim()])
+      .sort(),
+    ligado,
+    modo,
+    pixEstatico,
+  });
+
+/**
+ * O código como o banco gerou: copiado de mensagem ou PDF, ele chega quebrado
+ * em linhas e às vezes com caractere invisível. Espaço comum fica ("SAO
+ * PAULO"). O servidor limpa igual (`limparBrCode`).
+ */
+const limparBrCode = (codigo: string) =>
+  codigo.replace(/[\r\n\t\u200B-\u200D\u2060\uFEFF]/g, '');
+
+/** BR Code inteiro: começa em `000201` e fecha com o CRC (`6304` + 4 hex) */
+const pareceBrCode = (codigo: string) =>
+  /^000201.*6304[0-9A-Fa-f]{4}$/.test(codigo.trim());
 
 /**
  * Formulário de credenciais, desenhado a partir do que o backend declara.
@@ -86,6 +123,12 @@ function ProviderForm({ churchId, integracao, onClose }: Props) {
   const theme = useTheme();
   const [ligado, setLigado] = useState(false);
   const [passo, setPasso] = useState(0);
+  // a chave do Pix estático: ligada com o campo ainda vazio, enquanto cola
+  const [comPixEstatico, setComPixEstatico] = useState(false);
+  // o que estava gravado ao abrir: na edição, salvar sem mudar nada não salva
+  const [original, setOriginal] = useState('');
+  // clicou em Salvar com algo a corrigir: daí em diante o motivo fica à vista
+  const [tentouSalvar, setTentouSalvar] = useState(false);
 
   const precisaCadastrarWebhook =
     !!integracao &&
@@ -138,11 +181,34 @@ function ProviderForm({ churchId, integracao, onClose }: Props) {
     });
 
     setValores(iniciais);
+    const estaticoAoAbrir = integracao.fields.some(
+      (campo) => campo.staticPix && iniciais[campo.key]
+    );
+    setComPixEstatico(estaticoAoAbrir);
+    // o retrato usa a mesma regra do envio: o estático só vale com o Pix
+    // marcado. Sem isto, um código gravado sem Pix ligava o Salvar ao abrir
+    const formasAoAbrir = integracao.fields.find((campo) => campo.methods);
+    const pixAoAbrir =
+      !formasAoAbrir ||
+      (iniciais[formasAoAbrir.key]
+        ? iniciais[formasAoAbrir.key].split(',')
+        : (formasAoAbrir.defaultMethods ?? formasAoAbrir.methods ?? [])
+      ).includes('PIX');
     setModo(integracao.mode);
     // Nova começa desligada: salvar credencial não pode tirar de cena, sem
     // ninguém pedir, a integração que já está cobrando
-    setLigado(integracao.enabled && integracao.isDefault);
+    const ligadaAoAbrir = integracao.enabled && integracao.isDefault;
+    setLigado(ligadaAoAbrir);
+    setOriginal(
+      retrato(
+        iniciais,
+        ligadaAoAbrir,
+        integracao.mode,
+        pixAoAbrir && estaticoAoAbrir
+      )
+    );
     setPasso(0);
+    setTentouSalvar(false);
   }, [integracao]);
 
   const faltando = useMemo(() => {
@@ -165,14 +231,7 @@ function ProviderForm({ churchId, integracao, onClose }: Props) {
   // na criação o caminho é em ordem; na edição dá para ir direto à etapa
   const editando = integracao.configured;
   const credenciaisIncompletas = faltando.length > 0;
-  // taxa de repasse fora do formato (0 a 99,99): o servidor recusaria
-  const taxaInvalida = integracao.fields.some(
-    (campo) =>
-      campo.fees &&
-      Object.values(lerTaxas(valores[campo.key] ?? '')).some(
-        (taxa) => !taxaValida(taxa)
-      )
-  );
+  const campoDoPixEstatico = integracao.fields.find((c) => c.staticPix);
 
   const styles = {
     // aviso de uma linha não precisa do respiro de um bloco de texto
@@ -195,6 +254,80 @@ function ProviderForm({ churchId, integracao, onClose }: Props) {
   const definir = (chave: string, valor: string) =>
     setValores((atual) => ({ ...atual, [chave]: valor }));
 
+  const camposDePagamento = integracao.fields.filter(ehDePagamento);
+  const campoDeFormas = camposDePagamento.find((campo) => campo.methods);
+
+  /** Formas marcadas: o campo vazio (nunca salvo) é o padrão do gateway, como no backend */
+  const formasMarcadas = (campo: CredentialField) =>
+    valores[campo.key]
+      ? valores[campo.key].split(',')
+      : (campo.defaultMethods ?? campo.methods ?? []);
+
+  const comCredito =
+    !campoDeFormas || formasMarcadas(campoDeFormas).includes('CREDIT_CARD');
+  const comPix =
+    !campoDeFormas || formasMarcadas(campoDeFormas).includes('PIX');
+  const usaPixEstatico = comPix && comPixEstatico;
+
+  /**
+   * As formas do repasse que valem agora: só as marcadas, e sem o Pix quando
+   * o Pix estático o substitui (o gateway não cobra nada ali). O resto fica
+   * guardado na tela — remarcar a forma traz a taxa de volta —, mas não trava
+   * o Salvar nem vai para o servidor.
+   */
+  const formasDoRepasse = (campo: CredentialField) =>
+    (campo.fees ?? []).filter(
+      (forma) =>
+        (!campoDeFormas || formasMarcadas(campoDeFormas).includes(forma)) &&
+        !(forma === 'PIX' && usaPixEstatico)
+    );
+  const rotuloDaForma = (forma: string) =>
+    campoDeFormas?.methodLabels?.[forma] ??
+    PAYMENT_METHOD_LABEL[forma] ??
+    forma;
+
+  // taxa fora do formato (0 a 99,99) numa forma que vale: o servidor recusaria
+  const taxasInvalidas = integracao.fields.flatMap((campo) => {
+    if (!campo.fees) return [];
+    const taxas = lerTaxas(valores[campo.key] ?? '');
+    if (!Object.keys(taxas).length) return [];
+    return formasDoRepasse(campo).filter(
+      (forma) => !taxaValida(taxas[forma] ?? '')
+    );
+  });
+
+  // ligado sem código válido: o servidor recusaria, ou salvaria desligado
+  const pixEstaticoInvalido =
+    !!campoDoPixEstatico &&
+    usaPixEstatico &&
+    !pareceBrCode(valores[campoDoPixEstatico.key] ?? '');
+
+  // nova sempre tem o que salvar; a gravada, só se algo mudou (digitar e
+  // apagar de volta conta como não mexido)
+  const semMudanca =
+    editando && retrato(valores, ligado, modo, usaPixEstatico) === original;
+
+  /**
+   * O que impede o envio. Não trava o botão — qualquer mudança liga o
+   * Salvar —: o clique mostra o motivo ao lado dos botões e leva à etapa
+   * onde ele está, em vez de mandar ao servidor o que ele recusaria.
+   */
+  const problema = credenciaisIncompletas
+    ? {
+        etapa: 0,
+        texto: `Preencha ${faltando.map((campo) => campo.label).join(', ')} em Credenciais.`,
+      }
+    : taxasInvalidas.length
+      ? {
+          etapa: 1,
+          texto: `Taxa de repasse inválida em ${taxasInvalidas
+            .map(rotuloDaForma)
+            .join(', ')}: use de 0 a 99,99%.`,
+        }
+      : pixEstaticoInvalido
+        ? { etapa: 1, texto: 'Cole o código do Pix estático para salvar.' }
+        : null;
+
   const enviar = () => {
     salvar({
       churchId,
@@ -209,7 +342,30 @@ function ProviderForm({ churchId, integracao, onClose }: Props) {
       // Só o que a pessoa digitou. O campo secreto em branco não vai no corpo,
       // e o backend entende isso como "não mexi neste campo".
       credentials: Object.fromEntries(
-        Object.entries(valores).filter(([, valor]) => valor.trim() !== '')
+        Object.entries(valores)
+          .map(([chave, valor]) => {
+            const campo = integracao.fields.find((c) => c.key === chave);
+            if (!campo?.fees) return [chave, valor];
+            // o repasse leva só as formas que valem (ver `formasDoRepasse`)
+            const taxas = lerTaxas(valor);
+            return [
+              chave,
+              gravarTaxas(
+                Object.fromEntries(
+                  formasDoRepasse(campo)
+                    .filter((forma) => forma in taxas)
+                    .map((forma) => [forma, taxas[forma]])
+                )
+              ),
+            ];
+          })
+          .filter(
+            ([chave, valor]) =>
+              valor.trim() !== '' &&
+              // Pix estático desligado, ou sem o Pix marcado para ele
+              // substituir, não vai: o servidor apaga o que estava gravado
+              !(chave === campoDoPixEstatico?.key && !usaPixEstatico)
+          )
       ),
       ...(!integracao.configured && rascunho?.webhookDraft
         ? { webhookDraft: rascunho.webhookDraft }
@@ -217,26 +373,23 @@ function ProviderForm({ churchId, integracao, onClose }: Props) {
     });
   };
 
+  const tentarSalvar = () => {
+    if (problema) {
+      setTentouSalvar(true);
+      setPasso(problema.etapa);
+      return;
+    }
+    enviar();
+  };
+
   const webhooks = integracao.configured
     ? integracao.webhooks
     : (rascunho?.webhooks ?? []);
 
-  const camposDePagamento = integracao.fields.filter(ehDePagamento);
-  const campoDeFormas = camposDePagamento.find((campo) => campo.methods);
-
-  /** Formas marcadas: o campo vazio (nunca salvo) é o padrão do gateway, como no backend */
-  const formasMarcadas = (campo: CredentialField) =>
-    valores[campo.key]
-      ? valores[campo.key].split(',')
-      : (campo.defaultMethods ?? campo.methods ?? []);
-
-  const comCredito =
-    !campoDeFormas || formasMarcadas(campoDeFormas).includes('CREDIT_CARD');
-
   const renderFormas = (campo: CredentialField) => {
     const marcadas = formasMarcadas(campo);
 
-    const alternar = (forma: string) =>
+    const alternar = (forma: string) => {
       definir(
         campo.key,
         // na ordem do gateway, não na ordem dos cliques
@@ -246,6 +399,13 @@ function ProviderForm({ churchId, integracao, onClose }: Props) {
           )
           .join(',')
       );
+      // sem Pix oferecido o Pix estático não tem onde aparecer: sai junto,
+      // em vez de ficar gravado sem uso
+      if (forma === 'PIX' && marcadas.includes('PIX') && campoDoPixEstatico) {
+        setComPixEstatico(false);
+        definir(campoDoPixEstatico.key, '');
+      }
+    };
 
     return (
       <Box key={campo.key}>
@@ -288,8 +448,11 @@ function ProviderForm({ churchId, integracao, onClose }: Props) {
                 sx={{
                   position: 'relative',
                   flexDirection: 'column',
-                  gap: 0.5,
-                  py: 1.25,
+                  gap: 0.75,
+                  // folga dos lados para o rótulo longo ("Cartão ou conta
+                  // PayPal") não encostar na borda nem no ✓ do canto
+                  py: 1.5,
+                  px: 3,
                   borderRadius: 2,
                   border: `1px solid ${
                     marcada ? theme.palette.primary.main : theme.palette.divider
@@ -324,7 +487,12 @@ function ProviderForm({ churchId, integracao, onClose }: Props) {
                     color: marcada ? 'primary.main' : 'text.disabled',
                   }}
                 />
-                <Typography variant="body2" fontWeight={marcada ? 600 : 400}>
+                <Typography
+                  variant="body2"
+                  fontWeight={marcada ? 600 : 400}
+                  textAlign="center"
+                  lineHeight={1.3}
+                >
                   {campo.methodLabels?.[forma] ??
                     PAYMENT_METHOD_LABEL[forma] ??
                     forma}
@@ -367,13 +535,8 @@ function ProviderForm({ churchId, integracao, onClose }: Props) {
   const renderRepasse = (campo: CredentialField) => {
     const taxas = lerTaxas(valores[campo.key] ?? '');
     const ligado = Object.keys(taxas).length > 0;
-    const visiveis = (campo.fees ?? []).filter(
-      (forma) => !campoDeFormas || formasMarcadas(campoDeFormas).includes(forma)
-    );
-    const rotulo = (forma: string) =>
-      campoDeFormas?.methodLabels?.[forma] ??
-      PAYMENT_METHOD_LABEL[forma] ??
-      forma;
+    const visiveis = formasDoRepasse(campo);
+    const rotulo = rotuloDaForma;
 
     const ligar = (sim: boolean) => {
       if (!sim) return definir(campo.key, '');
@@ -453,6 +616,9 @@ function ProviderForm({ churchId, integracao, onClose }: Props) {
                       )
                     }
                     error={!taxaValida(texto)}
+                    errorMessage={
+                      taxaValida(texto) ? undefined : 'De 0 a 99,99'
+                    }
                     inputProps={{ inputMode: 'decimal' }}
                     InputProps={{
                       endAdornment: (
@@ -475,6 +641,76 @@ function ProviderForm({ churchId, integracao, onClose }: Props) {
               quando houver, não entra.
             </Typography>
           </Box>
+        )}
+      </Box>
+    );
+  };
+
+  const renderPixEstatico = (campo: CredentialField) => {
+    const ligar = (sim: boolean) => {
+      setComPixEstatico(sim);
+      if (!sim) definir(campo.key, '');
+    };
+    const codigo = valores[campo.key] ?? '';
+
+    return (
+      <Box key={campo.key} sx={styles.chaves}>
+        <FormControlLabel
+          labelPlacement="start"
+          sx={styles.chave}
+          control={
+            <Switch
+              checked={comPixEstatico}
+              onChange={(evento) => ligar(evento.target.checked)}
+            />
+          }
+          label={
+            <Box sx={{ py: 0.5, pr: 1 }}>
+              <Typography variant="body2">Usar Pix estático</Typography>
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                display="block"
+              >
+                Quem escolher Pix vê o QR Code da chave Pix da igreja, já com o
+                valor da inscrição, sem passar pelo {integracao.label}.
+              </Typography>
+            </Box>
+          }
+        />
+        {comPixEstatico && (
+          <Stack spacing={1.5} sx={{ pb: 1.5, pt: 0.5 }}>
+            <Alert severity="warning" sx={{ alignItems: 'center' }}>
+              O Pix estático <strong>não é verificado automaticamente</strong> e{' '}
+              <strong>não dá baixa</strong>: confira o extrato da conta e marque
+              cada pagamento como pago em Pagamentos.
+            </Alert>
+            <Input
+              label={campo.label}
+              value={codigo}
+              onChange={(evento) =>
+                definir(campo.key, limparBrCode(evento.target.value))
+              }
+              {...semAutopreencher(false)}
+              size="small"
+              multiline
+              minRows={2}
+              placeholder="00020126…"
+              sx={{ width: '100%' }}
+              // Vermelho só com código colado que não fecha, ou depois de
+              // tentar salvar: vazio, logo ao ligar a chave, é só o começo
+              error={codigo.trim() ? !pareceBrCode(codigo) : tentouSalvar}
+              errorMessage={
+                !codigo.trim()
+                  ? tentouSalvar
+                    ? 'Cole o código para salvar.'
+                    : campo.help
+                  : !pareceBrCode(codigo)
+                    ? 'Cole o código Pix Copia e Cola inteiro, como o app do banco gera.'
+                    : campo.help
+              }
+            />
+          </Stack>
         )}
       </Box>
     );
@@ -515,8 +751,11 @@ function ProviderForm({ churchId, integracao, onClose }: Props) {
       open={!!integracao}
       onClose={onClose}
       disableClose={isLoading}
-      maxWidth="sm"
+      // 700px em todos os gateways: no `sm` (600) as formas e o repasse
+      // apertavam; no celular continua a folha de baixo
+      maxWidth={false}
       fullWidth
+      sx={{ '& .MuiDialog-paper': { maxWidth: 700 } }}
       title={
         <Stack direction="row" spacing={1.5} alignItems="center">
           <ProviderLogo provider={integracao.provider} size={32} />
@@ -525,6 +764,22 @@ function ProviderForm({ churchId, integracao, onClose }: Props) {
       }
       actions={
         <>
+          {/* à esquerda dos botões: o que falta corrigir, depois do clique
+              em Salvar (ou já, no Próximo travado do cadastro novo) */}
+          {!isLoading &&
+            problema &&
+            (tentouSalvar ||
+              (!editando &&
+                etapa === 'Credenciais' &&
+                credenciaisIncompletas)) && (
+              <Typography
+                variant="caption"
+                color="error"
+                sx={{ mr: 'auto', alignSelf: 'center', minWidth: 0 }}
+              >
+                {problema.texto}
+              </Typography>
+            )}
           <Button
             onClick={passo === 0 ? onClose : () => setPasso(passo - 1)}
             disabled={isLoading}
@@ -547,12 +802,13 @@ function ProviderForm({ churchId, integracao, onClose }: Props) {
           )}
 
           {/* na edição o salvar fica sempre à mão: trocar só as parcelas não
-              obriga a percorrer as etapas */}
+              obriga a percorrer as etapas. Travado só sem mudança nenhuma */}
           {(editando || ultimo) && (
             <Button
               variant="contained"
-              onClick={enviar}
-              disabled={isLoading || credenciaisIncompletas || taxaInvalida}
+              onClick={tentarSalvar}
+              disabled={isLoading || semMudanca}
+              title={semMudanca ? 'Nada foi alterado' : undefined}
             >
               {isLoading ? 'Salvando…' : 'Salvar'}
             </Button>
@@ -713,6 +969,12 @@ function ProviderForm({ churchId, integracao, onClose }: Props) {
               {camposDePagamento
                 .filter((campo) => campo.fees)
                 .map(renderRepasse)}
+
+              {/* só com o Pix marcado nas formas: é o Pix que ele substitui */}
+              {comPix &&
+                camposDePagamento
+                  .filter((campo) => campo.staticPix)
+                  .map(renderPixEstatico)}
 
               {/*
                 Cada coisa que a integração não deixa escolher ganha o próprio

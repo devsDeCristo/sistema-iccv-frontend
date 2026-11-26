@@ -43,7 +43,10 @@ function situacaoDe(pix: PixCheckout, agora: number): Situacao {
   if (pix.status === 'IN_ANALYSIS') return 'analise';
   if (pix.status !== 'WAITING') return 'encerrado';
   if (!pix.active) return 'substituido';
-  if (new Date(pix.expiresAt).getTime() <= agora) return 'expirado';
+  // Pix estático não vence: o código é fixo, e a baixa é de quem administra
+  if (!pix.manual && new Date(pix.expiresAt).getTime() <= agora) {
+    return 'expirado';
+  }
   return 'aguardando';
 }
 
@@ -166,7 +169,8 @@ function EventPixPayment() {
   const irParaMinhasInscricoes = () => navigate('/minhasInscricoes');
   const voltarAoEvento = () => navigate(`/eventos/${eventId}`);
 
-  const jaPaguei = (
+  // Pix estático: não há o que conferir — quem confirma é a organização
+  const jaPaguei = pix?.manual ? null : (
     <Button
       variant="outlined"
       fullWidth
@@ -275,9 +279,11 @@ function EventPixPayment() {
         situacao === 'expirado'
           ? 'Este código expirou'
           : 'Este código foi substituído',
-        situacao === 'expirado'
-          ? 'Se você já pagou, toque em "Já paguei". Se não, gere um novo pagamento em Minhas inscrições.'
-          : 'Um pagamento mais novo foi gerado para esta inscrição. Use o mais recente, em Minhas inscrições. Se você já pagou este, toque em "Já paguei".',
+        pix.manual
+          ? 'Um pagamento mais novo foi gerado para esta inscrição. Use o mais recente, em Minhas inscrições.'
+          : situacao === 'expirado'
+            ? 'Se você já pagou, toque em "Já paguei". Se não, gere um novo pagamento em Minhas inscrições.'
+            : 'Um pagamento mais novo foi gerado para esta inscrição. Use o mais recente, em Minhas inscrições. Se você já pagou este, toque em "Já paguei".',
         <>
           <Button
             variant="contained"
@@ -322,21 +328,25 @@ function EventPixPayment() {
             {copiado ? 'Código copiado' : 'Copiar código Pix'}
           </Button>
 
-          <Stack
-            direction="row"
-            justifyContent="space-between"
-            alignItems="center"
-          >
-            <Stack direction="row" spacing={1} alignItems="center">
-              <CircularProgress size={14} />
+          {/* Pix estático: sem prazo e sem confirmação automática, não há
+              o que contar nem esperar na tela */}
+          {!pix.manual && (
+            <Stack
+              direction="row"
+              justifyContent="space-between"
+              alignItems="center"
+            >
+              <Stack direction="row" spacing={1} alignItems="center">
+                <CircularProgress size={14} />
+                <Typography variant="body2" color="text.secondary">
+                  Aguardando pagamento
+                </Typography>
+              </Stack>
               <Typography variant="body2" color="text.secondary">
-                Aguardando pagamento
+                Expira em <strong>{relogio(restante)}</strong>
               </Typography>
             </Stack>
-            <Typography variant="body2" color="text.secondary">
-              Expira em <strong>{relogio(restante)}</strong>
-            </Typography>
-          </Stack>
+          )}
 
           {jaPaguei}
         </Stack>
@@ -381,13 +391,21 @@ function EventPixPayment() {
         <Paper sx={{ ...styles.cartao, ...(aguardando && styles.cartaoLargo) }}>
           <Stack spacing={2.5}>
             <Stack direction="row" spacing={1.5} alignItems="center">
-              <ProviderLogo provider={pix.provider} size={44} />
+              {/* Pix estático vai direto para a conta da igreja: o gateway
+                  não processa nada */}
+              {!pix.manual && (
+                <ProviderLogo provider={pix.provider} size={44} />
+              )}
               <Box>
                 <Typography fontWeight={700}>
-                  Processado pelo {pix.providerLabel}
+                  {pix.manual
+                    ? 'Pix para a organização do evento'
+                    : `Processado pelo ${pix.providerLabel}`}
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
-                  No app do seu banco, o recebedor pode aparecer com esse nome.
+                  {pix.manual
+                    ? 'No app do seu banco, o recebedor aparece com o nome da conta da igreja.'
+                    : 'No app do seu banco, o recebedor pode aparecer com esse nome.'}
                 </Typography>
               </Box>
             </Stack>

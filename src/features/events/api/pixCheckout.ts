@@ -31,6 +31,8 @@ export interface PixCheckout {
   status: string;
   /** `false` quando um pagamento novo tomou o lugar deste */
   active: boolean;
+  /** Pix estático da igreja: nenhum gateway confirma, a baixa é manual */
+  manual?: boolean;
 }
 
 const rota = ({ eventId, userId, referenceId }: PixCheckoutParams) =>

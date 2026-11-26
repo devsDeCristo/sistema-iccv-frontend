@@ -91,6 +91,16 @@ cá — é o servidor que monta o endereço.
 - **Cabeçalho fixo em todos os estados:** marca do gateway, "Processado pelo
   PayPal" e o aviso de que o recebedor pode aparecer com esse nome no app do
   banco. Abaixo, o evento e o valor.
+- **Pix estático** (`manual: true` na resposta; o código fixo que a igreja
+  colou na configuração do PayPal): sem a marca, o cabeçalho diz "Pix para a
+  organização do evento"; o QR já vem com o valor e o identificador da
+  inscrição (montados no servidor a partir da chave da igreja); aguardando,
+  mostra só o QR, o código e o botão de
+  copiar — sem "Aguardando pagamento", sem contagem regressiva, sem **Já
+  paguei** e sem aviso sobre a confirmação (quem paga não precisa saber). O
+  código não vence na tela (é fixo); só o "substituído", quando um pagamento
+  mais novo toma o lugar, continua valendo. A tela segue consultando e vira
+  "Pagamento confirmado" quando alguém dá a baixa manual.
 - **Aguardando:** QR Code (sempre sobre fundo branco — no tema escuro o leitor
   do banco não engata num QR desenhado sobre cinza), o copia e cola com botão
   de copiar, a contagem regressiva da validade e o botão **Já paguei**.
