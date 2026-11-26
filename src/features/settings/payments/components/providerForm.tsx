@@ -96,7 +96,24 @@ const retrato = (
  * PAULO"). O servidor limpa igual (`limparBrCode`).
  */
 const limparBrCode = (codigo: string) =>
-  codigo.replace(/[\r\n\t\u200B-\u200D\u2060\uFEFF]/g, '');
+  codigo
+    .replace(/[\r\n\t\u200B-\u200D\u2060\uFEFF]/g, '')
+    // espaço "especial" que alguns apps põem no lugar do comum ao copiar
+    .replace(/[\u00A0\u2000-\u200A\u202F\u205F\u3000]/g, ' ');
+
+/** O que já dá para dizer na tela; o resto (CRC, campos) o servidor diz ao salvar */
+const problemaNoCodigo = (codigo: string) => {
+  const texto = codigo.trim();
+  if (!texto.startsWith('000201')) {
+    return /@|^\+?[\d\s().-]{10,18}$/.test(texto)
+      ? 'Isso é a chave Pix, não o código: no app do banco, gere um Pix para receber (sem valor) e copie o "Pix Copia e Cola".'
+      : 'O código precisa começar com 000201: copie de novo o "Pix Copia e Cola" inteiro.';
+  }
+  if (!/6304[0-9A-Fa-f]{4}$/.test(texto)) {
+    return 'O final do código está faltando (ele termina em 6304 e mais 4 letras ou números): copie de novo, até o fim.';
+  }
+  return null;
+};
 
 /** BR Code inteiro: começa em `000201` e fecha com o CRC (`6304` + 4 hex) */
 const pareceBrCode = (codigo: string) =>
@@ -325,7 +342,14 @@ function ProviderForm({ churchId, integracao, onClose }: Props) {
             .join(', ')}: use de 0 a 99,99%.`,
         }
       : pixEstaticoInvalido
-        ? { etapa: 1, texto: 'Cole o código do Pix estático para salvar.' }
+        ? {
+            etapa: 1,
+            texto:
+              campoDoPixEstatico &&
+              (valores[campoDoPixEstatico.key] ?? '').trim()
+                ? `Pix estático: ${problemaNoCodigo(valores[campoDoPixEstatico.key] ?? '') ?? 'código inválido.'}`
+                : 'Cole o código do Pix estático para salvar.',
+          }
         : null;
 
   const enviar = () => {
@@ -705,9 +729,7 @@ function ProviderForm({ churchId, integracao, onClose }: Props) {
                   ? tentouSalvar
                     ? 'Cole o código para salvar.'
                     : campo.help
-                  : !pareceBrCode(codigo)
-                    ? 'Cole o código Pix Copia e Cola inteiro, como o app do banco gera.'
-                    : campo.help
+                  : (problemaNoCodigo(codigo) ?? campo.help)
               }
             />
           </Stack>
