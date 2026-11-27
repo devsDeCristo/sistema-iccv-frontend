@@ -68,7 +68,7 @@ import {
   BotaoDoGoogle,
   GOOGLE_CLIENT_ID,
 } from '../../components/botaoDoGoogle';
-import { setStoredUser } from '../../auth/session';
+import { getStoredUser, setStoredUser } from '../../auth/session';
 import { useUser } from '../../contexts/userContext';
 import { RegisterUsersFormType, User } from '../../types/user';
 import { AZUL_VIVO, VIOLETA_VIVO } from '../../themes';
@@ -971,12 +971,18 @@ function Profile() {
     [previa]
   );
 
-  /** a barra do topo mostra nome, e-mail e foto: ficam em dia com o perfil */
+  /**
+   * A barra do topo mostra nome, e-mail e foto: ficam em dia com o perfil.
+   * Só esses campos vão para a sessão. O `/users/me` traz `memberChurch` e
+   * `churchRoles` no formato do banco, e gravá-lo inteiro apagava os
+   * `modulos` da sessão, derrubando o menu lateral.
+   */
   const sincronizar = async () => {
     const { data: novo } = await refetch();
     if (!novo) return;
-    setStoredUser(novo);
-    setUser(novo);
+    const { fullName, email, profilePhotoUrl, badgeName } = novo;
+    setStoredUser({ fullName, email, profilePhotoUrl, badgeName });
+    setUser(getStoredUser());
   };
 
   const escolherFoto = (arquivo: File) => {

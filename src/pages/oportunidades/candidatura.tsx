@@ -41,7 +41,7 @@ function Candidatura() {
   // a mesma regra da vitrine: só membro de igreja com o módulo no plano; fora
   // disso nem consulta a API, e diz o motivo certo
   const igreja = getStoredUser()?.memberChurch;
-  const podeVer = !!igreja?.modulos.includes('OPPORTUNITIES');
+  const podeVer = !!igreja?.modulos?.includes('OPPORTUNITIES');
   const {
     data: vaga,
     isLoading,

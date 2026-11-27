@@ -18,7 +18,7 @@ import { PaginaDeCandidaturas } from '../../features/oportunidades/components/pa
 function CandidaturasDaProposta() {
   const { id } = useParams();
   const igreja = getStoredUser()?.memberChurch;
-  const podeVer = !!igreja?.modulos.includes('OPPORTUNITIES');
+  const podeVer = !!igreja?.modulos?.includes('OPPORTUNITIES');
   const { data: propostas, isLoading } = useMinhasPropostas(podeVer);
   const vaga = useMemo(
     () => propostas?.find((p) => p.id === id && p.status === 'APPROVED'),

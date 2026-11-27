@@ -87,7 +87,7 @@ function Secao({
  */
 function Solicitacoes() {
   const igreja = getStoredUser()?.memberChurch;
-  const podePedir = !!igreja?.modulos.includes('REQUESTS');
+  const podePedir = !!igreja?.modulos?.includes('REQUESTS');
   const [pedindo, setPedindo] = useState(false);
   // só o id: a janela acompanha o refetch (a resposta que chegou depois)
   const [abertaId, setAbertaId] = useState<string | null>(null);

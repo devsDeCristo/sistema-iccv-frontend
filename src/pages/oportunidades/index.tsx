@@ -48,7 +48,7 @@ const semAcento = (texto: string) =>
 
 function Oportunidades() {
   const igreja = getStoredUser()?.memberChurch;
-  const podeVer = !!igreja?.modulos.includes('OPPORTUNITIES');
+  const podeVer = !!igreja?.modulos?.includes('OPPORTUNITIES');
   const { data, isLoading } = useOportunidadesAbertas(podeVer);
   const [params, setParams] = useSearchParams();
   const navigate = useNavigate();

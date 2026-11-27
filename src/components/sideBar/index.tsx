@@ -739,7 +739,7 @@ const SideBar: React.FC<SideBarProps> = ({
           title: 'Eventos',
         },
         // só para quem é membro de uma igreja que usa o módulo
-        ...(getStoredUser()?.memberChurch?.modulos.includes('REQUESTS')
+        ...(getStoredUser()?.memberChurch?.modulos?.includes('REQUESTS')
           ? [
               {
                 link: '/solicitacoes',
@@ -749,7 +749,7 @@ const SideBar: React.FC<SideBarProps> = ({
             ]
           : []),
         // vagas de emprego: só para quem é membro de uma igreja com o módulo
-        ...(getStoredUser()?.memberChurch?.modulos.includes('OPPORTUNITIES')
+        ...(getStoredUser()?.memberChurch?.modulos?.includes('OPPORTUNITIES')
           ? [
               {
                 link: '/oportunidades',

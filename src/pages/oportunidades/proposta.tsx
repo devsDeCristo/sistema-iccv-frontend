@@ -27,7 +27,7 @@ function Proposta() {
   const { id } = useParams();
   const navigate = useNavigate();
   const igreja = getStoredUser()?.memberChurch;
-  const podeVer = !!igreja?.modulos.includes('OPPORTUNITIES');
+  const podeVer = !!igreja?.modulos?.includes('OPPORTUNITIES');
   const { data: propostas, isLoading } = useMinhasPropostas(podeVer && !!id);
   const salvar = useSalvarProposta();
   const imagemApi = useImagemDaOportunidade();
