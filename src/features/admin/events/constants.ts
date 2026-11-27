@@ -396,7 +396,7 @@ export const STEPS = [
   // quem cuida do evento sem ser admin da igreja: admins e tesoureiros(as)
   {
     id: 9,
-    label: 'Equipe',
+    label: 'Organização',
     icon: Groups,
   },
 ];
@@ -440,7 +440,7 @@ export const PANELS = [
   // só para quem administra a igreja: o admin de evento não mexe na equipe
   {
     id: 8,
-    label: 'Equipe',
+    label: 'Organização',
     icon: Groups,
   },
 ];

@@ -96,7 +96,7 @@ Arquivo: `src/features/admin/events/components/formGeneralInfo.tsx`.
 Assistente em 9 passos, cada um com seu próprio `react-hook-form` e validação
 Zod; só avança quem passa no `trigger()` do passo atual. Passos: Categoria do
 evento, Informações gerais, Data e Local, Módulos, Logo e capa, Termos,
-Configurações de inscrição, Produtos, Equipe.
+Configurações de inscrição, Produtos, Organização.
 
 **A régua dos passos (`StepProgress`, `src/components/step`):** no desktop, uma
 coluna de largura igual por passo, o ícone no centro e a linha ligando um ícone
@@ -196,7 +196,7 @@ botão que leva ao passo, com área de toque maior que a barra.
 - **Produtos (passo 8):** loja do evento e produtos vendidos junto com a
   inscrição — documentado em `docs/loja-do-evento.md`. Passo opcional: lista
   vazia passa direto.
-- **Equipe** (último passo, opcional — é ele que finaliza): os **admins do
+- **Organização** (último passo, opcional — é ele que finaliza): os **admins do
   evento** e os **tesoureiros(as)** (básico ou completo). Qualquer usuário do
   sistema, membro da igreja ou não: o seletor mostra os membros da igreja de
   cara (busca local, sem acento) e, com o CPF completo ou nome e sobrenome,
