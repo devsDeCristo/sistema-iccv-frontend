@@ -66,14 +66,14 @@ Quando o evento tem produto disponível (`temDisponivel` em alguma variante), a 
 
 - **Confirmar com produtos:** `usePostBuyEventProducts` com `attachToRegistration: true` — a compra entra no mesmo pagamento da inscrição — e depois segue automaticamente para o checkout (`pagarAgora = true`).
 - **Pular ("Não, obrigado"):** segue para a decisão de pagamento normal, sem produto nenhum.
-- **Saída sem decidir:** sair da tela (navegação, fechar aba, recarregar) antes de confirmar ou pular abre `ExitProductOfferDialog`, avisando que a inscrição continua confirmada mas os produtos escolhidos ali não entram no pagamento — dá para comprá-los depois, como compra separada, pela página do evento.
+- **Saída sem decidir:** sair da tela (navegação, fechar aba, recarregar) antes de confirmar ou pular abre `ExitProductOfferDialog`, avisando que a inscrição continua confirmada mas os produtos escolhidos ali não entram no pagamento — dá para comprá-los depois, como compra separada, pela página do evento. No Safari do iPhone, fechar ou recarregar a aba não avisa, porque lá o `beforeunload` não dispara. Só a navegação dentro do site mostra o aviso.
 - Estoque esgotado durante a escolha: o servidor recusa o item e a tela recarrega o evento para atualizar a disponibilidade, sem perder a inscrição.
 
 Arquivos: `src/features/events/components/productOffer.tsx`, `src/features/events/components/exitProductOfferDialog.tsx`, `src/features/admin/events/api/postBuyEventProducts.tsx` (não lido em detalhe aqui — ver `docs/loja-do-evento.md`).
 
 ## Pagamento e checkout
 
-- **Igreja que recebe pelo site** (`recebePagamentoOnline`, vindo de `event.church.chargesOnline` — módulo ligado **e** gateway ativo, com fallback para `modulePayment` em resposta antiga): depois de confirmar (com ou sem oferta de produtos), pergunta se a pessoa quer pagar agora. "Sim" abre `usePostCreateCheckoutEvent`, que cria a sala de pagamento e abre o link do gateway (`window.open`) em nova aba — checkout sempre hospedado, nunca transparente. "Não" volta para a página do evento; o pagamento fica pendente em Minhas Inscrições.
+- **Igreja que recebe pelo site** (`recebePagamentoOnline`, vindo de `event.church.chargesOnline` — módulo ligado **e** gateway ativo, com fallback para `modulePayment` em resposta antiga): depois de confirmar (com ou sem oferta de produtos), pergunta se a pessoa quer pagar agora. "Sim" abre `usePostCreateCheckoutEvent`, que cria a sala de pagamento e abre o link do gateway em nova aba (`irParaOCheckout`; no iPhone, se o navegador bloquear a aba, na própria aba — ver [pagamento-pix.md](pagamento-pix.md)) — checkout sempre hospedado, nunca transparente. "Não" volta para a página do evento; o pagamento fica pendente em Minhas Inscrições.
 - **Alguma inscrição foi para lista de espera:** a pergunta de pagamento cobre só as confirmadas ("Deseja realizar o pagamento apenas das confirmadas?").
 - **Igreja sem pagamento online** (`recebePagamentoOnline === false`): nenhuma pergunta de pagamento aparece. A inscrição é dada como concluída com aviso de que o valor é combinado diretamente com a organização.
 - **Erro 503 do servidor ao criar o checkout** (`ehPagamentoForaDoSite`): tratado como o mesmo aviso acima, não como erro — a inscrição já está feita, só o pagamento pelo site não está disponível para aquela igreja.

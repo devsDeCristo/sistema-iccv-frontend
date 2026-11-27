@@ -15,6 +15,7 @@ import {
   usePostCreateCheckoutEvent,
 } from '../../../features/admin/events/api/postCreateCheckoutEvent';
 import { useEscolhaDaForma } from '../../../features/events/components/useEscolhaDaForma';
+import { irParaOCheckout } from '../../../features/events/components/escolhaDaForma';
 import { temDisponivel } from '../../../features/admin/events/products';
 import {
   EventDetails,
@@ -72,7 +73,7 @@ function EventProducts() {
   const { mutate: abrirCheckout } = usePostCreateCheckoutEvent({
     onSuccess: (data: any) => {
       // quitado pelo desconto não tem link
-      if (data.link) window.open(data.link, '_blank', 'noopener,noreferrer');
+      irParaOCheckout(data.link);
       voltarAoEvento();
     },
     // a compra já existe: o pagamento continua disponível em Minhas Inscrições

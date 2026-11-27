@@ -41,6 +41,7 @@ import { usePostBuyEventProducts } from '../../../features/admin/events/api/post
 import { temDisponivel } from '../../../features/admin/events/products';
 import { ProductOffer } from '../../../features/events/components/productOffer';
 import { useEscolhaDaForma } from '../../../features/events/components/useEscolhaDaForma';
+import { irParaOCheckout } from '../../../features/events/components/escolhaDaForma';
 import { ExitProductOfferDialog } from '../../../features/events/components/exitProductOfferDialog';
 import { EventTermsDialog } from '../../../features/events/components/eventTermsDialog';
 import { temTermo } from '../../../features/admin/events/terms';
@@ -231,7 +232,7 @@ function Subscribe() {
       const link = data.link;
 
       // quitado pelo desconto não tem link
-      if (link) window.open(link, '_blank', 'noopener,noreferrer');
+      irParaOCheckout(link);
       setLoadingPayment(false);
       navigate('/eventos/' + id);
     },

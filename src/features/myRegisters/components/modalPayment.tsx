@@ -26,6 +26,7 @@ import {
   EscolhaDePagamento,
   FormaDePagamento,
   OpcoesDaForma,
+  irParaOCheckout,
 } from '../../events/components/escolhaDaForma';
 import { useEstiloDeIngresso } from '../../events/components/ingresso';
 import { TaxaDeServico, avisoDaTaxa } from '../../events/taxaDeServico';
@@ -142,7 +143,7 @@ export function ModalPayment({
   const { mutate: criarCheckout } = usePostCreateCheckoutEvent({
     onSuccess: (data: any) => {
       // quitado pelo desconto não tem link
-      if (data.link) window.open(data.link, '_blank', 'noopener,noreferrer');
+      irParaOCheckout(data.link);
       setGerando(false);
       if (data.paid) handleClose();
     },

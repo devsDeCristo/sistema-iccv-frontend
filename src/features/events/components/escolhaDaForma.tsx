@@ -37,6 +37,44 @@ export interface EscolhaDePagamento {
 /** `CREDIT_CARD` é a outra saída: o checkout do gateway, com o que estiver lá */
 export type FormaDePagamento = 'PIX' | 'CREDIT_CARD';
 
+/**
+ * O Safari do iPhone só abre aba dentro do clique: depois de um `await` o
+ * `window.open` é bloqueado em silêncio. Por isso a aba abre em branco no
+ * clique da forma de pagamento e recebe o link quando o servidor responde.
+ */
+let abaReservada: Window | null = null;
+
+const reservarAbaDoCheckout = () => {
+  abaReservada?.close();
+  abaReservada = window.open('', '_blank');
+  abaReservada?.document.write('Abrindo o pagamento...');
+};
+
+export const fecharAbaReservada = () => {
+  abaReservada?.close();
+  abaReservada = null;
+};
+
+/**
+ * Leva ao checkout: na aba reservada, se houver; senão numa nova; e, se o
+ * navegador bloquear (iPhone sem clique por perto), na própria aba. Sem link
+ * (quitado pelo desconto) só fecha a reservada.
+ */
+export const irParaOCheckout = (link?: string) => {
+  const aba = abaReservada && !abaReservada.closed ? abaReservada : null;
+  abaReservada = null;
+  if (!link) return aba?.close();
+
+  // sem `noopener` no open, que faria ele devolver null sempre
+  const destino = aba ?? window.open('', '_blank');
+  if (!destino) {
+    window.location.href = link;
+    return;
+  }
+  destino.opener = null;
+  destino.location.href = link;
+};
+
 /** O verde do Pix */
 const VERDE_DO_PIX = '#1E9E8F';
 
@@ -127,7 +165,10 @@ export function OpcoesDaForma({
           <ButtonBase
             key={forma}
             disableRipple
-            onClick={() => onEscolher(forma)}
+            onClick={() => {
+              reservarAbaDoCheckout();
+              onEscolher(forma);
+            }}
             sx={{
               ...styles.ingresso,
               ...styles.emPe,

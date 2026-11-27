@@ -10,6 +10,7 @@ import { GET_PAYMENTS_USER } from '../../../myRegisters/constants';
 import {
   EscolhaDePagamento,
   FormaDePagamento,
+  fecharAbaReservada,
 } from '../../../events/components/escolhaDaForma';
 
 type PostCreateCheckoutEventProps = {
@@ -95,6 +96,9 @@ const postCreateCheckoutEvent = async (props: PostCreateCheckoutEventProps) => {
         : 'Sala de pagamento criada com sucesso!'
     )();
   } catch (error) {
+    // a aba reservada no clique da forma não tem para onde ir
+    fecharAbaReservada();
+
     // Desistir da pergunta não é falha: sem toast vermelho. Quem chamou trata
     // como qualquer pagamento que ficou para depois.
     if (error instanceof EscolhaCancelada) throw error;

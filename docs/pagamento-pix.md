@@ -22,7 +22,13 @@ do sistema". Nenhum dado de cartão passa pelo sistema.
 - **Como funciona:** a primeira chamada vai sem forma de pagamento. Se o
   servidor responde `choice` em vez de `link`, a pergunta é feita (o
   `escolher` que a tela passa — obrigatório) e a chamada se repete com `method: 'PIX'` ou `'CREDIT_CARD'`. Aí vem o `link`, e as telas
-  seguem como sempre (`window.open`).
+  o abrem com `irParaOCheckout` (em `escolhaDaForma.tsx`).
+- **Aba nova no iPhone:** o Safari do iPhone bloqueia `window.open` que não
+  esteja dentro do clique, e o link só chega depois da segunda chamada. Por
+  isso o clique na forma já abre uma aba em branco ("Abrindo o pagamento...")
+  e `irParaOCheckout` leva essa aba ao link. Sem link (quitado) ou com erro e
+  desistência, a aba reservada fecha. Sem aba reservada (gateway sem pergunta)
+  tenta aba nova e, se o navegador bloquear, segue na própria aba.
 - **O que a pergunta mostra, sempre:** a marca do gateway, a frase "Processado
   pelo {gateway}" e, em cada opção, como se paga e quando confirma — sem falar
   de onde a pessoa paga ("aqui", "no site do gateway"), que não é o que ela

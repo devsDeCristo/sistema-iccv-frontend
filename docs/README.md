@@ -55,6 +55,8 @@ também vale lá.
 - **Evento já acabou (`jaAcabou`, em `src/features/events/utils.ts`):** a data final ficou para trás, contando o dia inteiro. Um evento que termina hoje ainda está acontecendo.
 - **Evento em andamento (`emAndamento`, em `src/features/admin/events/utils/eventStatus.ts`):** hoje cai entre o início e o fim, contando o dia inteiro nas duas pontas.
 - **Cor do evento:** `event.data.colors.primary`, conferida com `ehCorHex`. Sem cor válida, vale a cor primária do tema.
+- **Abrir aba no iPhone:** o Safari do iPhone só deixa `window.open` (e `navigator.clipboard`) rodar dentro do clique, antes de qualquer `await`. Depois de uma chamada à API, a aba é bloqueada em silêncio: no computador funciona e no iPhone não abre nada. Link que vem da API: reserve a aba no clique e navegue nela quando a resposta chegar, ou use `irParaOCheckout` (em `src/features/events/components/escolhaDaForma.tsx`), que cai para a própria aba quando não há aba reservada e o navegador bloqueia. Ver [pagamento-pix.md](pagamento-pix.md).
+- **`beforeunload` não dispara no iPhone:** fechar ou recarregar a aba no Safari do iPhone não mostra aviso de saída. Proteção que importa tem que valer também na navegação interna, pelo router.
 - **Data do evento na inscrição:** a rota `/users/:id/payments` (`paymentsWithRoles`) não traz a data do evento. Quem precisa dela cruza com o catálogo (`useGetEvents({})`, mesma consulta em cache) pelo `eventId`.
 
 ## Manter atualizado
