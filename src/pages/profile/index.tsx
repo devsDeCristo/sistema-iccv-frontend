@@ -1052,11 +1052,14 @@ function Profile() {
               />
             </Tabs>
             <Box sx={{ p: { xs: 2, md: 3 } }}>
-              {aba === 'dados' ? (
+              {/* as duas abas ficam montadas, a inativa só escondida:
+                  desmontar apagava o que estava digitado ao trocar de aba */}
+              <Box hidden={aba !== 'dados'}>
                 <MeusDados eu={eu} aoSalvar={sincronizar} />
-              ) : (
+              </Box>
+              <Box hidden={aba !== 'seguranca'}>
                 <Seguranca />
-              )}
+              </Box>
             </Box>
           </Paper>
         </Stack>

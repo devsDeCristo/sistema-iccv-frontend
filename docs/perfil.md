@@ -16,6 +16,7 @@ Arquivos: `src/routes/index.tsx`, `src/pages/profile/index.tsx`.
 - Foto (com iniciais como alternativa), nome completo, e-mail e CPF (formatado, só leitura).
 - **Trocar foto:** menu com "Tirar foto com a câmera" (webcam) ou "Escolher arquivo" (`.jpeg`, `.png`, `.webp`). Envio via `POST /users/me/profile-photo`; ao concluir, o cadastro é atualizado e a barra do topo (nome/foto) é sincronizada.
 - **Sincronizar com a sessão:** depois de salvar dados ou foto, só `fullName`, `email`, `profilePhotoUrl` e `badgeName` vão para a sessão (`setStoredUser`). O `/users/me` traz `memberChurch` e `churchRoles` no formato do banco, sem os `modulos`. Gravá-lo inteiro, como era antes, derrubava o menu lateral com "Cannot read properties of undefined (reading 'includes')".
+- **Trocar de aba não apaga nada:** as duas abas ficam montadas e a inativa só fica escondida (`hidden`). O que foi digitado e ainda não foi salvo, em uma aba ou na outra, continua lá ao voltar.
 
 ## Aba "Meus dados"
 
