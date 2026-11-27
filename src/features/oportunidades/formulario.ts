@@ -186,9 +186,12 @@ export const ETAPAS: {
 export const etapaDe = (valor: EtapaDaCandidatura) =>
   ETAPAS.find((e) => e.valor === valor) ?? ETAPAS[0];
 
-/** O link do WhatsApp para um celular brasileiro (com ou sem o 55) */
+/**
+ * O link do WhatsApp para um celular brasileiro (com ou sem o 55). O zero de
+ * discagem na frente sai: "084 99999-0000" virava um link para número nenhum.
+ */
 export function linkDoWhatsApp(celular?: string | null) {
-  const d = (celular ?? '').replace(/\D/g, '');
+  const d = (celular ?? '').replace(/\D/g, '').replace(/^0+/, '');
   if (d.length < 10) return null;
   return `https://wa.me/${d.length <= 11 ? `55${d}` : d}`;
 }

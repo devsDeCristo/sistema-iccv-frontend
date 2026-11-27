@@ -33,6 +33,11 @@ export interface PixCheckout {
   active: boolean;
   /** Pix estático da igreja: nenhum gateway confirma, a baixa é manual */
   manual?: boolean;
+  /**
+   * Pix estático: para quem mandar o comprovante — os tesoureiros(as) do
+   * evento, ou os admins dele quando não há tesoureiro
+   */
+  comprovantePara?: { nome: string; celular: string }[];
 }
 
 const rota = ({ eventId, userId, referenceId }: PixCheckoutParams) =>

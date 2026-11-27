@@ -3,26 +3,31 @@ import { useNavigate, useParams } from 'react-router-dom';
 import {
   Box,
   Button,
+  ButtonBase,
   CircularProgress,
   Divider,
   Paper,
   Skeleton,
   Stack,
   Typography,
+  alpha,
   useTheme,
 } from '@mui/material';
 import {
   Check,
   CheckCircleOutline,
+  ChevronRight,
   ContentCopy,
   ErrorOutline,
   HourglassEmpty,
   ReceiptLong,
+  WhatsApp,
 } from '@mui/icons-material';
 import { QRCodeCanvas } from 'qrcode.react';
 import { toast } from 'react-toastify';
 
 import { Header } from '../../../components/header';
+import { getStoredUser } from '../../../auth/session';
 import { PageStyle } from '../../../components/pageStyle';
 import { ProviderLogo } from '../../../features/settings/payments/components/providerLogo';
 import {
@@ -30,9 +35,18 @@ import {
   useGetPixCheckout,
   usePostConferirPix,
 } from '../../../features/events/api/pixCheckout';
-import { formatCurrency } from '../../../utils';
+import {
+  formatCurrency,
+  formatNameCase,
+  limitToTwoNames,
+} from '../../../utils';
 import CustomChip from '../../../components/customChip';
 import { formatarPercentual } from '../../../features/events/taxaDeServico';
+import { primeiroNome } from '../../../features/events/utils';
+import { linkDoWhatsApp } from '../../../features/oportunidades/formulario';
+
+/** O verde do WhatsApp, o mesmo do botão do grupo na página do evento */
+const VERDE_DO_WHATSAPP = '#25D366';
 
 type Situacao =
   'aguardando' | 'pago' | 'analise' | 'expirado' | 'substituido' | 'encerrado';
@@ -164,6 +178,45 @@ function EventPixPayment() {
       maxHeight: 76,
       overflowY: 'auto' as const,
     },
+    // a caixa do comprovante, num verde claro para separar do QR e do código
+    comprovante: {
+      display: 'flex',
+      flexDirection: 'column' as const,
+      gap: 1,
+      p: 1.5,
+      borderRadius: 2,
+      border: `1px solid ${alpha(VERDE_DO_WHATSAPP, 0.35)}`,
+      backgroundColor: alpha(VERDE_DO_WHATSAPP, 0.06),
+    },
+    contato: {
+      justifyContent: 'flex-start',
+      gap: 1,
+      px: 1,
+      py: 0.75,
+      borderRadius: 1.5,
+      textAlign: 'left' as const,
+      border: `1px solid ${theme.palette.divider}`,
+      backgroundColor: theme.palette.background.paper,
+      transition: 'border-color .15s, transform .15s',
+      '&:hover': {
+        borderColor: VERDE_DO_WHATSAPP,
+        transform: 'translateY(-1px)',
+      },
+      '&.Mui-focusVisible': {
+        outline: `2px solid ${VERDE_DO_WHATSAPP}`,
+        outlineOffset: 2,
+      },
+    },
+    seloDoWhatsApp: {
+      width: 28,
+      height: 28,
+      flexShrink: 0,
+      borderRadius: '50%',
+      display: 'grid',
+      placeItems: 'center',
+      color: '#fff',
+      backgroundColor: VERDE_DO_WHATSAPP,
+    },
   };
 
   const irParaMinhasInscricoes = () => navigate('/minhasInscricoes');
@@ -179,6 +232,79 @@ function EventPixPayment() {
     >
       {conferindo ? 'Conferindo…' : 'Já paguei'}
     </Button>
+  );
+
+  /**
+   * Pix estático: ninguém fica sabendo do pagamento sozinho, então o inscrito
+   * manda o comprovante a um tesoureiro(a) do evento (ou admin, sem
+   * tesoureiro). Link comum (`href`), e não `window.open`: abre o WhatsApp
+   * também no iPhone. Sem ninguém com celular, fica o aviso em texto.
+   */
+  const contatos = (pix?.manual ? (pix.comprovantePara ?? []) : []).flatMap(
+    ({ nome, celular }) => {
+      const link = linkDoWhatsApp(celular);
+      // o cadastro vem em CAIXA ALTA e com o nome inteiro: no botão, dois nomes
+      const curto = formatNameCase(limitToTwoNames(nome), 'capitalize');
+      return link ? [{ nome: curto, link }] : [];
+    }
+  );
+
+  // Quem recebe confere pelo extrato: o valor, o evento e de quem é o
+  // pagamento já vão escritos, para a pessoa só anexar o comprovante
+  const quemPagou = formatNameCase(
+    limitToTwoNames(getStoredUser()?.fullName ?? ''),
+    'capitalize'
+  );
+  const mensagemDoComprovante = (contato: string) =>
+    [
+      `Olá, ${primeiroNome(contato)}! Segue o comprovante do Pix`,
+      pix?.amountCents ? ` de ${formatCurrency(pix.amountCents / 100)}` : '',
+      ` do evento ${pix?.eventName}`,
+      // em nome do inscrito, e não "meu": às vezes quem paga é outra pessoa
+      quemPagou ? `, em nome de ${quemPagou}.` : '.',
+    ].join('');
+
+  const enviarComprovante = pix?.manual && (
+    <Box sx={styles.comprovante}>
+      <Stack direction="row" spacing={1} alignItems="flex-start">
+        <ReceiptLong
+          sx={{ fontSize: 20, mt: 0.25, color: VERDE_DO_WHATSAPP }}
+        />
+        <Box>
+          <Typography variant="body2" fontWeight={700}>
+            Já pagou? Envie o comprovante
+          </Typography>
+          <Typography variant="caption" color="text.secondary">
+            {contatos.length
+              ? 'É com ele que a organização confirma o seu pagamento. Envie para o nosso financeiro:'
+              : 'Envie para a administração do evento. É com ele que a organização confirma o seu pagamento.'}
+          </Typography>
+        </Box>
+      </Stack>
+      {contatos.map(({ nome, link }) => (
+        <ButtonBase
+          key={link}
+          component="a"
+          href={`${link}?text=${encodeURIComponent(mensagemDoComprovante(nome))}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          sx={styles.contato}
+        >
+          <Box sx={styles.seloDoWhatsApp}>
+            <WhatsApp sx={{ fontSize: 16 }} />
+          </Box>
+          <Typography
+            variant="body2"
+            fontWeight={600}
+            noWrap
+            sx={{ flex: 1, minWidth: 0 }}
+          >
+            {nome}
+          </Typography>
+          <ChevronRight fontSize="small" sx={{ color: 'text.secondary' }} />
+        </ButtonBase>
+      ))}
+    </Box>
   );
 
   const aviso = (
@@ -349,6 +475,7 @@ function EventPixPayment() {
           )}
 
           {jaPaguei}
+          {enviarComprovante}
         </Stack>
       </Box>
     );

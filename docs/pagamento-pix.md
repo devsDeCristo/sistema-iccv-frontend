@@ -107,6 +107,17 @@ cá — é o servidor que monta o endereço.
   código não vence na tela (é fixo); só o "substituído", quando um pagamento
   mais novo toma o lugar, continua valendo. A tela segue consultando e vira
   "Pagamento confirmado" quando alguém dá a baixa manual.
+  Abaixo do botão de copiar vem a caixa verde "Já pagou? Envie o
+  comprovante", com um cartão de WhatsApp por tesoureiro(a) do evento
+  (`comprovantePara` na resposta; sem tesoureiro, vêm os admins do evento).
+  O cartão mostra só os dois primeiros nomes (`limitToTwoNames`, o mesmo do
+  crachá). A mensagem já vai escrita, com o primeiro nome de quem recebe, o
+  valor, o evento e "em nome de" com os dois nomes do inscrito (e não "meu
+  Pix": às vezes quem paga é outra pessoa). O servidor já manda a lista sem
+  celular inválido, sem número repetido e sem o próprio inscrito. O cartão é um link comum
+  (`href`, via `linkDoWhatsApp`), para abrir também no iPhone. Quem não tem
+  celular válido fica de fora; sem ninguém, a caixa diz para enviar à
+  administração do evento.
 - **Aguardando:** QR Code (sempre sobre fundo branco — no tema escuro o leitor
   do banco não engata num QR desenhado sobre cinza), o copia e cola com botão
   de copiar, a contagem regressiva da validade e o botão **Já paguei**.
